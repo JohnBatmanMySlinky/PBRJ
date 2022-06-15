@@ -1,0 +1,20 @@
+pdf has
+    value
+    generate
+
+cosine_pf is instantiated with 
+    hit_record.normal
+cosine_pdf has 
+    generate(
+        localize(orthonomral(normal), 
+        random_cosine_direction()
+    ) -> vec3 used in ray direction
+
+    value(generate(...)) -> float used as pdf_val
+
+hittable_pdf is instantiated with
+    a hittable
+    origin
+hittable_pdf has 
+    generate() aka Hittable::random()
+    value() aka Hittable::pdf_value()

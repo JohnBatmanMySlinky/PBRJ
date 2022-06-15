@@ -1,0 +1,17 @@
+8.1 Reflection Interface Basic Interface
+    BxDF
+        f(wo, wi)
+            It returns the value of the distribution function for the given pair of directions
+            doesn't work for delta distributions
+        Sample_f(wo, wi, sample, *pdf, *sampledtype)
+            computes the direction of incident light wi given an outgoing direction wo and returns the value of the BxDF for the pair of directions
+            Handles delta distributions
+            sample & pdf are only used for non-delta
+        rho()
+        rho()
+        Pdf()
+8.3 Lambertian Reflection
+    LambertianReflection
+        f(): R / pi
+        rho(): R
+        rho(): R
