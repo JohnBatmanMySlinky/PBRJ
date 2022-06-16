@@ -13,8 +13,6 @@ abstract type Hittable end
 abstract type Texture end
 abstract type BxDF end
 
-
-
 function write_color(pixel_color::Vec3)::String
     ir = Int(trunc(255.999 * pixel_color[1]))
     ig = Int(trunc(255.999 * pixel_color[2]))
