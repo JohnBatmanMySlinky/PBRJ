@@ -16,6 +16,7 @@ abstract type Integrator end
 
 include("vec.jl")
 include("ray.jl")
+include("primitive.jl")
 include("interactions.jl")
 include("transformations.jl")
 include("shapes/shape.jl")

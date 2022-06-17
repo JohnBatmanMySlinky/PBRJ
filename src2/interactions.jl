@@ -29,6 +29,7 @@ mutable struct SurfaceInteraction
     dndv::Vec3
 
     shape::Shape
+    primitive::Maybe{GeometricPrimitive}
 end
 
 function InstantiateSurfaceInteraction(
@@ -40,7 +41,8 @@ function InstantiateSurfaceInteraction(
     dpdv::Vec3,
     dndu::Vec3,
     dndv::Vec3,
-    shape::Shape
+    shape::Shape,
+    primitive::Maybe{GeometricPrimitive}=nothing
 )::SurfaceInteraction
     n = normalize(cross(dpdu, dpdv))
 
@@ -54,6 +56,7 @@ function InstantiateSurfaceInteraction(
         dpdv,
         dndu,
         dndv,
-        shape
+        shape,
+        nothing
     )
 end

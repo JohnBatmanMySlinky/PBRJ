@@ -1,4 +1,4 @@
-struct Ray
+mutable struct Ray
     origin::Vec3
     direction::Vec3
     time::Float64

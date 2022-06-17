@@ -7,3 +7,5 @@ struct Bounds3
     pMin::Vec3
     pMax::Vec3
 end
+
+const Maybe{T} = Union{T, Nothing}
