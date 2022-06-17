@@ -3,10 +3,41 @@ struct Transformation
     inv_m::Mat4
 end
 
+function Inv(t::Transformation)::Transformation
+    return Transformation(
+        t.inv_m,
+        t.m
+    )
+end
+
+########################################
+######## Generate Transformations ######
+########################################
+
+function Translate(v::Vec3)::Transformation
+    m = Mat4([
+        1 0 0 v[1]
+        0 1 0 v[2]
+        0 0 1 v[3]
+        0 0 0 1
+    ])
+    m_inv = Mat4([
+        1 0 0 -v[1]
+        0 1 0 -v[2]
+        0 0 1 -v[3]
+        0 0 0 1
+    ])
+    return Transformation(m, m_inv)
+end
+
+########################################
+### Apply Transformations to Things ####
+########################################
+
 # apply transformations to a vector
 function (t::Transformation)(p::Vec3)::Vec3
     tmp = Vec4(p...,1)
-    ph = transpose(Mat4([tmp tmp tmp tmp]))
+    ph = Mat4([tmp tmp tmp tmp])
     pt = t.m * ph
     pr = Vec3(pt[1:3])
     if pt[4] == 1 

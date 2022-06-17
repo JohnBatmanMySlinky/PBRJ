@@ -1,4 +1,3 @@
-# object exists in object space
 struct Sphere <: Shape
     core::ShapeCore
     radius::Float32
@@ -8,6 +7,7 @@ struct Sphere <: Shape
     # theta ranges from [0,2pi]
     thetaMin::Float32
     thetaMax::Float32
+    # phi ranges from [0,2pi]
     phiMax::Float32
 end
 
@@ -37,7 +37,7 @@ function Intersect(s::Sphere, r::Ray)
     else
         t_shape_hit = t0
         if t_shape_hit <= 0
-            t_shape_hit = 1
+            t_shape_hit = t1
             if t_shape_hit > r.tMax
                 return false, nothing, nothing
             end
@@ -100,7 +100,7 @@ function Intersect(s::Sphere, r::Ray)
     return true, t_shape_hit, interaction
 end
 
-# 3.2.5
+# PBR 3.2.5
 function area(s::Sphere)::Float32
     return s.phiMax * s.radius * (s.zMax - s.zMin)
 end
