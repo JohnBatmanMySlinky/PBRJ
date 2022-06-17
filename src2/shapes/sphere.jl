@@ -2,8 +2,10 @@
 struct Sphere <: Shape
     core::ShapeCore
     radius::Float32
+    # z ranges from [0,r]
     zMin::Float32
     zMax::Float32
+    # theta ranges from [0,2pi]
     thetaMin::Float32
     thetaMax::Float32
     phiMax::Float32
@@ -20,11 +22,11 @@ end
 # PBR 3.2.2
 function Intersect(s::Sphere, r::Ray)
     # transform ray to object space 
-    object_ray = s.core.world_to_object(ray)
+    object_ray = s.core.world_to_object(r)
 
-    a = dot(norm(object_ray.direction))
+    a = norm(dot(object_ray.direction, object_ray.direction))
     b = 2 * dot(object_ray.origin, object_ray.direction)
-    c = dot(norm(object_ray.origin)) ^ 2 - s.radius ^ 2
+    c = norm(dot(object_ray.origin, object_ray.origin)) - s.radius ^ 2
 
     # solve quadratic
     exists, t0, t1 = solve_quadratic(a, b, c)
@@ -52,7 +54,7 @@ function Intersect(s::Sphere, r::Ray)
     phi = compute_phi(p)
 
     # test clipping
-    if (s.zMin > -s.radius && p[3] < s.zMin) || (s.zMax < radius && p[3] > s.zMax) || phi > s.phiMax
+    if (s.zMin > -s.radius && p[3] < s.zMin) || (s.zMax < s.radius && p[3] > s.zMax) || phi > s.phiMax
         if t_shape_hit == t1
             return false, nothing, nothing
         end
@@ -83,8 +85,8 @@ function Intersect(s::Sphere, r::Ray)
     interaction = InstantiateSurfaceInteraction(
         p,
         r.time,
-        -r.direciton,
-        Point2(u, v),
+        -r.direction,
+        Vec2(u, v),
         dpdu,
         dpdv,
         dndu,
@@ -95,7 +97,7 @@ function Intersect(s::Sphere, r::Ray)
     # transform back to world coordinates
     interaction = s.core.object_to_world(interaction)
 
-    return bool, t_shape_hit, Interaction
+    return true, t_shape_hit, interaction
 end
 
 # 3.2.5
@@ -132,12 +134,12 @@ function precompute_phi(p::Vec3)::Tuple{Float32, Float32}
     inv_z_radius = 1 / z_radius
     cos_phi = p[1] * inv_z_radius
     sin_phi = p[2] * inv_z_radius
-    return Vec2(sin_phi, cos_phi)
+    return sin_phi, cos_phi
 end
 
 # compute partials
-function dp(s::Sphere, p::Vec3, theta::Float32, sin_phi::Float32, cos_phi::Float32)
-    dpdu = Vec3f0(-s.phiMax * p[2], s.phiMax * p[1], 0f0)
+function dp(s::Sphere, p::Vec3, theta::Float64, sin_phi::Float32, cos_phi::Float32)
+    dpdu = Vec3(-s.phiMax * p[2], s.phiMax * p[1], 0f0)
     dpdv = (s.thetaMax - s.thetaMin) * Vec3(
         p[3] * cos_phi, p[3] * sin_phi, -s.radius * sin(theta),
     )

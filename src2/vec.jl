@@ -1,3 +1,4 @@
+const Vec4 = SVector{4, Float64}
 const Vec3 = SVector{3, Float64}
 const Vec2 = SVector{2, Float64}
 const Mat4 = SMatrix{4, 4, Float64}

@@ -1,4 +1,4 @@
-function solve_quadratic(a::Float32, b::Float32, c::Float32)::Tuple{Bool, Float32, Float32}
+function solve_quadratic(a::Float64, b::Float64, c::Float64)::Tuple{Bool, Float64, Float64}
     # Find disriminant.
     d = b ^ 2 - 4 * a * c
     if d < 0
@@ -13,4 +13,8 @@ function solve_quadratic(a::Float32, b::Float32, c::Float32)::Tuple{Bool, Float3
         t0, t1 = t1, t0
     end
     return true, t0, t1
+end
+
+function distance(p1::Vec3, p2::Vec3)::Float64
+    return norm(p1 - p2)
 end

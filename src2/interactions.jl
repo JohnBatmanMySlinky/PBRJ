@@ -33,7 +33,7 @@ end
 
 function InstantiateSurfaceInteraction(
     p::Vec3, 
-    time::Float32,
+    time::Float64,
     wo::Vec3,
     uv::Vec2,
     dpdu::Vec3,
@@ -41,7 +41,7 @@ function InstantiateSurfaceInteraction(
     dndu::Vec3,
     dndv::Vec3,
     shape::Shape
-)::SurfaceIntersection
+)::SurfaceInteraction
     n = normalize(cross(dpdu, dpdv))
 
     core = Interaction(p, time, wo, n)
