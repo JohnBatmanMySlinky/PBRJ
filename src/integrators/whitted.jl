@@ -2,28 +2,26 @@ struct WhittedIntegrator <: Integrator
     max_depth::Int64
 end
 
-function (i::WhittedIntegrator)(ray::Ray, world::Hittable, lights::Hittable)
+function li(i::WhittedIntegrator, ray::Ray, world::Hittable, lights::Hittable)
     L = Vec3(0, 0, 0)
 
     # find closest intersection
-    hit_check, hit_record = hit(world, r, .0001, typemax(Float64))
+    hit_record = hit(world, ray, .0001, typemax(Float64))
 
     # if no intersection, 
-    if hit == false
+    if ismissing(hit_record)
         for light in lights.list
             L += le(light, ray)
         end
-        # return background radiance
-        # because ray can't miss infinite env light
         return L
     end
 
     # shading vs geometric normal
     n = hit_record.normal
-    wo = something
+    wo = -ray.direction
 
     # compute scattering function for surface interaction
-
+    
 
     # if no bsdf, spawn new ray and recurse
     if hit_record.bsdf isa Nothing

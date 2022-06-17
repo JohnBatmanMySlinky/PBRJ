@@ -1,12 +1,31 @@
-struct HitRecord
+mutable struct HitRecord
+    # world coordinates
+    p::Vec3 
+
+    # time of intersection
     t::Float64
-    p::Vec3
+
+    # negative direction of ray
+    # angle towards the viewer
+    wo::Vec3
+
+    # surface normal in world coorindates
     normal::Vec3
-    material::Material
-    front_face::Bool
-    u::Float64
-    v::Float64
 end
+
+mutable struct  
+
+
+
+
+
+
+
+
+
+
+
+
 
 function check_face_normal(r::Ray, outward_normal::Vec3)::Bool
     # flip normal sign if false, keep if true
