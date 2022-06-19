@@ -18,3 +18,7 @@ end
 function distance(p1::Vec3, p2::Vec3)::Float64
     return norm(p1 - p2)
 end
+
+function lerp(t::Float64, a::Float64, b::Float64)::Float64
+    return a + t * (b - a)
+end

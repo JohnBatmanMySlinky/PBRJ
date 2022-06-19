@@ -30,6 +30,35 @@ function Translate(v::Vec3)::Transformation
     return Transformation(m, m_inv)
 end
 
+function Scale(v::Vec3)::Transformation\
+    m = transpose(Mat4([
+        v[1] 0    0    0
+        0    v[2] 0    0
+        0    0    v[3] 0
+        0    0    0    1
+    ]))
+
+    m_inv = transpose(Mat4([
+        1/v[1] 0      0      0
+        0      1/v[2] 0      0
+        0      0      1/v[3] 0
+        0      0      0      1
+    ]))
+    return Transformation(m, m_inv)
+end
+
+function Perspecitve(fov::Float64, near::Float64, far::Float64)
+    a = far / (far - near)
+    b = -far * near / (far - near)
+    p = Mat4([
+        1 0 0 0
+        0 1 0 0
+        0 0 a b
+        0 0 0 1
+    ])
+    inv_tan = 1 / tan(deg2rad(fov) / 2)
+    return Scale(Vec3(inv_tan, inv_tan, 1)) * p
+
 ########################################
 ### Apply Transformations to Things ####
 ########################################
