@@ -93,3 +93,11 @@ function (t::Transformation)(si::ShadingInteraction)::ShadingInteraction
         t(si.dndv)
     )
 end
+
+# apply transformations to a bounding box
+function (t::Transformation)(b::Bounds3)::Bounds3
+    return Bounds3(
+        t(b.pMin),
+        t(b.pMax)
+    )
+end

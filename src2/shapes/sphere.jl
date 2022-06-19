@@ -13,7 +13,7 @@ end
 
 # PBR 3.2.1
 function ObjectBounds(s::Sphere)::Bounds3
-    return Bound3(
+    return Bounds3(
         Vec3(-s.radius, -s.radius, s.zMin),
         Vec3(-s.radius, -s.radius, s.zMax),
     )
