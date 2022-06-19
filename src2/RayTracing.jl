@@ -4,13 +4,14 @@ using StaticArrays
 using LinearAlgebra
 
 abstract type Aggregate end
+abstract type BxDF end
 abstract type Camera end
 abstract type Filter end
 abstract type Integrator end
 abstract type Light end
 abstract type Material end
 abstract type Medium end
-abstract type Sampler end
+abstract type AbstractSampler end
 abstract type Shape end
 abstract type Texture end
 

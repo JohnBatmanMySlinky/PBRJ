@@ -14,3 +14,9 @@ function random_in_concentric_disk(p::Vec2)::Vec2
     end
     return Vec2(cos(theta), sin(theta)) .* r
 end
+
+function random_in_cosine_hemisphere(u::Vec2)::Vec3
+    d = random_in_concentric_disk(u)
+    z = sqrt(max(0, 1-d[2]^2 - d[2]^2))
+    return Vec3(d[1], d[2], z)
+end
