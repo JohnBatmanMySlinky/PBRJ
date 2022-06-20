@@ -1,8 +1,7 @@
-mutable struct Ray
+struct Ray
     origin::Vec3
     direction::Vec3
     time::Float64
-    tMax::Float64
 end
 
 function at(r::Ray, t::Float64)::Vec3

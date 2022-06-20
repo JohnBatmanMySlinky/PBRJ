@@ -60,11 +60,3 @@ function InstantiateSurfaceInteraction(
         nothing
     )
 end
-
-function compute_scattering!(
-    si::SurfaceInteraction, ray::Ray,
-    allow_multiple_lobes::Bool = false, ::Type{T} = Radiance,
-) where T <: TransportMode
-    compute_differentials!(si, ray)
-    compute_scattering!(si.primitive, si, allow_multiple_lobes, T)
-end

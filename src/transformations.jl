@@ -58,6 +58,7 @@ function Perspecitve(fov::Float64, near::Float64, far::Float64)
     ])
     inv_tan = 1 / tan(deg2rad(fov) / 2)
     return Scale(Vec3(inv_tan, inv_tan, 1)) * p
+end
 
 ########################################
 ### Apply Transformations to Things ####

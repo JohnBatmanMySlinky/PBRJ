@@ -2,71 +2,86 @@ module RayTracing
 
 using StaticArrays
 using LinearAlgebra
-using Printf
-using Distributions
-using Images
-using Statistics
-using ArgParse
 
-abstract type Material end
-abstract type Hittable end
-abstract type Texture end
+abstract type Aggregate end
 abstract type BxDF end
+abstract type Camera end
+abstract type Filter end
+abstract type Integrator end
+abstract type Light end
+abstract type Material end
+abstract type Medium end
+abstract type AbstractSampler end
+abstract type Shape end
+abstract type Texture end
 
-function write_color(pixel_color::Vec3)::String
-    ir = Int(trunc(255.999 * pixel_color[1]))
-    ig = Int(trunc(255.999 * pixel_color[2]))
-    ib = Int(trunc(255.999 * pixel_color[3]))
-    return "$ir $ig $ib\n"
+include("vec.jl")
+include("ray.jl")
+include("primitive.jl")
+include("interactions.jl")
+include("transformations.jl")
+include("shapes/shape.jl")
+include("shapes/sphere.jl")
+include("math_utils.jl")
+include("materials/material.jl")
+include("accelerators/bvh.jl")
+
+function something(N::Int64)
+    # create shapes
+    dummy_transform1 = Translate(Vec3(0, 0, 0))
+    dummy_sphere1 = Sphere(
+        ShapeCore(
+            dummy_transform1,      # object_to_world
+            Inv(dummy_transform1)  # world_to_object
+        ),
+        5.0,                       # radius
+        -5.0,                      # zMin
+        5.0,                       # zMax
+        0.0,                       # thetaMin
+        2pi,                       # thetaMax
+        2pi                        # phiMax
+    )
+
+    dummy_transform2 = Translate(Vec3(-3, -3, -3))
+    dummy_sphere2 = Sphere(
+        ShapeCore(
+            dummy_transform2,      # object_to_world
+            Inv(dummy_transform2)  # world_to_object
+        ),
+        5.0,                       # radius
+        -5.0,                      # zMin
+        5.0,                       # zMax
+        0.0,                       # thetaMin
+        2pi,                       # thetaMax
+        2pi                        # phiMax
+    )
+
+    # create dummy material
+    dummy_mat = DummyMaterial(Vec3(1,1,1))
+
+    # create geometric primitives
+    p1 = Primitive(dummy_sphere1, dummy_mat)
+    p2 = Primitive(dummy_sphere2, dummy_mat)
+
+    # vector of primtives
+    primitives = [p1, p2]
+
+    # instantiate accelerator
+    BVH = ConstructBVH(primitives)
+
+    # instantiate dummy ray
+    dummy_ray = Ray(Vec3(10, 10, 10), Vec3(-1, -1, -1), 0, typemax(Float64))
+
+    # intersect
+    check, t, interaction = Intersect(BVH, dummy_ray)
+    
+    # print intersection
+    print(interaction.core.p)
+    print("\nhahaha\n")
 end
 
-function print_status(t::Int64, T::Int64, length::Int64)::String
-    number_done = Int(trunc(t * length / T))
-    number_remain = length - number_done
-    return "█"^number_done * "-"^number_remain * " | $(@sprintf("%.2f", 100*t/T))%" * "\r"
-end
 
-function render()
-    parsed_args = parse_commandline()
 
-    # params
-    image_width = parsed_args["image-width"]
-    samples_per_pixel = parsed_args["samples-per-pixel"]
-    max_depth = 50
+@time something(10)
 
-    # unpack world
-    universe = scenes(parsed_args["scene"])
-    cam = universe.camera
-    world = universe.world
-    lights = universe.lights
-    background = universe.background
-
-    # derived from camera's aspect ratio 
-    image_height = Int(trunc(image_width / cam.aspect_ratio))
-
-    # Render
-    z = 0
-    open("renders/JDONE.ppm", "w") do io
-        write(io, "P3\n$image_width $image_height\n255\n")
-        Threads.@threads for x = reverse(1:image_height)
-            for y = 1:image_width
-                anti_aliasing_vec = Vector{Vec3}(undef, samples_per_pixel)
-                for s = 1:samples_per_pixel
-                    u = (y+rand()) / image_width
-                    v = (x+rand()) / image_height
-                    r = get_ray(cam, u, v)
-                    anti_aliasing_vec[s] = ray_color(r, background, world, lights, max_depth)
-                end
-                pixel_color = sum(anti_aliasing_vec) ./ samples_per_pixel
-                pixel_color = sqrt.(max.(0,pixel_color))
-                write(io, write_color(pixel_color))
-
-                z = z + 1
-                print(print_status(z,image_height * image_width, 30))
-            end
-        end
-    end
-end
-
-@time render()
 end
