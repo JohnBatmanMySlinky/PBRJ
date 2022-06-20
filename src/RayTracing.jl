@@ -25,6 +25,10 @@ include("shapes/sphere.jl")
 include("math_utils.jl")
 include("materials/material.jl")
 include("accelerators/bvh.jl")
+include("film.jl")
+include("cameras/camera.jl")
+include("cameras/projective.jl")
+
 
 function something(N::Int64)
     # create shapes
@@ -69,8 +73,28 @@ function something(N::Int64)
     # instantiate accelerator
     BVH = ConstructBVH(primitives)
 
-    # instantiate dummy ray
-    dummy_ray = Ray(Vec3(10, 10, 10), Vec3(-1, -1, -1), 0, typemax(Float64))
+    # Construct a Film for Camera
+    film = Film(Vec2(256, 256))
+
+    # Construct a Camera
+    look_from = Vec3(30, 30, 30)
+    look_at = Vec3(0, 0, 0)
+    up = Vec3(0, 1, 0)
+    screen = Bounds2(Vec2(-1, -1), Vec2(1, 1))
+    camera = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 90.0, film)
+
+    # # instantiate dummy ray
+    # dummy_ray = Ray(Vec3(10, 10, 10), Vec3(-1, -1, -1), 0, typemax(Float64))
+
+    # generate a camerasample to generate ray
+    camera_sample = CameraSample(
+        Vec2(film.resolution[1]/2, film.resolution[2]/2), # pointin middle of the screen?
+        Vec2(.5, .5), # middle of the lens?
+        0
+    )
+
+    # generate ray from Camera
+    dummy_ray, _ = generate_ray(camera, camera_sample)
 
     # intersect
     check, t, interaction = Intersect(BVH, dummy_ray)

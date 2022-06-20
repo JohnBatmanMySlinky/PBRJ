@@ -12,3 +12,4 @@ Physically Based Rendering - in Julia
 
 ## TODO
 - why does BVH not work when there's only one item. LOL
+- WHAT IS GOING ON WITH LOOKAT TRANSFORM. YIKES?

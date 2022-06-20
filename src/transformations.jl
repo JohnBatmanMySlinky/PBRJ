@@ -30,39 +30,65 @@ function Translate(v::Vec3)::Transformation
     return Transformation(m, m_inv)
 end
 
-function Scale(v::Vec3)::Transformation\
-    m = transpose(Mat4([
+function Scale(v::Vec3)::Transformation
+    m = Mat4([
         v[1] 0    0    0
         0    v[2] 0    0
         0    0    v[3] 0
         0    0    0    1
-    ]))
+    ])
 
-    m_inv = transpose(Mat4([
+    m_inv = Mat4([
         1/v[1] 0      0      0
         0      1/v[2] 0      0
         0      0      1/v[3] 0
         0      0      0      1
-    ]))
+    ])
     return Transformation(m, m_inv)
 end
 
-function Perspecitve(fov::Float64, near::Float64, far::Float64)
+function Perspective(fov::Float64, near::Float64, far::Float64)::Transformation
     a = far / (far - near)
     b = -far * near / (far - near)
-    p = Mat4([
+    p = transpose(Mat4([
         1 0 0 0
         0 1 0 0
         0 0 a b
-        0 0 0 1
-    ])
+        0 0 1 0
+    ]))
     inv_tan = 1 / tan(deg2rad(fov) / 2)
-    return Scale(Vec3(inv_tan, inv_tan, 1)) * p
+    return Scale(Vec3(inv_tan, inv_tan, 1)) * Transformation(p, inv(p))
+end
+
+function LookAt(position::Vec3, target::Vec3, up::Vec3)
+    z_axis = normalize(position - target)
+    x_axis = normalize(cross(up, z_axis))
+    y_axis = cross(z_axis, x_axis)
+
+    m = transpose(Mat4(
+        x_axis[1], y_axis[1], z_axis[1], 0,
+        x_axis[2], y_axis[2], z_axis[2], 0,
+        x_axis[3], y_axis[3], z_axis[3], 0,
+        0, 0, 0, 1,
+    ))
+    out = Translate(position) * Transformation(m, transpose(m))
+    #TODO
+    #WHAT THE FUCK
+    return Transformation(
+        inv(transpose(out.m)),
+        transpose(out.m),
+    )
 end
 
 ########################################
 ### Apply Transformations to Things ####
 ########################################
+
+# mutliply two transformations
+
+function Base.:*(t1::Transformation, t2::Transformation)
+    return Transformation(t1.m * t2.m, t1.inv_m * t2.inv_m)
+end
 
 # apply transformations to a vector
 function (t::Transformation)(p::Vec3)::Vec3
