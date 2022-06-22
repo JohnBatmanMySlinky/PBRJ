@@ -7,10 +7,11 @@ end
 function world_bounds(s::Shape)::Bounds3
     return s.core.object_to_world(ObjectBounds(s))
 end
+# get bounding box of A SINGLE primitive
 function world_bounds(p::Primitive)::Bounds3
     return world_bounds(p.shape)
 end
-
+# get bounding box of TWO bounds3
 function world_bounds(b1::Bounds3, b2::Bounds3)::Bounds3
     small = Vec3(
         min(b1.pMin[1], b2.pMin[1]),

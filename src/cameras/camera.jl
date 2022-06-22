@@ -9,7 +9,7 @@ end
 
 # "The CameraSample structure holds all of the sample values needed to specify a camera ray."
 struct CameraSample
-    film::Vec2
-    lens::Vec2
+    film::Pnt2
+    lens::Pnt2
     time::Float64
 end

@@ -14,7 +14,7 @@ end
 ######## Generate Transformations ######
 ########################################
 
-function Translate(v::Vec3)::Transformation
+function Translate(v::Union{Vec3,Pnt3})::Transformation
     m = Mat4([
         1 0 0 v[1]
         0 1 0 v[2]
@@ -60,7 +60,7 @@ function Perspective(fov::Float64, near::Float64, far::Float64)::Transformation
     return Scale(Vec3(inv_tan, inv_tan, 1)) * Transformation(p, inv(p))
 end
 
-function LookAt(position::Vec3, target::Vec3, up::Vec3)
+function LookAt(position::Pnt3, target::Pnt3, up::Pnt3)
     z_axis = normalize(position - target)
     x_axis = normalize(cross(up, z_axis))
     y_axis = cross(z_axis, x_axis)
@@ -71,13 +71,11 @@ function LookAt(position::Vec3, target::Vec3, up::Vec3)
         x_axis[3], y_axis[3], z_axis[3], 0,
         0, 0, 0, 1,
     ))
-    out = Translate(position) * Transformation(m, transpose(m))
-    #TODO
-    #WHAT THE FUCK
-    return Transformation(
-        inv(transpose(out.m)),
-        transpose(out.m),
-    )
+    out = Translate(position) * Transformation(m, inv(m))
+
+    print(out)
+
+    return out
 end
 
 ########################################
@@ -85,24 +83,37 @@ end
 ########################################
 
 # mutliply two transformations
-
 function Base.:*(t1::Transformation, t2::Transformation)
     return Transformation(t1.m * t2.m, t1.inv_m * t2.inv_m)
 end
 
-# apply transformations to a vector
-function (t::Transformation)(p::Vec3)::Vec3
-    tmp = Vec4(p...,1)
+# PBR 2.8.1
+# apply transformations to a POINT
+function (t::Transformation)(p::Pnt3)::Pnt3
+    tmp = Pnt4(p...,1)
     ph = Mat4([tmp tmp tmp tmp])
     pt = t.m * ph
-    pr = Vec3(pt[1:3])
+    pr = Pnt3(pt[1:3])
     if pt[4] == 1 
         return pr
     end
     return pr ./ pt[4]
 end
 
-# apply transformations to a ray
+# PBR 2.8.2
+# apply transformations to a VECTOR
+function (t::Transformation)(v::Vec3)::Vec3
+    return t.m[1:3, 1:3] * v
+end
+
+# PBR 2.8.3
+# apply transformations to a NORMAL
+function (t::Transformation)(n::Nml3)::Nml3
+    return transpose(t.inv_m[1:3, 1:3]) * n
+end
+
+# PBR 2.8.4
+# apply transformations to a Ray
 function (t::Transformation)(r::Ray)::Ray
     return Ray(
         t(r.origin),

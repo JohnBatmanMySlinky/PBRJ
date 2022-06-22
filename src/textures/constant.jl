@@ -1,5 +1,5 @@
 struct ConstantTexture <: Texture
-    value::Vec3
+    value::Pnt3
 end
 
 function (c::ConstantTexture)(si::SurfaceInteraction)

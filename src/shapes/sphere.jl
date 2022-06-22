@@ -1,7 +1,7 @@
 struct Sphere <: Shape
     core::ShapeCore
     radius::Float32
-    # z ranges from [0,r]
+    # z ranges from [-r,r]
     zMin::Float32
     zMax::Float32
     # theta ranges from [0,2pi]
@@ -15,7 +15,7 @@ end
 function ObjectBounds(s::Sphere)::Bounds3
     return Bounds3(
         Vec3(-s.radius, -s.radius, s.zMin),
-        Vec3(-s.radius, -s.radius, s.zMax),
+        Vec3(s.radius, s.radius, s.zMax),
     )
 end
 
@@ -86,7 +86,7 @@ function Intersect(s::Sphere, r::Ray)
         p,
         r.time,
         -r.direction,
-        Vec2(u, v),
+        Pnt2(u, v),
         dpdu,
         dpdv,
         dndu,
@@ -111,16 +111,16 @@ end
 #################################
 
 # Interaction helper function
-function refine_Interaction(p::Vec3, s::Sphere)::Vec3
-    p *= s.radius ./ distance(p, Vec3(0,0,0))
+function refine_Interaction(p::Pnt3, s::Sphere)::Pnt3
+    p *= s.radius ./ distance(p, Pnt3(0,0,0))
     if p[1] == 0 && p[2] == 0
-        p = Vec3(1e-5 * radius, p[2], p[3])
+        p = Pnt3(1e-5 * radius, p[2], p[3])
     end
     return p
 end
 
 # Interaction helper functions
-function compute_phi(p::Vec3)::Float32
+function compute_phi(p::Pnt3)::Float32
     phi = atan(p[2], p[1])
     if phi < 0 
         phi += 2 * pi
@@ -129,7 +129,7 @@ function compute_phi(p::Vec3)::Float32
 end
 
 # partial deriv helper functions
-function precompute_phi(p::Vec3)::Tuple{Float32, Float32}
+function precompute_phi(p::Pnt3)::Tuple{Float32, Float32}
     z_radius = sqrt(p[1] * p[1] + p[2] * p[2])
     inv_z_radius = 1 / z_radius
     cos_phi = p[1] * inv_z_radius
@@ -138,7 +138,7 @@ function precompute_phi(p::Vec3)::Tuple{Float32, Float32}
 end
 
 # compute partials
-function dp(s::Sphere, p::Vec3, theta::Float64, sin_phi::Float32, cos_phi::Float32)
+function dp(s::Sphere, p::Pnt3, theta::Float64, sin_phi::Float32, cos_phi::Float32)
     dpdu = Vec3(-s.phiMax * p[2], s.phiMax * p[1], 0f0)
     dpdv = (s.thetaMax - s.thetaMin) * Vec3(
         p[3] * cos_phi, p[3] * sin_phi, -s.radius * sin(theta),
@@ -147,7 +147,7 @@ function dp(s::Sphere, p::Vec3, theta::Float64, sin_phi::Float32, cos_phi::Float
 end
 
 # compute partials
-function dn(s::Sphere, p::Vec3, sin_phi::Float32, cos_phi::Float32, dpdu::Vec3, dpdv::Vec3)
+function dn(s::Sphere, p::Pnt3, sin_phi::Float32, cos_phi::Float32, dpdu::Vec3, dpdv::Vec3)
     d2pdu2 = -s.phiMax * s.phiMax * Vec3(p[1], p[2], 0)
     d2pdudv = (s.thetaMax - s.thetaMin) * p[3] * s.phiMax * Vec3(-sin_phi, cos_phi, 0)
     d2pdv2 = (s.thetaMax - s.thetaMin) ^ 2 * -p
@@ -159,11 +159,11 @@ function dn(s::Sphere, p::Vec3, sin_phi::Float32, cos_phi::Float32, dpdu::Vec3, 
     f = dot(n, d2pdudv)
     g = dot(n, d2pdv2)
     inv_egf = 1 / (E * G - F * F)
-    dndu = Vec3(
+    dndu = Nml3(
         (f * F - e * G) * inv_egf * dpdu +
         (e * F - f * E) * inv_egf * dpdv
     )
-    dndv = Vec3(
+    dndv = Nml3(
         (g * F - f * G) * inv_egf * dpdu +
         (f * F - g * E) * inv_egf * dpdv
     )

@@ -1,46 +1,46 @@
 mutable struct Interaction
     # world coordinates
-    p::Vec3
+    p::Pnt3
     # time of intersection
     time::Float32
     # negative of ray direciton
     # direction from intersection to viewer
     wo::Vec3
     # surface normal in world coordinates
-    n::Vec3
+    n::Nml3
 end
 
 mutable struct ShadingInteraction
-    n::Vec3
+    n::Nml3
     dpdu::Vec3
     dpdv::Vec3
-    dndu::Vec3
-    dndv::Vec3
+    dndu::Nml3
+    dndv::Nml3
 end
 
 mutable struct SurfaceInteraction
     core::Interaction
     shading::ShadingInteraction
-    uv::Vec2
+    uv::Pnt2
 
     dpdu::Vec3
     dpdv::Vec3
-    dndu::Vec3
-    dndv::Vec3
+    dndu::Nml3
+    dndv::Nml3
 
     shape::Shape
     primitive::Maybe{Primitive}
 end
 
 function InstantiateSurfaceInteraction(
-    p::Vec3, 
+    p::Pnt3, 
     time::Float64,
     wo::Vec3,
-    uv::Vec2,
+    uv::Pnt2,
     dpdu::Vec3,
     dpdv::Vec3,
-    dndu::Vec3,
-    dndv::Vec3,
+    dndu::Nml3,
+    dndv::Nml3,
     shape::Shape,
     primitive::Maybe{Primitive}=nothing
 )::SurfaceInteraction

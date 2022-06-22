@@ -15,8 +15,7 @@ abstract type AbstractSampler end
 abstract type Shape end
 abstract type Texture end
 
-include("vec.jl")
-include("ray.jl")
+include("objects.jl")
 include("primitive.jl")
 include("interactions.jl")
 include("transformations.jl")
@@ -61,7 +60,7 @@ function something(N::Int64)
     )
 
     # create dummy material
-    dummy_mat = DummyMaterial(Vec3(1,1,1))
+    dummy_mat = DummyMaterial(Pnt3(1,1,1))
 
     # create geometric primitives
     p1 = Primitive(dummy_sphere1, dummy_mat)
@@ -74,13 +73,13 @@ function something(N::Int64)
     BVH = ConstructBVH(primitives)
 
     # Construct a Film for Camera
-    film = Film(Vec2(256, 256))
+    film = Film(Pnt2(256, 256))
 
     # Construct a Camera
-    look_from = Vec3(30, 30, 30)
-    look_at = Vec3(0, 0, 0)
-    up = Vec3(0, 1, 0)
-    screen = Bounds2(Vec2(-1, -1), Vec2(1, 1))
+    look_from = Pnt3(30, 30, 30)
+    look_at = Pnt3(0, 0, 0)
+    up = Pnt3(0, 1, 0)
+    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     camera = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 90.0, film)
 
     # # instantiate dummy ray
@@ -88,13 +87,15 @@ function something(N::Int64)
 
     # generate a camerasample to generate ray
     camera_sample = CameraSample(
-        Vec2(film.resolution[1]/2, film.resolution[2]/2), # pointin middle of the screen?
+        Vec2(film.resolution[1], film.resolution[2]), # pointin middle of the screen?
         Vec2(.5, .5), # middle of the lens?
         0
     )
 
     # generate ray from Camera
     dummy_ray, _ = generate_ray(camera, camera_sample)
+
+    print(dummy_ray)
 
     # intersect
     check, t, interaction = Intersect(BVH, dummy_ray)

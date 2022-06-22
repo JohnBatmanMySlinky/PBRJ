@@ -85,8 +85,8 @@ struct PerspectiveCamera <: Camera
             focal_distance,
             film
         )
-        p_min = projcam.raster_to_camera(Vec3(0,0,0))
-        p_max = projcam.raster_to_camera(Vec3(film.resolution[1], film.resolution[2], 0))
+        p_min = projcam.raster_to_camera(Pnt3(0,0,0))
+        p_max = projcam.raster_to_camera(Pnt3(film.resolution[1], film.resolution[2], 0))
         p_min /= p_min[3]
         p_max /= p_max[3]
         A = abs((p_max[1] - p_min[1])*(p_max[2] - p_min[2]))
@@ -99,15 +99,23 @@ end
 #########################################
 
 function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ray, Float64}
-    p_film = Vec3(sample.film[1], sample.film[2], 0)
-    p_camera = camera.core.raster_to_camera(p_film)
+    p_film = Pnt3(sample.film[1], sample.film[2], 0)
+    print("p film")
+    print(p_film)
+    print("\n")
+    p_camera = normalize(camera.core.raster_to_camera(p_film))
+    print("\nRaster to camera\n")
+    print(camera.core.raster_to_camera)
+    print("p camera")
+    print(p_camera)
+    print("\n")
 
-    ray = Ray(Vec3(0, 0, 0), normalize(p_camera), 0, typemax(Float64))
+    ray = Ray(Pnt3(0, 0, 0), Vec3(p_camera[1], p_camera[2], p_camera[3]), 0, typemax(Float64))
     if camera.core.lens_radius > 0
         p_lens = camera.core.lens_radius .* random_in_concentric_disk(camera.lens)
         t = camera.core.focal_distance / ray.direction[3]
         p_focus = at(ray, t)
-        ray.origin = Vec3(p_lens[1], p_lens[2], 0)
+        ray.origin = Pnt3(p_lens[1], p_lens[2], 0)
         ray.direciton = normalize(Vec3(p_focus - ray.origin))
     end    
 
@@ -116,7 +124,12 @@ function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ra
         camera.core.core.shutter_open,
         camera.core.core.shutter_closed,
     )
+    print("\nok\n")
+    print(ray)
+    print("\n")
     ray = camera.core.core.camera_to_world(ray)
+    print(ray)
+    print("\n")
     ray.direction = normalize(ray.direction)
     return ray, 1.0
 end

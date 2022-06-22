@@ -15,7 +15,7 @@ function solve_quadratic(a::Float64, b::Float64, c::Float64)::Tuple{Bool, Float6
     return true, t0, t1
 end
 
-function distance(p1::Vec3, p2::Vec3)::Float64
+function distance(p1::Pnt3, p2::Pnt3)::Float64
     return norm(p1 - p2)
 end
 

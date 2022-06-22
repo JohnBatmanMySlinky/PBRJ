@@ -1,3 +1,3 @@
 struct Film
-    resolution::Vec2
+    resolution::Pnt2
 end
