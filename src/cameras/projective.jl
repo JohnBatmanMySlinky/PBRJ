@@ -104,7 +104,7 @@ function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ra
 
     ray = Ray(Pnt3(0, 0, 0), Vec3(p_camera[1], p_camera[2], p_camera[3]), 0, typemax(Float64))
     if camera.core.lens_radius > 0
-        p_lens = camera.core.lens_radius .* random_in_concentric_disk(camera.lens)
+        p_lens = camera.core.lens_radius .* random_in_concentric_disk(sample.lens)
         t = camera.core.focal_distance / ray.direction[3]
         p_focus = at(ray, t)
         ray.origin = Pnt3(p_lens[1], p_lens[2], 0)

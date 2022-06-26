@@ -27,6 +27,8 @@ include("accelerators/bvh.jl")
 include("film.jl")
 include("cameras/camera.jl")
 include("cameras/projective.jl")
+include("samplers/sampler.jl")
+include("samplers/random.jl")
 
 
 function something(N::Int64)
@@ -82,12 +84,11 @@ function something(N::Int64)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     camera = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 90.0, film)
 
-    # generate a camerasample to generate ray
-    camera_sample = CameraSample(
-        Vec2(film.resolution[1], film.resolution[2]), # pointin middle of the screen?
-        Vec2(.5, .5), # middle of the lens?
-        0
-    )
+    # construct a sampler to generate CameraSample
+    uniform_sampler = UniformSampler(1)
+
+    # generate camera samples
+    camera_sample = get_camera_sample(uniform_sampler, film.resolution ./ 2)
 
     # generate ray from Camera
     dummy_ray, _ = generate_ray(camera, camera_sample)
