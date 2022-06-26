@@ -81,6 +81,10 @@ struct Bounds2
     pMax::Pnt2
 end
 
+function inclusive_sides(b::Union{Bounds2, Bounds3})
+    return [abs(b1 - (b0 - 1f0)) for (b1, b0) in zip(b.pMax, b.pMin)]
+end
+
 ################################
 #### Miscellaneous #############
 ################################

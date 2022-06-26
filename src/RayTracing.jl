@@ -24,11 +24,13 @@ include("shapes/sphere.jl")
 include("math_utils.jl")
 include("materials/material.jl")
 include("accelerators/bvh.jl")
+include("filters/box.jl")
 include("film.jl")
 include("cameras/camera.jl")
 include("cameras/projective.jl")
 include("samplers/sampler.jl")
 include("samplers/random.jl")
+
 
 
 function something(N::Int64)
@@ -74,8 +76,18 @@ function something(N::Int64)
     # instantiate accelerator
     BVH = ConstructBVH(primitives)
 
+    # instantiate a filter
+    filter = BoxFilter(Pnt2(1.0, 1.0))
+
     # Construct a Film for Camera
-    film = Film(Pnt2(256, 256))
+    film = Film(
+        Pnt2(256, 256),
+        Bounds2(Pnt2(0,0), Pnt2(1,1)),
+        filter,
+        1.0,
+        1.0,
+        "yeehaw.png"
+    )
 
     # Construct a Camera
     look_from = Pnt3(30, 30, 30)
@@ -88,7 +100,7 @@ function something(N::Int64)
     uniform_sampler = UniformSampler(1)
 
     # generate camera samples
-    camera_sample = get_camera_sample(uniform_sampler, film.resolution ./ 2)
+    camera_sample = get_camera_sample(uniform_sampler, film.full_resolution ./ 2)
 
     # generate ray from Camera
     dummy_ray, _ = generate_ray(camera, camera_sample)

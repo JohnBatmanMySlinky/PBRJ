@@ -27,8 +27,8 @@ struct ProjectiveCamera <: Camera
         core = CameraCore(camera_to_world, shutter_open, shutter_closed, film)
         screen_to_raster = (
             Scale(Vec3(
-                film.resolution[1],
-                film.resolution[2], 
+                film.full_resolution[1],
+                film.full_resolution[2], 
                 1
             )) * Scale(Vec3(
                 1 / (screen_window.pMax[1] - screen_window.pMin[1]),
@@ -86,7 +86,7 @@ struct PerspectiveCamera <: Camera
             film
         )
         p_min = projcam.raster_to_camera(Pnt3(0,0,0))
-        p_max = projcam.raster_to_camera(Pnt3(film.resolution[1], film.resolution[2], 0))
+        p_max = projcam.raster_to_camera(Pnt3(film.full_resolution[1], film.full_resolution[2], 0))
         p_min /= p_min[3]
         p_max /= p_max[3]
         A = abs((p_max[1] - p_min[1])*(p_max[2] - p_min[2]))
