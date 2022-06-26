@@ -1,3 +1,3 @@
 struct DummyMaterial <: Material
-    albedo::Vec3
+    albedo::Pnt3
 end

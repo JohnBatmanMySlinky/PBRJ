@@ -100,15 +100,7 @@ end
 
 function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ray, Float64}
     p_film = Pnt3(sample.film[1], sample.film[2], 0)
-    print("p film")
-    print(p_film)
-    print("\n")
     p_camera = normalize(camera.core.raster_to_camera(p_film))
-    print("\nRaster to camera\n")
-    print(camera.core.raster_to_camera)
-    print("p camera")
-    print(p_camera)
-    print("\n")
 
     ray = Ray(Pnt3(0, 0, 0), Vec3(p_camera[1], p_camera[2], p_camera[3]), 0, typemax(Float64))
     if camera.core.lens_radius > 0
@@ -124,12 +116,7 @@ function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ra
         camera.core.core.shutter_open,
         camera.core.core.shutter_closed,
     )
-    print("\nok\n")
-    print(ray)
-    print("\n")
     ray = camera.core.core.camera_to_world(ray)
-    print(ray)
-    print("\n")
     ray.direction = normalize(ray.direction)
     return ray, 1.0
 end

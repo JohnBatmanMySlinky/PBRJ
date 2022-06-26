@@ -71,11 +71,7 @@ function LookAt(position::Pnt3, target::Pnt3, up::Pnt3)
         x_axis[3], y_axis[3], z_axis[3], 0,
         0, 0, 0, 1,
     ))
-    out = Translate(position) * Transformation(m, inv(m))
-
-    print(out)
-
-    return out
+    return Translate(position) * Transformation(m, inv(m))
 end
 
 ########################################

@@ -82,9 +82,6 @@ function something(N::Int64)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     camera = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 90.0, film)
 
-    # # instantiate dummy ray
-    # dummy_ray = Ray(Vec3(10, 10, 10), Vec3(-1, -1, -1), 0, typemax(Float64))
-
     # generate a camerasample to generate ray
     camera_sample = CameraSample(
         Vec2(film.resolution[1], film.resolution[2]), # pointin middle of the screen?
@@ -94,8 +91,6 @@ function something(N::Int64)
 
     # generate ray from Camera
     dummy_ray, _ = generate_ray(camera, camera_sample)
-
-    print(dummy_ray)
 
     # intersect
     check, t, interaction = Intersect(BVH, dummy_ray)
