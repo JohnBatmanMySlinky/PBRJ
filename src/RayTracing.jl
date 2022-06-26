@@ -4,9 +4,10 @@ using StaticArrays
 using LinearAlgebra
 
 abstract type Aggregate end
-abstract type BxDF end
+abstract type AbstractBxDF end
 abstract type Camera end
 abstract type Filter end
+abstract type Fresnel end
 abstract type Integrator end
 abstract type Light end
 abstract type Material end
@@ -30,6 +31,10 @@ include("cameras/camera.jl")
 include("cameras/projective.jl")
 include("samplers/sampler.jl")
 include("samplers/random.jl")
+include("reflection/bxdf.jl")
+include("reflection/math.jl")
+include("reflection/fresnel.jl")
+include("reflection/specular.jl")
 
 
 
