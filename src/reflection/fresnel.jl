@@ -42,8 +42,8 @@ end
 ############################################################
 
 struct FresnelDielectric{S <: Spectrum} <: Fresnel
-    eta_i::Spectrum
-    eta_t::Spectrum
+    eta_i::S
+    eta_t::S
 end
 
 function(f::FresnelDielectric)(cos_theta_i)
