@@ -8,7 +8,7 @@ abstract type AbstractBxDF end
 abstract type Camera end
 abstract type Filter end
 abstract type Fresnel end
-abstract type Integrator end
+abstract type AbstractIntegrator end
 abstract type Light end
 abstract type Material end
 abstract type Medium end
@@ -23,7 +23,6 @@ include("transformations.jl")
 include("shapes/shape.jl")
 include("shapes/sphere.jl")
 include("math_utils.jl")
-include("materials/material.jl")
 include("accelerators/bvh.jl")
 include("filters/box.jl")
 include("film.jl")
@@ -35,7 +34,10 @@ include("reflection/bxdf.jl")
 include("reflection/math.jl")
 include("reflection/fresnel.jl")
 include("reflection/specular.jl")
-
+include("reflection/lambertian.jl")
+include("materials/bsdf.jl")
+include("materials/material.jl")
+include("integrators/whitted.jl")
 
 
 function something(N::Int64)
@@ -119,7 +121,41 @@ function something(N::Int64)
 end
 
 
+function test_integrate()
+    # Instantiate a Filter
+    filter = BoxFilter(Pnt2(1.0, 1.0))
 
-@time something(10)
+    # Instantiate a Film
+    film = Film(
+        Pnt2(256, 256),
+        Bounds2(Pnt2(0,0), Pnt2(1,1)),
+        filter,
+        1.0,
+        1.0,
+        "yeehaw.png"
+    )
+
+    # Instantiate a Camera
+    look_from = Pnt3(30, 30, 30)
+    look_at = Pnt3(0, 0, 0)
+    up = Pnt3(0, 1, 0)
+    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 90.0, film)
+
+
+    # Instantiate a Sampler
+    S = UniformSampler(1) 
+    
+    
+    # Instantiate an Integrator
+
+    I = WhittedIntegrator(C, S, 1)
+
+    render(I)
+end
+
+
+@time test_integrate()
+# @time something(10)
 
 end

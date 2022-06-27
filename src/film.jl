@@ -72,3 +72,13 @@ struct Film
         )
     end
 end
+
+########################################
+######## Misc ##########################
+########################################
+function get_sample_bounds(f::Film)
+    return Bounds2(
+        floor.(f.cropped_pixel_bounds.pMin .+ 0.5 .- f.filter.radius),
+        ceil.(f.cropped_pixel_bounds.pMax .- 0.5 .+ f.filter.radius),
+    )
+end

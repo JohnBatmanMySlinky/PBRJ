@@ -121,3 +121,9 @@ function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ra
     return ray, 1.0
 end
 
+#####################################
+####### Misc ########################
+#####################################
+function get_film(c::PerspectiveCamera)::Film
+    return c.core.core.film
+end
