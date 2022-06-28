@@ -23,12 +23,8 @@ function render(i::WhittedIntegrator, BVH::BVHNode)
         tb_max = min.(tb_min .+ (tile_size - 1), sample_bounds.pMax)
         tile_bounds = Bounds2(tb_min, tb_max)
 
-        print("tile bounds: $(tile_bounds)\n")
-
         film_tile = FilmTile(get_film(i.camera), tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
-            # print(pixel)
-            # print("\n")
             start_pixel!(k_sampler, pixel)
             while has_next_sample(k_sampler)
                 camera_sample = get_camera_sample(k_sampler, pixel)
@@ -37,7 +33,7 @@ function render(i::WhittedIntegrator, BVH::BVHNode)
                 # dumy code for now
                 check, t, interaction = Intersect(BVH, ray)
                 if check
-                    L = Spectrum(1, 1, 1)
+                    L = Spectrum(interaction.primitive.material.albedo)
                 else
                     L = Spectrum(0, 0, 0)
                 end
