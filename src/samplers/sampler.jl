@@ -27,9 +27,3 @@ function get_camera_sample(sampler::AbstractSampler, p_raster::Pnt2)
         time
     )
 end
-
-function start_pixel(sampler::Sampler, p::Pnt2)
-    sampler.array_1d_offset = sampler.array_2d_offset = 1
-    sampler.current_pixel_sample_id = 1
-    sampler.current_pixel = p
-end

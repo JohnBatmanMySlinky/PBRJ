@@ -83,8 +83,13 @@ function get_sample_bounds(f::Film)
     )
 end
 
+function get_pixel(f::Film, p::Pnt2)
+    pp = Int32.(p .- f.cropped_pixel_bounds.pMin .+ 1.0)
+    return f.pixels[pp[2], pp[1]]
+end
+
 # PBR 7.9.2
-struct FilmTilePixel
+mutable struct FilmTilePixel
     contrib_sum::Spectrum
     filter_weight_sum::Float64
 end
@@ -115,13 +120,18 @@ struct FilmTile
     end 
 end
 
-function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float32 = 1,) where S <: Spectrum
+function get_pixel(t::FilmTile, p::Pnt2)
+    pp = Int32.(p .- t.pixel_bounds.pMin .+ 1f0)
+    return t.pixels[pp[2], pp[1]]
+end
+
+function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float64 = 1,) where S <: Spectrum
     # Compute sample's raster bounds.
     discrete_point = point .- 0.5
-    p0 = ceil.(discrete_point .- t.radius)
-    p1 = floor.(discrete_point .+ t.radius) .+ 1
-    p0 = max.(p0, max.(t.bounds.pMin, Pnt2(1,1)))
-    p1 = min.(p1, t.bounds.pMax)
+    p0 = ceil.(discrete_point .- t.filter_radius)
+    p1 = floor.(discrete_point .+ t.filter_radius) .+ 1
+    p0 = max.(p0, max.(t.pixel_bounds.pMin, Pnt2(1,1)))
+    p1 = min.(p1, t.pixel_bounds.pMax)
     # Precompute x & y filter offsets.
     offsets_x = Vector{Int32}(undef, Int32(p1[1] - p0[1] + 1))
     offsets_y = Vector{Int32}(undef, Int32(p1[2] - p0[2] + 1))
@@ -145,8 +155,8 @@ function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float
 end
 
 function merge_film_tile!(f::Film, ft::FilmTile)
-    x_range = ft.bounds.pMin[1]:ft.bounds.pMax[1]
-    y_range = ft.bounds.pMin[2]:ft.bounds.pMax[2]
+    x_range = ft.pixel_bounds.pMin[1]:ft.pixel_bounds.pMax[1]
+    y_range = ft.pixel_bounds.pMin[2]:ft.pixel_bounds.pMax[2]
 
     for y in y_range, x in x_range
         pixel = Pnt2(x, y)

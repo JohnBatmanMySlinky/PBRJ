@@ -122,6 +122,48 @@ end
 
 
 function test_integrate()
+    # create shapes
+    dummy_transform1 = Translate(Vec3(0, 0, 0))
+    dummy_sphere1 = Sphere(
+        ShapeCore(
+            dummy_transform1,      # object_to_world
+            Inv(dummy_transform1)  # world_to_object
+        ),
+        5.0,                       # radius
+        -5.0,                      # zMin
+        5.0,                       # zMax
+        0.0,                       # thetaMin
+        2pi,                       # thetaMax
+        2pi                        # phiMax
+    )
+
+    dummy_transform2 = Translate(Vec3(-3, -3, -3))
+    dummy_sphere2 = Sphere(
+        ShapeCore(
+            dummy_transform2,      # object_to_world
+            Inv(dummy_transform2)  # world_to_object
+        ),
+        5.0,                       # radius
+        -5.0,                      # zMin
+        5.0,                       # zMax
+        0.0,                       # thetaMin
+        2pi,                       # thetaMax
+        2pi                        # phiMax
+    )
+
+    # create dummy material
+    dummy_mat = DummyMaterial(Pnt3(1,1,1))
+
+    # create geometric primitives
+    p1 = Primitive(dummy_sphere1, dummy_mat)
+    p2 = Primitive(dummy_sphere2, dummy_mat)
+
+    # vector of primtives
+    primitives = [p1, p2]
+
+    # instantiate accelerator
+    BVH = ConstructBVH(primitives)
+
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(1.0, 1.0))
 
@@ -151,7 +193,7 @@ function test_integrate()
 
     I = WhittedIntegrator(C, S, 1)
 
-    render(I)
+    render(I, BVH)
 end
 
 

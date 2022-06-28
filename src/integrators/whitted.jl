@@ -39,7 +39,7 @@ function render(i::WhittedIntegrator, BVH::BVHNode)
                     l = Spectrum(0, 0, 0)
                 end
 
-                add_sample!(film_tile, camera_sample.film, l, 1)
+                add_sample!(film_tile, camera_sample.film, l, 1.0)
 
                 start_next_sample!(k_sampler)
             end
