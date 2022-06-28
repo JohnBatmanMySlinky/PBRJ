@@ -90,6 +90,57 @@ function diagonal(b::Union{Bounds2, Bounds3})
     return b.pMax - b.pMin
 end
 
+function Base.length(b::Bounds2)::Int64
+    delta = ceil.(b.pMax .- b.pMin .+ 1.0)
+    return Int64(delta[1] * delta[2])
+end
+
+function world_bounds(b1::Bounds3, b2::Bounds3)::Bounds3
+    small = Vec3(
+        min(b1.pMin[1], b2.pMin[1]),
+        min(b1.pMin[2], b2.pMin[2]),
+        min(b1.pMin[3], b2.pMin[3]),
+    )
+
+    large = Vec3(
+        max(b1.pMax[1], b2.pMax[1]),
+        max(b1.pMax[2], b2.pMax[2]),
+        max(b1.pMax[3], b2.pMax[3]),
+    )
+
+    return Bounds3(
+        small,
+        large
+    )
+end
+
+function world_bounds(b1::Bounds2, b2::Bounds2)::Bounds2
+    small = Vec2(
+        min(b1.pMin[1], b2.pMin[1]),
+        min(b1.pMin[2], b2.pMin[2]),
+    )
+
+    large = Vec2(
+        max(b1.pMax[1], b2.pMax[1]),
+        max(b1.pMax[2], b2.pMax[2]),
+    )
+
+    return Bounds2(
+        small,
+        large
+    )
+end
+
+function Base.iterate(b::Bounds2, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2, Integer}}
+    if i > length(b)
+        return nothing
+    end
+
+    j = i - 1
+    delta = b.pMax .- b.pMin .+ 1.0
+    return b.pMin .+ Pnt2(j % delta[1], j / delta[1]), i + 1
+end
+
 ################################
 ######### Spectrum #############
 ################################
