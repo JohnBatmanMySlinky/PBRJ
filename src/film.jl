@@ -105,7 +105,7 @@ struct FilmTile
     function FilmTile(f::Film, sample_bounds::Bounds2)
         p0 = ceil.(sample_bounds.pMin .- 0.5 .- f.filter.radius)
         p1 = floor.(sample_bounds.pMax .- 0.5 .+ f.filter.radius) .+ 1.0
-        pixel_bounds = world_bounds(Bounds2(p0, p1), f.cropped_pixel_bounds)
+        pixel_bounds = intersection(Bounds2(p0, p1), f.cropped_pixel_bounds)
         tile_res = Int32.(inclusive_sides(pixel_bounds))
         pixels = [FilmTilePixel(Spectrum(0, 0, 0), 0) for _ in 1:tile_res[2], __ in 1:tile_res[1]]
 
@@ -131,7 +131,7 @@ function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float
     p0 = ceil.(discrete_point .- t.filter_radius)
     p1 = floor.(discrete_point .+ t.filter_radius) .+ 1
     p0 = max.(p0, max.(t.pixel_bounds.pMin, Pnt2(1,1)))
-    p1 = min.(p1, t.pixel_bounds.pMax)
+    p1 = min.(p1, t.pixel_bounds.pMax)   
     # Precompute x & y filter offsets.
     offsets_x = Vector{Int32}(undef, Int32(p1[1] - p0[1] + 1))
     offsets_y = Vector{Int32}(undef, Int32(p1[2] - p0[2] + 1))
@@ -162,7 +162,7 @@ function merge_film_tile!(f::Film, ft::FilmTile)
         pixel = Pnt2(x, y)
         tile_pixel = get_pixel(ft, pixel)
         merge_pixel = get_pixel(f, pixel)
-        merge_pixel.xyz += to_XYZ(tile_pixel.contrib_sum)
+        merge_pixel.xyz += RGB_to_XYZ(tile_pixel.contrib_sum)
         merge_pixel.filter_weight_sum += tile_pixel.filter_weight_sum
     end
 end

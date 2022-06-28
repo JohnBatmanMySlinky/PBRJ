@@ -131,6 +131,13 @@ function world_bounds(b1::Bounds2, b2::Bounds2)::Bounds2
     )
 end
 
+function intersection(b1::Bounds2, b2::Bounds2)::Bounds2
+    return Bounds2(
+        max.(b1.pMin, b2.pMin),
+        min.(b1.pMax, b2.pMax)
+    )
+end
+
 function Base.iterate(b::Bounds2, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2, Integer}}
     if i > length(b)
         return nothing

@@ -34,12 +34,12 @@ function render(i::WhittedIntegrator, BVH::BVHNode)
                 # dumy code for now
                 check, t, interaction = Intersect(BVH, ray)
                 if check
-                    l = Spectrum(1, 1, 1)
+                    L = Spectrum(1, 1, 1)
                 else
-                    l = Spectrum(0, 0, 0)
+                    L = Spectrum(0, 0, 0)
                 end
 
-                add_sample!(film_tile, camera_sample.film, l, 1.0)
+                add_sample!(film_tile, camera_sample.film, L, 1.0)
 
                 start_next_sample!(k_sampler)
             end
