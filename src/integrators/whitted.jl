@@ -15,7 +15,7 @@ function render(i::WhittedIntegrator, BVH::BVHNode)
 
     print("Utilizing $(Threads.nthreads()) threads\n")
     Threads.@threads for k in 0:total_tiles
-        x, y = k % width, k / width
+        x, y = k % width, k ÷ width
         tile = Pnt2(x, y)
         k_sampler = deepcopy(i.sampler)
 
@@ -23,9 +23,12 @@ function render(i::WhittedIntegrator, BVH::BVHNode)
         tb_max = min.(tb_min .+ (tile_size - 1), sample_bounds.pMax)
         tile_bounds = Bounds2(tb_min, tb_max)
 
+        print("tile bounds: $(tile_bounds)\n")
+
         film_tile = FilmTile(get_film(i.camera), tile_bounds)
-        N = 0
         for pixel in tile_bounds # adding iterator method is cool
+            # print(pixel)
+            # print("\n")
             start_pixel!(k_sampler, pixel)
             while has_next_sample(k_sampler)
                 camera_sample = get_camera_sample(k_sampler, pixel)

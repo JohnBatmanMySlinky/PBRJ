@@ -145,7 +145,7 @@ function Base.iterate(b::Bounds2, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2, I
 
     j = i - 1
     delta = b.pMax .- b.pMin .+ 1.0
-    return b.pMin .+ Pnt2(j % delta[1], j / delta[1]), i + 1
+    return b.pMin .+ Pnt2(j % delta[1], j ÷ delta[1]), i + 1
 end
 
 ################################

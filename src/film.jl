@@ -127,11 +127,17 @@ end
 
 function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float64 = 1,) where S <: Spectrum
     # Compute sample's raster bounds.
+    # print(point)
+
     discrete_point = point .- 0.5
     p0 = ceil.(discrete_point .- t.filter_radius)
     p1 = floor.(discrete_point .+ t.filter_radius) .+ 1
     p0 = max.(p0, max.(t.pixel_bounds.pMin, Pnt2(1,1)))
     p1 = min.(p1, t.pixel_bounds.pMax)   
+
+    # print("$(p0)-$(p1)")
+    # print("\n\n")
+
     # Precompute x & y filter offsets.
     offsets_x = Vector{Int32}(undef, Int32(p1[1] - p0[1] + 1))
     offsets_y = Vector{Int32}(undef, Int32(p1[2] - p0[2] + 1))
