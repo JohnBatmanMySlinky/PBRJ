@@ -17,6 +17,10 @@ abstract type AbstractSampler end
 abstract type Shape end
 abstract type Texture end
 
+const Radiance = Val{:Radiance}
+const Importance = Val{:Importance}
+const TransportMode = Union{Radiance, Importance}
+
 include("objects.jl")
 include("primitive.jl")
 include("interactions.jl")
@@ -37,8 +41,9 @@ include("reflection/fresnel.jl")
 include("reflection/specular.jl")
 include("reflection/lambertian.jl")
 include("materials/bsdf.jl")
-include("materials/material.jl")
+include("materials/matte.jl")
 include("integrators/whitted.jl")
+include("textures/constant.jl")
 
 function test_integrate()
     # create shapes
@@ -71,8 +76,8 @@ function test_integrate()
     )
 
     # create dummy material
-    mat_white = DummyMaterial(Pnt3(1,1,1))
-    mat_bluegreen = DummyMaterial(Pnt3(0,1,1))
+    mat_white = Matte(ConstantTexture(Pnt3(1,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
+    mat_bluegreen = Matte(ConstantTexture(Pnt3(0,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
 
     # create geometric primitives
     p1 = Primitive(dummy_sphere1, mat_white)
@@ -85,7 +90,7 @@ function test_integrate()
     BVH = ConstructBVH(primitives)
 
     # Instantiate a Filter
-    filter = BoxFilter(Pnt2(1.0, 1.0))
+    filter = BoxFilter(Pnt2(0.5, 0.5))
 
     # Instantiate a Film
     film = Film(

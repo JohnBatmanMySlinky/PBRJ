@@ -16,11 +16,11 @@ function (l::LambertianReflection{S})(::Vec3, ::Vec3)::Spectrum where S <: Spect
     return l.r / pi
 end
 
-function rho(l::LambertianReflection{S}, ::Vec3, ::Int64, ::Vector{Pnt2},) where S <: Spectrum
+function rho(l::LambertianReflection{S}, ::Vec3, ::Int64, ::Vector{Pnt2}) where S <: Spectrum
     return l.r
 end
 
-function rho(l::LambertianReflection{S}, ::Vector{Pnt2}, ::Vector{Pnt2},) where S <: Spectrum
+function rho(l::LambertianReflection{S}, ::Vector{Pnt2}, ::Vector{Pnt2}) where S <: Spectrum
     return l.r
 end
 

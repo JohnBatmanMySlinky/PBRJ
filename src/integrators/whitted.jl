@@ -33,7 +33,7 @@ function render(i::WhittedIntegrator, BVH::BVHNode)
                 # dumy code for now
                 check, t, interaction = Intersect(BVH, ray)
                 if check
-                    L = Spectrum(interaction.primitive.material.albedo)
+                    L = Spectrum(interaction.primitive.material.Kd.value)
                 else
                     L = Spectrum(0, 0, 0)
                 end
