@@ -19,6 +19,11 @@ function distance(p1::Pnt3, p2::Pnt3)::Float64
     return norm(p1 - p2)
 end
 
+function distance_squared(p1::Pnt3, p2::Pnt3)::Float64
+    p = p1 - p2
+    return dot(p,p)
+end
+
 function lerp(t::Float64, a::Float64, b::Float64)::Float64
     return a + t * (b - a)
 end

@@ -60,3 +60,30 @@ function InstantiateSurfaceInteraction(
         nothing
     )
 end
+
+#################
+### Spawn Ray ###
+#################
+function spawn_ray(p0::SurfaceInteraction, p1::Interaction)::Ray
+    return spawn_ray(p0.core, p1)
+end
+
+function spawn_ray(si::SurfaceInteraction, direction::Vec3, delta::Float32 = 1e-6)::Ray
+    origin = si.core.p .+ delta .* direction
+    return Ray(origin, direction, si.core.time, typemax(Float64))
+end
+
+function spawn_ray(p0::Interaction, p1::Interaction, delta::Float32 = 1e-6,)::Ray
+    direction = p1.p - p0.p
+    origin = p0.p .+ delta .* direction
+    return Ray(origin, direction, p0.time, typemax(Float64))
+end
+
+
+#########################################
+## Compute Scattering at interacttion ###
+#########################################
+function compute_scattering!(si::SurfaceInteraction, ray::Ray, allow_multiple_lobes::Bool=false, ::Type{T}=Radiance) wher T <: TransportMode
+    compute_differentials!()
+    compute_scattering!(si.primitive, si, allow_multiple_lobes, T)
+end

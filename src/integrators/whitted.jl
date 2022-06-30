@@ -5,7 +5,7 @@ struct WhittedIntegrator <: AbstractIntegrator
 end
 
 
-function render(i::WhittedIntegrator, BVH::BVHNode)
+function render(i::WhittedIntegrator, scene::Scene)
     sample_bounds = get_sample_bounds(get_film(i.camera))
     sample_extent = diagonal(sample_bounds)
     tile_size = 160
@@ -31,7 +31,7 @@ function render(i::WhittedIntegrator, BVH::BVHNode)
                 ray, _ = generate_ray(i.camera, camera_sample)
 
                 # dumy code for now
-                check, t, interaction = Intersect(BVH, ray)
+                check, t, interaction = Intersect(scene.b, ray)
                 if check
                     L = Spectrum(interaction.primitive.material.Kd.value)
                 else
@@ -47,3 +47,48 @@ function render(i::WhittedIntegrator, BVH::BVHNode)
     end
     save(get_film(i.camera))
 end
+
+
+function li(i::WhittedIntegrator, ray::Ray, scene::Scene, depth::Int64)::Spectrum
+    L = Spectrum(0, 0, 0)
+    check, t, interaction = Intersect!(scene.b, ray)
+    # if nothing is hit --> this is only for env light.
+    if !check
+        for light in scene.lights
+            L += le(light, ray)
+        end
+        return L
+    end
+
+    # initialize
+    n = interaction.shading.n
+    wo = interaction.core.wo 
+
+    # compute scattering functions at surface
+    compute_scattering!(interaction, ray)
+    if interaction.bsdf isa Nothing
+        return li(spawn_ray(interaction, ray.direction), scene, i.sampler, depth)
+    end
+
+    # if hit an area light, compute emitted ray
+    L += le(interaction, wo)
+
+    # for each light source, add contrib
+    for light in scene.lights
+        sampled_li, wi, pdf, visibility_tester = sample_li(light, inteaction.core, get_2D(i.sampler))
+        if pdf == 0
+            continue
+        end
+        f = interaction.bsdf(wo, wi)
+        if unoccluded(visibility_tester, scene)
+            L += f * sampled_li * abs(dot(wi, n)) / pdf
+        end
+    end
+
+    if depth + 1 <= i.max_depth
+        L += specular_reflect(i, ray, interaction, scene, depth)
+        L += specular_transmit(i, ray, interaction, scene, depth)
+    end
+    return l
+end
+

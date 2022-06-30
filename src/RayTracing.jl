@@ -42,8 +42,11 @@ include("reflection/specular.jl")
 include("reflection/lambertian.jl")
 include("materials/bsdf.jl")
 include("materials/matte.jl")
-include("integrators/whitted.jl")
 include("textures/constant.jl")
+include("lights/light.jl")
+include("lights/point.jl")
+include("scene.jl")
+include("integrators/whitted.jl")
 
 function test_integrate()
     # create shapes
@@ -112,11 +115,17 @@ function test_integrate()
     # Instantiate a Sampler
     S = UniformSampler(1) 
     
+    # instantiate point light
+    lights = Light[]
+    push!(lights, PointLight(Translate(Pnt3(-10, -10, 10)), Spectrum(25, 25, 25)))
+
+    # Instantiate Scene
+    scene = Scene(lights, BVH)
     
     # Instantiate an Integrator
     I = WhittedIntegrator(C, S, 1)
 
-    render(I, BVH)
+    render(I, scene)
 end
 
 
