@@ -6,6 +6,7 @@ using FileIO
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
+abstract type AbstractBSDF end
 abstract type Camera end
 abstract type Filter end
 abstract type Fresnel end
@@ -123,7 +124,7 @@ function test_integrate()
     scene = Scene(lights, BVH)
     
     # Instantiate an Integrator
-    I = WhittedIntegrator(C, S, 1)
+    I = WhittedIntegrator(C, S, 2)
 
     render(I, scene)
 end

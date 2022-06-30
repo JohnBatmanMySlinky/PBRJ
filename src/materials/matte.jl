@@ -8,11 +8,11 @@ end
 function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: TransportMode
     # BUMP MAPPING ISN'T Implemented
     si.bsdf = BSDF(si)
-    r = clamp(m.Kd(si))
+    r = Spectrum(clamp.(m.Kd(si),0,1)...)
 
     # TODO implement black body check
-    sigma = clamp(m.sigma(si), 0, 90)
-    if sigma.value == Pnt3(0, 0, 0)
+    sigma = clamp.(m.sigma(si), 0, 90)
+    if sigma == Pnt3(0, 0, 0)
         add!(si.bsdf, LambertianReflection(r))
     else
         print("OrenNayer isn't implemented")

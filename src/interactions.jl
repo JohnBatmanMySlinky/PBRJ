@@ -30,6 +30,7 @@ mutable struct SurfaceInteraction
 
     shape::Shape
     primitive::Maybe{Primitive}
+    bsdf::Maybe{AbstractBSDF}
 end
 
 function InstantiateSurfaceInteraction(
@@ -42,7 +43,8 @@ function InstantiateSurfaceInteraction(
     dndu::Nml3,
     dndv::Nml3,
     shape::Shape,
-    primitive::Maybe{Primitive}=nothing
+    primitive::Maybe{Primitive}=nothing,
+    bsdf::Maybe{AbstractBSDF}=nothing,
 )::SurfaceInteraction
     n = normalize(cross(dpdu, dpdv))
 
@@ -57,6 +59,7 @@ function InstantiateSurfaceInteraction(
         dndu,
         dndv,
         shape,
+        nothing,
         nothing
     )
 end
@@ -73,7 +76,7 @@ function spawn_ray(si::SurfaceInteraction, direction::Vec3, delta::Float32 = 1e-
     return Ray(origin, direction, si.core.time, typemax(Float64))
 end
 
-function spawn_ray(p0::Interaction, p1::Interaction, delta::Float32 = 1e-6,)::Ray
+function spawn_ray(p0::Interaction, p1::Interaction, delta::Float64 = 1e-6,)::Ray
     direction = p1.p - p0.p
     origin = p0.p .+ delta .* direction
     return Ray(origin, direction, p0.time, typemax(Float64))
@@ -83,7 +86,23 @@ end
 #########################################
 ## Compute Scattering at interacttion ###
 #########################################
-function compute_scattering!(si::SurfaceInteraction, ray::Ray, allow_multiple_lobes::Bool=false, ::Type{T}=Radiance) wher T <: TransportMode
-    compute_differentials!()
+function compute_scattering!(si::SurfaceInteraction, ray::Ray, allow_multiple_lobes::Bool=false, ::Type{T}=Radiance) where T <: TransportMode
+    # compute_differentials!()
     compute_scattering!(si.primitive, si, allow_multiple_lobes, T)
+end
+
+function compute_scattering!(p::Primitive, si::SurfaceInteraction, allow_multiple_lobes::Bool, ::Type{T}) where T <: TransportMode
+    if !(p.material isa Nothing)
+        # evaluate the bsdf
+        p.material(si, allow_multiple_lobes, T)
+    end
+    @assert (dot(si.core.n, si.shading.n)) >= 0
+end
+
+#########################################
+#### Light emitted ######################
+#########################################
+function le(::SurfaceInteraction, ::Vec3)::Spectrum
+    #TODO 0 cause no area lights yet
+    return Spectrum(0, 0, 0)
 end

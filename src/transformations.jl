@@ -132,7 +132,8 @@ function (t::Transformation)(si::SurfaceInteraction)::SurfaceInteraction
         t(si.dndu),
         t(si.dndv),
         si.shape,
-        si.primitive
+        si.primitive,
+        nothing
     )
 end
 

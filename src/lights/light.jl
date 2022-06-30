@@ -11,5 +11,6 @@ struct VisibilityTester
 end
 
 function unoccluded(vt::VisibilityTester, scene::BVHNode)::Bool
-    return !Intersect(BVHNode, spawn_ray(t.p0, t.p1))
+    check, _, _ = Intersect(scene, spawn_ray(vt.p0, vt.p1))
+    return !check
 end

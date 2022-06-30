@@ -30,13 +30,8 @@ function render(i::WhittedIntegrator, scene::Scene)
                 camera_sample = get_camera_sample(k_sampler, pixel)
                 ray, _ = generate_ray(i.camera, camera_sample)
 
-                # dumy code for now
-                check, t, interaction = Intersect(scene.b, ray)
-                if check
-                    L = Spectrum(interaction.primitive.material.Kd.value)
-                else
-                    L = Spectrum(0, 0, 0)
-                end
+                # BEGIN
+                L = li(i, ray, scene, 1)
 
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
 
@@ -51,7 +46,7 @@ end
 
 function li(i::WhittedIntegrator, ray::Ray, scene::Scene, depth::Int64)::Spectrum
     L = Spectrum(0, 0, 0)
-    check, t, interaction = Intersect!(scene.b, ray)
+    check, t, interaction = Intersect(scene.b, ray)
     # if nothing is hit --> this is only for env light.
     if !check
         for light in scene.lights
@@ -75,20 +70,35 @@ function li(i::WhittedIntegrator, ray::Ray, scene::Scene, depth::Int64)::Spectru
 
     # for each light source, add contrib
     for light in scene.lights
-        sampled_li, wi, pdf, visibility_tester = sample_li(light, inteaction.core, get_2D(i.sampler))
+        sampled_li, wi, pdf, visibility_tester = sample_li(light, interaction.core, get_2D(i.sampler))
         if pdf == 0
             continue
         end
         f = interaction.bsdf(wo, wi)
-        if unoccluded(visibility_tester, scene)
-            L += f * sampled_li * abs(dot(wi, n)) / pdf
+        if unoccluded(visibility_tester, scene.b)
+            L = L .+ f .* sampled_li * abs(dot(wi, n)) / pdf
         end
     end
 
     if depth + 1 <= i.max_depth
-        L += specular_reflect(i, ray, interaction, scene, depth)
-        L += specular_transmit(i, ray, interaction, scene, depth)
+        L = L .+ specular_reflect(i, ray, interaction, scene, depth)
+        # L += specular_transmit(i, ray, interaction, scene, depth)
     end
-    return l
+    return L
+end
+
+
+function specular_reflect(i::WhittedIntegrator, ray::Ray, surface_interaction::SurfaceInteraction, scene::Scene, depth::Int64)
+    wo = surface_interaction.core.wo
+    type = BSDF_REFLECTION | BSDF_SPECULAR
+    wi, f, pdf, sampled_type = sample_f(surface_interaction.bsdf, wo, get_2D(i.sampler), type)
+
+    ns = surface_interaction.shading.n
+    if pdf == 0 || abs(dot(wi, ns)) == 0
+        return Spectrum
+    end
+
+    ray = spawn_ray(surface_interaction, wi)
+    return f * li(i, rd, scene, depth + 1) * abs(dot(wi, ns)) / pdf
 end
 
