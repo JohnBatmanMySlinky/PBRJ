@@ -53,7 +53,7 @@ end
 
 function li(i::WhittedIntegrator, ray::Ray, scene::Scene, depth::Int64)::Spectrum
     L = Spectrum(0, 0, 0)
-    check, t, interaction = Intersect(scene.b, ray)
+    check, t, interaction = Intersect!(scene.b, ray)
     # if nothing is hit --> this is only for env light.
     if !check
         for light in scene.lights

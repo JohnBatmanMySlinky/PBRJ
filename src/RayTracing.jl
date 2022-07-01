@@ -52,7 +52,7 @@ include("handy_prints.jl")
 
 function test_integrate()
     # create shapes
-    dummy_transform1 = Translate(Pnt3(0, 12, 0))
+    dummy_transform1 = Translate(Pnt3(0, 17, 0))
     dummy_sphere1 = Sphere(
         ShapeCore(
             dummy_transform1,      # object_to_world
@@ -61,13 +61,22 @@ function test_integrate()
         5.0,                       # radius
     )
 
-    dummy_transform2 = Translate(Pnt3(0, 0, 0))
+    dummy_transform2 = Translate(Pnt3(0, 5, 0))
     dummy_sphere2 = Sphere(
         ShapeCore(
             dummy_transform2,      # object_to_world
             Inv(dummy_transform2)  # world_to_object
         ),
         5.0,                       # radius
+    )
+
+    dummy_transform3 = Translate(Pnt3(0, -1000, 0))
+    dummy_sphere3 = Sphere(
+        ShapeCore(
+            dummy_transform3,      # object_to_world
+            Inv(dummy_transform3)  # world_to_object
+        ),
+        1000.0,                       # radius
     )
 
     # create dummy material
@@ -77,9 +86,10 @@ function test_integrate()
     # create geometric primitives
     p1 = Primitive(dummy_sphere1, mat_white)
     p2 = Primitive(dummy_sphere2, mat_bluegreen)
+    p3 = Primitive(dummy_sphere3, mat_white)
 
     # vector of primtives
-    primitives = [p1, p2]
+    primitives = [p1, p2, p3]
 
     # instantiate accelerator
     BVH = ConstructBVH(primitives)
@@ -87,11 +97,11 @@ function test_integrate()
     # print_BVH_bounds(BVH)
 
     # Instantiate a Filter
-    filter = BoxFilter(Pnt2(0.5, 0.5))
+    filter = BoxFilter(Pnt2(1, 1))
 
     # Instantiate a Film
     film = Film(
-        Pnt2(256, 256),
+        Pnt2(512, 512),
         Bounds2(Pnt2(0,0), Pnt2(1,1)),
         filter,
         1.0,
@@ -101,7 +111,7 @@ function test_integrate()
 
     # Instantiate a Camera
     look_from = Pnt3(300, 300, 300)
-    look_at = Pnt3(-20, -20, 0) # TODO something is off here....
+    look_at = Pnt3(-20, -15, 0) # TODO something is off here....
     up = Pnt3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 140.0, film)
@@ -114,6 +124,8 @@ function test_integrate()
     lights = Light[]
     push!(lights, PointLight(Translate(Pnt3(15, 20, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
     push!(lights, PointLight(Translate(Pnt3(0, 20, 15)), Spectrum(light_intensity, light_intensity, light_intensity)))
+    push!(lights, PointLight(Translate(Pnt3(0, 35, 3)), Spectrum(light_intensity*2, light_intensity*2, light_intensity*2)))
+    push!(lights, PointLight(Translate(Pnt3(10, 40, 6)), Spectrum(light_intensity*2, light_intensity*2, light_intensity*2)))
 
     # Instantiate Scene
     scene = Scene(lights, BVH)
