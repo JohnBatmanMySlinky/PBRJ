@@ -106,7 +106,7 @@ function specular_reflect(i::WhittedIntegrator, ray::Ray, surface_interaction::S
     end
 
     ray = spawn_ray(surface_interaction, wi)
-    return f * li(i, rd, scene, depth + 1) * abs(dot(wi, ns)) / pdf
+    return f .* li(i, ray, scene, depth + 1) * abs(dot(wi, ns)) / pdf
 end
 
 function specular_transmit(i::WhittedIntegrator, ray::Ray, surface_interaction::SurfaceInteraction, scene::Scene, depth::Int64)

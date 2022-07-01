@@ -71,7 +71,7 @@ function spawn_ray(p0::SurfaceInteraction, p1::Interaction)::Ray
     return spawn_ray(p0.core, p1)
 end
 
-function spawn_ray(si::SurfaceInteraction, direction::Vec3, delta::Float32 = 1e-6)::Ray
+function spawn_ray(si::SurfaceInteraction, direction::Vec3, delta::Float64 = 1e-6)::Ray
     origin = si.core.p .+ delta .* direction
     return Ray(origin, direction, si.core.time, typemax(Float64))
 end

@@ -69,3 +69,15 @@ function fresnel_dielectric(cos_theta_i::Float64, eta_i::Float64, eta_t::Float64
 
     return (r_par + r_perp) / 2
 end
+
+
+############################################################
+###################### Fresnel No Op #################
+############################################################
+
+struct FresnelNoOp <: Fresnel
+end
+
+function (f::FresnelNoOp)(::Float64)
+    return Spectrum(1,1,1)
+end

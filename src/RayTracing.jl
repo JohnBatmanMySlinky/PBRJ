@@ -43,6 +43,7 @@ include("reflection/specular.jl")
 include("reflection/lambertian.jl")
 include("materials/bsdf.jl")
 include("materials/matte.jl")
+include("materials/mirror.jl")
 include("textures/constant.jl")
 include("lights/light.jl")
 include("lights/point.jl")
@@ -82,10 +83,11 @@ function test_integrate()
     # create dummy material
     mat_white = Matte(ConstantTexture(Pnt3(1,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
     mat_bluegreen = Matte(ConstantTexture(Pnt3(0,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
+    mat_mirror = Mirror(ConstantTexture(Pnt3(.75, .75, .75)))
 
     # create geometric primitives
-    p1 = Primitive(dummy_sphere1, mat_white)
-    p2 = Primitive(dummy_sphere2, mat_bluegreen)
+    p1 = Primitive(dummy_sphere1, mat_bluegreen)
+    p2 = Primitive(dummy_sphere2, mat_mirror)
     p3 = Primitive(dummy_sphere3, mat_white)
 
     # vector of primtives
@@ -122,8 +124,12 @@ function test_integrate()
     # instantiate point light
     light_intensity = 250
     lights = Light[]
-    push!(lights, PointLight(Translate(Pnt3(15, 20, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
-    push!(lights, PointLight(Translate(Pnt3(0, 20, 15)), Spectrum(light_intensity, light_intensity, light_intensity)))
+    push!(lights, PointLight(Translate(Pnt3(6, 12, 8)), Spectrum(light_intensity/2, light_intensity/2, light_intensity/2)))
+    push!(lights, PointLight(Translate(Pnt3(8, 12, 6)), Spectrum(light_intensity/2, light_intensity/2, light_intensity/2)))
+
+    push!(lights, PointLight(Translate(Pnt3(15, 25, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
+    push!(lights, PointLight(Translate(Pnt3(0, 25, 15)), Spectrum(light_intensity, light_intensity, light_intensity)))
+
     push!(lights, PointLight(Translate(Pnt3(0, 35, 3)), Spectrum(light_intensity*2, light_intensity*2, light_intensity*2)))
     push!(lights, PointLight(Translate(Pnt3(10, 40, 6)), Spectrum(light_intensity*2, light_intensity*2, light_intensity*2)))
 
