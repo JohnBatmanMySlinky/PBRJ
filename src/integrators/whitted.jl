@@ -88,8 +88,8 @@ function li(i::WhittedIntegrator, ray::Ray, scene::Scene, depth::Int64)::Spectru
     end
 
     if depth + 1 <= i.max_depth
-        L = L .+ specular_reflect(i, ray, interaction, scene, depth)
-        # L += specular_transmit(i, ray, interaction, scene, depth)
+        L += specular_reflect(i, ray, interaction, scene, depth)
+        L += specular_transmit(i, ray, interaction, scene, depth)
     end
     return L
 end
@@ -109,3 +109,23 @@ function specular_reflect(i::WhittedIntegrator, ray::Ray, surface_interaction::S
     return f * li(i, rd, scene, depth + 1) * abs(dot(wi, ns)) / pdf
 end
 
+function specular_transmit(i::WhittedIntegrator, ray::Ray, surface_interaction::SurfaceInteraction, scene::Scene, depth::Int64)
+    wo = surface_interaction.core.wo
+    type = BSDF_TRANSMISSION | BSDF_SPECULAR
+    wi, f, pdf, sampled_type = sample_f(surface_interaction.bsdf, wo, get_2D(i.sampler), type)
+
+    ns = surface_interaction.shading.n
+    if pdf == 0 || abs(dot(wi, ns)) == 0
+        return Spectrum(0, 0, 0)
+    end
+
+    ray = spawn_ray(surface_interaction, wi)
+    eta = 1/ surface_interaction.bsdf.eta
+
+    if dot(ns,ns) < 0
+        eta = 1/eta
+        ns = -ns
+    end
+
+    return f * li(i, ray, scene, depth+1) * abs(dot(wi,ns)) / pdf
+end
