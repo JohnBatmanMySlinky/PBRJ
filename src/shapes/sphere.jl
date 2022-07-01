@@ -9,6 +9,18 @@ struct Sphere <: Shape
     thetaMax::Float32
     # phi ranges from [0,2pi]
     phiMax::Float32
+
+    function Sphere(core::ShapeCore, radius::Float64)
+        new(
+            core,
+            radius,
+            -radius,
+            radius,
+            0.0,
+            pi,
+            2pi
+        )
+    end
 end
 
 # PBR 3.2.1
@@ -22,11 +34,11 @@ end
 # PBR 3.2.2
 function Intersect(s::Sphere, r::Ray)
     # transform ray to object space 
-    object_ray = s.core.world_to_object(r)
+    r = s.core.world_to_object(r)
 
-    a = norm(dot(object_ray.direction, object_ray.direction))
-    b = 2 * dot(object_ray.origin, object_ray.direction)
-    c = norm(dot(object_ray.origin, object_ray.origin)) - s.radius ^ 2
+    a = norm(dot(r.direction, r.direction))
+    b = 2 * dot(r.origin, r.direction)
+    c = norm(dot(r.origin, r.origin)) - s.radius ^ 2
 
     # solve quadratic
     exists, t0, t1 = solve_quadratic(a, b, c)
@@ -73,8 +85,7 @@ function Intersect(s::Sphere, r::Ray)
     # ok now we are certain we have a hit, so compute other crap
     u = phi / s.phiMax
     theta = acos(clamp(p[3]/s.radius, -1, 1))
-    v = (theta - s.thetaMin) / (s.thetaMax - s.thetaMin)
-    
+    v = (theta - s.thetaMin) / (s.thetaMax - s.thetaMin)   
 
     # compute partials
     sin_phi, cos_phi = precompute_phi(p)

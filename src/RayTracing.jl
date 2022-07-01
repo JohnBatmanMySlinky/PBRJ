@@ -48,35 +48,26 @@ include("lights/light.jl")
 include("lights/point.jl")
 include("scene.jl")
 include("integrators/whitted.jl")
+include("handy_prints.jl")
 
 function test_integrate()
     # create shapes
-    dummy_transform1 = Translate(Vec3(0, 0, 0))
+    dummy_transform1 = Translate(Pnt3(0, 12, 0))
     dummy_sphere1 = Sphere(
         ShapeCore(
             dummy_transform1,      # object_to_world
             Inv(dummy_transform1)  # world_to_object
         ),
         5.0,                       # radius
-        -5.0,                      # zMin
-        5.0,                       # zMax
-        0.0,                       # thetaMin
-        2pi,                       # thetaMax
-        2pi                        # phiMax
     )
 
-    dummy_transform2 = Translate(Vec3(3, 3, -3))
+    dummy_transform2 = Translate(Pnt3(0, 0, 0))
     dummy_sphere2 = Sphere(
         ShapeCore(
             dummy_transform2,      # object_to_world
             Inv(dummy_transform2)  # world_to_object
         ),
         5.0,                       # radius
-        -5.0,                      # zMin
-        5.0,                       # zMax
-        0.0,                       # thetaMin
-        2pi,                       # thetaMax
-        2pi                        # phiMax
     )
 
     # create dummy material
@@ -93,6 +84,8 @@ function test_integrate()
     # instantiate accelerator
     BVH = ConstructBVH(primitives)
 
+    # print_BVH_bounds(BVH)
+
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(0.5, 0.5))
 
@@ -108,23 +101,25 @@ function test_integrate()
 
     # Instantiate a Camera
     look_from = Pnt3(300, 300, 300)
-    look_at = Pnt3(-7.5, -7.5, 0)
+    look_at = Pnt3(-20, -20, 0) # TODO something is off here....
     up = Pnt3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 120.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 140.0, film)
 
     # Instantiate a Sampler
     S = UniformSampler(1) 
     
     # instantiate point light
+    light_intensity = 250
     lights = Light[]
-    push!(lights, PointLight(Translate(Pnt3(-10, -10, 10)), Spectrum(25, 25, 25)))
+    push!(lights, PointLight(Translate(Pnt3(15, 20, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
+    push!(lights, PointLight(Translate(Pnt3(0, 20, 15)), Spectrum(light_intensity, light_intensity, light_intensity)))
 
     # Instantiate Scene
     scene = Scene(lights, BVH)
     
     # Instantiate an Integrator
-    I = WhittedIntegrator(C, S, 2)
+    I = WhittedIntegrator(C, S, 5)
 
     render(I, scene)
 end

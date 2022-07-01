@@ -33,6 +33,13 @@ function render(i::WhittedIntegrator, scene::Scene)
                 # BEGIN
                 L = li(i, ray, scene, 1)
 
+                # check, t, interaction, = Intersect(scene.b, ray)
+                # if check
+                #     L = Spectrum(interaction.uv[1],interaction.uv[2],0)
+                # else
+                #     L = Spectrum(0,0,0)
+                # end
+
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
 
                 start_next_sample!(k_sampler)
@@ -95,7 +102,7 @@ function specular_reflect(i::WhittedIntegrator, ray::Ray, surface_interaction::S
 
     ns = surface_interaction.shading.n
     if pdf == 0 || abs(dot(wi, ns)) == 0
-        return Spectrum
+        return Spectrum(0, 0, 0)
     end
 
     ray = spawn_ray(surface_interaction, wi)
