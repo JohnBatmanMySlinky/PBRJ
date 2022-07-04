@@ -148,6 +148,10 @@ function Base.iterate(b::Bounds2, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2, I
     return b.pMin .+ Pnt2(j % delta[1], j ÷ delta[1]), i + 1
 end
 
+function Bounds3(p::Pnt3)
+    return Bounds3(p, p)
+end
+
 ################################
 ######### Spectrum #############
 ################################

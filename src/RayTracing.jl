@@ -28,6 +28,7 @@ include("interactions.jl")
 include("transformations.jl")
 include("shapes/shape.jl")
 include("shapes/sphere.jl")
+include("shapes/triangle.jl")
 include("math_utils.jl")
 include("accelerators/bvh.jl")
 include("filters/box.jl")
@@ -71,13 +72,14 @@ function test_integrate()
         5.0,                       # radius
     )
 
-    dummy_transform3 = Translate(Pnt3(0, -1000, 0))
-    dummy_sphere3 = Sphere(
-        ShapeCore(
-            dummy_transform3,      # object_to_world
-            Inv(dummy_transform3)  # world_to_object
-        ),
-        1000.0,                       # radius
+    dummy_transform3 = Translate(Pnt3(0, 0, 0))
+    triangles = construct_triangle_mesh(
+        ShapeCore(dummy_transform3, Inv(dummy_transform3)),                 # ShapeCore
+        2,                                                                  # n_triangles                              
+        4,                                                                  # n_verices\
+        [Pnt3(0, 0, 0), Pnt3(0, 0, -30), Pnt3(30, 0, -30), Pnt3(30, 0, 0)], # vertices
+        Int64[1,2,3,1,4,3],                                                 # indices          
+        [Nml3(0, 1, 0), Nml3(0, 1, 0), Nml3(0, 1, 0), Nml3(0, 1, 0)],       # normals
     )
 
     # create dummy material
@@ -88,10 +90,14 @@ function test_integrate()
     # create geometric primitives
     p1 = Primitive(dummy_sphere1, mat_bluegreen)
     p2 = Primitive(dummy_sphere2, mat_mirror)
-    p3 = Primitive(dummy_sphere3, mat_white)
 
     # vector of primtives
-    primitives = [p1, p2, p3]
+    primitives = [p1, p2]
+
+    # add in ya triangles
+    for triangle in triangles
+        push!(primitives, Primitive(triangle, mat_white))
+    end
 
     # instantiate accelerator
     BVH = ConstructBVH(primitives)
