@@ -77,8 +77,8 @@ function test_integrate()
         ShapeCore(dummy_transform3, Inv(dummy_transform3)),                 # ShapeCore
         2,                                                                  # n_triangles                              
         4,                                                                  # n_verices\
-        [Pnt3(0, 0, 0), Pnt3(0, 0, -30), Pnt3(30, 0, -30), Pnt3(30, 0, 0)], # vertices
-        Int64[1,2,3,1,4,3],                                                 # indices          
+        [Pnt3(-15, 3, -15), Pnt3(-15, 0, 15), Pnt3(15, 0, -15), Pnt3(15, 3, 15)], # vertices
+        Int64[1,3,2,3,2,4],                                                 # indices          
         [Nml3(0, 1, 0), Nml3(0, 1, 0), Nml3(0, 1, 0), Nml3(0, 1, 0)],       # normals
     )
 
@@ -89,7 +89,7 @@ function test_integrate()
 
     # create geometric primitives
     p1 = Primitive(dummy_sphere1, mat_bluegreen)
-    p2 = Primitive(dummy_sphere2, mat_mirror)
+    p2 = Primitive(dummy_sphere2, mat_bluegreen)
 
     # vector of primtives
     primitives = [p1, p2]
@@ -98,6 +98,8 @@ function test_integrate()
     for triangle in triangles
         push!(primitives, Primitive(triangle, mat_white))
     end
+
+    print("\nThere are $(length(primitives)) objects in the scene\n")
 
     # instantiate accelerator
     BVH = ConstructBVH(primitives)
