@@ -30,7 +30,14 @@ end
 # object space bounding box to world space. Its world space bound can be directly computed from the world space vertices."
 function ObjectBounds(tri::Triangle)
     p0, p1, p2 = get_vertices(tri)
-    return world_bounds(world_bounds(Bounds3(p0, p0), Bounds3(p1, p1)), Bounds3(p2, p2))
+    # TODO why must I do this
+    buffer = Float64[0, 0, 0]
+    for i in 1:3
+        if p0[i] == p1[i] == p2[i]
+            buffer[i] = .0001
+        end
+    end
+    return world_bounds(world_bounds(Bounds3(p0-buffer, p0+buffer), Bounds3(p1-buffer, p1+buffer)), Bounds3(p2-buffer, p2+buffer))
 end
 
 ##############################
