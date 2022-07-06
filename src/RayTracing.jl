@@ -54,30 +54,48 @@ include("handy_prints.jl")
 
 function test_integrate()
     # create shapes
-    dummy_transform1 = Translate(Pnt3(0, 17, 0))
-    dummy_sphere1 = Sphere(
+    ball_1_transform = Translate(Pnt3(6, 5, 6))
+    ball_1 = Sphere(
         ShapeCore(
-            dummy_transform1,      # object_to_world
-            Inv(dummy_transform1)  # world_to_object
+            ball_1_transform,      # object_to_world
+            Inv(ball_1_transform)  # world_to_object
         ),
         5.0,                       # radius
     )
 
-    dummy_transform2 = Translate(Pnt3(0, 5, 0))
-    dummy_sphere2 = Sphere(
+    ball_2_transform = Translate(Pnt3(-6, 5, -6))
+    ball_2 = Sphere(
         ShapeCore(
-            dummy_transform2,      # object_to_world
-            Inv(dummy_transform2)  # world_to_object
+            ball_2_transform,      # object_to_world
+            Inv(ball_2_transform)  # world_to_object
         ),
         5.0,                       # radius
     )
 
-    dummy_transform3 = Translate(Pnt3(0, 0, 0))
-    triangles = construct_triangle_mesh(
-        ShapeCore(dummy_transform3, Inv(dummy_transform3)),                 # ShapeCore
+    ball_3_transform = Translate(Pnt3(-6, 5, 6))
+    ball_3 = Sphere(
+        ShapeCore(
+            ball_3_transform,      # object_to_world
+            Inv(ball_3_transform)  # world_to_object
+        ),
+        5.0,                       # radius
+    )
+
+    ball_4_transform = Translate(Pnt3(6, 5, -6))
+    ball_4 = Sphere(
+        ShapeCore(
+            ball_4_transform,      # object_to_world
+            Inv(ball_4_transform)  # world_to_object
+        ),
+        5.0,                       # radius
+    )
+
+    floor_transform = Translate(Pnt3(0, 0, 0))
+    floor_tri = construct_triangle_mesh(
+        ShapeCore(floor_transform, Inv(floor_transform)),                 # ShapeCore
         2,                                                                  # n_triangles                              
         4,                                                                  # n_verices\
-        [Pnt3(-15, 0, -15), Pnt3(-15, 0, 15), Pnt3(15, 0, -15), Pnt3(15, 0, 15)], # vertices
+        [Pnt3(-150, 0, -150), Pnt3(-150, 0, 150), Pnt3(150, 0, -150), Pnt3(150, 0, 150)], # vertices
         Int64[1,3,2,3,2,4],                                                 # indices          
         [Nml3(0, 1, 0), Nml3(0, 1, 0), Nml3(0, 1, 0), Nml3(0, 1, 0)],       # normals
     )
@@ -85,17 +103,18 @@ function test_integrate()
     # create dummy material
     mat_white = Matte(ConstantTexture(Pnt3(1,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
     mat_bluegreen = Matte(ConstantTexture(Pnt3(0,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
-    mat_mirror = Mirror(ConstantTexture(Pnt3(.75, .75, .75)))
 
     # create geometric primitives
-    p1 = Primitive(dummy_sphere1, mat_bluegreen)
-    p2 = Primitive(dummy_sphere2, mat_bluegreen)
+    p1 = Primitive(ball_1, mat_bluegreen)
+    p2 = Primitive(ball_2, mat_bluegreen)
+    p3 = Primitive(ball_3, mat_bluegreen)
+    p4 = Primitive(ball_4, mat_bluegreen)
 
     # vector of primtives
-    primitives = [p1, p2]
+    primitives = [p1, p2, p3, p4]
 
     # add in ya triangles
-    for triangle in triangles
+    for triangle in floor_tri
         push!(primitives, Primitive(triangle, mat_white))
     end
 
@@ -132,20 +151,13 @@ function test_integrate()
     # instantiate point light
     light_intensity = 250
     lights = Light[]
-    push!(lights, PointLight(Translate(Pnt3(6, 12, 8)), Spectrum(light_intensity/2, light_intensity/2, light_intensity/2)))
-    push!(lights, PointLight(Translate(Pnt3(8, 12, 6)), Spectrum(light_intensity/2, light_intensity/2, light_intensity/2)))
-
-    push!(lights, PointLight(Translate(Pnt3(15, 25, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
-    push!(lights, PointLight(Translate(Pnt3(0, 25, 15)), Spectrum(light_intensity, light_intensity, light_intensity)))
-
-    push!(lights, PointLight(Translate(Pnt3(0, 35, 3)), Spectrum(light_intensity*2, light_intensity*2, light_intensity*2)))
-    push!(lights, PointLight(Translate(Pnt3(10, 40, 6)), Spectrum(light_intensity*2, light_intensity*2, light_intensity*2)))
+    push!(lights, PointLight(Translate(Pnt3(0, 12, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
 
     # Instantiate Scene
     scene = Scene(lights, BVH)
     
     # Instantiate an Integrator
-    I = WhittedIntegrator(C, S, 5)
+    I = WhittedIntegrator(C, S, 1)
 
     render(I, scene)
 end
