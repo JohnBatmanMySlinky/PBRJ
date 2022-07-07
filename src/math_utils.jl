@@ -27,3 +27,12 @@ end
 function lerp(t::Float64, a::Float64, b::Float64)::Float64
     return a + t * (b - a)
 end
+
+function spherical_phi(v::Vec3)
+    p = atan(v.y, v.x)
+    return p < 0 ? (p + 2 * pi) : p
+end
+
+function spherical_theta(v::Vec3)
+    return acos(clamp(v.z, -1, 1))
+end

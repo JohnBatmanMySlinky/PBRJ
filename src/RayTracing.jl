@@ -118,10 +118,12 @@ function test_integrate()
         push!(primitives, Primitive(triangle, mat_white))
     end
 
-    print("\nThere are $(length(primitives)) objects in the scene\n")
+    print("\nThere are $(length(primitives)) objects in the scene, building BVH\n")
 
     # instantiate accelerator
     BVH = ConstructBVH(primitives)
+
+    print("Done building BVH")
 
     # print_BVH_bounds(BVH)
 
@@ -140,10 +142,10 @@ function test_integrate()
 
     # Instantiate a Camera
     look_from = Pnt3(300, 300, 300)
-    look_at = Pnt3(-20, -15, 0) # TODO something is off here....
+    look_at = Pnt3(-35, -35, 0) # TODO something is off here....
     up = Pnt3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 140.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 155.0, film)
 
     # Instantiate a Sampler
     S = UniformSampler(1) 
@@ -151,7 +153,11 @@ function test_integrate()
     # instantiate point light
     light_intensity = 250
     lights = Light[]
-    push!(lights, PointLight(Translate(Pnt3(0, 12, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
+    push!(lights, PointLight(Translate(Pnt3(0, 25, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
+    push!(lights, PointLight(Translate(Pnt3(10, 25, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
+    push!(lights, PointLight(Translate(Pnt3(0, 25, 10)), Spectrum(light_intensity, light_intensity, light_intensity)))
+    push!(lights, PointLight(Translate(Pnt3(-10, 25, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
+    push!(lights, PointLight(Translate(Pnt3(0, 25, -10)), Spectrum(light_intensity, light_intensity, light_intensity)))
 
     # Instantiate Scene
     scene = Scene(lights, BVH)
