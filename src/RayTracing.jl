@@ -3,6 +3,8 @@ module RayTracing
 using StaticArrays
 using LinearAlgebra
 using FileIO
+using Images
+using Statistics
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -33,6 +35,7 @@ include("math_utils.jl")
 include("accelerators/bvh.jl")
 include("filters/box.jl")
 include("film.jl")
+include("distributions.jl")
 include("cameras/camera.jl")
 include("cameras/projective.jl")
 include("samplers/sampler.jl")
@@ -48,6 +51,7 @@ include("materials/mirror.jl")
 include("textures/constant.jl")
 include("lights/light.jl")
 include("lights/point.jl")
+include("lights/infinite.jl")
 include("scene.jl")
 include("integrators/whitted.jl")
 include("handy_prints.jl")
@@ -103,6 +107,7 @@ function test_integrate()
     # create dummy material
     mat_white = Matte(ConstantTexture(Pnt3(1,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
     mat_bluegreen = Matte(ConstantTexture(Pnt3(0,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
+    mat_mirror = Mirror(ConstantTexture(Pnt3(.5, .5, .5)))
 
     # create geometric primitives
     p1 = Primitive(ball_1, mat_bluegreen)
@@ -148,22 +153,19 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 155.0, film)
 
     # Instantiate a Sampler
-    S = UniformSampler(1) 
+    S = UniformSampler(5) 
     
     # instantiate point light
-    light_intensity = 250
+    env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
     lights = Light[]
-    push!(lights, PointLight(Translate(Pnt3(0, 25, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
-    push!(lights, PointLight(Translate(Pnt3(10, 25, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
-    push!(lights, PointLight(Translate(Pnt3(0, 25, 10)), Spectrum(light_intensity, light_intensity, light_intensity)))
-    push!(lights, PointLight(Translate(Pnt3(-10, 25, 0)), Spectrum(light_intensity, light_intensity, light_intensity)))
-    push!(lights, PointLight(Translate(Pnt3(0, 25, -10)), Spectrum(light_intensity, light_intensity, light_intensity)))
+    push!(lights, PointLight(Translate(Pnt3(0, 25, 0)), Spectrum(300, 300, 300)))
+    push!(lights, env_light)
 
     # Instantiate Scene
     scene = Scene(lights, BVH)
     
     # Instantiate an Integrator
-    I = WhittedIntegrator(C, S, 1)
+    I = WhittedIntegrator(C, S, 25)
 
     render(I, scene)
 end

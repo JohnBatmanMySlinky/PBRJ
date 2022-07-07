@@ -19,7 +19,7 @@ function construct_pdf_2d(dat::Matrix)
             r = convert(Float64, dat[col,row].r)
             g = convert(Float64, dat[col,row].g)
             b = convert(Float64, dat[col,row].b)
-            bw[col,row] = mean([r,g,b])
+            bw[col,row] = mean([r,g,b]) + .01
         end
     end
 

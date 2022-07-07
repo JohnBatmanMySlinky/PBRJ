@@ -31,7 +31,7 @@ function render(i::WhittedIntegrator, scene::Scene)
                 ray, _ = generate_ray(i.camera, camera_sample)
 
                 # BEGIN
-                L = li(i, ray, scene, 1)
+                L = li(i, ray, scene)
 
                 # check, t, interaction, = Intersect!(scene.b, ray)
                 # if check
@@ -51,7 +51,7 @@ function render(i::WhittedIntegrator, scene::Scene)
 end
 
 
-function li(i::WhittedIntegrator, ray::Ray, scene::Scene, depth::Int64)::Spectrum
+function li(i::WhittedIntegrator, ray::Ray, scene::Scene, depth::Int64=1)::Spectrum
     L = Spectrum(0, 0, 0)
     check, t, interaction = Intersect!(scene.b, ray)
     # if nothing is hit --> this is only for env light.
@@ -77,13 +77,13 @@ function li(i::WhittedIntegrator, ray::Ray, scene::Scene, depth::Int64)::Spectru
 
     # for each light source, add contrib
     for light in scene.lights
-        sampled_li, wi, pdf, visibility_tester = sample_li(light, interaction.core, get_2D(i.sampler))
+        sampled_li, wi, pdf, visibility_tester = sample_li(light, interaction.core, get_2D(i.sampler))   
         if pdf == 0
             continue
         end
         f = interaction.bsdf(wo, wi)
         if unoccluded(visibility_tester, scene.b)
-            L = L .+ f .* sampled_li * abs(dot(wi, n)) / pdf
+            L += f .* sampled_li * abs(dot(wi, n)) / pdf
         end
     end
 
