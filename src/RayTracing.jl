@@ -55,6 +55,7 @@ include("lights/infinite.jl")
 include("scene.jl")
 include("integrators/whitted.jl")
 include("handy_prints.jl")
+include("obj_reader.jl")
 
 function test_integrate()
     # create shapes
@@ -94,14 +95,13 @@ function test_integrate()
         5.0,                       # radius
     )
 
-    floor_transform = Translate(Pnt3(0, 0, 0))
+    floor_transform = Translate(Pnt3(0, -50, 0))
     floor_tri = construct_triangle_mesh(
         ShapeCore(floor_transform, Inv(floor_transform)),                 # ShapeCore
         2,                                                                  # n_triangles                              
         4,                                                                  # n_verices\
-        [Pnt3(-150, 0, -150), Pnt3(-150, 0, 150), Pnt3(150, 0, -150), Pnt3(150, 0, 150)], # vertices
+        [Pnt3(-300, 0, -300), Pnt3(-300, 0, 300), Pnt3(300, 0, -300), Pnt3(300, 0, 300)], # vertices
         Int64[1,3,2,3,2,4],                                                 # indices          
-        [Nml3(0, 1, 0), Nml3(0, 1, 0), Nml3(0, 1, 0), Nml3(0, 1, 0)],       # normals
     )
 
     # create dummy material
@@ -116,11 +116,19 @@ function test_integrate()
     p4 = Primitive(ball_4, mat_bluegreen)
 
     # vector of primtives
-    primitives = [p1, p2, p3, p4]
+    # primitives = [p1, p2, p3, p4]
+    primitives = Primitive[]
 
     # add in ya triangles
     for triangle in floor_tri
         push!(primitives, Primitive(triangle, mat_white))
+    end
+
+    # read in teapot
+    teapot_transform = Translate(Vec3(0, 0, 0))
+    teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform)
+    for triangle in teapot_tri
+        push!(primitives, Primitive(triangle, mat_bluegreen))
     end
 
     print("\nThere are $(length(primitives)) objects in the scene, building BVH\n")
@@ -128,7 +136,7 @@ function test_integrate()
     # instantiate accelerator
     BVH = ConstructBVH(primitives)
 
-    print("Done building BVH")
+    print("Done building BVH\n")
 
     # print_BVH_bounds(BVH)
 
@@ -146,19 +154,19 @@ function test_integrate()
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(300, 300, 300)
-    look_at = Pnt3(-35, -35, 0) # TODO something is off here....
+    look_from = Pnt3(600, 600, 600)
+    look_at = Pnt3(-150, -200, 0) # TODO something is off here....
     up = Pnt3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 155.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 170.0, film)
 
     # Instantiate a Sampler
-    S = UniformSampler(5) 
+    S = UniformSampler(100) 
     
     # instantiate point light
     env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
     lights = Light[]
-    push!(lights, PointLight(Translate(Pnt3(0, 25, 0)), Spectrum(300, 300, 300)))
+    # push!(lights, PointLight(Translate(Pnt3(0, 20, 0)), Spectrum(300, 300, 300)))
     push!(lights, env_light)
 
     # Instantiate Scene

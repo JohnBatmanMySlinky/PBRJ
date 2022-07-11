@@ -3,11 +3,15 @@ struct TriangleMesh
     n_vertices::Int64
     vertices::Vector{Pnt3}
     indices::Vector{Int64}
-    normals::Vector{Nml3}
 
-    function TriangleMesh(object_to_world::Transformation, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64}, normals::Vector{Nml3})
+    function TriangleMesh(object_to_world::Transformation, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64})
         vertices = object_to_world.(vertices)
-        new(n_triangles, n_vertices, vertices, indices)
+        new(
+            copy(n_triangles),
+            copy(n_vertices),
+            copy(vertices),
+            copy(indices)
+        )
     end
 end
 
@@ -19,6 +23,15 @@ struct Triangle <: Shape
     function Triangle(core::ShapeCore, mesh::TriangleMesh, i::Int64)
         new(core, mesh, i*3+1)
     end
+end
+
+###################################################
+###### Instantiate a triangle mesh manually #######
+###################################################
+
+function construct_triangle_mesh(core::ShapeCore, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64})
+    mesh = TriangleMesh(core.object_to_world, n_triangles, n_vertices, vertices, indices)
+    return [Triangle(core, mesh, i) for i in 0:n_triangles - 1]
 end
 
 ###################################################
@@ -50,21 +63,7 @@ end
 
 function get_uvs(t::Triangle)
     # TODO implement UVS
-    # if t.mesh.uv isa Nothing
-    #     return [Pnt2(0, 0), Pnt2(1,0), Pnt2(1,1)]
-    # else
-    #     return [t.mesh.uv[t.i + j] for j in 0:2]
-    # end
     return return [Pnt2(0, 0), Pnt2(1,0), Pnt2(1,1)]
-end
-
-###################################################
-###### Instantiate a triangle mesh manually #######
-###################################################
-
-function construct_triangle_mesh(core::ShapeCore, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64}, normals::Vector{Nml3})
-    mesh = TriangleMesh(core.object_to_world, n_triangles, n_vertices, vertices, indices, normals)
-    return [Triangle(core, mesh, i) for i in 0:(n_triangles-1)]
 end
 
 ##################################################
@@ -78,9 +77,9 @@ function Intersect(tri::Triangle, ray::Ray, ::Bool=false)::Tuple{Bool, Maybe{Flo
     
     # perform ray-triangle intersection test
     ## transform vertices to ray coord space
-    p0t = p0 - Vec3(ray.origin)
-    p1t = p1 - Vec3(ray.origin)
-    p2t = p2 - Vec3(ray.origin)
+    p0t = Pnt3(p0 - Vec3(ray.origin))
+    p1t = Pnt3(p1 - Vec3(ray.origin))
+    p2t = Pnt3(p2 - Vec3(ray.origin))
     kz = argmax(abs.(ray.direction))
     kx = kz + 1
     if kx == 4
@@ -92,23 +91,15 @@ function Intersect(tri::Triangle, ray::Ray, ::Bool=false)::Tuple{Bool, Maybe{Flo
     end
     permute = [kx, ky, kz]
     d = Vec3(ray.direction[permute])
-    # p0t = Vec3(p0t[permute])
-    # p1t = Vec3(p1t[permute])
-    # p2t = Vec3(p2t[permute])
-    # Sx = -d.x / d.z
-    # Sy = -d.y / d.z
-    # Sz =  1.0 / d.z
-    # p0t = Vec3(p0t.x * Sx * p0t.z, p0t.y * Sy * p0t.z, p0t.z)
-    # p1t = Vec3(p1t.x * Sx * p1t.z, p1t.y * Sy * p1t.z, p1t.z)
-    # p2t = Vec3(p2t.x * Sx * p2t.z, p2t.y * Sy * p2t.z, p2t.z)
-
-    # WHAT
-    denom = 1.0 / d[3]
-    shear = Pnt3(-d[1] * denom, -d[2] * denom, denom)
-    p0t = (p0 - ray.origin)[permute] + Pnt3(shear[1]*(p0[kz] - ray.origin[kz]), shear[2]*(p0[kz] - ray.origin[kz]), 0)
-    p1t = (p1 - ray.origin)[permute] + Pnt3(shear[1]*(p1[kz] - ray.origin[kz]), shear[2]*(p1[kz] - ray.origin[kz]), 0)
-    p2t = (p2 - ray.origin)[permute] + Pnt3(shear[1]*(p2[kz] - ray.origin[kz]), shear[2]*(p2[kz] - ray.origin[kz]), 0)
-
+    p0t = Vec3(p0t[permute])
+    p1t = Vec3(p1t[permute])
+    p2t = Vec3(p2t[permute])
+    Sx = -d.x / d.z
+    Sy = -d.y / d.z
+    Sz =  1.0 / d.z
+    p0t = Vec3(p0t.x + Sx * p0t.z, p0t.y + Sy * p0t.z, p0t.z)
+    p1t = Vec3(p1t.x + Sx * p1t.z, p1t.y + Sy * p1t.z, p1t.z)
+    p2t = Vec3(p2t.x + Sx * p2t.z, p2t.y + Sy * p2t.z, p2t.z)
 
     ## compute edge function
     e0 = p1t.x * p2t.y - p1t.y * p2t.x
@@ -128,9 +119,9 @@ function Intersect(tri::Triangle, ray::Ray, ::Bool=false)::Tuple{Bool, Maybe{Flo
     end
 
     ## compute scaled sitance to triangle and test against rayt
-    p0t = Vec3(p0t.x, p0t.y, p0t.z * denom)
-    p1t = Vec3(p1t.x, p1t.y, p1t.z * denom)
-    p2t = Vec3(p2t.x, p2t.y, p2t.z * denom)
+    p0t = Vec3(p0t.x, p0t.y, p0t.z * Sz)
+    p1t = Vec3(p1t.x, p1t.y, p1t.z * Sz)
+    p2t = Vec3(p2t.x, p2t.y, p2t.z * Sz)
     t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z
     if (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax * det))
         return false, nothing, nothing

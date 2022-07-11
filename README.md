@@ -44,7 +44,10 @@ Physically Based Rendering - in Julia
 11) Volume Scattering
     11.x) all
 12) Light Sources
-    12.
+    12.1) Light Emission --> blackbody
+    12.3) Point Lights --> spotlights, texture projection lights, goniophotometric
+    12.4) Distant Lights
+    12.5) Area Lights
 13) Monte Carlo Integration
 14) Light Transport I: Surface Reflection
 15) Light Transport II: Volume Rendering

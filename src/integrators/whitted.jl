@@ -8,7 +8,7 @@ end
 function render(i::WhittedIntegrator, scene::Scene)
     sample_bounds = get_sample_bounds(get_film(i.camera))
     sample_extent = diagonal(sample_bounds)
-    tile_size = 160
+    tile_size = 16
     width, height = Int64.(floor.((sample_extent .+ tile_size) ./ tile_size))
     total_tiles = width * height - 1
     print("Rendering $(total_tiles + 1) tiles\n")
