@@ -3,14 +3,16 @@ struct TriangleMesh
     n_vertices::Int64
     vertices::Vector{Pnt3}
     indices::Vector{Int64}
+    normals::Vector{Nml3}
 
-    function TriangleMesh(object_to_world::Transformation, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64})
+    function TriangleMesh(object_to_world::Transformation, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64}, normals::Vector{Nml3})
         vertices = object_to_world.(vertices)
         new(
-            copy(n_triangles),
-            copy(n_vertices),
-            copy(vertices),
-            copy(indices)
+            n_triangles,
+            n_vertices,
+            vertices,
+            indices,
+            normals
         )
     end
 end
@@ -29,8 +31,8 @@ end
 ###### Instantiate a triangle mesh manually #######
 ###################################################
 
-function construct_triangle_mesh(core::ShapeCore, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64})
-    mesh = TriangleMesh(core.object_to_world, n_triangles, n_vertices, vertices, indices)
+function construct_triangle_mesh(core::ShapeCore, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64}, normals::Vector{Nml3})
+    mesh = TriangleMesh(core.object_to_world, n_triangles, n_vertices, vertices, indices, normals)
     return [Triangle(core, mesh, i) for i in 0:n_triangles - 1]
 end
 
@@ -59,6 +61,11 @@ end
 
 function get_vertices(t::Triangle)
     return Pnt3[t.mesh.vertices[t.mesh.indices[t.i + j]] for j in 0:2]
+end
+
+function get_normals(t::Triangle)
+    # TODO implement ability to NOT have normals
+    return Nml3[t.mesh.normals[t.mesh.indices[t.i + j]] for j in 0:2]
 end
 
 function get_uvs(t::Triangle)
@@ -146,12 +153,7 @@ function Intersect(tri::Triangle, ray::Ray, ::Bool=false)::Tuple{Bool, Maybe{Flo
     determinate = duv13[1] * duv23[2] - duv13[2] * duv23[1]
     if determinate == 0
         v = normalize(cross(p2-p0, p1-p0))
-        if abs(v[1]) > abs(v[2])
-            dpdu = Vec3(-v.z, 0, v.x) / sqrt(v.x * v.x + v.z * v.z)
-        else
-            dpdu = Vec3(0, v.z, -v.y) / sqrt(v.y * v.y + v.z * v.z)
-        end
-        dpdv = cross(v,dpdu)
+        _, dpdu, dpdv = orthonormal_basis(v)
     else
         inv_determinate = 1 / determinate
         dpdu = Vec3(duv23[2] * dp13 - duv13[2] * dp23) * inv_determinate
@@ -162,12 +164,39 @@ function Intersect(tri::Triangle, ray::Ray, ::Bool=false)::Tuple{Bool, Maybe{Flo
     phit = b0 * p0 + b1 * p1 + b2 * p2
     uvhit = b0 * uv[1] + b1 * uv[2] + b2 * uv[3]
 
-    # fill interaction
-    interaction = InstantiateSurfaceInteraction(phit, ray.time, -ray.direction, uvhit, dpdu, dpdv, Nml3(0,0,0), Nml3(0,0,0), tri)
-    interaction.core.n = interaction.shading.n = normalize(cross(dp13, dp23))
-
     # TODO
-    # shading geometry and normals here
+    # make specifying normals optional
+    n1, n2, n3 = get_normals(tri)
+    ns = b0 * n1 + b1 * n2 + b2 * n3
+    ss = normalize(dpdu) # TODO specify bitangent
+    ts = cross(ns, ss)
+    if dot(ts, ts) > 0
+        ts = normalize(ts)
+        ss = cross(ts, ns)
+    else
+        _, ss, ts = orthonormal_basis(ns)
+    end
+
+
+    dn13 = n1 - n3
+    dn23 = n2 - n3
+    if determinate == 0
+        dndu = Nml3(0,0,0)
+        dndv = Nml3(0,0,0)
+    else
+        dndu = Nml3(duv23[2] * dn13 - duv13[2] * dn23) * inv_determinate
+        dndv = Nml3(-duv23[1] * dn13 + duv13[1] * dn23) * inv_determinate
+    end
+
+    # fill interaction
+    interaction = InstantiateSurfaceInteraction(phit, ray.time, -ray.direction, uvhit, dpdu, dpdv, dndu, dndv, tri)
+    interaction.core.n = normalize(cross(dp13, dp23))   
+    interaction.shading.n = cross(ss, ts)
+    interaction.shading.dpdu = ss
+    interaction.shading.dpdv = ts
+    interaction.shading.dndu = dndu
+    interaction.shading.dndv = dndv
+
 
     return true, t, interaction
 end
