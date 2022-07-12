@@ -18,10 +18,22 @@ function push_vertices!(s::String, indices::Vector{Int64})
     end
 end
 
+function parse_normals(s::String)
+    tmp = Float64[]
+    splitted = split(s, " ")
+    for each in splitted
+        if !(each in ["vn", ""])
+            push!(tmp,parse(Float64, each))
+        end
+    end
+    return Nml3(tmp[1], tmp[2], tmp[3])
+end
+
 
 function parse_obj(fname::String, object_to_world::Transformation)
     vertices = Pnt3[]
     indices = Int64[]
+    normals = Nml3[]
     open(fname) do f
         while !eof(f)
             # read current line
@@ -42,6 +54,9 @@ function parse_obj(fname::String, object_to_world::Transformation)
             # parse indices
             elseif key == "f "
                 push_vertices!(s, indices)
+            elseif key == "vn"
+                n = parse_normals(s)
+                push!(normals, n)
             end
         end
     end
@@ -52,5 +67,6 @@ function parse_obj(fname::String, object_to_world::Transformation)
         length(vertices),   # n_vertices
         vertices,
         indices,
+        normals
     )
 end 

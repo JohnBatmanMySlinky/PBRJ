@@ -36,3 +36,12 @@ end
 function spherical_theta(v::Vec3)
     return acos(clamp(v.z, -1, 1))
 end
+
+function orthonormal_basis(v::Vec3)
+    if abs(v.x) > abs(v.y)
+        v2 = Vec3(-v.z, 0, v.x) / sqrt(v.x^2 + v.z^2)
+    else
+        v2 = Vec3(0, v.z, -v.y) / sqrt(v.y^2 + v.z^2)
+    end
+    return v, v2, cross(v, v2)
+end
