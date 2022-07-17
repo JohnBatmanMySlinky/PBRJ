@@ -31,6 +31,7 @@ include("transformations.jl")
 include("shapes/shape.jl")
 include("shapes/sphere.jl")
 include("shapes/triangle.jl")
+include("shapes/rectangles.jl")
 include("math_utils.jl")
 include("accelerators/bvh.jl")
 include("filters/box.jl")
@@ -59,51 +60,21 @@ include("handy_prints.jl")
 include("obj_reader.jl")
 
 function test_integrate()
-    # create shapes
-    ball_1_transform = Translate(Pnt3(6, 5, 6))
-    ball_1 = Sphere(
-        ShapeCore(
-            ball_1_transform,      # object_to_world
-            Inv(ball_1_transform)  # world_to_object
-        ),
-        5.0,                       # radius
-    )
-
-    ball_2_transform = Translate(Pnt3(-6, 5, -6))
-    ball_2 = Sphere(
-        ShapeCore(
-            ball_2_transform,      # object_to_world
-            Inv(ball_2_transform)  # world_to_object
-        ),
-        5.0,                       # radius
-    )
-
-    ball_3_transform = Translate(Pnt3(-6, 5, 6))
-    ball_3 = Sphere(
-        ShapeCore(
-            ball_3_transform,      # object_to_world
-            Inv(ball_3_transform)  # world_to_object
-        ),
-        5.0,                       # radius
-    )
-
-    ball_4_transform = Translate(Pnt3(6, 5, -6))
-    ball_4 = Sphere(
-        ShapeCore(
-            ball_4_transform,      # object_to_world
-            Inv(ball_4_transform)  # world_to_object
-        ),
-        5.0,                       # radius
-    )
-
+    # floor_transform = Translate(Pnt3(0, -50, 0))
+    # floor_tri = construct_triangle_mesh(
+    #     ShapeCore(floor_transform, Inv(floor_transform)),                 # ShapeCore
+    #     2,                                                                  # n_triangles                              
+    #     4,                                                                  # n_verices\
+    #     [Pnt3(-300, 0, -300), Pnt3(-300, 0, 300), Pnt3(300, 0, -300), Pnt3(300, 0, 300)], # vertices
+    #     Int64[1,3,2,3,2,4],                                                 # indices  
+    #     [Nml3(0,1,0), Nml3(0,1,0), Nml3(0,1,0), Nml3(0,1,0)]        
+    # )
     floor_transform = Translate(Pnt3(0, -50, 0))
-    floor_tri = construct_triangle_mesh(
-        ShapeCore(floor_transform, Inv(floor_transform)),                 # ShapeCore
-        2,                                                                  # n_triangles                              
-        4,                                                                  # n_verices\
-        [Pnt3(-300, 0, -300), Pnt3(-300, 0, 300), Pnt3(300, 0, -300), Pnt3(300, 0, 300)], # vertices
-        Int64[1,3,2,3,2,4],                                                 # indices  
-        [Nml3(0,1,0), Nml3(0,1,0), Nml3(0,1,0), Nml3(0,1,0)]        
+    floor = XZRectangle(
+        floor_transform, 
+        Pnt2(-300, 300),
+        Pnt2(-300,300),
+        0.0
     )
 
     # create dummy material
@@ -112,20 +83,16 @@ function test_integrate()
     mat_mirror = Mirror(ConstantTexture(Pnt3(.5, .5, .5)))
     mat_concrete = Matte(ImageTexture("../ref/concrete.jpg"), ConstantTexture(Pnt3(0,0,0)))
 
-    # create geometric primitives
-    p1 = Primitive(ball_1, mat_bluegreen)
-    p2 = Primitive(ball_2, mat_bluegreen)
-    p3 = Primitive(ball_3, mat_bluegreen)
-    p4 = Primitive(ball_4, mat_bluegreen)
+    prim_floor = Primitive(
+        floor,
+        mat_concrete
+    )
 
-    # vector of primtives
-    # primitives = [p1, p2, p3, p4]
+    # vector of primitives
     primitives = Primitive[]
 
-    # add in ya triangles
-    for triangle in floor_tri
-        push!(primitives, Primitive(triangle, mat_concrete))
-    end
+    # add floor
+    push!(primitives, prim_floor)
 
     # read in teapot
     # teapot_transform = Translate(Vec3(0, 0, 0))
