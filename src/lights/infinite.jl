@@ -1,5 +1,3 @@
-using Images
-
 # PBR 12.6 Infinite Area Lights
 struct InfinteLight <: Light
     flags::LightFlags

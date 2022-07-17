@@ -60,7 +60,7 @@ function Perspective(fov::Float64, near::Float64, far::Float64)::Transformation
     return Scale(Vec3(inv_tan, inv_tan, 1)) * Transformation(p, inv(p))
 end
 
-function LookAt(position::Pnt3, target::Pnt3, up::Pnt3)
+function LookAt(position::Pnt3, target::Pnt3, up::Vec3)
     z_axis = normalize(position - target)
     x_axis = normalize(cross(up, z_axis))
     y_axis = cross(z_axis, x_axis)

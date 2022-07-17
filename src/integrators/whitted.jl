@@ -35,7 +35,7 @@ function render(i::WhittedIntegrator, scene::Scene)
 
                 # check, t, interaction, = Intersect!(scene.b, ray)
                 # if check
-                #     L = Spectrum(interaction.uv[1],interaction.uv[2],0)
+                #     L = Spectrum(interaction.primitive.material.Kd(interaction))
                 # else
                 #     L = Spectrum(0,0,0)
                 # end

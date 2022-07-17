@@ -49,6 +49,7 @@ include("materials/bsdf.jl")
 include("materials/matte.jl")
 include("materials/mirror.jl")
 include("textures/constant.jl")
+include("textures/image.jl")
 include("lights/light.jl")
 include("lights/point.jl")
 include("lights/infinite.jl")
@@ -109,6 +110,7 @@ function test_integrate()
     mat_white = Matte(ConstantTexture(Pnt3(1,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
     mat_bluegreen = Matte(ConstantTexture(Pnt3(0,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
     mat_mirror = Mirror(ConstantTexture(Pnt3(.5, .5, .5)))
+    mat_concrete = Matte(ImageTexture("../ref/concrete.jpg"), ConstantTexture(Pnt3(0,0,0)))
 
     # create geometric primitives
     p1 = Primitive(ball_1, mat_bluegreen)
@@ -122,15 +124,15 @@ function test_integrate()
 
     # add in ya triangles
     for triangle in floor_tri
-        push!(primitives, Primitive(triangle, mat_white))
+        push!(primitives, Primitive(triangle, mat_concrete))
     end
 
     # read in teapot
-    teapot_transform = Translate(Vec3(0, 0, 0))
-    teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform)
-    for triangle in teapot_tri
-        push!(primitives, Primitive(triangle, mat_bluegreen))
-    end
+    # teapot_transform = Translate(Vec3(0, 0, 0))
+    # teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform)
+    # for triangle in teapot_tri
+    #     push!(primitives, Primitive(triangle, mat_bluegreen))
+    # end
 
     print("\nThere are $(length(primitives)) objects in the scene, building BVH\n")
 
@@ -155,19 +157,18 @@ function test_integrate()
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(600, 600, 600)
-    look_at = Pnt3(-150, -200, 0) # TODO something is off here....
-    up = Pnt3(0, 1, 0)
+    look_from = Pnt3(800, 800, 800)
+    look_at = Pnt3(-200, -300, 0) # TODO something is off here....
+    up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 170.0, film)
 
     # Instantiate a Sampler
-    S = UniformSampler(100) 
+    S = UniformSampler(10) 
     
     # instantiate point light
     env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
     lights = Light[]
-    # push!(lights, PointLight(Translate(Pnt3(0, 20, 0)), Spectrum(300, 300, 300)))
     push!(lights, env_light)
 
     # Instantiate Scene
