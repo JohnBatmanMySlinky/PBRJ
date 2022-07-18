@@ -60,20 +60,11 @@ include("handy_prints.jl")
 include("obj_reader.jl")
 
 function test_integrate()
-    # floor_transform = Translate(Pnt3(0, -50, 0))
-    # floor_tri = construct_triangle_mesh(
-    #     ShapeCore(floor_transform, Inv(floor_transform)),                 # ShapeCore
-    #     2,                                                                  # n_triangles                              
-    #     4,                                                                  # n_verices\
-    #     [Pnt3(-300, 0, -300), Pnt3(-300, 0, 300), Pnt3(300, 0, -300), Pnt3(300, 0, 300)], # vertices
-    #     Int64[1,3,2,3,2,4],                                                 # indices  
-    #     [Nml3(0,1,0), Nml3(0,1,0), Nml3(0,1,0), Nml3(0,1,0)]        
-    # )
     floor_transform = Translate(Pnt3(0, -50, 0))
     floor = XZRectangle(
         floor_transform, 
         Pnt2(-300, 300),
-        Pnt2(-300,300),
+        Pnt2(-300, 300),
         0.0
     )
 
@@ -95,11 +86,11 @@ function test_integrate()
     push!(primitives, prim_floor)
 
     # read in teapot
-    # teapot_transform = Translate(Vec3(0, 0, 0))
-    # teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform)
-    # for triangle in teapot_tri
-    #     push!(primitives, Primitive(triangle, mat_bluegreen))
-    # end
+    teapot_transform = Translate(Vec3(0, 0, 0))
+    teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform)
+    for triangle in teapot_tri
+        push!(primitives, Primitive(triangle, mat_bluegreen))
+    end
 
     print("\nThere are $(length(primitives)) objects in the scene, building BVH\n")
 
@@ -131,7 +122,7 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 170.0, film)
 
     # Instantiate a Sampler
-    S = UniformSampler(10) 
+    S = UniformSampler(250) 
     
     # instantiate point light
     env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")

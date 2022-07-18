@@ -38,7 +38,6 @@ function Intersect(xz::XZRectangle, r::Ray)
     p = at(r, t)
     n = Nml3(0, 1, 0)
 
-
     # instantiate surface interaction
     interaction = InstantiateSurfaceInteraction(
         p,
@@ -51,6 +50,10 @@ function Intersect(xz::XZRectangle, r::Ray)
         Nml3(0,0,0),
         xz
     )
+
+    # because normal is defined as cross(dpdu, dpdv)
+    interaction.core.n = Nml3(0,1,0)
+    interaction.shading.n = Nml3(0,1,0)
 
     # transform back to world coordinates
     interaction = xz.core.object_to_world(interaction)
