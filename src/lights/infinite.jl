@@ -34,7 +34,7 @@ function power(il::InfinteLight)
     return tmp
 end
 
-function le(il::InfinteLight, ray::Ray)
+function le(il::InfinteLight, ray::AbstractRay)
     x, y = size(il.map)
     w = normalize(il.world_to_light(ray.direction))
     s = Int(trunc(spherical_phi(w) / (2pi) * x) + 1)

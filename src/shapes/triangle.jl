@@ -78,7 +78,7 @@ end
 ##################################################
 
 # PBR 3.6.2
-function Intersect(tri::Triangle, ray::Ray, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
+function Intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # get triangle vertices
     p0, p1, p2 = get_vertices(tri)
     

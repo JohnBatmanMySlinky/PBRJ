@@ -8,7 +8,7 @@ end
 #### underlying shape or material ###################
 #####################################################
 
-function Intersect!(gp::Primitive, ray::Ray)
+function Intersect!(gp::Primitive, ray::AbstractRay)
     check, t, interaction = Intersect(gp.shape, ray)
     if !check
         return false, nothing, nothing

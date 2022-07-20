@@ -28,10 +28,16 @@ function render(i::WhittedIntegrator, scene::Scene)
             start_pixel!(k_sampler, pixel)
             while has_next_sample(k_sampler)
                 camera_sample = get_camera_sample(k_sampler, pixel)
-                ray, _ = generate_ray(i.camera, camera_sample)
+                ray, w = generate_ray_differential(i.camera, camera_sample)
+                scale_differentials!(ray, 1.0 / sqrt(k_sampler.samples_per_pixel))
+                # ray, w = generate_ray(i.camera, camera_sample)
+
+                L = Spectrum(0,0,0)
 
                 # BEGIN
-                L = li(i, ray, scene)
+                if w > 0
+                    L = li(i, ray, scene)
+                end
 
                 # check, t, interaction, = Intersect!(scene.b, ray)
                 # if check
@@ -51,7 +57,7 @@ function render(i::WhittedIntegrator, scene::Scene)
 end
 
 
-function li(i::WhittedIntegrator, ray::Ray, scene::Scene, depth::Int64=1)::Spectrum
+function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1)::Spectrum
     L = Spectrum(0, 0, 0)
     check, t, interaction = Intersect!(scene.b, ray)
     # if nothing is hit --> this is only for env light.
@@ -95,7 +101,7 @@ function li(i::WhittedIntegrator, ray::Ray, scene::Scene, depth::Int64=1)::Spect
 end
 
 
-function specular_reflect(i::WhittedIntegrator, ray::Ray, surface_interaction::SurfaceInteraction, scene::Scene, depth::Int64)
+function specular_reflect(i::WhittedIntegrator, ray::AbstractRay, surface_interaction::SurfaceInteraction, scene::Scene, depth::Int64)
     wo = surface_interaction.core.wo
     type = BSDF_REFLECTION | BSDF_SPECULAR
     wi, f, pdf, sampled_type = sample_f(surface_interaction.bsdf, wo, get_2D(i.sampler), type)
@@ -109,7 +115,7 @@ function specular_reflect(i::WhittedIntegrator, ray::Ray, surface_interaction::S
     return f .* li(i, ray, scene, depth + 1) * abs(dot(wi, ns)) / pdf
 end
 
-function specular_transmit(i::WhittedIntegrator, ray::Ray, surface_interaction::SurfaceInteraction, scene::Scene, depth::Int64)
+function specular_transmit(i::WhittedIntegrator, ray::AbstractRay, surface_interaction::SurfaceInteraction, scene::Scene, depth::Int64)
     wo = surface_interaction.core.wo
     type = BSDF_TRANSMISSION | BSDF_SPECULAR
     wi, f, pdf, sampled_type = sample_f(surface_interaction.bsdf, wo, get_2D(i.sampler), type)

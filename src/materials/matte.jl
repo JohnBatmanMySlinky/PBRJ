@@ -2,6 +2,7 @@
 struct Matte <: Material
     Kd::Texture
     sigma::Texture
+    bump::Maybe{Texture}
 end
 
 # Equivalent to PBR's ComputeScatteringFunction
@@ -19,3 +20,9 @@ function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
         @assert False
     end
 end
+
+
+# PBR 9.3 Bump Mapping
+# function bump(m::Material, si::SurfaceInteraction)
+#     du = .5 * (abs(si.du))
+# end

@@ -32,6 +32,6 @@ function power(p::PointLight)
     return 4.0 * pi * p.I
 end
 
-function le(l::PointLight, ray::Ray)
+function le(l::PointLight, ray::AbstractRay)
     return Spectrum(0, 0, 0)
 end

@@ -119,6 +119,20 @@ function (t::Transformation)(r::Ray)::Ray
     )
 end
 
+function (t::Transformation)(r::RayDifferential)::RayDifferential
+    return RayDifferential(
+        t(r.origin),
+        t(r.direction),
+        r.time,
+        r.tMax,
+        r.has_differentials,
+        t(r.rx_origin),
+        t(r.ry_origin),
+        t(r.rx_direction),
+        t(r.ry_direction)
+    )
+end
+
 # apply transformations to a SurfaceInteraction
 function (t::Transformation)(si::SurfaceInteraction)::SurfaceInteraction
     core = t(si.core)

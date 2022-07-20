@@ -9,6 +9,7 @@ using Statistics
 abstract type Aggregate end
 abstract type AbstractBxDF end
 abstract type AbstractBSDF end
+abstract type AbstractRay end
 abstract type Camera end
 abstract type Filter end
 abstract type Fresnel end
@@ -69,10 +70,24 @@ function test_integrate()
     )
 
     # create dummy material
-    mat_white = Matte(ConstantTexture(Pnt3(1,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
-    mat_bluegreen = Matte(ConstantTexture(Pnt3(0,1,1)), ConstantTexture(Pnt3(0, 0, 0)))
-    mat_mirror = Mirror(ConstantTexture(Pnt3(.5, .5, .5)))
-    mat_concrete = Matte(ImageTexture("../ref/concrete.jpg"), ConstantTexture(Pnt3(0,0,0)))
+    mat_white = Matte(
+        ConstantTexture(Pnt3(1,1,1)),
+        ConstantTexture(Pnt3(0, 0, 0)),
+        nothing
+    )
+    mat_bluegreen = Matte(
+        ConstantTexture(Pnt3(0,1,1)),
+        ConstantTexture(Pnt3(0, 0, 0)),
+        nothing
+    )
+    mat_mirror = Mirror(
+        ConstantTexture(Pnt3(.5, .5, .5))
+    )
+    mat_concrete = Matte(
+        ImageTexture("../ref/concrete.jpg"),
+        ConstantTexture(Pnt3(0,0,0)),
+        nothing
+    )
 
     prim_floor = Primitive(
         floor,
@@ -122,7 +137,7 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 170.0, film)
 
     # Instantiate a Sampler
-    S = UniformSampler(250) 
+    S = UniformSampler(10) 
     
     # instantiate point light
     env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")

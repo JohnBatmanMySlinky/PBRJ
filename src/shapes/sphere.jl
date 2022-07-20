@@ -32,7 +32,7 @@ function ObjectBounds(s::Sphere)::Bounds3
 end
 
 # PBR 3.2.2
-function Intersect(s::Sphere, r::Ray)
+function Intersect(s::Sphere, r::AbstractRay)
     # transform ray to object space 
     r = s.core.world_to_object(r)
 

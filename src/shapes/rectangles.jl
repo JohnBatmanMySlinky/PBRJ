@@ -20,7 +20,7 @@ function ObjectBounds(xz::XZRectangle)
     )
 end
 
-function Intersect(xz::XZRectangle, r::Ray)
+function Intersect(xz::XZRectangle, r::AbstractRay)
     r = xz.core.world_to_object(r)
 
     t = (xz.k - r.origin[2]) / r.direction[2]

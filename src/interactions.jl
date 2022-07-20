@@ -86,7 +86,7 @@ end
 #########################################
 ## Compute Scattering at interacttion ###
 #########################################
-function compute_scattering!(si::SurfaceInteraction, ray::Ray, allow_multiple_lobes::Bool=false, ::Type{T}=Radiance) where T <: TransportMode
+function compute_scattering!(si::SurfaceInteraction, ray::AbstractRay, allow_multiple_lobes::Bool=false, ::Type{T}=Radiance) where T <: TransportMode
     # compute_differentials!()
     compute_scattering!(si.primitive, si, allow_multiple_lobes, T)
 end

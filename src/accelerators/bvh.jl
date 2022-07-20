@@ -48,7 +48,7 @@ end
 ### Simple intersection with bounds ###
 #######################################
 
-function intersect_p(b::Bounds3, r::Ray)::Bool
+function intersect_p(b::Bounds3, r::AbstractRay)::Bool
     tmin = 0
     tmax = r.tMax
     for a = 1:3
@@ -74,7 +74,7 @@ end
 ### Interact with the BVH ######
 ################################
 
-function Intersect!(b::Union{BVHNode, Shape}, r::Ray)
+function Intersect!(b::Union{BVHNode, Shape}, r::AbstractRay)
     if intersect_p(b.bounds, r)
         l_check, l_time, l_interaction = Intersect!(b.left, r)
         r_check, r_time, r_interaction = Intersect!(b.right, r)

@@ -59,16 +59,58 @@ const Mat3 = SMatrix{3, 3, Float64}
 ################################
 ######## Ray ###################
 ################################
-mutable struct Ray
+mutable struct Ray <: AbstractRay
     origin::Pnt3
     direction::Vec3
     time::Float64
     tMax::Float64
 end
 
-function at(r::Ray, t::Float64)::Pnt3
+function at(r::AbstractRay, t::Float64)::Pnt3
     return r.origin .+ t .* r.direction
 end
+
+################################
+######## Ray Differentials #####
+################################
+# PBR 2.5.1 
+mutable struct RayDifferential <: AbstractRay
+    origin::Pnt3
+    direction::Vec3
+    time::Float64
+    tMax::Float64
+
+    has_differentials::Bool
+    rx_origin::Pnt3
+    ry_origin::Pnt3
+    rx_direction::Vec3
+    ry_direction::Vec3
+end
+
+# instantiate ray differential from Ray
+# "There is a constructor to create RayDifferentials from Rays. 
+# The constructor sets hasDifferentials to false initially because the neighboring rays, if any, are not known.
+function RayDifferential(r::Ray)::RayDifferential
+    return RayDifferential(
+        r.origin,
+        r.direction,
+        r.time,
+        r.tmax,
+        false,
+        Pnt3(0,0,0),
+        Pnt3(0,0,0),
+        Vec3(0,0,0),
+        Vec3(0,0,0)
+    )
+end
+
+function scale_differentials!(r::RayDifferential, s::Float64)
+    r.rx_origin = r.origin + (r.rx_origin - r.origin) * s
+    r.ry_origin = r.origin + (r.ry_origin - r.origin) * s
+    r.rx_direction = r.direction + (r.rx_direction - r.direction) * s
+    r.ry_direction = r.direction + (r.ry_direction - r.direction) * s
+end
+
 
 ################################
 #### AABB ######################
