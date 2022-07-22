@@ -127,7 +127,7 @@ function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSamp
         sample.film + Pnt2(1.0, 0.0), sample.lens, sample.time,
     )
     shifted_y = CameraSample(
-        sample.film + Pnt2(0f0, 1f0), sample.lens, sample.time,
+        sample.film + Pnt2(0, 1), sample.lens, sample.time,
     )
     ray_x, _ = generate_ray(camera, shifted_x)
     ray_y, _ = generate_ray(camera, shifted_y)

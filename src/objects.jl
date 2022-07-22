@@ -55,6 +55,7 @@ end
 ################################
 const Mat4 = SMatrix{4, 4, Float64}
 const Mat3 = SMatrix{3, 3, Float64}
+const Mat2 = SMatrix{2, 2, Float64}
 
 ################################
 ######## Ray ###################

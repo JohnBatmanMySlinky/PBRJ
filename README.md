@@ -5,6 +5,7 @@ Physically Based Rendering - in Julia
 # Sources
 - Based on [Physically Based Rendering: From Theory to Implementation by Matt Pharr, Wenzel Jakob, and Greg Humphreys](https://www.pbr-book.org/)
 - [THIS](https://github.com/pxl-th/Trace.jl) repo has been an invaluable reference.
+- Wonderful texture maps from [LINK](https://3dtextures.me/2021/12/15/stone-floor-006/)
 
 ## PBR Book Overview 
 1) Introduction
@@ -37,7 +38,7 @@ Physically Based Rendering - in Julia
     8.5) Fresnel Incidence BSDFs
     8.6) Fourier Basis BSDFs
 9) Materials
-    9.3) Bump Mapping
+    9.3) Bump Mapping --> SO SLOOOOWWWWW
     9.x) More materials from github
 10) Texture
     10.x) all but constant texture
@@ -60,3 +61,4 @@ Physically Based Rendering - in Julia
 - transform bounding boxes in BVH construction. I think intersect_p() is not working.
 - why does BVH not work when there's only one item. LOL
 - WHAT IS GOING ON WITH LOOKAT TRANSFORM. YIKES?
+

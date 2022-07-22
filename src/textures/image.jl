@@ -1,5 +1,7 @@
 struct ImageTexture <: Texture
     data::Matrix{Pnt3}
+    l::Int64
+    w::Int64
 
     function ImageTexture(path::String)
         raw = load(path)
@@ -12,15 +14,16 @@ struct ImageTexture <: Texture
             end
         end
         return new(
-            dat
+            dat,
+            size(dat)[1],
+            size(dat)[2]
         )
     end
 end
 
 function (it::ImageTexture)(si::SurfaceInteraction)
     u, v = si.uv
-    l, w = size(it.data)
-    L = Int(floor(u*l)+1)
-    W = Int(floor(v*w)+1)
+    L = Int(floor(u*it.l)+1)
+    W = Int(floor(v*it.w)+1)
     return it.data[L,W]
 end

@@ -147,7 +147,13 @@ function (t::Transformation)(si::SurfaceInteraction)::SurfaceInteraction
         t(si.dndv),
         si.shape,
         si.primitive,
-        nothing
+        nothing,
+        si.dudx,
+        si.dudy,
+        si.dvdx,
+        si.dvdy,
+        t(si.dpdx),
+        t(si.dpdy),
     )
 end
 

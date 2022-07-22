@@ -52,6 +52,7 @@ function render(i::WhittedIntegrator, scene::Scene)
             end
         end
         merge_film_tile!(get_film(i.camera) , film_tile)
+        print("$(k)\n")
     end
     save(get_film(i.camera))
 end

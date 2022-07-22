@@ -84,9 +84,10 @@ function test_integrate()
         ConstantTexture(Pnt3(.5, .5, .5))
     )
     mat_concrete = Matte(
-        ImageTexture("../ref/concrete.jpg"),
+        ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"),
         ConstantTexture(Pnt3(0,0,0)),
         nothing
+        # ImageTexture("../ref/Stone_Floor_007_ambientOcclusion.jpg")
     )
 
     prim_floor = Primitive(
@@ -137,7 +138,7 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 170.0, film)
 
     # Instantiate a Sampler
-    S = UniformSampler(10) 
+    S = UniformSampler(1000) 
     
     # instantiate point light
     env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
