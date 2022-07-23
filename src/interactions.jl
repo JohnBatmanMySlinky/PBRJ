@@ -85,9 +85,9 @@ function spawn_ray(p0::SurfaceInteraction, p1::Interaction)::Ray
     return spawn_ray(p0.core, p1)
 end
 
-function spawn_ray(si::SurfaceInteraction, direction::Vec3, delta::Float64 = 1e-6)::Ray
-    origin = si.core.p .+ delta .* direction
-    return Ray(origin, direction, si.core.time, typemax(Float64))
+function spawn_ray(interaction::Interaction, direction::Vec3, delta::Float64 = 1e-6)::Ray
+    origin = interaction.p .+ delta .* direction
+    return Ray(origin, direction, interaction.time, typemax(Float64))
 end
 
 function spawn_ray(p0::Interaction, p1::Interaction, delta::Float64 = 1e-6,)::Ray
@@ -186,7 +186,6 @@ end
 #########################################
 #### Light emitted ######################
 #########################################
-function le(::SurfaceInteraction, ::Vec3)::Spectrum
-    #TODO 0 cause no area lights yet
+function le(si::SurfaceInteraction, ::Vec3)::Spectrum
     return Spectrum(0, 0, 0)
 end

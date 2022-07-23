@@ -55,6 +55,7 @@ include("textures/image.jl")
 include("lights/light.jl")
 include("lights/point.jl")
 include("lights/infinite.jl")
+include("lights/area.jl")
 include("scene.jl")
 include("integrators/whitted.jl")
 include("handy_prints.jl")
@@ -84,10 +85,11 @@ function test_integrate()
         ConstantTexture(Pnt3(.5, .5, .5))
     )
     mat_concrete = Matte(
-        ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"),
+        ConstantTexture(Pnt3(.75, .75, .75)),
+        # ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"),
         ConstantTexture(Pnt3(0,0,0)),
-        nothing
-        # ImageTexture("../ref/Stone_Floor_007_ambientOcclusion.jpg")
+        # nothing
+        ImageTexture("../ref/Stone_Floor_007_ambientOcclusion.jpg")
     )
 
     prim_floor = Primitive(
@@ -108,11 +110,25 @@ function test_integrate()
         push!(primitives, Primitive(triangle, mat_bluegreen))
     end
 
-    print("\nThere are $(length(primitives)) objects in the scene, building BVH\n")
+    # Lights
+    lights = Light[]
+
+    # instantiate an area light
+    light_orb_transform = Translate(Pnt3(0, 100, -100))
+    light_orb = Sphere(
+        ShapeCore(light_orb_transform, Inv(light_orb_transform)),
+        20.0
+    )
+    area_light = DiffuseAreaLight(
+        Spectrum(20.0, 20.0, 20.0),
+        light_orb,
+    )
+    push!(lights, area_light)
+    # push!(primitives, Primitive(light_orb, mat_white))
 
     # instantiate accelerator
+    print("\nThere are $(length(primitives)) objects in the scene, building BVH\n")
     BVH = ConstructBVH(primitives)
-
     print("Done building BVH\n")
 
     # print_BVH_bounds(BVH)
@@ -131,18 +147,17 @@ function test_integrate()
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(800, 800, 800)
-    look_at = Pnt3(-200, -300, 0) # TODO something is off here....
+    look_from = Pnt3(800, 400, 800)
+    look_at = Pnt3(-200, -200, 0) # TODO something is off here....
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 170.0, film)
 
     # Instantiate a Sampler
-    S = UniformSampler(1000) 
-    
-    # instantiate point light
+    S = UniformSampler(1) 
+
+    # instantiate an env light
     env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
-    lights = Light[]
     push!(lights, env_light)
 
     # Instantiate Scene

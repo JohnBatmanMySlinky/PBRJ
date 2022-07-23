@@ -20,3 +20,10 @@ function random_in_cosine_hemisphere(u::Pnt2)::Pnt3
     z = sqrt(max(0, 1-d[2]^2 - d[2]^2))
     return Pnt3(d[1], d[2], z)
 end
+
+function random_on_sphere(u::Pnt2)::Pnt3
+    z = 1 - 2 * u[1]
+    r = sqrt(max(0, 1-z^2))
+    phi = 2 * pi * u[2]
+    return Vec3(r *cos(phi), r*sin(phi), z)
+end

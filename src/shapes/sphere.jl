@@ -116,6 +116,69 @@ function area(s::Sphere)::Float32
     return s.phiMax * s.radius * (s.zMax - s.zMin)
 end
 
+#################################
+#### Sample surface of sphere ###
+#################################
+
+# naive sample whole sphere
+function sample(s::Sphere, u::Pnt2)::Tuple{Pnt3, Nml3}
+    pobj = Pnt3(radius .* random_on_sphere(u))
+    n = normalize(
+        s.core.object_to_world(Nml3(pobj.x, pobj.y, pobj.z))
+    )
+    p = s.core.object_to_world(pobj)
+    return p, n
+end
+
+# less naive sampling of the cone of visibility
+function sample(s::Sphere, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
+    # compute coordinate system for sphere sampling
+    pcenter = s.core.object_to_world(Pnt3(0,0,0))
+    wc = Vec3(normalize(pcenter - interaction.p))
+    wc, wcX, wcY = orthonormal_basis(wc)
+
+    # sample uniformly on sphere if p is inside it
+    # TODO offsetrayorigin?
+    porigin = pcenter - interaction.p
+    if distance(porigin, pcenter)^2 <= s.radius^2
+        return sample(s, u)
+    end
+
+    # sample sphere uniformly inside subtended cone
+    # compute theta and phi values for sample in cone
+    sin_theta_max2 = s.radius ^ 2 / distance(interaction.p, pcenter) ^2 
+    cos_theta_max = sqrt(max(0, 1- sin_theta_max2))
+    cos_theta = (1-u[1]) + u[1] * cos_theta_max
+    sin_theta = sqrt(max(0,1-cos_theta^2))
+    phi = u[2] * 2 * pi
+
+    # compute angle alpha from center of sphere to sampled point on surface
+    dc = distance(interaction.p, pcenter)
+    ds = dc * cos_theta - sqrt(max(0, s.radius^2 - dc^2 * sin_theta^2))
+    cos_alpha = (dc^2 + s.radius^2 - ds^2) / (2 * dc * s.radius)
+    sin_alpha = sqrt(max(0, 1-cos_alpha^2))
+
+    # compute surface normal and sampled point on sphere
+    nobj = Nml3(spherical_direction(sin_alpha, cos_alpha, phi, -wcX, -wcY, -wc))
+    pobj = Pnt3(s.radius * Pnt3(nobj.x, nobj.y, nobj.z))
+
+    # return interaction for sampleed point on sphere
+    p = s.core.object_to_world(pobj)
+    n = s.core.object_to_world(nobj)
+    return (p, n)
+end
+
+################################
+####### PDF ####################
+################################
+function pdf(s::Sphere, si::Interaction, wi::Vec3)::Float64
+    ray = spawn_ray(si, wi)
+    check, t, interaction = Intersect(s, ray)
+    if !check
+        return 0.0
+    end 
+    return distance_squared(si.p, interaction.core.p) / (abs(dot(interaction.core.n, -wi) * area(s)))
+end
 
 #################################
 ######## HELPER FUNCTIONS #######

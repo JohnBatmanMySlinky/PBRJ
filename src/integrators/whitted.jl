@@ -76,11 +76,11 @@ function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1
     # compute scattering functions at surface
     compute_scattering!(interaction, ray)
     if interaction.bsdf isa Nothing
-        return li(spawn_ray(interaction, ray.direction), scene, i.sampler, depth)
+        return li(spawn_ray(interaction.core, ray.direction), scene, i.sampler, depth)
     end
 
     # if hit an area light, compute emitted ray
-    L += le(interaction, wo)
+    # L += le(interaction, wo)
 
     # for each light source, add contrib
     for light in scene.lights
@@ -112,7 +112,7 @@ function specular_reflect(i::WhittedIntegrator, ray::AbstractRay, surface_intera
         return Spectrum(0, 0, 0)
     end
 
-    ray = spawn_ray(surface_interaction, wi)
+    ray = spawn_ray(interaction.core, wi)
     return f .* li(i, ray, scene, depth + 1) * abs(dot(wi, ns)) / pdf
 end
 
@@ -126,7 +126,7 @@ function specular_transmit(i::WhittedIntegrator, ray::AbstractRay, surface_inter
         return Spectrum(0, 0, 0)
     end
 
-    ray = spawn_ray(surface_interaction, wi)
+    ray = spawn_ray(interaction.core, wi)
     eta = 1/ surface_interaction.bsdf.eta
 
     if dot(ns,ns) < 0

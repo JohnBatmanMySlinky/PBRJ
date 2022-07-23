@@ -37,6 +37,10 @@ function spherical_theta(v::Vec3)
     return acos(clamp(v.z, -1, 1))
 end
 
+function spherical_direction(sin_theta::Float64, cos_theta::Float64, phi::Float64, x::Vec3, y::Vec3, z::Vec3)
+    return sin_theta * cos(phi) * x + sin_theta * sin(phi) * y + cos_theta * z
+end
+
 function orthonormal_basis(v::Vec3)
     if abs(v.x) > abs(v.y)
         v2 = Vec3(-v.z, 0, v.x) / sqrt(v.x^2 + v.z^2)

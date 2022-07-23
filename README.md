@@ -58,6 +58,8 @@ Physically Based Rendering - in Julia
 - Using my own naive implementation because I am too lazy to understand the one in PBR right now. I am paying for this though, my tree construction is pretty slow. 1,000,000 random spheres within a 3d box takes about 70 seconds to construct, but only takes ~0.00005 seconds to intersect. I suppose that is the magic of BVH though...
 
 ## TODO
+- Is bump map working? 
+- Clean up interaction vs surfaceinteraction
 - transform bounding boxes in BVH construction. I think intersect_p() is not working.
 - why does BVH not work when there's only one item. LOL
 - WHAT IS GOING ON WITH LOOKAT TRANSFORM. YIKES?

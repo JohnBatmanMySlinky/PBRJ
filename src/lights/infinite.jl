@@ -64,9 +64,9 @@ function sample_li(il::InfinteLight, interaction::Interaction, uv::Pnt2)
 
     # compute pdf for sampled infinite light direction
     if sinTheta == 0
-        pdf = 0
+        pdf_val = 0
     else
-        pdf = length(il.pdf.col_cdf) * length(il.pdf.row_cdf[:,1]) * u_pdf * v_pdf / (2 * pi * pi * sinTheta)
+        pdf_val = length(il.pdf.col_cdf) * length(il.pdf.row_cdf[:,1]) * u_pdf * v_pdf / (2 * pi * pi * sinTheta)
     end
 
     # return radiance value for infinite light direction
@@ -79,6 +79,6 @@ function sample_li(il::InfinteLight, interaction::Interaction, uv::Pnt2)
         Interaction(interaction.p + wi .* 2 * il.world_radius, interaction.time, Vec3(0, 0, 0), Nml3(0, 0, 0))
     )
 
-    return radiance, wi, pdf, visibility
+    return radiance, wi, pdf_val, visibility
 end
 

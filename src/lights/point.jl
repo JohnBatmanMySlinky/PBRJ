@@ -19,13 +19,13 @@ end
 
 function sample_li(p::PointLight, interaction::Interaction, u::Pnt2)
     wi = normalize(Vec3(p.light_position - interaction.p))
-    pdf = 1.0
+    pdf_val = 1.0
     visibility = VisibilityTester(
         interaction,
         Interaction(p.light_position, interaction.time, Vec3(0, 0, 0), Nml3(0, 0, 0))
     )
     radiance = p.I / distance_squared(p.light_position, interaction.p)
-    return radiance, wi, pdf, visibility
+    return radiance, wi, pdf_val, visibility
 end
 
 function power(p::PointLight)
