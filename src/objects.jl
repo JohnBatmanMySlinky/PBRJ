@@ -96,7 +96,7 @@ function RayDifferential(r::Ray)::RayDifferential
         r.origin,
         r.direction,
         r.time,
-        r.tmax,
+        r.tMax,
         false,
         Pnt3(0,0,0),
         Pnt3(0,0,0),
