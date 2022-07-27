@@ -38,14 +38,17 @@ function Intersect(xz::XZRectangle, r::AbstractRay)
     p = at(r, t)
     n = Nml3(0, 1, 0)
 
+    # TODO IS THIS RIGHT??
+    _, dpdu, dpdv = orthonormal_basis(Vec3(0,1,0))
+
     # instantiate surface interaction
     interaction = InstantiateSurfaceInteraction(
         p,
         t,
         -r.direction,
         Pnt2(u, v),
-        Vec3(0,0,0),
-        Vec3(0,0,0),
+        dpdu,
+        dpdv,
         Nml3(0,0,0),
         Nml3(0,0,0),
         xz

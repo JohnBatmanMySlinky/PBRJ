@@ -23,6 +23,11 @@ end
 
 function (it::ImageTexture)(si::SurfaceInteraction)
     u, v = si.uv
+    # TODO
+    # fucking bump mapping
+    u = clamp(u,0,.9999)
+    v = clamp(v,0,.9999)
+
     L = Int(floor(u*it.l)+1)
     W = Int(floor(v*it.w)+1)
     return it.data[L,W]

@@ -170,11 +170,11 @@ function Intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     ns = b0 * n1 + b1 * n2 + b2 * n3
     ss = normalize(dpdu) # TODO specify bitangent
     ts = cross(ns, ss)
-    if dot(ts, ts) > 0
+    if dot(ts, ts)^2 > 0
         ts = normalize(ts)
         ss = cross(ts, ns)
     else
-        _, ss, ts = orthonormal_basis(ns)
+        _, ss, ts = orthonormal_basis(Vec3(ns))
     end
 
 

@@ -5,6 +5,7 @@ using LinearAlgebra
 using FileIO
 using Images
 using Statistics
+using ProgressMeter
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -85,23 +86,16 @@ function test_integrate()
         ConstantTexture(Pnt3(.5, .5, .5))
     )
     mat_concrete = Matte(
-        ConstantTexture(Pnt3(.75, .75, .75)),
-        # ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"),
+        ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"),
         ConstantTexture(Pnt3(0,0,0)),
-        # nothing
-        ImageTexture("../ref/Stone_Floor_007_ambientOcclusion.jpg")
-    )
-
-    prim_floor = Primitive(
-        floor,
-        mat_concrete
+        ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg")
     )
 
     # vector of primitives
     primitives = Primitive[]
 
     # add floor
-    push!(primitives, prim_floor)
+    push!(primitives, Primitive(floor, mat_concrete))
 
     # read in teapot
     teapot_transform = Translate(Vec3(0, 0, 0))
@@ -147,14 +141,14 @@ function test_integrate()
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(800, 400, 800)
-    look_at = Pnt3(-200, -200, 0) # TODO something is off here....
+    look_from = Pnt3(800, 800, 800)
+    look_at = Pnt3(-200, -300, 0) # TODO something is off here....
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 170.0, film)
 
     # Instantiate a Sampler
-    S = UniformSampler(1) 
+    S = UniformSampler(5) 
 
     # instantiate an env light
     env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")

@@ -13,6 +13,11 @@ function render(i::WhittedIntegrator, scene::Scene)
     total_tiles = width * height - 1
     print("Rendering $(total_tiles + 1) tiles\n")
 
+    prog = Progress(total_tiles)
+    update!(prog,0)
+    jj = Threads.Atomic{Int}(0)
+    l = Threads.SpinLock()
+
     print("Utilizing $(Threads.nthreads()) threads\n")
     Threads.@threads for k in 0:total_tiles
         x, y = k % width, k ÷ width
@@ -52,7 +57,11 @@ function render(i::WhittedIntegrator, scene::Scene)
             end
         end
         merge_film_tile!(get_film(i.camera) , film_tile)
-        print("$(k)\n")
+        # print("$(k)\n")
+        Threads.atomic_add!(jj,1)
+        Threads.lock(l)
+        update!(prog, jj[])
+        Threads.unlock(l)
     end
     save(get_film(i.camera))
 end
@@ -69,15 +78,15 @@ function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1
         return L
     end
 
-    # initialize
-    n = interaction.shading.n
-    wo = interaction.core.wo 
-
     # compute scattering functions at surface
     compute_scattering!(interaction, ray)
     if interaction.bsdf isa Nothing
         return li(spawn_ray(interaction.core, ray.direction), scene, i.sampler, depth)
     end
+
+    # initialize after computing scattering, ughhhhhhhhhhhhhhhh
+    n = interaction.shading.n
+    wo = interaction.core.wo 
 
     # if hit an area light, compute emitted ray
     # L += le(interaction, wo)

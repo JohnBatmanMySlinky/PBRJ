@@ -130,14 +130,15 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
 
     # Estimate screen change in p and (u, v).
     # Compute auxiliary intersection points with plane.
-    d = -dot(si.core.n, si.core.p)
-    tx = (-dot(si.core.n, ray.rx_origin) - d) / dot(si.core.n, ray.rx_direction)
-    ty = (-dot(si.core.n, ray.ry_origin) - d) / dot(si.core.n, ray.ry_direction)
+    d = -dot(si.core.n, Vec3(si.core.p))
+    tx = (-dot(si.core.n, Vec3(ray.rx_origin)) - d) / dot(si.core.n, ray.rx_direction)
     px = ray.rx_origin + tx * ray.rx_direction
+    ty = (-dot(si.core.n, Vec3(ray.ry_origin)) - d) / dot(si.core.n, ray.ry_direction)
     py = ray.ry_origin + ty * ray.ry_direction
 
     si.dpdx = px - si.core.p
     si.dpdy = py - si.core.p
+
     # Compute (u, v) offsets at auxiliary points.
     # Choose two dimensions for ray offset computation.
     n = abs.(si.core.n)
@@ -150,31 +151,29 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
     end
 
     # Initialization for offset computation.
-    a = Mat2([dim[1] dim[2] dim[1] dim[2]])
-    bx = Pnt2(px[Int(dim[1])] - si.core.p[Int(dim[1])], px[Int(dim[2])] - si.core.p[Int(dim[2])])
-    by = Pnt2(py[Int(dim[1])] - si.core.p[Int(dim[1])], py[Int(dim[2])] - si.core.p[Int(dim[2])])
+    a = Mat2([
+        si.shading.dpdu[Int(dim[1])]
+        si.shading.dpdv[Int(dim[1])]
+        si.shading.dpdu[Int(dim[2])]
+        si.shading.dpdv[Int(dim[2])]
+    ])
+    bx = Pnt2(
+        px[Int(dim[1])] - si.core.p[Int(dim[1])],
+        px[Int(dim[2])] - si.core.p[Int(dim[2])]
+    )
+    by = Pnt2(
+        py[Int(dim[1])] - si.core.p[Int(dim[1])],
+        py[Int(dim[2])] - si.core.p[Int(dim[2])]
+    )
     sx = a \ bx
     sy = a \ by
 
-    # TODO why need isinf
-    if any(isnan.(sx)) || any(isinf.(sx))
-        si.dudx = 0.0
-        si.dvdx = 0.0
-    else
-        si.dudx = sx[1]
-        si.dvdx = sx[2]
-    end
-
-    if any(isnan.(sx)) || any(isinf.(sy))
-        si.dudy = 0.0
-        si.dvdy = 0.0
-    else
-        si.dudy = sy[1]
-        si.dvdy = sy[2]
-    end
+    si.dudx, si.dvdx = any(isnan.(sx)) ? (0, 0) : sx
+    si.dudy, si.dvdy = any(isnan.(sy)) ? (0, 0) : sy
 end
 
 function set_shading_geomerty!(si::SurfaceInteraction, dpdus::Vec3, dpdvs::Vec3, dndus::Nml3, dndvs::Nml3, ::Bool)
+    # TODO normal orientation
     # missing face forward logic
     si.shading.n = normalize(cross(dpdus, dpdvs))
     si.shading.dpdu = dpdus
