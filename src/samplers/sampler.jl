@@ -1,6 +1,6 @@
 # 7.2.2
 # Basic Sampler Interface
-mutable struct Sampler <: AbstractSampler
+mutable struct Sampler
     samples_per_pixel::Int64
     current_pixel::Pnt2
     current_pixel_sample_index::Int64
@@ -12,18 +12,24 @@ mutable struct Sampler <: AbstractSampler
     array_2d_offset::UInt64
 end
 
+# 7.2.4 Pixel Sampler
+# "While some sampling algorithms can easily incrementally generate elements of each sample vector,
+# others more naturally generate all of the dimensions’ sample values for all of the sample vectors for a pixel at the same time.
+# The PixelSampler class implements some functionality that is useful for the implementation of these types of samplers.
+mutable struct PixelSampler
+    samples_per_pixel::Int64
+    sampels1D::Matrix{Float64}
+    sampels2D::Matrix{Pnt2}
+    current1DDimension::Int64
+    current2DDimension::Int64
 
-# "The first five dimensions generate:d by Samplers are generally used by the Camera. 
-# In this case, the first two are specifically used to choose a point on the image inside the current pixel area; 
-# the third is used to compute the time at which the sample should be taken; 
-# and the fourth and fifth dimensions give a  lens position for depth of field.
-function get_camera_sample(sampler::AbstractSampler, p_raster::Pnt2)
-    p_film = p_raster .+ get_2D(sampler) # 1,2
-    time = get_1D(sampler)               # 3
-    p_lens = get_2D(sampler)             # 4,5
-    return CameraSample(
-        p_film,
-        p_lens,
-        time
-    )
+    function PixelSampler(samples_per_pixel::Int64, n_sampled_dimensions::Int64)
+        new(
+            samples_per_pixel,
+            zeros(Float64, n_sampled_dimensions, samples_per_pixel),
+            zeros(Pnt2, n_sampled_dimensions, samples_per_pixel),
+            1,
+            1,
+        )
+    end
 end

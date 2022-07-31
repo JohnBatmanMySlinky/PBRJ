@@ -27,16 +27,13 @@ function render(i::WhittedIntegrator, scene::Scene)
         tb_min = sample_bounds.pMin .+ tile .* tile_size
         tb_max = min.(tb_min .+ (tile_size - 1), sample_bounds.pMax)
         tile_bounds = Bounds2(tb_min, tb_max)
-
         film_tile = FilmTile(get_film(i.camera), tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
             start_pixel!(k_sampler, pixel)
             while has_next_sample(k_sampler)
-                camera_sample = get_camera_sample(k_sampler, pixel)
+                camera_sample = get_camera_sample!(k_sampler, pixel)
                 ray, w = generate_ray_differential(i.camera, camera_sample)
                 scale_differentials!(ray, 1.0 / sqrt(k_sampler.samples_per_pixel))
-                # ray, w = generate_ray(i.camera, camera_sample)
-
                 L = Spectrum(0,0,0)
 
                 # BEGIN
@@ -93,7 +90,7 @@ function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1
 
     # for each light source, add contrib
     for light in scene.lights
-        sampled_li, wi, pdf, visibility_tester = sample_li(light, interaction.core, get_2D(i.sampler))   
+        sampled_li, wi, pdf, visibility_tester = sample_li(light, interaction.core, get_2D!(i.sampler))   
         if pdf == 0
             continue
         end
@@ -114,7 +111,7 @@ end
 function specular_reflect(i::WhittedIntegrator, ray::AbstractRay, surface_interaction::SurfaceInteraction, scene::Scene, depth::Int64)
     wo = surface_interaction.core.wo
     type = BSDF_REFLECTION | BSDF_SPECULAR
-    wi, f, pdf, sampled_type = sample_f(surface_interaction.bsdf, wo, get_2D(i.sampler), type)
+    wi, f, pdf, sampled_type = sample_f(surface_interaction.bsdf, wo, get_2D!(i.sampler), type)
 
     ns = surface_interaction.shading.n
     if pdf == 0 || abs(dot(wi, ns)) == 0
@@ -128,7 +125,7 @@ end
 function specular_transmit(i::WhittedIntegrator, ray::AbstractRay, surface_interaction::SurfaceInteraction, scene::Scene, depth::Int64)
     wo = surface_interaction.core.wo
     type = BSDF_TRANSMISSION | BSDF_SPECULAR
-    wi, f, pdf, sampled_type = sample_f(surface_interaction.bsdf, wo, get_2D(i.sampler), type)
+    wi, f, pdf, sampled_type = sample_f(surface_interaction.bsdf, wo, get_2D!(i.sampler), type)
 
     ns = surface_interaction.shading.n
     if pdf == 0 || abs(dot(wi, ns)) == 0

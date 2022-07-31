@@ -11,7 +11,6 @@ Physically Based Rendering - in Julia
 1) Introduction
 2) Geometry and Transformations
     2.1) Coordinate Systems --> some transformations left
-    2.5) Rays --> no differentials yet
 3) Shapes
     3.3) Cylindars
     3.4) Disks
@@ -38,7 +37,7 @@ Physically Based Rendering - in Julia
     8.5) Fresnel Incidence BSDFs
     8.6) Fourier Basis BSDFs
 9) Materials
-    9.3) Bump Mapping --> SO SLOOOOWWWWW
+    9.3) Bump Mapping --> Working! but SO SLOOOOWWWWW
     9.x) More materials from github
 10) Texture
     10.x) all but constant texture

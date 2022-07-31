@@ -6,6 +6,7 @@ using FileIO
 using Images
 using Statistics
 using ProgressMeter
+using Random
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -43,6 +44,7 @@ include("cameras/camera.jl")
 include("cameras/projective.jl")
 include("samplers/sampler.jl")
 include("samplers/random.jl")
+include("samplers/stratified.jl")
 include("reflection/bxdf.jl")
 include("reflection/math.jl")
 include("reflection/fresnel.jl")
@@ -88,7 +90,8 @@ function test_integrate()
     mat_concrete = Matte(
         ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"),
         ConstantTexture(Pnt3(0,0,0)),
-        ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg")
+        nothing
+        # ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg")
     )
 
     # vector of primitives
@@ -142,13 +145,13 @@ function test_integrate()
 
     # Instantiate a Camera
     look_from = Pnt3(800, 800, 800)
-    look_at = Pnt3(-200, -300, 0) # TODO something is off here....
+    look_at = Pnt3(0, 0, 0) # TODO something is off here....
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 170.0, film)
 
     # Instantiate a Sampler
-    S = UniformSampler(5) 
+    S = StratifiedSampler(2, 2, 6, true)
 
     # instantiate an env light
     env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")

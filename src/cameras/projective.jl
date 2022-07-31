@@ -32,7 +32,7 @@ struct ProjectiveCamera <: Camera
                 1
             )) * Scale(Vec3(
                 1 / (screen_window.pMax[1] - screen_window.pMin[1]),
-                1 / (screen_window.pMax[2] - screen_window.pMin[2]),
+                1 / (screen_window.pMin[2] - screen_window.pMax[2]),
                 1
             )) * Translate(Vec3(
                 -screen_window.pMin[1],
