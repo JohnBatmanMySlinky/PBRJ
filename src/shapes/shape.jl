@@ -1,6 +1,8 @@
 struct ShapeCore
     object_to_world::Transformation
     world_to_object::Transformation
+    reverse_orientation::Bool
+    transform_swaps_handedness::Bool
 end
 
 # get bounding box of A SINGLE shape
