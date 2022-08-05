@@ -122,7 +122,7 @@ end
 
 # naive sample whole sphere
 function sample(s::Sphere, u::Pnt2)::Tuple{Pnt3, Nml3}
-    pobj = Pnt3(radius .* random_on_sphere(u))
+    pobj = Pnt3(s.radius .* random_on_sphere(u))
     n = normalize(
         s.core.object_to_world(Nml3(pobj.x, pobj.y, pobj.z))
     )

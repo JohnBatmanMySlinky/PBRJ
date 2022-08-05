@@ -57,7 +57,7 @@ function (b::BSDF)(woW::Vec3, wiW::Vec3, flags::UInt8=BSDF_ALL)::Spectrum
     for i in 1:b.n_bxdfs
         bxdf = b.bxdfs[i]
         if (bxdf & flags) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0)))
-            output += bxdf(wo, wi)
+            output += f(bxdf, wo, wi)
         end
     end
     return output

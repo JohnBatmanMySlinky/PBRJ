@@ -16,12 +16,11 @@ function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     r = Spectrum(clamp.(m.Kd(si),0,1)...)
 
     # TODO implement black body check
-    sigma = clamp.(m.sigma(si), 0, 90)
-    if sigma == Pnt3(0, 0, 0)
+    sigma = mean(clamp.(m.sigma(si), 0, 90))
+    if sigma == 0.0
         add!(si.bsdf, LambertianReflection(r))
     else
-        print("OrenNayer isn't implemented")
-        @assert False
+        add!(si.bsdf, OrenNayarReflection(r, sigma))
     end
 end
 

@@ -172,10 +172,18 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
     si.dudy, si.dvdy = any(isnan.(sy)) ? (0, 0) : sy
 end
 
-function set_shading_geomerty!(si::SurfaceInteraction, dpdus::Vec3, dpdvs::Vec3, dndus::Nml3, dndvs::Nml3, ::Bool)
-    # TODO normal orientation
-    # missing face forward logic
+function set_shading_geomerty!(si::SurfaceInteraction, dpdus::Vec3, dpdvs::Vec3, dndus::Nml3, dndvs::Nml3, orientation_is_authoritative::Bool)
     si.shading.n = normalize(cross(dpdus, dpdvs))
+
+    if !(si.shape isa Nothing) && (si.shape.core.reverse_orientation ⊻ si.shape.core.transform_swaps_handedness)
+        si.shading.n *= -1
+    end
+    if orientation_is_authoritative
+        si.core.n = face_forward(si.core.n, si.shading.n)
+    else
+        si.shading.n = face_forward(si.shading.n, si.core.n)
+    end
+
     si.shading.dpdu = dpdus
     si.shading.dpdv = dpdvs
     si.shading.dndu = dndus

@@ -7,6 +7,7 @@ struct TriangleMesh
 
     function TriangleMesh(object_to_world::Transformation, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64}, normals::Vector{Nml3})
         vertices = object_to_world.(vertices)
+        normals = object_to_world.(normals)
         new(
             n_triangles,
             n_vertices,
@@ -44,7 +45,11 @@ end
 # "The Triangle shape is one of the shapes that can compute a better world space bound than can be found by transforming its 
 # object space bounding box to world space. Its world space bound can be directly computed from the world space vertices."
 function ObjectBounds(tri::Triangle)
-    p0, p1, p2 = get_vertices(tri)
+    # TODO
+    # triangles have their vertices already in world space so go backwards because
+    # results of this function are transformed back
+    # ugh
+    p0, p1, p2 = tri.core.world_to_object.(get_vertices(tri))
     # TODO why must I do this
     buffer = Float64[0, 0, 0]
     for i in 1:3
@@ -196,6 +201,14 @@ function Intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     interaction.shading.dpdv = ts
     interaction.shading.dndu = dndu
     interaction.shading.dndv = dndv
+
+    if tri.mesh.normals ≢ nothing
+        interaction.core.n = face_forward(
+            interaction.core.n, interaction.shading.n,
+        )
+    elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
+        interaction.core.n = interaction.shading.n = -interaction.core.n
+    end
 
 
     return true, t, interaction

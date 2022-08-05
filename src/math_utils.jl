@@ -49,3 +49,7 @@ function orthonormal_basis(v::Vec3)
     end
     return v, v2, cross(v, v2)
 end
+
+function face_forward(n, v)
+    return dot(n, v) < 0 ? -n : n
+end

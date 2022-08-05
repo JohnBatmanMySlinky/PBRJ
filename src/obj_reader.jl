@@ -30,7 +30,7 @@ function parse_normals(s::String)
 end
 
 
-function parse_obj(fname::String, object_to_world::Transformation)
+function parse_obj(fname::String, object_to_world::Transformation, reverse_orientation::Bool, transform_swaps_handedness::Bool)
     vertices = Pnt3[]
     indices = Int64[]
     normals = Nml3[]
@@ -62,7 +62,7 @@ function parse_obj(fname::String, object_to_world::Transformation)
     end
     @assert length(indices) % 3 == 0
     return construct_triangle_mesh(
-        ShapeCore(object_to_world, Inv(object_to_world)), 
+        ShapeCore(object_to_world, Inv(object_to_world), reverse_orientation, transform_swaps_handedness), 
         length(indices)÷3,  # n_triangles
         length(vertices),   # n_vertices
         vertices,

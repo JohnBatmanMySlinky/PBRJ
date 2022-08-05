@@ -4,9 +4,9 @@ struct XZRectangle <: Shape
     z::Pnt2
     k::Float64
 
-    function XZRectangle(t::Transformation, x::Pnt2, z::Pnt2, k::Float64)
+    function XZRectangle(t::Transformation, x::Pnt2, z::Pnt2, k::Float64, reverse_orientation::Bool, transform_swaps_handedness::Bool)
         return new(
-            ShapeCore(t, Inv(t)),
+            ShapeCore(t, Inv(t), reverse_orientation, transform_swaps_handedness),
             x,
             z
         )
