@@ -10,7 +10,7 @@ end
 
 # equivalent to PBR's f()
 # "No scattering is returned from f(), since for an arbitrary pair of directions the delta function returns no scattering."
-function (s::SpecularReflection{S, F})(::Vec3, ::Vec3)::Spectrum where {S <: Spectrum, F <: Fresnel}
+function f(s::SpecularReflection{S, F}, ::Vec3, ::Vec3)::Spectrum where {S <: Spectrum, F <: Fresnel}
     return Spectrum(0, 0, 0)
 end
 

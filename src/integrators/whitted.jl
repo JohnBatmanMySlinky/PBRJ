@@ -118,7 +118,7 @@ function specular_reflect(i::WhittedIntegrator, ray::AbstractRay, surface_intera
         return Spectrum(0, 0, 0)
     end
 
-    ray = spawn_ray(interaction.core, wi)
+    ray = spawn_ray(surface_interaction.core, wi)
     return f .* li(i, ray, scene, depth + 1) * abs(dot(wi, ns)) / pdf
 end
 

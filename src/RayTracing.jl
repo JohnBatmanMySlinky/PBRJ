@@ -53,8 +53,11 @@ include("reflection/fresnel.jl")
 include("reflection/specular.jl")
 include("reflection/lambertian.jl")
 include("reflection/oren_nayar.jl")
+include("reflection/microfacet_distributions.jl")
+include("reflection/microfacet.jl")
 include("materials/bsdf.jl")
 include("materials/matte.jl")
+include("materials/plastic.jl")
 include("materials/mirror.jl")
 include("textures/constant.jl")
 include("textures/image.jl")
@@ -78,12 +81,6 @@ function test_integrate()
         false
     )
 
-    # create dummy material
-    mat_white = Matte(
-        ConstantTexture(Pnt3(1,1,1)),
-        ConstantTexture(Pnt3(0, 0, 0)),
-        nothing
-    )
     mat_bluegreen = Matte(
         ConstantTexture(Pnt3(0,1,1)),
         ConstantTexture(Pnt3(0, 0, 0)),
@@ -92,16 +89,25 @@ function test_integrate()
     mat_bluegreen_ON = Matte(
         ConstantTexture(Pnt3(0,1,1)),
         ConstantTexture(Pnt3(0, 0, 0)),
-        ConstantTexture(Pnt3(0, 0, 0)),
-    )
-    mat_mirror = Mirror(
-        ConstantTexture(Pnt3(.5, .5, .5))
+        ConstantTexture(Pnt3(.5, .5, .5)),
     )
     mat_concrete = Matte(
         ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"),
         ConstantTexture(Pnt3(0,0,0)),
         nothing
         # ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg")
+    )
+
+    mat_plastic = Plastic(
+        ConstantTexture(Pnt3( 0,   1,  1)),
+        ConstantTexture(Pnt3( 1,   1,  1)),
+        ConstantTexture(Pnt3(.5, .5, .5)),
+        nothing,
+        false
+    )
+
+    mat_mirror = Mirror(
+        ConstantTexture(Pnt3(.5, .5, .5))
     )
 
     # vector of primitives
@@ -111,17 +117,31 @@ function test_integrate()
     push!(primitives, Primitive(floor, mat_concrete))
 
     # read in Lambertian teapot
-    teapot_transform = Translate(Vec3(75, 0, 0))
+    teapot_transform = Translate(Vec3(85, 0, 0))
     teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
     for triangle in teapot_tri
         push!(primitives, Primitive(triangle, mat_bluegreen))
     end
 
     # read in Oren-Nayer teapot
-    teapot_transform = Translate(Vec3(-75, 0, 0))
+    teapot_transform = Translate(Vec3(-120, 0, 0))
+    teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
+    for triangle in teapot_tri
+        push!(primitives, Primitive(triangle, mat_plastic))
+    end
+
+    # read in Plastic teapot
+    teapot_transform = Translate(Vec3(-120, 0, 200))
     teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
     for triangle in teapot_tri
         push!(primitives, Primitive(triangle, mat_bluegreen_ON))
+    end
+
+    # read in Plastic teapot
+    teapot_transform = Translate(Vec3(100, 0, 200))
+    teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
+    for triangle in teapot_tri
+        push!(primitives, Primitive(triangle, mat_mirror))
     end
 
     # Lights
@@ -134,21 +154,33 @@ function test_integrate()
         20.0
     )
     area_light = DiffuseAreaLight(
-        Spectrum(20.0, 20.0, 20.0),
+        Spectrum(5.0, 5.0, 5.0),
         light_orb,
     )
     push!(lights, area_light)
     # push!(primitives, Primitive(light_orb, mat_white))
 
-
-    # instantiate an area light
-    light_orb_transform = Translate(Pnt3(0, 100, 100))
+        # instantiate an area light
+    light_orb_transform = Translate(Pnt3(0, 100, -100))
     light_orb = Sphere(
         ShapeCore(light_orb_transform, Inv(light_orb_transform), false, false),
         20.0
     )
     area_light = DiffuseAreaLight(
-        Spectrum(20.0, 20.0, 20.0),
+        Spectrum(5.0, 5.0, 5.0),
+        light_orb,
+    )
+    push!(lights, area_light)
+    # push!(primitives, Primitive(light_orb, mat_white))
+
+    # instantiate ANOTHER area light
+    light_orb_transform = Translate(Pnt3(50, 100, 100))
+    light_orb = Sphere(
+        ShapeCore(light_orb_transform, Inv(light_orb_transform), false, false),
+        20.0
+    )
+    area_light = DiffuseAreaLight(
+        Spectrum(5.0, 5.0, 5.0),
         light_orb,
     )
     push!(lights, area_light)
@@ -176,17 +208,17 @@ function test_integrate()
 
     # Instantiate a Camera
     look_from = Pnt3(800, 500, 800)
-    look_at = Pnt3(150, -100, 0) # TODO something is off here....
+    look_at = Pnt3(300, -200, 0) # TODO something is off here....
     up = Vec3(0, -1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 170.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 175.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(2, 2, 6, true)
 
     # instantiate an env light
     env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
-    # push!(lights, env_light)
+    push!(lights, env_light)
 
     # Instantiate Scene
     scene = Scene(lights, BVH)

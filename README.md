@@ -26,7 +26,7 @@ Physically Based Rendering - in Julia
     6.3) Environment Camera
     6.4) Realistic Cameras
 7) Sampling and Reconstruction
-    7.3) Stratified Sampling
+    7.3) Stratified Sampling --> shuffle correctly
     7.4) The Halton Sampler
     7.5) (0,2)-Sequence Sampler
     7.6) Maximized Minimal Distance Sampler
