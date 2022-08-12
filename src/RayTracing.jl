@@ -62,9 +62,9 @@ include("materials/mirror.jl")
 include("textures/constant.jl")
 include("textures/image.jl")
 include("lights/light.jl")
+include("lights/area.jl")
 include("lights/point.jl")
 include("lights/infinite.jl")
-include("lights/area.jl")
 include("scene.jl")
 include("integrators/whitted.jl")
 include("handy_prints.jl")
@@ -81,6 +81,11 @@ function test_integrate()
         false
     )
 
+    mat_white = Matte(
+        ConstantTexture(Pnt3(1,1,1)),
+        ConstantTexture(Pnt3(0, 0, 0)),
+        nothing
+    )
     mat_bluegreen = Matte(
         ConstantTexture(Pnt3(0,1,1)),
         ConstantTexture(Pnt3(0, 0, 0)),
@@ -114,77 +119,52 @@ function test_integrate()
     primitives = Primitive[]
 
     # add floor
-    push!(primitives, Primitive(floor, mat_concrete))
+    push!(primitives, Primitive(floor, mat_concrete, nothing))
 
     # read in Lambertian teapot
     teapot_transform = Translate(Vec3(85, 0, 0))
     teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
     for triangle in teapot_tri
-        push!(primitives, Primitive(triangle, mat_bluegreen))
+        push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
     end
 
     # read in Oren-Nayer teapot
     teapot_transform = Translate(Vec3(-120, 0, 0))
     teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
     for triangle in teapot_tri
-        push!(primitives, Primitive(triangle, mat_plastic))
+        push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
     end
 
     # read in Plastic teapot
     teapot_transform = Translate(Vec3(-120, 0, 200))
     teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
     for triangle in teapot_tri
-        push!(primitives, Primitive(triangle, mat_bluegreen_ON))
+        push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
     end
 
     # read in Plastic teapot
     teapot_transform = Translate(Vec3(100, 0, 200))
     teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
     for triangle in teapot_tri
-        push!(primitives, Primitive(triangle, mat_mirror))
+        push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
     end
 
     # Lights
     lights = Light[]
 
     # instantiate an area light
-    light_orb_transform = Translate(Pnt3(0, 100, -100))
-    light_orb = Sphere(
-        ShapeCore(light_orb_transform, Inv(light_orb_transform), false, false),
-        20.0
-    )
-    area_light = DiffuseAreaLight(
-        Spectrum(5.0, 5.0, 5.0),
-        light_orb,
-    )
-    push!(lights, area_light)
-    # push!(primitives, Primitive(light_orb, mat_white))
-
-        # instantiate an area light
-    light_orb_transform = Translate(Pnt3(0, 100, -100))
-    light_orb = Sphere(
-        ShapeCore(light_orb_transform, Inv(light_orb_transform), false, false),
-        20.0
-    )
-    area_light = DiffuseAreaLight(
-        Spectrum(5.0, 5.0, 5.0),
-        light_orb,
-    )
-    push!(lights, area_light)
-    # push!(primitives, Primitive(light_orb, mat_white))
-
-    # instantiate ANOTHER area light
-    light_orb_transform = Translate(Pnt3(50, 100, 100))
-    light_orb = Sphere(
-        ShapeCore(light_orb_transform, Inv(light_orb_transform), false, false),
-        20.0
-    )
-    area_light = DiffuseAreaLight(
-        Spectrum(5.0, 5.0, 5.0),
-        light_orb,
-    )
-    push!(lights, area_light)
-    # push!(primitives, Primitive(light_orb, mat_white))
+    for t in [Translate(Pnt3(0, 100, -100)), Translate(Pnt3(50, 100, 100))]
+        light_orb = Sphere(
+            ShapeCore(t, Inv(t), false, false),
+            20.0
+        )
+        area_light = DiffuseAreaLight(
+            Spectrum(5.0, 5.0, 5.0),
+            light_orb,
+        )
+        push!(lights, area_light)
+        push!(primitives, Primitive(light_orb, mat_white, area_light))
+    end
 
     # instantiate accelerator
     print("\nThere are $(length(primitives)) objects in the scene, building BVH\n")
