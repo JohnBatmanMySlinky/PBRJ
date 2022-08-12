@@ -48,6 +48,11 @@ function render(i::WhittedIntegrator, scene::Scene)
                 #     L = Spectrum(0,0,0)
                 # end
 
+                if any(isnan.(L))
+                    L = Spectrum(0,0,0)
+                end
+
+
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
 
                 start_next_sample!(k_sampler)
@@ -85,8 +90,8 @@ function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1
     n = interaction.shading.n
     wo = interaction.core.wo 
 
-    # if hit an area light, compute emitted ray
-    # L += le(interaction, wo)
+    # if hit an area light, compute emitted ray 
+    L += le(interaction, wo)
 
     # for each light source, add contrib
     for light in scene.lights
@@ -133,7 +138,7 @@ function specular_transmit(i::WhittedIntegrator, ray::AbstractRay, surface_inter
     end
 
     ray = spawn_ray(interaction.core, wi)
-    eta = 1/ surface_interaction.bsdf.eta
+    eta = 1 / surface_interaction.bsdf.eta
 
     if dot(ns,ns) < 0
         eta = 1/eta

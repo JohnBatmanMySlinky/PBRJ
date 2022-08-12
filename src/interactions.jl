@@ -193,6 +193,10 @@ end
 #########################################
 #### Light emitted ######################
 #########################################
-function le(si::SurfaceInteraction, ::Vec3)::Spectrum
-    return Spectrum(0, 0, 0)
+function le(si::SurfaceInteraction, w::Vec3)::Spectrum
+    if si.primitive.area_light isa Nothing
+        return Spectrum(0,0,0)
+    else
+        return si.primitive.area_light.Lemit
+    end
 end

@@ -1,6 +1,7 @@
 struct Primitive
     shape::Shape
     material::Material
+    area_light::Maybe{Light}
 end
 
 #####################################################
