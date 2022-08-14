@@ -74,10 +74,10 @@ end
 ### Interact with the BVH ######
 ################################
 
-function Intersect!(b::Union{BVHNode, Shape}, r::AbstractRay)
+function intersect!(b::Union{BVHNode, Shape}, r::AbstractRay)
     if intersect_p(b.bounds, r)
-        l_check, l_time, l_interaction = Intersect!(b.left, r)
-        r_check, r_time, r_interaction = Intersect!(b.right, r)
+        l_check, l_time, l_interaction = intersect!(b.left, r)
+        r_check, r_time, r_interaction = intersect!(b.right, r)
 
         # hits both left & right
         if l_check==true && r_check==true
@@ -96,5 +96,21 @@ function Intersect!(b::Union{BVHNode, Shape}, r::AbstractRay)
         end
     else
         return false, nothing, nothing
+    end
+end
+
+function intersect_p(b::Union{BVHNode, Shape}, r::AbstractRay)::Bool
+    if intersect_p(b.bounds, r)
+        l_check = intersect_p(b.left, r)
+        r_check = intersect_p(b.right, r)
+
+        # hits both left & right
+        if l_check || r_check
+            return true
+        else
+            return false
+        end
+    else
+        return false
     end
 end

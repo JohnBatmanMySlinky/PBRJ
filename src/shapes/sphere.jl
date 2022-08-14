@@ -32,7 +32,7 @@ function ObjectBounds(s::Sphere)::Bounds3
 end
 
 # PBR 3.2.2
-function Intersect(s::Sphere, r::AbstractRay)
+function intersect(s::Sphere, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # transform ray to object space 
     r = s.core.world_to_object(r)
 
@@ -111,6 +111,59 @@ function Intersect(s::Sphere, r::AbstractRay)
     return true, t_shape_hit, interaction
 end
 
+function intersect_p(s::Sphere, r::AbstractRay)::Bool
+    # transform ray to object space 
+    r = s.core.world_to_object(r)
+
+    a = norm(dot(r.direction, r.direction))
+    b = 2 * dot(r.origin, r.direction)
+    c = norm(dot(r.origin, r.origin)) - s.radius ^ 2
+
+    # solve quadratic
+    exists, t0, t1 = solve_quadratic(a, b, c)
+    if !exists
+        return false
+    elseif t0 > r.tMax || t1 <= 0
+        return false
+    else
+        t_shape_hit = t0
+        if t_shape_hit <= 0
+            t_shape_hit = t1
+            if t_shape_hit > r.tMax
+                return false
+            end
+        end
+    end
+
+    # calculate Interaction point
+    p = at(r, t_shape_hit)
+
+    # improve Interaction
+    p = refine_Interaction(p, s)
+
+    # compute phi
+    phi = compute_phi(p)
+
+    # test clipping
+    if (s.zMin > -s.radius && p[3] < s.zMin) || (s.zMax < s.radius && p[3] > s.zMax) || phi > s.phiMax
+        if t_shape_hit == t1
+            return false
+        end
+        if t1 > r.tMax
+            return false
+        end
+        t_shape_hit = t1
+        p = at(r, t_shape_hit)
+        p = refine_Interaction(p, s)
+        phi = compute_phi(p)
+        if (s.zMin > -s.radius && p[3] < s.zMin) || (s.zMax < radius && p[3] > s.zMax) || phi > s.phiMax
+            return false
+        end
+    end
+
+    return true
+end
+
 # PBR 3.2.5
 function area(s::Sphere)::Float32
     return s.phiMax * s.radius * (s.zMax - s.zMin)
@@ -173,7 +226,7 @@ end
 ################################
 function pdf(s::Sphere, si::Interaction, wi::Vec3)::Float64
     ray = spawn_ray(si, wi)
-    check, t, interaction = Intersect(s, ray)
+    check, t, interaction = intersect(s, ray)
     if !check
         return 0.0
     end 

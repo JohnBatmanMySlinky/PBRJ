@@ -83,7 +83,7 @@ end
 ##################################################
 
 # PBR 3.6.2
-function Intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
+function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # get triangle vertices
     p0, p1, p2 = get_vertices(tri)
     
@@ -214,3 +214,64 @@ function Intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     return true, t, interaction
 end
 
+function intersect_p(tri::Triangle, ray::AbstractRay, ::Bool=false)::Bool
+    # get triangle vertices
+    p0, p1, p2 = get_vertices(tri)
+    
+    # perform ray-triangle intersection test
+    ## transform vertices to ray coord space
+    p0t = Pnt3(p0 - Vec3(ray.origin))
+    p1t = Pnt3(p1 - Vec3(ray.origin))
+    p2t = Pnt3(p2 - Vec3(ray.origin))
+    kz = argmax(abs.(ray.direction))
+    kx = kz + 1
+    if kx == 4
+        kx = 1
+    end
+    ky = kx + 1
+    if ky == 4
+        ky = 1
+    end
+    permute = [kx, ky, kz]
+    d = Vec3(ray.direction[permute])
+    p0t = Vec3(p0t[permute])
+    p1t = Vec3(p1t[permute])
+    p2t = Vec3(p2t[permute])
+    Sx = -d.x / d.z
+    Sy = -d.y / d.z
+    Sz =  1.0 / d.z
+    p0t = Vec3(p0t.x + Sx * p0t.z, p0t.y + Sy * p0t.z, p0t.z)
+    p1t = Vec3(p1t.x + Sx * p1t.z, p1t.y + Sy * p1t.z, p1t.z)
+    p2t = Vec3(p2t.x + Sx * p2t.z, p2t.y + Sy * p2t.z, p2t.z)
+
+    ## compute edge function
+    e0 = p1t.x * p2t.y - p1t.y * p2t.x
+    e1 = p2t.x * p0t.y - p2t.y * p0t.x
+    e2 = p0t.x * p1t.y - p0t.y * p1t.x
+    
+    ## fall back to double precision
+    # TODO
+
+    ## perform edge & det tests
+    if (e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0)
+        return false
+    end
+    det = e0 + e1 + e2
+    if det == 0
+        return false
+    end
+
+    ## compute scaled sitance to triangle and test against rayt
+    p0t = Vec3(p0t.x, p0t.y, p0t.z * Sz)
+    p1t = Vec3(p1t.x, p1t.y, p1t.z * Sz)
+    p2t = Vec3(p2t.x, p2t.y, p2t.z * Sz)
+    t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z
+    if (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax * det))
+        return false
+    end
+    if (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax * det))
+        return false
+    end
+
+    return true
+end

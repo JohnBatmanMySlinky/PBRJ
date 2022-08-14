@@ -38,10 +38,10 @@ function render(i::WhittedIntegrator, scene::Scene)
 
                 # BEGIN
                 if w > 0
-                    L = li(i, ray, scene)
+                    L = li(i, ray, scene, 5)
                 end
 
-                # check, t, interaction, = Intersect!(scene.b, ray)
+                # check, t, interaction, = intersect!(scene.b, ray)
                 # if check
                 #     L = Spectrum(interaction.primitive.material.Kd(interaction))
                 # else
@@ -71,7 +71,7 @@ end
 
 function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1)::Spectrum
     L = Spectrum(0, 0, 0)
-    check, t, interaction = Intersect!(scene.b, ray)
+    check, t, interaction = intersect!(scene.b, ray)
     # if nothing is hit --> this is only for env light.
     if !check
         for light in scene.lights

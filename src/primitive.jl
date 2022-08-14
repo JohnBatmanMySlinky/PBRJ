@@ -9,14 +9,24 @@ end
 #### underlying shape or material ###################
 #####################################################
 
-function Intersect!(gp::Primitive, ray::AbstractRay)
-    check, t, interaction = Intersect(gp.shape, ray)
+function intersect!(gp::Primitive, ray::AbstractRay)
+    check, t, interaction = intersect(gp.shape, ray)
     if !check
         return false, nothing, nothing
     end
     ray.tMax = t
     interaction.primitive = gp
     return true, t, interaction
+end
+
+function intersect_p(gp::Primitive, ray::AbstractRay)::Bool
+    # TODO FIX JOHN HACK
+    # What happens if an area light occludes an area light?
+    if gp.area_light isa Nothing
+        return intersect_p(gp.shape, ray)
+    else
+        return false
+    end
 end
 
 function world_bounds(p::Primitive)::Bounds3

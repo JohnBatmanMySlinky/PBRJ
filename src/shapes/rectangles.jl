@@ -20,7 +20,7 @@ function ObjectBounds(xz::XZRectangle)
     )
 end
 
-function Intersect(xz::XZRectangle, r::AbstractRay)
+function intersect(xz::XZRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     r = xz.core.world_to_object(r)
 
     t = (xz.k - r.origin[2]) / r.direction[2]
@@ -62,4 +62,22 @@ function Intersect(xz::XZRectangle, r::AbstractRay)
     interaction = xz.core.object_to_world(interaction)
 
     return true, t, interaction
+end
+
+
+function intersect_p(xz::XZRectangle, r::AbstractRay)::Bool
+    r = xz.core.world_to_object(r)
+
+    t = (xz.k - r.origin[2]) / r.direction[2]
+    if (t < r.time) || (t > r.tMax)
+        return false
+    end
+
+    x = r.origin[1] + t * r.direction[1]
+    z = r.origin[3] + t * r.direction[3]
+    if (x < xz.x[1]) || (x > xz.x[2]) || (z < xz.z[1]) || (z > xz.z[2])
+        return false
+    end
+   
+    return true
 end
