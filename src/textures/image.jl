@@ -22,7 +22,13 @@ struct ImageTexture <: Texture
 end
 
 function (it::ImageTexture)(si::SurfaceInteraction)
-    u, v = si.uv
+    return it(si.uv)
+end
+
+
+# JOHN's to make for fsater bump mapping?
+function (it::ImageTexture)(uv::Pnt2)
+    u, v = uv
     # TODO
     # fucking bump mapping
     u = clamp(u,0,.9999)

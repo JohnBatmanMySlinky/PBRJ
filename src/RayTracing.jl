@@ -99,14 +99,13 @@ function test_integrate()
     mat_concrete = Matte(
         ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"),
         ConstantTexture(Pnt3(0,0,0)),
-        nothing
-        # ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg")
+        ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg")
     )
 
     mat_plastic = Plastic(
-        ConstantTexture(Pnt3( 0,   1,  1)),
-        ConstantTexture(Pnt3( 1,   1,  1)),
-        ConstantTexture(Pnt3(.5, .5, .5)),
+        ConstantTexture(Pnt3( 0, 1,  1)),
+        ConstantTexture(Pnt3(.2, .2, .2)),
+        ConstantTexture(Pnt3(.9, .9, .9)),
         nothing,
         false
     )
@@ -121,31 +120,35 @@ function test_integrate()
     # add floor
     push!(primitives, Primitive(floor, mat_concrete, nothing))
 
-    # read in Lambertian teapot
-    teapot_transform = Translate(Vec3(85, 0, 0))
-    teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
-    for triangle in teapot_tri
-        push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
-    end
+    # teapot_spec = [
+    #     (
+    #         Translate(Vec3(100, 0, 100)), 
+    #         mat_bluegreen
+    #     ),
+    #     (
+    #         Translate(Vec3(-100, 0, 100)),
+    #         mat_bluegreen_ON
+    #     ),
+    #     (
+    #         Translate(Vec3(-100, 0, -100)),
+    #         mat_plastic
+    #     ),
+    #     (
+    #         Translate(Vec3(100, 0, -100)),
+    #         mat_mirror
+    #     ),
+    # ]
 
-    # read in Oren-Nayer teapot
-    teapot_transform = Translate(Vec3(-120, 0, 0))
-    teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
-    for triangle in teapot_tri
-        push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
-    end
+    # # read in Lambertian teapot
+    # for TP in teapot_spec
+    #     teapot_tri = parse_obj("../ref/teapot.obj", TP[1], true, false)
+    #     for triangle in teapot_tri
+    #         push!(primitives, Primitive(triangle, TP[2], nothing))
+    #     end
+    # end    
 
-    # read in Plastic teapot
-    teapot_transform = Translate(Vec3(-120, 0, 200))
-    teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
-    for triangle in teapot_tri
-        push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
-    end
-
-    # read in Plastic teapot
-    teapot_transform = Translate(Vec3(100, 0, 200))
-    teapot_tri = parse_obj("../ref/teapot.obj", teapot_transform, true, false)
-    for triangle in teapot_tri
+    dragon_tri = parse_obj("../ref/dragon1.obj", Translate(Pnt3(0,0,0)), true, false)
+    for triangle in dragon_tri
         push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
     end
 
@@ -153,7 +156,7 @@ function test_integrate()
     lights = Light[]
 
     # instantiate an area light
-    for t in [Translate(Pnt3(0, 100, -100)), Translate(Pnt3(50, 100, 100))]
+    for t in [Translate(Pnt3(0, 30, 0)), Translate(Pnt3(250, 100, 0)), Translate(Pnt3(-250, 100, 0))]
         light_orb = Sphere(
             ShapeCore(t, Inv(t), false, false),
             20.0
@@ -167,18 +170,18 @@ function test_integrate()
     end
 
     # instantiate accelerator
-    print("\nThere are $(length(primitives)) objects in the scene, building BVH\n")
-    BVH = ConstructBVH(primitives)
+    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+    @time BVH = ConstructBVH(primitives)
     print("Done building BVH\n")
 
     # print_BVH_bounds(BVH)
 
     # Instantiate a Filter
-    filter = BoxFilter(Pnt2(1, 1))
+    filter = BoxFilter(Pnt2(.5, .5))
 
     # Instantiate a Film
     film = Film(
-        Pnt2(512, 512),
+        Pnt2(200, 200),
         Bounds2(Pnt2(0,0), Pnt2(1,1)),
         filter,
         1.0,
@@ -194,7 +197,7 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 175.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(2, 2, 6, true)
+    S = StratifiedSampler(4, 4, 6, true)
 
     # instantiate an env light
     env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")

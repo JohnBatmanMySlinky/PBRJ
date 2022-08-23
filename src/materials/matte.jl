@@ -27,28 +27,29 @@ end
 
 # PBR 9.3 Bump Mapping
 function bump!(m::Material, si::SurfaceInteraction)
+    #TODO John's faster bump mapping attempt
     # make a deep copy
-    si_eval = deepcopy(si)
+    # si_eval = deepcopy(si)
 
     # evaulate u displace
     du = .5 * (abs(si.dudx) + abs(si.dudy))
     if du == 0
         du = .0005
     end
-    si_eval.core.p = si.core.p + du * si.shading.dpdu
-    si_eval.uv = si.uv + Vec2(du, 0.0)
-    si_eval.core.n = normalize(cross(si.shading.dpdu, si.shading.dpdv) + du * si.dndu)
-    u_displace = m.bump_map(si_eval)
+    # si_eval.core.p = si.core.p + du * si.shading.dpdu
+    new_uv = si.uv + Vec2(du, 0.0)
+    # si_eval.core.n = normalize(cross(si.shading.dpdu, si.shading.dpdv) + du * si.dndu)
+    u_displace = m.bump_map(new_uv)
 
     # evaulate v displace
     dv = .5 * (abs(si.dvdx) + abs(si.dvdy))
     if dv == 0
         dv = .0005
     end
-    si_eval.core.p = si.core.p + dv * si.shading.dpdv
-    si_eval.uv = si.uv + Vec2(0.0, dv)
-    si_eval.core.n = normalize(cross(si.shading.dpdu, si.shading.dpdv) + dv * si.dndv)
-    v_displace = m.bump_map(si_eval)
+    # si_eval.core.p = si.core.p + dv * si.shading.dpdv
+    new_uv = si.uv + Vec2(0.0, dv)
+    # si_eval.core.n = normalize(cross(si.shading.dpdu, si.shading.dpdv) + dv * si.dndv)
+    v_displace = m.bump_map(new_uv)
 
     # evaulate displace
     displace = m.bump_map(si)

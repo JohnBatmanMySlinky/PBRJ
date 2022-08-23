@@ -13,7 +13,11 @@ function push_vertices!(s::String, indices::Vector{Int64})
     splitted = split(s, " ")
     for each in splitted
         if !(each in ["f", ""])
-            push!(indices, parse(Int64, each))
+            if occursin("/", each)
+                push!(indices, parse(Float64, split(each,"/")[1]))
+            else
+                push!(indices, parse(Float64, each))
+            end
         end
     end
 end
@@ -30,7 +34,12 @@ function parse_normals(s::String)
 end
 
 
-function parse_obj(fname::String, object_to_world::Transformation, reverse_orientation::Bool, transform_swaps_handedness::Bool)
+function parse_obj(
+    fname::String, 
+    object_to_world::Transformation, 
+    reverse_orientation::Bool, 
+    transform_swaps_handedness::Bool,
+)
     vertices = Pnt3[]
     indices = Int64[]
     normals = Nml3[]
@@ -53,7 +62,7 @@ function parse_obj(fname::String, object_to_world::Transformation, reverse_orien
                 push!(vertices,v)
             # parse indices
             elseif key == "f "
-                push_vertices!(s, indices)
+                push_vertices!(s, indices, downsample)
             elseif key == "vn"
                 n = parse_normals(s)
                 push!(normals, n)
