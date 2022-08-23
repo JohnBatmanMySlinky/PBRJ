@@ -62,7 +62,7 @@ function parse_obj(
                 push!(vertices,v)
             # parse indices
             elseif key == "f "
-                push_vertices!(s, indices, downsample)
+                push_vertices!(s, indices)
             elseif key == "vn"
                 n = parse_normals(s)
                 push!(normals, n)

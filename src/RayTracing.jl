@@ -12,6 +12,7 @@ abstract type Aggregate end
 abstract type AbstractBxDF end
 abstract type AbstractBSDF end
 abstract type AbstractRay end
+abstract type BVHAccel end
 abstract type Camera end
 abstract type Filter end
 abstract type Fresnel end
@@ -38,7 +39,8 @@ include("shapes/triangle.jl")
 include("shapes/rectangles.jl")
 include("math_utils.jl")
 include("rand_utils.jl")
-include("accelerators/bvh.jl")
+include("accelerators/bvh_naive.jl")
+include("accelerators/bvh_pbr_pxlth.jl")
 include("filters/box.jl")
 include("film.jl")
 include("distributions.jl")
@@ -156,7 +158,7 @@ function test_integrate()
     lights = Light[]
 
     # instantiate an area light
-    for t in [Translate(Pnt3(0, 30, 0)), Translate(Pnt3(250, 100, 0)), Translate(Pnt3(-250, 100, 0))]
+    for t in [Translate(Pnt3(0, 100, 0)), Translate(Pnt3(250, 100, 0)), Translate(Pnt3(-250, 100, 0))]
         light_orb = Sphere(
             ShapeCore(t, Inv(t), false, false),
             20.0
@@ -171,7 +173,8 @@ function test_integrate()
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
-    @time BVH = ConstructBVH(primitives)
+    # @time bvh = ConstructBVHNaive(primitives)
+    @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
     # print_BVH_bounds(BVH)
@@ -181,7 +184,7 @@ function test_integrate()
 
     # Instantiate a Film
     film = Film(
-        Pnt2(200, 200),
+        Pnt2(500, 500),
         Bounds2(Pnt2(0,0), Pnt2(1,1)),
         filter,
         1.0,
@@ -200,11 +203,11 @@ function test_integrate()
     S = StratifiedSampler(4, 4, 6, true)
 
     # instantiate an env light
-    env_light = InfinteLight(BVH, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
+    env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
     push!(lights, env_light)
 
     # Instantiate Scene
-    scene = Scene(lights, BVH)
+    scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
     I = WhittedIntegrator(C, S, 25)

@@ -53,3 +53,14 @@ end
 function face_forward(n, v)
     return dot(n, v) < 0 ? -n : n
 end
+
+function partition!(x::Vector, range::UnitRange, predicate::Function)
+    left = range[1]
+    for i in range
+        if left != i && predicate(x[i])
+            x[i], x[left] = x[left], x[i]
+            left += 1
+        end
+    end
+    left
+end

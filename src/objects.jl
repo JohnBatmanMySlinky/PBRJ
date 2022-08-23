@@ -112,6 +112,11 @@ function scale_differentials!(r::RayDifferential, s::Float64)
     r.ry_direction = r.direction + (r.ry_direction - r.direction) * s
 end
 
+function set_direction!(r::AbstractRay, d::Vec3)
+    r.direction = Vec3([i ≈ 0.0 ? 0.0 : i for i in d])
+end
+
+check_direction!(r::AbstractRay) = set_direction!(r, r.direction)
 
 ################################
 #### AABB ######################
@@ -123,6 +128,13 @@ end
 struct Bounds2
     pMin::Pnt2
     pMax::Pnt2
+end
+
+function Bounds2()
+    return Bounds2(Pnt2(Inf64, Inf64, Inf64), Pnt2(-Inf64, -Inf64, -Inf64))
+end
+function Bounds3()
+    return Bounds3(Pnt3(Inf64, Inf64, Inf64), Pnt3(-Inf64, -Inf64, -Inf64))
 end
 
 function inclusive_sides(b::Union{Bounds2, Bounds3})
@@ -181,6 +193,74 @@ function intersection(b1::Bounds2, b2::Bounds2)::Bounds2
     )
 end
 
+function intersect_p(b::Bounds3, r::AbstractRay)::Bool
+    tmin = 0
+    tmax = r.tMax
+    for a = 1:3
+        t0 = min(
+            (b.pMin[a] - r.origin[a]) / r.direction[a],
+            (b.pMax[a] - r.origin[a]) / r.direction[a]
+        )
+        t1 = max(
+            (b.pMin[a] - r.origin[a]) / r.direction[a],
+            (b.pMax[a] - r.origin[a]) / r.direction[a]
+        )
+        tmin = max(t0, tmin)
+        tmax = min(t1, tmax)
+        if tmax <= tmin
+            return false
+        end
+    end
+    return true
+end
+
+function is_dir_negative(dir::Vec3)
+    return Pnt3(
+        dir.x < 0 ? 2 : 1,
+        dir.y < 0 ? 2 : 1,
+        dir.z < 0 ? 2 : 1,
+    )
+end
+
+#############################################
+#####  dir_is_negative: 1 -- false, 2 -- true
+#############################################
+function intersect_p(b::Bounds3, ray::AbstractRay, inv_dir::Vec3, dir_is_negative::Pnt3)::Bool
+    dir_is_negative = Int.(dir_is_negative)
+    if dir_is_negative[1] == 2 
+        tx_min = (b.pMax[1] - ray.origin.x) * inv_dir[1]
+        tx_max = (b.pMin[1] - ray.origin.x) * inv_dir[1]
+    else
+        tx_min = (b.pMin[1] - ray.origin.x) * inv_dir[1]
+        tx_max = (b.pMax[1] - ray.origin.x) * inv_dir[1]
+    end
+
+    if dir_is_negative[2] == 2
+        ty_min = (b.pMax[2] - ray.origin.y) * inv_dir[2]
+        ty_max = (b.pMin[2] - ray.origin.y) * inv_dir[2]
+    else
+        ty_min = (b.pMin[2] - ray.origin.y) * inv_dir[2]
+        ty_max = (b.pMax[2] - ray.origin.y) * inv_dir[2]
+    end
+
+    (tx_min > ty_max || ty_min > tx_max) && return false
+    ty_min > tx_min && (tx_min = ty_min;)
+    ty_max > tx_max && (tx_max = ty_max;)
+
+    if dir_is_negative[3] == 2
+        tz_min = (b.pMax[3] - ray.origin.z) * inv_dir[3]
+        tz_max = (b.pMin[3] - ray.origin.z) * inv_dir[3]
+    else
+        tz_min = (b.pMin[3] - ray.origin.z) * inv_dir[3]
+        tz_max = (b.pMax[3] - ray.origin.z) * inv_dir[3]
+    end
+    (tx_min > tz_max || tz_min > tx_max) && return false
+
+    (tz_min > tx_min) && (tx_min = tz_min;)
+    (tz_max < tx_max) && (tx_max = tz_max;)
+    tx_min < ray.tMax && tx_max > 0
+end
+
 function Base.iterate(b::Bounds2, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2, Integer}}
     if i > length(b)
         return nothing
@@ -193,6 +273,36 @@ end
 
 function Bounds3(p::Pnt3)
     return Bounds3(p, p)
+end
+
+function maximum_extant(b::Bounds3)
+    d = diagonal(b)
+    if d.x > d.y && d.x > d.z
+        return 1
+    elseif d.y > d.z
+        return 2
+    end
+    return 3
+end
+
+function is_valid(b::Bounds3)::Bool
+    all(b.pMin .!= Inf64) && all(b.pMax .!= -Inf64)
+end
+
+function offset(b::Bounds3, p::Pnt3)
+    o = p - b.pMin
+    g = b.pMax .> b.pMin
+    !any(g) && return o
+    return Pnt3(
+        o[1] / (g[1] ? b.pMax[1] - b.pMin[1] : 1.0),
+        o[2] / (g[2] ? b.pMax[2] - b.pMin[2] : 1.0),
+        o[3] / (g[3] ? b.pMax[3] - b.pMin[3] : 1.0),
+    )
+end
+
+function surface_area(b::Bounds3)
+    d = diagonal(b)
+    return 2 * (d.x * d.y + d.x * d.z + d.y * d.z)
 end
 
 ################################

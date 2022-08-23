@@ -1,17 +1,17 @@
-struct BVHNode
+struct BVHNodeNaive <: BVHAccel
     bounds::Bounds3
-    left::Union{Primitive, BVHNode}
-    right::Union{Primitive, BVHNode}
+    left::Union{Primitive, BVHNodeNaive}
+    right::Union{Primitive, BVHNodeNaive}
 end
 
 ###########################################################
-# Bounds of BVHNode just get directed to bounds attribute #
+# Bounds of BVHNodeNaive just get directed to bounds attribute #
 ###########################################################
 
-function world_bounds(b::BVHNode)::Bounds3
+function world_bounds(b::BVHNodeNaive)::Bounds3
     return b.bounds
 end
-function world_bounds(b1::BVHNode, b2::BVHNode)::Bounds3
+function world_bounds(b1::BVHNodeNaive, b2::BVHNodeNaive)::Bounds3
     return world_bounds(b1.bounds, b2.bounds)
 end
 
@@ -19,12 +19,12 @@ end
 ##### Construct the BVH ####
 ############################
 
-function ConstructBVH(primitives::Vector{Primitive})::BVHNode
+function ConstructBVHNaive(primitives::Vector{Primitive})::BVHNodeNaive
     old_list = primitives
-    new_list = BVHNode[]
+    new_list = BVHNodeNaive[]
 
     while length(new_list) != 1
-        new_list = BVHNode[]
+        new_list = BVHNodeNaive[]
 
         if length(old_list) % 2 != 0
             push!(old_list, old_list[end])
@@ -36,7 +36,7 @@ function ConstructBVH(primitives::Vector{Primitive})::BVHNode
         for i = 1:2:length(old_list)
             left = old_list[i]
             right = old_list[i+1]
-            node = BVHNode(world_bounds(left, right), left, right)
+            node = BVHNodeNaive(world_bounds(left, right), left, right)
             push!(new_list, node)
         end
         old_list = new_list
@@ -44,37 +44,11 @@ function ConstructBVH(primitives::Vector{Primitive})::BVHNode
     return new_list[1]
 end
 
-#######################################
-### Simple intersection with bounds ###
-#######################################
-
-function intersect_p(b::Bounds3, r::AbstractRay)::Bool
-    tmin = 0
-    tmax = r.tMax
-    for a = 1:3
-        t0 = min(
-            (b.pMin[a] - r.origin[a]) / r.direction[a],
-            (b.pMax[a] - r.origin[a]) / r.direction[a]
-        )
-        t1 = max(
-            (b.pMin[a] - r.origin[a]) / r.direction[a],
-            (b.pMax[a] - r.origin[a]) / r.direction[a]
-        )
-        tmin = max(t0, tmin)
-        tmax = min(t1, tmax)
-        if tmax <= tmin
-            return false
-        end
-    end
-    return true
-end
-
-
 ################################
 ### Interact with the BVH ######
 ################################
 
-function intersect!(b::Union{BVHNode, Shape}, r::AbstractRay)
+function intersect!(b::Union{BVHNodeNaive, Shape}, r::AbstractRay)
     if intersect_p(b.bounds, r)
         l_check, l_time, l_interaction = intersect!(b.left, r)
         r_check, r_time, r_interaction = intersect!(b.right, r)
@@ -99,7 +73,7 @@ function intersect!(b::Union{BVHNode, Shape}, r::AbstractRay)
     end
 end
 
-function intersect_p(b::Union{BVHNode, Shape}, r::AbstractRay)::Bool
+function intersect_p(b::Union{BVHNodeNaive, Shape}, r::AbstractRay)::Bool
     if intersect_p(b.bounds, r)
         l_check = intersect_p(b.left, r)
         r_check = intersect_p(b.right, r)
