@@ -149,7 +149,7 @@ function test_integrate()
     #     end
     # end    
 
-    dragon_tri = parse_obj("../ref/dragon1.obj", Translate(Pnt3(0,0,0)), true, false)
+    dragon_tri = parse_obj("../ref/dragon1.obj", RotateZ(-85.0), true, false)
     for triangle in dragon_tri
         push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
     end
@@ -200,7 +200,7 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 175.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(4, 4, 6, true)
+    S = StratifiedSampler(6, 6, 6, true)
 
     # instantiate an env light
     env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")

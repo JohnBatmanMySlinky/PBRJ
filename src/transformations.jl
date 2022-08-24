@@ -47,6 +47,43 @@ function Scale(v::Vec3)::Transformation
     return Transformation(m, m_inv)
 end
 
+function RotateX(theta::Float64)
+    sin_theta = sin(deg2rad(theta))
+    cos_theta = cos(deg2rad(theta))
+    m = Mat4([
+        1 0         0          0 
+        0 cos_theta -sin_theta 0
+        0 sin_theta cos_theta 0
+        0 0         0          1
+    ])
+    return Transformation(m, transpose(m))
+end
+
+function RotateY(theta::Float64)
+    sin_theta = sin(deg2rad(theta))
+    cos_theta = cos(deg2rad(theta))
+    m = Mat4([
+        cos_theta  0 sin_theta 0
+        0          1 0         0
+        -sin_theta 0 cos_theta 0
+        0          0 0         1
+    ])
+    return Transformation(m, transpose(m))
+end
+
+function RotateZ(theta::Float64)
+    sin_theta = sin(deg2rad(theta))
+    cos_theta = cos(deg2rad(theta))
+    m = Mat4([
+        cos_theta -sin_theta 0 0
+        sin_theta cos_theta  0 0
+        0         0          1 0
+        0         0          0 1
+    ])
+    return Transformation(m, transpose(m))
+end
+
+
 function Perspective(fov::Float64, near::Float64, far::Float64)::Transformation
     a = far / (far - near)
     b = -far * near / (far - near)
@@ -133,6 +170,20 @@ function (t::Transformation)(r::RayDifferential)::RayDifferential
     )
 end
 
+# PBR 2.8.5
+# apply transformations to a Bounding Box
+function (t::Transformation)(b::Bounds3)
+    ret = t(Pnt3(b.pMin.x, b.pMin.y, b.pMin.z))
+    ret = world_bounds(ret, t(Pnt3(b.pMax.x, b.pMin.y, b.pMin.z)))
+    ret = world_bounds(ret, t(Pnt3(b.pMin.x, b.pMax.y, b.pMin.z)))
+    ret = world_bounds(ret, t(Pnt3(b.pMin.x, b.pMin.y, b.pMax.z)))
+    ret = world_bounds(ret, t(Pnt3(b.pMin.x, b.pMax.y, b.pMax.z)))
+    ret = world_bounds(ret, t(Pnt3(b.pMax.x, b.pMax.y, b.pMin.z)))
+    ret = world_bounds(ret, t(Pnt3(b.pMax.x, b.pMin.y, b.pMax.z)))
+    ret = world_bounds(ret, t(Pnt3(b.pMax.x, b.pMax.y, b.pMax.z)))
+    return ret
+end
+
 # apply transformations to a SurfaceInteraction
 function (t::Transformation)(si::SurfaceInteraction)::SurfaceInteraction
     core = t(si.core)
@@ -175,13 +226,5 @@ function (t::Transformation)(si::ShadingInteraction)::ShadingInteraction
         t(si.dpdv),
         t(si.dndu),
         t(si.dndv)
-    )
-end
-
-# apply transformations to a bounding box
-function (t::Transformation)(b::Bounds3)::Bounds3
-    return Bounds3(
-        t(b.pMin),
-        t(b.pMax)
     )
 end

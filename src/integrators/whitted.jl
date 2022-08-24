@@ -11,7 +11,7 @@ function render(i::WhittedIntegrator, scene::Scene)
     tile_size = 16
     width, height = Int64.(floor.((sample_extent .+ tile_size) ./ tile_size))
     total_tiles = width * height - 1
-    print("Rendering $(total_tiles + 1) tiles\n")
+    print("Rendering " * num2str(total_tiles + 1) * " tiles\n")
 
     prog = Progress(total_tiles)
     update!(prog,0)
