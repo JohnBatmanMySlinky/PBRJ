@@ -6,4 +6,4 @@
 5) + stone image texture + rectanlges + 1,000 spp.
 6) + bump map (finally correct but slow as all hell) + area light 100 spp
 7) + stratified sampling + OrenNayer & Plastic teapots (+ fixed normals!) 25x25 spp
-8) + updated BVH means dragon runs in like 5 minutes!!!
+8) + updated BVH and bump mapping go brrrrrr. 25x25 spp in 1h:15m
