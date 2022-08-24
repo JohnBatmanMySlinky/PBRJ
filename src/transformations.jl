@@ -173,16 +173,19 @@ end
 # PBR 2.8.5
 # apply transformations to a Bounding Box
 function (t::Transformation)(b::Bounds3)
-    ret = t(Pnt3(b.pMin.x, b.pMin.y, b.pMin.z))
-    ret = world_bounds(ret, t(Pnt3(b.pMax.x, b.pMin.y, b.pMin.z)))
-    ret = world_bounds(ret, t(Pnt3(b.pMin.x, b.pMax.y, b.pMin.z)))
-    ret = world_bounds(ret, t(Pnt3(b.pMin.x, b.pMin.y, b.pMax.z)))
-    ret = world_bounds(ret, t(Pnt3(b.pMin.x, b.pMax.y, b.pMax.z)))
-    ret = world_bounds(ret, t(Pnt3(b.pMax.x, b.pMax.y, b.pMin.z)))
-    ret = world_bounds(ret, t(Pnt3(b.pMax.x, b.pMin.y, b.pMax.z)))
-    ret = world_bounds(ret, t(Pnt3(b.pMax.x, b.pMax.y, b.pMax.z)))
+    ret = Bounds3(t(Pnt3(b.pMin.x, b.pMin.y, b.pMin.z)))
+    ret = world_bounds(ret, Bounds3(t(Pnt3(b.pMax.x, b.pMin.y, b.pMin.z))))
+    ret = world_bounds(ret, Bounds3(t(Pnt3(b.pMin.x, b.pMax.y, b.pMin.z))))
+    ret = world_bounds(ret, Bounds3(t(Pnt3(b.pMin.x, b.pMin.y, b.pMax.z))))
+    ret = world_bounds(ret, Bounds3(t(Pnt3(b.pMin.x, b.pMax.y, b.pMax.z))))
+    ret = world_bounds(ret, Bounds3(t(Pnt3(b.pMax.x, b.pMax.y, b.pMin.z))))
+    ret = world_bounds(ret, Bounds3(t(Pnt3(b.pMax.x, b.pMin.y, b.pMax.z))))
+    ret = world_bounds(ret, Bounds3(t(Pnt3(b.pMax.x, b.pMax.y, b.pMax.z))))
     return ret
 end
+# function (t::Transformation)(b::Bounds3)
+#     mapreduce(i -> corner(b, i) |> t |> Bounds3, world_bounds, 1:8)
+# end
 
 # apply transformations to a SurfaceInteraction
 function (t::Transformation)(si::SurfaceInteraction)::SurfaceInteraction

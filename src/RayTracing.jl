@@ -149,7 +149,7 @@ function test_integrate()
     #     end
     # end    
 
-    dragon_tri = parse_obj("../ref/dragon1.obj", RotateZ(-85.0), true, false)
+    dragon_tri = parse_obj("../ref/dragon1.obj", RotateZ(-135.0), true, false)
     for triangle in dragon_tri
         push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
     end
@@ -201,6 +201,8 @@ function test_integrate()
 
     # Instantiate a Sampler
     S = StratifiedSampler(6, 6, 6, true)
+
+    print("Using " * num2str(S.samples_per_pixel) * " samples per pixel")
 
     # instantiate an env light
     env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")

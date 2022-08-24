@@ -305,6 +305,23 @@ function surface_area(b::Bounds3)
     return 2 * (d.x * d.y + d.x * d.z + d.y * d.z)
 end
 
+# Index through 8 corners.
+function corner(b::Bounds3, c::Integer)
+    c -= 1
+    Pnt3(
+        b[(c & 1) + 1][1],
+        b[(c & 2) != 0 ? 2 : 1][2],
+        b[(c & 4) != 0 ? 2 : 1][3],
+    )
+end
+
+# make bounds index-able
+function Base.getindex(b::Union{Bounds2, Bounds3}, i::Integer)
+    i == 1 && return b.pMin
+    i == 2 && return b.pMax
+    error("Invalid index `$i`. Only `1` & `2` are valid.")
+end
+
 ################################
 ######### Spectrum #############
 ################################

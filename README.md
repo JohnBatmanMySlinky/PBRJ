@@ -26,7 +26,6 @@ Physically Based Rendering - in Julia
     6.3) Environment Camera
     6.4) Realistic Cameras
 7) Sampling and Reconstruction
-    7.3) Stratified Sampling --> shuffle correctly
     7.4) The Halton Sampler
     7.5) (0,2)-Sequence Sampler
     7.6) Maximized Minimal Distance Sampler
@@ -37,7 +36,6 @@ Physically Based Rendering - in Julia
     8.5) Fresnel Incidence BSDFs
     8.6) Fourier Basis BSDFs
 9) Materials
-    9.3) Bump Mapping --> Working! but SO SLOOOOWWWWW
     9.x) More materials from github
 10) Texture
     10.x) all but constant texture
@@ -47,19 +45,13 @@ Physically Based Rendering - in Julia
     12.1) Light Emission --> blackbody
     12.3) Point Lights --> spotlights, texture projection lights, goniophotometric
     12.4) Distant Lights
-    12.5) Area Lights
 13) Monte Carlo Integration
 14) Light Transport I: Surface Reflection
 15) Light Transport II: Volume Rendering
 16) Light Transport III: Bidirectional Methods 
 
-## BVH Notes
-- Using my own naive implementation because I am too lazy to understand the one in PBR right now. I am paying for this though, my tree construction is pretty slow. 1,000,000 random spheres within a 3d box takes about 70 seconds to construct, but only takes ~0.00005 seconds to intersect. I suppose that is the magic of BVH though...
 
 ## TODO
-- Is bump map working? 
-- Clean up interaction vs surfaceinteraction
-- transform bounding boxes in BVH construction. I think intersect_p() is not working.
-- why does BVH not work when there's only one item. LOL
-- WHAT IS GOING ON WITH LOOKAT TRANSFORM. YIKES?
+- WHAT IS GOING ON WITH LOOKAT TRANSFORM. 
+- I kludged the  shuffling in stratified sampling a bit.
 
