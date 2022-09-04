@@ -5,7 +5,7 @@ struct WhittedIntegrator <: AbstractIntegrator
 end
 
 
-function render(i::WhittedIntegrator, scene::Scene)
+function render(i::WhittedIntegrator, scene::Scene, minimal::Bool)
     sample_bounds = get_sample_bounds(get_film(i.camera))
     sample_extent = diagonal(sample_bounds)
     tile_size = 16
@@ -36,21 +36,26 @@ function render(i::WhittedIntegrator, scene::Scene)
                 scale_differentials!(ray, 1.0 / sqrt(k_sampler.samples_per_pixel))
                 L = Spectrum(0,0,0)
 
-                # BEGIN
-                if w > 0
-                    L = li(i, ray, scene, 5)
+                if minimal
+                    check, t, interaction, = intersect!(scene.b, ray)
+                    if check
+                        L = Spectrum(interaction.primitive.material.Kd(interaction))
+                    else
+                        L = Spectrum(0,0,0)
+                    end
+                else
+                    if w > 0
+                        L = li(i, ray, scene, 5)
+                    end
                 end
-
-                # check, t, interaction, = intersect!(scene.b, ray)
-                # if check
-                #     L = Spectrum(interaction.primitive.material.Kd(interaction))
-                # else
-                #     L = Spectrum(0,0,0)
-                # end
 
                 if any(isnan.(L))
                     L = Spectrum(0,0,0)
                 end
+
+                
+
+
 
 
                 add_sample!(film_tile, camera_sample.film, L, 1.0)

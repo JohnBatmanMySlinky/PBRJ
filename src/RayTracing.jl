@@ -72,7 +72,7 @@ include("integrators/whitted.jl")
 include("handy_prints.jl")
 include("obj_reader.jl")
 
-function test_integrate()
+function test_integrate(minimal::Bool, n_samples::Int64, dim::Int64)
     floor_transform = Translate(Pnt3(0, -50, 0))
     floor = XZRectangle(
         floor_transform, 
@@ -184,7 +184,7 @@ function test_integrate()
 
     # Instantiate a Film
     film = Film(
-        Pnt2(500, 500),
+        Pnt2(dim, dim),
         Bounds2(Pnt2(0,0), Pnt2(1,1)),
         filter,
         1.0,
@@ -200,7 +200,7 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 175.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(6, 6, 6, true)
+    S = StratifiedSampler(n_samples, n_samples, n_samples, true)
 
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel")
 
@@ -214,11 +214,11 @@ function test_integrate()
     # Instantiate an Integrator
     I = WhittedIntegrator(C, S, 25)
 
-    render(I, scene)
+    @time render(I, scene, minimal)
 end
 
 
-@time test_integrate()
+@time test_integrate(true, 1, 250)
 # @time something(10)
 
 end
