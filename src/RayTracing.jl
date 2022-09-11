@@ -72,7 +72,7 @@ include("integrators/whitted.jl")
 include("handy_prints.jl")
 include("obj_reader.jl")
 
-function test_integrate(minimal::Bool, n_samples::Int64, dim::Int64)
+function RENDER(minimal::Bool, n_samples::Int64, dim::Int64, LA_X::Int32, LA_Y::Int32, LA_Z::Int32, LF_X::Int32, LF_Y::Int32, LF_Z::Int32)
     floor_transform = Translate(Pnt3(0, -50, 0))
     floor = XZRectangle(
         floor_transform, 
@@ -193,8 +193,8 @@ function test_integrate(minimal::Bool, n_samples::Int64, dim::Int64)
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(800, 500, 800)
-    look_at = Pnt3(300, -200, 0) # TODO something is off here....
+    look_from = Pnt3(LF_X, LF_Y, LF_Z)
+    look_at = Pnt3(LA_X, LA_Y, LA_Z) # TODO something is off here....
     up = Vec3(0, -1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 175.0, film)
@@ -215,10 +215,10 @@ function test_integrate(minimal::Bool, n_samples::Int64, dim::Int64)
     I = WhittedIntegrator(C, S, 25)
 
     @time render(I, scene, minimal)
+    return true
 end
 
 
-@time test_integrate(true, 1, 250)
-# @time something(10)
+# @time SETUP(true, 1, 250)
 
 end
