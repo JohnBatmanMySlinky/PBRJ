@@ -72,7 +72,7 @@ include("integrators/whitted.jl")
 include("handy_prints.jl")
 include("obj_reader.jl")
 
-function RENDER(minimal::Bool, n_samples::Int64, dim::Int64, LA_X::Int32, LA_Y::Int32, LA_Z::Int32, LF_X::Int32, LF_Y::Int32, LF_Z::Int32)
+function make_your_scene()
     floor_transform = Translate(Pnt3(0, -50, 0))
     floor = XZRectangle(
         floor_transform, 
@@ -122,33 +122,6 @@ function RENDER(minimal::Bool, n_samples::Int64, dim::Int64, LA_X::Int32, LA_Y::
     # add floor
     push!(primitives, Primitive(floor, mat_concrete, nothing))
 
-    # teapot_spec = [
-    #     (
-    #         Translate(Vec3(100, 0, 100)), 
-    #         mat_bluegreen
-    #     ),
-    #     (
-    #         Translate(Vec3(-100, 0, 100)),
-    #         mat_bluegreen_ON
-    #     ),
-    #     (
-    #         Translate(Vec3(-100, 0, -100)),
-    #         mat_plastic
-    #     ),
-    #     (
-    #         Translate(Vec3(100, 0, -100)),
-    #         mat_mirror
-    #     ),
-    # ]
-
-    # # read in Lambertian teapot
-    # for TP in teapot_spec
-    #     teapot_tri = parse_obj("../ref/teapot.obj", TP[1], true, false)
-    #     for triangle in teapot_tri
-    #         push!(primitives, Primitive(triangle, TP[2], nothing))
-    #     end
-    # end    
-
     dragon_tri = parse_obj("../ref/dragon1.obj", RotateZ(-135.0), true, false)
     for triangle in dragon_tri
         push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
@@ -177,8 +150,16 @@ function RENDER(minimal::Bool, n_samples::Int64, dim::Int64, LA_X::Int32, LA_Y::
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
-    # print_BVH_bounds(BVH)
+    # instantiate an env light
+    env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
+    push!(lights, env_light)
 
+    # Instantiate Scene
+    scene = Scene(lights, bvh)
+    return scene
+end
+
+function RENDER(scene::Scene, minimal::Bool, n_samples::Int64, dim::Int64, LA_X::Int32, LA_Y::Int32, LA_Z::Int32, LF_X::Int32, LF_Y::Int32, LF_Z::Int32)
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.5, .5))
 
@@ -201,15 +182,7 @@ function RENDER(minimal::Bool, n_samples::Int64, dim::Int64, LA_X::Int32, LA_Y::
 
     # Instantiate a Sampler
     S = StratifiedSampler(n_samples, n_samples, n_samples, true)
-
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel")
-
-    # instantiate an env light
-    env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
-    push!(lights, env_light)
-
-    # Instantiate Scene
-    scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
     I = WhittedIntegrator(C, S, 25)
@@ -218,7 +191,5 @@ function RENDER(minimal::Bool, n_samples::Int64, dim::Int64, LA_X::Int32, LA_Y::
     return true
 end
 
-
-# @time SETUP(true, 1, 250)
 
 end

@@ -70,7 +70,8 @@ function render(i::WhittedIntegrator, scene::Scene, minimal::Bool)
         update!(prog, jj[])
         Threads.unlock(l)
     end
-    save(get_film(i.camera))
+    @time got_film = get_film(i.camera)
+    save(got_film)
 end
 
 
