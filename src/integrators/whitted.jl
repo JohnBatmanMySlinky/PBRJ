@@ -5,7 +5,7 @@ struct WhittedIntegrator <: AbstractIntegrator
 end
 
 
-function render(i::WhittedIntegrator, scene::Scene, minimal::Bool)
+function render(i::WhittedIntegrator, scene::Scene, minimal::Bool=false)
     sample_bounds = get_sample_bounds(get_film(i.camera))
     sample_extent = diagonal(sample_bounds)
     tile_size = 16

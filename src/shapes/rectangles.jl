@@ -109,26 +109,26 @@ end
 
 function ObjectBounds(xy::XYRectangle)
     return Bounds3(
-        Pnt3(xy.x[1], xz.y[1], xz.k - .00001),
-        Pnt3(xy.x[2], xz.y[2], xz.k + .00001),
+        Pnt3(xy.x[1], xy.y[1], xy.k - .00001),
+        Pnt3(xy.x[2], xy.y[2], xy.k + .00001),
     )
 end
 
 function intersect(xy::XYRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     r = xy.core.world_to_object(r)
 
-    t = (xz.k - r.origin[3]) / r.direction[3]
+    t = (xy.k - r.origin[3]) / r.direction[3]
     if (t < r.time) || (t > r.tMax)
         return false, nothing, nothing
     end
 
     x = r.origin[1] + t * r.direction[1]
     y = r.origin[3] + t * r.direction[3]
-    if (x < xz.x[1]) || (x > xz.x[3]) || (y < xz.z[1]) || (y > xz.z[3])
+    if (x < xy.x[1]) || (x > xy.x[2]) || (y < xy.y[1]) || (y > xy.y[2])
         return false, nothing, nothing
     end
-    u = (x-xz.x[1]) / (xz.x[3] - xz.x[1])
-    v = (z-xz.y[1]) / (xz.y[3] - xz.y[1])
+    u = (x-xy.x[1]) / (xy.x[2] - xy.x[1])
+    v = (y-xy.y[1]) / (xy.y[2] - xy.y[1])
     p = at(r, t)
     n = Nml3(0, 1, 0)
 
@@ -162,14 +162,104 @@ end
 function intersect_p(xy::XYRectangle, r::AbstractRay)::Bool
     r = xy.core.world_to_object(r)
 
-    t = (xz.k - r.origin[3]) / r.direction[3]
+    t = (xy.k - r.origin[3]) / r.direction[3]
     if (t < r.time) || (t > r.tMax)
         return false
     end
 
     x = r.origin[1] + t * r.direction[1]
     y = r.origin[3] + t * r.direction[3]
-    if (x < xz.x[1]) || (x > xz.x[3]) || (y < xz.y[1]) || (z > xz.y[3])
+    if (x < xy.x[1]) || (x > xy.x[2]) || (y < xy.y[1]) || (y > xy.y[2])
+        return false
+    end
+   
+    return true
+end
+
+
+############################
+##### YZ ###################
+############################
+
+struct YZRectangle <: Shape
+    core::ShapeCore
+    y::Pnt2
+    z::Pnt2
+    k::Float64
+
+    function YZRectangle(t::Transformation, y::Pnt2, z::Pnt2, k::Float64, reverse_orientation::Bool, transform_swaps_handedness::Bool)
+        return new(
+            ShapeCore(t, Inv(t), reverse_orientation, transform_swaps_handedness),
+            y,
+            z,
+            k
+        )
+    end
+end
+
+function ObjectBounds(yz::YZRectangle)
+    return Bounds3(
+        Pnt3(yz.k - .00001, yz.y[1], yz.z[1]),
+        Pnt3(yz.k + .00001, yz.y[2], yz.z[2]),
+    )
+end
+
+function intersect(yz::YZRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
+    r = yz.core.world_to_object(r)
+
+    t = (yz.k - r.origin[1]) / r.direction[1]
+    if (t < r.time) || (t > r.tMax)
+        return false, nothing, nothing
+    end
+
+    y = r.origin[2] + t * r.direction[2]
+    z = r.origin[3] + t * r.direction[3]
+    if (y < yz.y[1]) || (y > yz.y[2]) || (z < yz.z[1]) || (z > yz.z[2])
+        return false, nothing, nothing
+    end
+    u = (y-yz.y[1]) / (yz.y[2] - yz.y[1])
+    v = (z-yz.z[1]) / (yz.z[2] - yz.z[1])
+    p = at(r, t)
+    n = Nml3(0, 1, 0)
+
+    # TODO IS THIS RIGHT??
+    _, dpdu, dpdv = orthonormal_basis(Vec3(0,1,0))
+
+    # instantiate surface interaction
+    interaction = InstantiateSurfaceInteraction(
+        p,
+        t,
+        -r.direction,
+        Pnt2(u, v),
+        dpdu,
+        dpdv,
+        Nml3(0,0,0),
+        Nml3(0,0,0),
+        yz
+    )
+
+    # because normal is defined as cross(dpdu, dpdv)
+    interaction.core.n = Nml3(1,0,0)
+    interaction.shading.n = Nml3(1,0,0)
+
+    # transform back to world coordinates
+    interaction = yz.core.object_to_world(interaction)
+
+    return true, t, interaction
+end
+
+
+function intersect_p(yz::YZRectangle, r::AbstractRay)::Bool
+    r = yz.core.world_to_object(r)
+
+    t = (yz.k - r.origin[1]) / r.direction[1]
+    if (t < r.time) || (t > r.tMax)
+        return false
+    end
+
+    y = r.origin[2] + t * r.direction[2]
+    z = r.origin[3] + t * r.direction[3]
+    if (y < yz.y[1]) || (y > yz.y[2]) || (z < yz.z[1]) || (z > yz.z[2])
         return false
     end
    
