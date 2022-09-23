@@ -7,13 +7,15 @@ struct XZRectangle <: Shape
     x::Pnt2
     z::Pnt2
     k::Float64
+    alpha::Maybe{Texture}
 
-    function XZRectangle(t::Transformation, x::Pnt2, z::Pnt2, k::Float64, reverse_orientation::Bool, transform_swaps_handedness::Bool)
+    function XZRectangle(t::Transformation, x::Pnt2, z::Pnt2, k::Float64, alpha::Maybe{Texture}, reverse_orientation::Bool, transform_swaps_handedness::Bool)
         return new(
             ShapeCore(t, Inv(t), reverse_orientation, transform_swaps_handedness),
             x,
             z,
-            k
+            k,
+            alpha
         )
     end
 end
@@ -42,6 +44,13 @@ function intersect(xz::XZRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64},
     v = (z-xz.z[1]) / (xz.z[2] - xz.z[1])
     p = at(r, t)
     n = Nml3(0, 1, 0)
+
+    # TODO alpha mask the right way
+    if !(alpha isa Nothing)
+        if xz.alpha(Pnt2(u,v)) == Pnt3(1,1,1)
+            return false, nothing, nothing
+        end
+    end
 
     # TODO IS THIS RIGHT??
     _, dpdu, dpdv = orthonormal_basis(Vec3(0,1,0))
@@ -96,13 +105,15 @@ struct XYRectangle <: Shape
     x::Pnt2
     y::Pnt2
     k::Float64
+    alpha::Maybe{Texture}
 
-    function XYRectangle(t::Transformation, x::Pnt2, y::Pnt2, k::Float64, reverse_orientation::Bool, transform_swaps_handedness::Bool)
+    function XYRectangle(t::Transformation, x::Pnt2, y::Pnt2, k::Float64, alpha::Maybe{Texture}, reverse_orientation::Bool, transform_swaps_handedness::Bool)
         return new(
             ShapeCore(t, Inv(t), reverse_orientation, transform_swaps_handedness),
             x,
             y,
-            k
+            k,
+            alpha
         )
     end
 end
@@ -131,6 +142,13 @@ function intersect(xy::XYRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64},
     v = (y-xy.y[1]) / (xy.y[2] - xy.y[1])
     p = at(r, t)
     n = Nml3(0, 1, 0)
+
+    # TODO alpha mask the right way
+    if !(alpha isa Nothing)
+        if xy.alpha(Pnt2(u,v)) == Pnt3(1,1,1)
+            return false, nothing, nothing
+        end
+    end
 
     # TODO IS THIS RIGHT??
     _, dpdu, dpdv = orthonormal_basis(Vec3(0,1,0))
@@ -186,13 +204,15 @@ struct YZRectangle <: Shape
     y::Pnt2
     z::Pnt2
     k::Float64
+    alpha::Maybe{Texture}
 
-    function YZRectangle(t::Transformation, y::Pnt2, z::Pnt2, k::Float64, reverse_orientation::Bool, transform_swaps_handedness::Bool)
+    function YZRectangle(t::Transformation, y::Pnt2, z::Pnt2, k::Float64, alpha::Maybe{Texture}, reverse_orientation::Bool, transform_swaps_handedness::Bool)
         return new(
             ShapeCore(t, Inv(t), reverse_orientation, transform_swaps_handedness),
             y,
             z,
-            k
+            k,
+            alpha
         )
     end
 end
@@ -221,6 +241,13 @@ function intersect(yz::YZRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64},
     v = (z-yz.z[1]) / (yz.z[2] - yz.z[1])
     p = at(r, t)
     n = Nml3(0, 1, 0)
+
+    # TODO alpha mask the right way
+    if !(alpha isa Nothing)
+        if yz.alpha(Pnt2(u,v)) == Pnt3(1,1,1)
+            return false, nothing, nothing
+        end
+    end
 
     # TODO IS THIS RIGHT??
     _, dpdu, dpdv = orthonormal_basis(Vec3(0,1,0))
