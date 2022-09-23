@@ -73,7 +73,7 @@ include("handy_prints.jl")
 include("obj_reader.jl")
 
 function make_your_scene()
-    floor_transform = Translate(Pnt3(0, -50, 0))
+    floor_transform = Translate(Pnt3(0, 0, 0))
     floor = XZRectangle(
         floor_transform, 
         Pnt2(-300, 300),
@@ -83,37 +83,10 @@ function make_your_scene()
         false
     )
 
-    mat_white = Matte(
-        ConstantTexture(Pnt3(1,1,1)),
-        ConstantTexture(Pnt3(0, 0, 0)),
-        nothing
-    )
-    mat_bluegreen = Matte(
-        ConstantTexture(Pnt3(0,1,1)),
-        ConstantTexture(Pnt3(0, 0, 0)),
-        nothing
-    )
-    mat_bluegreen_ON = Matte(
-        ConstantTexture(Pnt3(0,1,1)),
-        ConstantTexture(Pnt3(0, 0, 0)),
-        ConstantTexture(Pnt3(.5, .5, .5)),
-    )
     mat_concrete = Matte(
         ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"),
         ConstantTexture(Pnt3(0,0,0)),
         ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg")
-    )
-
-    mat_plastic = Plastic(
-        ConstantTexture(Pnt3( 0, 1,  1)),
-        ConstantTexture(Pnt3(.2, .2, .2)),
-        ConstantTexture(Pnt3(.9, .9, .9)),
-        nothing,
-        false
-    )
-
-    mat_mirror = Mirror(
-        ConstantTexture(Pnt3(.5, .5, .5))
     )
 
     # vector of primitives
@@ -121,11 +94,6 @@ function make_your_scene()
 
     # add floor
     push!(primitives, Primitive(floor, mat_concrete, nothing))
-
-    dragon_tri = parse_obj("../ref/dragon1.obj", RotateZ(-135.0), true, false)
-    for triangle in dragon_tri
-        push!(primitives, Primitive(triangle, mat_bluegreen, nothing))
-    end
 
     # Lights
     lights = Light[]
@@ -146,7 +114,6 @@ function make_your_scene()
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
-    # @time bvh = ConstructBVHNaive(primitives)
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
