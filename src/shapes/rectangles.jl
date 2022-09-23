@@ -46,7 +46,7 @@ function intersect(xz::XZRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64},
     n = Nml3(0, 1, 0)
 
     # TODO alpha mask the right way
-    if !(alpha isa Nothing)
+    if !(xz.alpha isa Nothing)
         if xz.alpha(Pnt2(u,v)) == Pnt3(1,1,1)
             return false, nothing, nothing
         end
@@ -144,7 +144,7 @@ function intersect(xy::XYRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64},
     n = Nml3(0, 1, 0)
 
     # TODO alpha mask the right way
-    if !(alpha isa Nothing)
+    if !(xy.alpha isa Nothing)
         if xy.alpha(Pnt2(u,v)) == Pnt3(1,1,1)
             return false, nothing, nothing
         end
@@ -243,7 +243,7 @@ function intersect(yz::YZRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64},
     n = Nml3(0, 1, 0)
 
     # TODO alpha mask the right way
-    if !(alpha isa Nothing)
+    if !(yz.alpha isa Nothing)
         if yz.alpha(Pnt2(u,v)) == Pnt3(1,1,1)
             return false, nothing, nothing
         end
