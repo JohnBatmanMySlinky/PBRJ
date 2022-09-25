@@ -69,8 +69,13 @@ function intersect(xz::XZRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64},
     )
 
     # because normal is defined as cross(dpdu, dpdv)
-    interaction.core.n = Nml3(0,1,0)
-    interaction.shading.n = Nml3(0,1,0)
+    if xz.core.reverse_orientation == true
+        interaction.core.n = Nml3(0,-1,0)
+        interaction.shading.n = Nml3(0,-1,0)
+    else
+        interaction.core.n = Nml3(0,1,0)
+        interaction.shading.n = Nml3(0,1,0)
+    end
 
     # transform back to world coordinates
     interaction = xz.core.object_to_world(interaction)
@@ -167,8 +172,13 @@ function intersect(xy::XYRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64},
     )
 
     # because normal is defined as cross(dpdu, dpdv)
-    interaction.core.n = Nml3(0,0,1)
-    interaction.shading.n = Nml3(0,0,1)
+    if xy.core.reverse_orientation == true
+        interaction.core.n = Nml3(0,-1,0)
+        interaction.shading.n = Nml3(0,-1,0)
+    else
+        interaction.core.n = Nml3(0,1,0)
+        interaction.shading.n = Nml3(0,1,0)
+    end
 
     # transform back to world coordinates
     interaction = xy.core.object_to_world(interaction)
@@ -266,8 +276,13 @@ function intersect(yz::YZRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64},
     )
 
     # because normal is defined as cross(dpdu, dpdv)
-    interaction.core.n = Nml3(1,0,0)
-    interaction.shading.n = Nml3(1,0,0)
+    if yz.core.reverse_orientation == true
+        interaction.core.n = Nml3(0,-1,0)
+        interaction.shading.n = Nml3(0,-1,0)
+    else
+        interaction.core.n = Nml3(0,1,0)
+        interaction.shading.n = Nml3(0,1,0)
+    end
 
     # transform back to world coordinates
     interaction = yz.core.object_to_world(interaction)
