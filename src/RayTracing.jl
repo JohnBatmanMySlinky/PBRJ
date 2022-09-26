@@ -107,6 +107,7 @@ function test_integrate()
         ConstantTexture(Pnt3(0,0,0)),
         ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg")
     )
+
     ###################################
     ###### GEOMETRICAL CONSTANTS ######
     ###################################
@@ -181,7 +182,7 @@ function test_integrate()
         ceiling_whole_size * 1.0,
         (ceiling_whole_size - ceiling_circle_thickness)*1.0,
         360.0,
-        false,
+        true,
         false
     )
     ceiling_circle_inner = Cylindar(
@@ -209,25 +210,25 @@ function test_integrate()
     # add box
     primitives = vcat(primitives, pillar1, pillar2)
 
-    # add pillar area lights
+    # add pillar lights
     push!(primitives, Primitive(pillar_alight_1, mat_red, nothing))
 
     # add floor & ceiling
-    # push!(primitives, Primitive(floor, mat_concrete, nothing))
-    # push!(primitives, Primitive(ceiling, mat_concrete, nothing))
+    push!(primitives, Primitive(floor, mat_concrete, nothing))
+    push!(primitives, Primitive(ceiling, mat_concrete, nothing))
 
     # # add ceiling circle components
-    # push!(primitives, Primitive(ceiling_circle_lip, mat_red, nothing))
-    # push!(primitives, Primitive(ceiling_circle_inner, mat_red, nothing))
-    # push!(primitives, Primitive(ceiling_circle_outer, mat_red, nothing))
+    push!(primitives, Primitive(ceiling_circle_lip, mat_red, nothing))
+    push!(primitives, Primitive(ceiling_circle_inner, mat_red, nothing))
+    push!(primitives, Primitive(ceiling_circle_outer, mat_red, nothing))
 
     # Lights
-    lights = Light[]
+    lights = Light[]    
 
     # instantiate an area light
     for t in [
-        Translate(Pnt3(250, 100, 0)), 
-        Translate(Pnt3(-250, 100, 0))
+        Translate(Pnt3(100, 100, 0)), 
+        Translate(Pnt3(-100, 100, 0))
     ]
         light_orb = Sphere(
             ShapeCore(t, Inv(t), false, false),
@@ -269,13 +270,13 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 175.5, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(24, 24, 24, true)
+    S = StratifiedSampler(4, 4, 4, true)
 
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel")
 
     # instantiate an env light
     env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
-    push!(lights, env_light)
+    # push!(lights, env_light)
 
     # Instantiate Scene
     scene = Scene(lights, bvh)
