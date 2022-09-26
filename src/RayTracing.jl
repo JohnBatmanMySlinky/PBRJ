@@ -119,6 +119,7 @@ function test_integrate()
     ceiling_whole_size = 130 # ~6.5ft * 20
     ceiling_circle_thickness = 20 # ~1ft * 20
     ceiling_circle_offset = 10 # ~6in * 20
+    pillar_alight_trim = 1
 
     ########################
     #### GEOMETRY ##########
@@ -141,7 +142,7 @@ function test_integrate()
         Pnt2(-foyer_dim/2, foyer_dim/2),
         Pnt2(-foyer_dim/2, foyer_dim/2),
         0.0,
-        CircleProceduralTexture(Pnt2(.5, .5), ceiling_whole_size / foyer_dim, Pnt3(1,1,1), Pnt3(0,0,0)), 
+        CircleProceduralTexture(Pnt2(.5, .5), ceiling_whole_size * .98 / foyer_dim, Pnt3(1,1,1), Pnt3(0,0,0)), 
         true,
         false
     )
@@ -158,6 +159,19 @@ function test_integrate()
         Pnt3(-pillar_width_2/2, -50, -pillar_width_1/2),
         Pnt3(pillar_width_2/2, 300, pillar_width_1/2),
         mat_green
+    )
+
+    pillar_alight_1 = YZRectangle(
+        pillar_transform,
+        # Ymin, Ymax 
+        Pnt2(5, 50),                  
+        # Xmin, Xmax
+        Pnt2(-pillar_width_2/2 + 1, pillar_width_2/2-1),
+        # Z
+        pillar_width_1/2 + 1,                        
+        nothing,
+        false,
+        false
     )
 
     ceiling_circle_t = Translate(Pnt3(0,ceiling_height - ceiling_circle_offset, 0))
@@ -185,7 +199,7 @@ function test_integrate()
         0.0,
         100.0,
         360.0,
-        true,
+        false,
         false
     )
 
@@ -195,13 +209,17 @@ function test_integrate()
     # add box
     primitives = vcat(primitives, pillar1, pillar2)
 
-    # add floor & ceiling
-    push!(primitives, Primitive(floor, mat_concrete, nothing))
-    push!(primitives, Primitive(ceiling, mat_concrete, nothing))
+    # add pillar area lights
+    push!(primitives, Primitive(pillar_alight_1, mat_red, nothing))
 
-    # add ceiling circle components
-    push!(primitives, Primitive(ceiling_circle_lip, mat_red, nothing))
-    push!(primitives, Primitive(ceiling_circle_inner, mat_red, nothing))
+    # add floor & ceiling
+    # push!(primitives, Primitive(floor, mat_concrete, nothing))
+    # push!(primitives, Primitive(ceiling, mat_concrete, nothing))
+
+    # # add ceiling circle components
+    # push!(primitives, Primitive(ceiling_circle_lip, mat_red, nothing))
+    # push!(primitives, Primitive(ceiling_circle_inner, mat_red, nothing))
+    # push!(primitives, Primitive(ceiling_circle_outer, mat_red, nothing))
 
     # Lights
     lights = Light[]
@@ -251,7 +269,7 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 175.5, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(4, 4, 4, true)
+    S = StratifiedSampler(24, 24, 24, true)
 
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel")
 
