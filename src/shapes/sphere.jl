@@ -26,8 +26,8 @@ end
 # PBR 3.2.1
 function ObjectBounds(s::Sphere)::Bounds3
     return Bounds3(
-        Vec3(-s.radius, -s.radius, s.zMin),
-        Vec3(s.radius, s.radius, s.zMax),
+        Pnt3(-s.radius, -s.radius, s.zMin),
+        Pnt3(s.radius, s.radius, s.zMax),
     )
 end
 
@@ -165,7 +165,7 @@ function intersect_p(s::Sphere, r::AbstractRay)::Bool
 end
 
 # PBR 3.2.5
-function area(s::Sphere)::Float32
+function area(s::Sphere)::Float64
     return s.phiMax * s.radius * (s.zMax - s.zMin)
 end
 

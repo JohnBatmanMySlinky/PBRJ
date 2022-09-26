@@ -37,6 +37,8 @@ include("shapes/shape.jl")
 include("shapes/sphere.jl")
 include("shapes/triangle.jl")
 include("shapes/rectangles.jl")
+include("shapes/disk.jl")
+include("shapes/cylindar.jl")
 include("shapes/box.jl")
 include("math_utils.jl")
 include("rand_utils.jl")
@@ -75,19 +77,27 @@ include("handy_prints.jl")
 include("obj_reader.jl")
 
 function test_integrate()
+    ###########################
+    ######## Materials ########
+    ###########################
     mat_white = Matte(
         ConstantTexture(Vec3(1, 1, 1)),
         ConstantTexture(Vec3(0, 0, 0)),
         nothing
     )
 
-    mat_blue = Matte(
-        ConstantTexture(Vec3(0, 0, 1)),
+    mat_red = Matte(
+        ConstantTexture(Vec3(1, 0, 0)),
         ConstantTexture(Vec3(0, 0, 0)),
         nothing
     )
     mat_green = Matte(
         ConstantTexture(Vec3(0, 1, 0)),
+        ConstantTexture(Vec3(0, 0, 0)),
+        nothing
+    )
+    mat_blue = Matte(
+        ConstantTexture(Vec3(0, 0, 1)),
         ConstantTexture(Vec3(0, 0, 0)),
         nothing
     )
@@ -97,43 +107,86 @@ function test_integrate()
         ConstantTexture(Pnt3(0,0,0)),
         ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg")
     )
+    ###################################
+    ###### GEOMETRICAL CONSTANTS ######
+    ###################################
+
+    ceiling_height = 200 # ~10ft * 20
+    hallway_width = 160 # ~8ft * 20
+    pillar_width_1 = 100 # ~5ft * 20
+    pillar_width_2 = 30 # ~ 1.5ft * 20
+    foyer_dim = 800 # ~30ft * 20
+    ceiling_whole_size = 130 # ~6.5ft * 20
+    ceiling_circle_thickness = 20 # ~1ft * 20
+    ceiling_circle_offset = 10 # ~6in * 20
+
+    ########################
+    #### GEOMETRY ##########
+    ########################
 
     floor_transform = Translate(Pnt3(0, 0, 0))
     floor = XZRectangle(
         floor_transform, 
-        Pnt2(-300, 300),
-        Pnt2(-300, 300),
+        Pnt2(-foyer_dim/2, foyer_dim/2),
+        Pnt2(-foyer_dim/2, foyer_dim/2),
         0.0,
         nothing,
         false,
         false
     )
 
-    ceiling_transform = Translate(Pnt3(0,170,0))
+    ceiling_transform = Translate(Pnt3(0,ceiling_height,0))
     ceiling = XZRectangle(
         ceiling_transform,
-        Pnt2(-300,300),
-        Pnt2(-300,300),
+        Pnt2(-foyer_dim/2, foyer_dim/2),
+        Pnt2(-foyer_dim/2, foyer_dim/2),
         0.0,
-        CircleProceduralTexture(Pnt2(.5, .5), .25, Pnt3(1,1,1), Pnt3(0,0,0)),
+        CircleProceduralTexture(Pnt2(.5, .5), ceiling_whole_size / foyer_dim, Pnt3(1,1,1), Pnt3(0,0,0)), 
         true,
         false
     )
 
-    pillar_width_1 = 100
-    pillar_width_2 = 25
     pillar_transform = RotateY(-12.0)
     pillar1 = Box(
         pillar_transform,
-        Pnt3(-pillar_width_1, -50, -pillar_width_2),
-        Pnt3(pillar_width_1, 300, pillar_width_2),
+        Pnt3(-pillar_width_1/2, -50, -pillar_width_2/2),
+        Pnt3(pillar_width_1/2, 300, pillar_width_2/2),
         mat_blue
     )
     pillar2 = Box(
         pillar_transform,
-        Pnt3(-pillar_width_2, -50, -pillar_width_1),
-        Pnt3(pillar_width_2, 300, pillar_width_1),
+        Pnt3(-pillar_width_2/2, -50, -pillar_width_1/2),
+        Pnt3(pillar_width_2/2, 300, pillar_width_1/2),
         mat_green
+    )
+
+    ceiling_circle_t = Translate(Pnt3(0,ceiling_height - ceiling_circle_offset, 0))
+    ceiling_circle_lip = Disk(
+        ceiling_circle_t,
+        0.0,                                 
+        ceiling_whole_size * 1.0,
+        (ceiling_whole_size - ceiling_circle_thickness)*1.0,
+        360.0,
+        false,
+        false
+    )
+    ceiling_circle_inner = Cylindar(
+        ceiling_circle_t,
+        (ceiling_whole_size - ceiling_circle_thickness)*1.0,
+        0.0,
+        100.0,
+        360.0,
+        true,
+        false
+    )
+    ceiling_circle_outer = Cylindar(
+        ceiling_circle_t,
+        ceiling_whole_size*1.0,
+        0.0,
+        100.0,
+        360.0,
+        true,
+        false
     )
 
     # vector of primitives
@@ -146,6 +199,9 @@ function test_integrate()
     push!(primitives, Primitive(floor, mat_concrete, nothing))
     push!(primitives, Primitive(ceiling, mat_concrete, nothing))
 
+    # add ceiling circle components
+    push!(primitives, Primitive(ceiling_circle_lip, mat_red, nothing))
+    push!(primitives, Primitive(ceiling_circle_inner, mat_red, nothing))
 
     # Lights
     lights = Light[]
@@ -188,11 +244,11 @@ function test_integrate()
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(800, 100, 800)
-    look_at = Pnt3(300, -200, 0) # TODO something is off here....
+    look_from = Pnt3(600, 100, 600)
+    look_at = Pnt3(250, -100, 0) # TODO something is off here....
     up = Vec3(0, -1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 175.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 175.5, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(4, 4, 4, true)
