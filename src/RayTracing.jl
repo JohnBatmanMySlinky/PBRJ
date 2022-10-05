@@ -171,7 +171,7 @@ function test_integrate()
         # Z
         pillar_width_1/2 + 1,                        
         nothing,
-        false,
+        true,
         false
     )
 
@@ -204,14 +204,20 @@ function test_integrate()
         false
     )
 
-    # vector of primitives
+    # vector of primitives & one for lights
     primitives = Primitive[]
+    lights = Light[]    
 
     # add box
     primitives = vcat(primitives, pillar1, pillar2)
 
     # add pillar lights
-    push!(primitives, Primitive(pillar_alight_1, mat_red, nothing))
+    pillar_alight_1_l = DiffuseAreaLight(
+        Spectrum(50.0, 50.0, 50.0),
+        pillar_alight_1
+    )
+    push!(lights, pillar_alight_1_l)
+    push!(primitives, Primitive(pillar_alight_1, mat_red, pillar_alight_1_l))
 
     # add floor & ceiling
     push!(primitives, Primitive(floor, mat_concrete, nothing))
@@ -222,25 +228,22 @@ function test_integrate()
     push!(primitives, Primitive(ceiling_circle_inner, mat_red, nothing))
     push!(primitives, Primitive(ceiling_circle_outer, mat_red, nothing))
 
-    # Lights
-    lights = Light[]    
-
-    # instantiate an area light
-    for t in [
-        Translate(Pnt3(100, 100, 0)), 
-        Translate(Pnt3(-100, 100, 0))
-    ]
-        light_orb = Sphere(
-            ShapeCore(t, Inv(t), false, false),
-            20.0
-        )
-        area_light = DiffuseAreaLight(
-            Spectrum(5.0, 5.0, 5.0),
-            light_orb,
-        )
-        push!(lights, area_light)
-        push!(primitives, Primitive(light_orb, mat_white, area_light))
-    end
+    # # instantiate area light ORBS
+    # for t in [
+    #     Translate(Pnt3(120, 100, 0)), 
+    #     Translate(Pnt3(-120, 100, 0))
+    # ]
+    #     light_orb = Sphere(
+    #         ShapeCore(t, Inv(t), false, false),
+    #         20.0
+    #     )
+    #     area_light = DiffuseAreaLight(
+    #         Spectrum(5.0, 5.0, 5.0),
+    #         light_orb,
+    #     )
+    #     push!(lights, area_light)
+    #     push!(primitives, Primitive(light_orb, mat_white, area_light))
+    # end
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -272,7 +275,7 @@ function test_integrate()
     # Instantiate a Sampler
     S = StratifiedSampler(4, 4, 4, true)
 
-    print("Using " * num2str(S.samples_per_pixel) * " samples per pixel")
+    print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
 
     # instantiate an env light
     env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")

@@ -173,7 +173,7 @@ end
 #### Sample surface of sphere ###
 #################################
 
-# naive sample whole sphere
+# sample w.r.t. the surface area
 function sample(s::Sphere, u::Pnt2)::Tuple{Pnt3, Nml3}
     pobj = Pnt3(s.radius .* random_on_sphere(u))
     n = normalize(
@@ -183,7 +183,7 @@ function sample(s::Sphere, u::Pnt2)::Tuple{Pnt3, Nml3}
     return p, n
 end
 
-# less naive sampling of the cone of visibility
+# sample w.r.t. the solid anglefrom reference point interaction
 function sample(s::Sphere, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     # compute coordinate system for sphere sampling
     pcenter = s.core.object_to_world(Pnt3(0,0,0))
@@ -219,18 +219,6 @@ function sample(s::Sphere, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     p = s.core.object_to_world(pobj)
     n = s.core.object_to_world(nobj)
     return (p, n)
-end
-
-################################
-####### PDF ####################
-################################
-function pdf(s::Sphere, si::Interaction, wi::Vec3)::Float64
-    ray = spawn_ray(si, wi)
-    check, t, interaction = intersect(s, ray)
-    if !check
-        return 0.0
-    end 
-    return distance_squared(si.p, interaction.core.p) / (abs(dot(interaction.core.n, -wi) * area(s)))
 end
 
 #################################

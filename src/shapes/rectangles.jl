@@ -146,7 +146,7 @@ function intersect(xy::XYRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64},
     u = (x-xy.x[1]) / (xy.x[2] - xy.x[1])
     v = (y-xy.y[1]) / (xy.y[2] - xy.y[1])
     p = at(r, t)
-    n = Nml3(0, 1, 0)
+    n = Nml3(0, 0, 1)
 
     # TODO alpha mask the right way
     if !(xy.alpha isa Nothing)
@@ -250,7 +250,7 @@ function intersect(yz::YZRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64},
     u = (y-yz.y[1]) / (yz.y[2] - yz.y[1])
     v = (z-yz.z[1]) / (yz.z[2] - yz.z[1])
     p = at(r, t)
-    n = Nml3(0, 1, 0)
+    n = Nml3(1, 0, 0)
 
     # TODO alpha mask the right way
     if !(yz.alpha isa Nothing)
@@ -306,4 +306,27 @@ function intersect_p(yz::YZRectangle, r::AbstractRay)::Bool
     end
    
     return true
+end
+
+function sample(yz::YZRectangle, u::Pnt2)::Tuple{Pnt3, Nml3}
+    p = yz.core.object_to_world(Pnt3(
+        yz.k,
+        u[1] * (yz.y[2]-yz.y[1]) + yz.y[1],
+        u[2] * (yz.z[2]-yz.z[1]) + yz.z[1],
+    ))
+    if yz.core.reverse_orientation
+        n = normalize(yz.core.object_to_world(Nml3(-1, 0, 0)))
+    else
+        n = normalize(yz.core.object_to_world(Nml3(1, 0, 0)))
+    end
+    return p, n
+end
+
+function sample(yz::YZRectangle, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
+    return sample(yz::YZRectangle, u::Pnt2)
+end
+
+function area(yz::YZRectangle)::Float64
+    # scaling breaks area ligths!
+    return (yz.y[2] - yz.y[1]) * (yz.z[2]-yz.z[1])
 end

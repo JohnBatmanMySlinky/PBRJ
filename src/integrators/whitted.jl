@@ -106,6 +106,16 @@ function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1
             continue
         end
         f = interaction.bsdf(wo, wi)
+
+        # print("sampled_li ", sampled_li, "\n")
+        # print("wi ", wi, "\n")
+        # print("pdf ", pdf, "\n")
+        # print("unoccluded? ", unoccluded(visibility_tester, scene.b), "\n")
+        # print("f ", f, "\n")
+        # print("n ", n, "\n")
+        # print("contrib ", f .* sampled_li * abs(dot(wi, n)) / pdf, "\n")
+        # asdf
+
         if unoccluded(visibility_tester, scene.b)
             L += f .* sampled_li * abs(dot(wi, n)) / pdf
         end
