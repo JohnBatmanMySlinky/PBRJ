@@ -26,19 +26,13 @@ struct ProjectiveCamera <: Camera
     )
         core = CameraCore(camera_to_world, shutter_open, shutter_closed, film)
         screen_to_raster = (
-            Scale(Vec3(
-                film.full_resolution[1],
-                film.full_resolution[2], 
-                1
-            )) * Scale(Vec3(
-                1 / (screen_window.pMax[1] - screen_window.pMin[1]),
-                1 / (screen_window.pMin[2] - screen_window.pMax[2]),
-                1
-            )) * Translate(Vec3(
-                -screen_window.pMin[1],
-                -screen_window.pMax[2],
-                0
-            ))
+            Translate(
+                Vec3(-screen_window.pMin.x, -screen_window.pMax.y, 0)
+            ) * Scale(
+                Vec3(1 / (screen_window.pMax.x - screen_window.pMin.x), 1 / (screen_window.pMin.y - screen_window.pMax.y), 1)
+            ) * Scale(
+                Vec3(film.full_resolution.x, film.full_resolution.y, 1)
+            )
         )
         raster_to_screen = Inv(screen_to_raster)
         raster_to_camera = Inv(camera_to_screen) * raster_to_screen
@@ -91,10 +85,10 @@ struct PerspectiveCamera <: Camera
         dy_camera = projcam.raster_to_camera(Pnt3(0,1,0)) - projcam.raster_to_camera(Pnt3(0,0,0))
 
         p_min = projcam.raster_to_camera(Pnt3(0,0,0))
-        p_max = projcam.raster_to_camera(Pnt3(film.full_resolution[1], film.full_resolution[2], 0))
-        p_min /= p_min[3]
-        p_max /= p_max[3]
-        A = abs((p_max[1] - p_min[1])*(p_max[2] - p_min[2]))
+        p_max = projcam.raster_to_camera(Pnt3(film.full_resolution.x, film.full_resolution.y, 0))
+        p_min /= p_min.z
+        p_max /= p_max.z
+        A = abs((p_max.x - p_min.x)*(p_max.y - p_min.y))
         new(projcam, dx_camera, dy_camera, A)
     end
 end
@@ -104,10 +98,10 @@ end
 #########################################
 
 function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ray, Float64}
-    p_film = Pnt3(sample.film[1], sample.film[2], 0)
-    p_camera = normalize(camera.core.raster_to_camera(p_film))
+    p_film = Pnt3(sample.film.x, sample.film.y, 0)
+    p_camera = camera.core.raster_to_camera(p_film)
 
-    ray = Ray(Pnt3(0, 0, 0), Vec3(p_camera[1], p_camera[2], p_camera[3]), 0, typemax(Float64))
+    ray = Ray(Pnt3(0, 0, 0), normalize(Vec3(p_camera)), 0, typemax(Float64))
     if camera.core.lens_radius > 0
         p_lens = camera.core.lens_radius .* random_in_concentric_disk(sample.lens)
         t = camera.core.focal_distance / ray.direction[3]
@@ -126,9 +120,9 @@ function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ra
 end
 
 function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSample)::Tuple{RayDifferential, Float64}
-    p_film = Pnt3(sample.film[1], sample.film[2], 0)
-    p_camera = normalize(camera.core.raster_to_camera(p_film))
-    ray = RayDifferential(Ray(Pnt3(0, 0, 0), Vec3(p_camera[1], p_camera[2], p_camera[3]), 0, typemax(Float64)))
+    p_film = Pnt3(sample.film.x, sample.film.y, 0)
+    p_camera = camera.core.raster_to_camera(p_film)
+    ray = RayDifferential(Ray(Pnt3(0, 0, 0), normalize(Vec3(p_camera)), 0, typemax(Float64)))
 
     if camera.core.lens_radius > 0
         p_lens = camera.core.lens_radius .* random_in_concentric_disk(sample.lens)
