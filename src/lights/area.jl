@@ -37,5 +37,5 @@ function sample_li(dal::DiffuseAreaLight, interaction::Interaction, u::Pnt2)
     # PBR
     # "given a point on the surface of the area light"
     radiance = L(dal, Interaction(pshape, interaction.t, -wi, nshape), -wi)
-    return radiance, wi, pdf_val, visibility
+    return radiance, wi, pdf_val, visibility, pshape, nshape
 end

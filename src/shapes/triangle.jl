@@ -299,36 +299,3 @@ end
 function sample(tri::Triangle, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     return sample(tri, u)
 end
-
-function rectangle(MIN::Pnt2, MAX::Pnt2, axis::Int64, sc::ShapeCore)::Vector{Triangle}
-    if axis == 1
-        return construct_triangle_mesh(
-            sc,
-            2,
-            4,
-            [Pnt3(0, MIN.x, MIN.y), Pnt3(0, MAX.x, MAX.y), Pnt3(0, MIN.x, MAX.y), Pnt3(0, MAX.x, MIN.y)],
-            [1,2,3,1,2,4],
-            [Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0)]
-        )
-    elseif axis == 2
-        return construct_triangle_mesh(
-            sc,
-            2,
-            4,
-            [Pnt3(MIN.x, 0, MIN.y), Pnt3(MAX.x, 0, MAX.y), Pnt3(MIN.x, 0, MAX.y), Pnt3(MAX.x, 0, MIN.y)],
-            [1,2,3,1,2,4],
-            [Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0)]
-        )
-    elseif axis == 3
-        return construct_triangle_mesh(
-            sc,
-            2,
-            4,
-            [Pnt3(MIN.x, MIN.y, 0), Pnt3(MAX.x, MAX.y, 0), Pnt3(MIN.x, MAX.y, 0), Pnt3(MAX.x, MIN.y, 0)],
-            [1,2,3,1,2,4],
-            [Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0)]
-        )
-    else
-        @assert false
-    end
-end

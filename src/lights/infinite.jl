@@ -81,6 +81,6 @@ function sample_li(il::InfinteLight, interaction::Interaction, uv::Pnt2)
         Interaction(interaction.p + wi .* 2 * il.world_radius, interaction.t, Vec3(0, 0, 0), Nml3(0, 0, 0))
     )
 
-    return radiance, wi, pdf_val, visibility
+    return radiance, wi, pdf_val, visibility, 0.0, 0.0
 end
 

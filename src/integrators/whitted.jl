@@ -53,11 +53,6 @@ function render(i::WhittedIntegrator, scene::Scene, minimal::Bool=false)
                     L = Spectrum(0,0,0)
                 end
 
-                
-
-
-
-
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
 
                 start_next_sample!(k_sampler)
@@ -101,23 +96,45 @@ function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1
 
     # for each light source, add contrib
     for light in scene.lights
-        sampled_li, wi, pdf, visibility_tester = sample_li(light, interaction.core, get_2D!(i.sampler))   
+        # JOHN HACK TODO clean up extra args
+        sampled_li, wi, pdf, visibility_tester, p_sample, n_sample = sample_li(light, interaction.core, get_2D!(i.sampler))  
+
         if pdf == 0
             continue
         end
         f = interaction.bsdf(wo, wi)
 
-        # print("sampled_li ", sampled_li, "\n")
-        # print("wi ", wi, "\n")
-        # print("pdf ", pdf, "\n")
-        # print("unoccluded? ", unoccluded(visibility_tester, scene.b), "\n")
-        # print("f ", f, "\n")
-        # print("n ", n, "\n")
-        # print("contrib ", f .* sampled_li * abs(dot(wi, n)) / pdf, "\n")
-        # asdf
-
         if unoccluded(visibility_tester, scene.b)
             L += f .* sampled_li * abs(dot(wi, n)) / pdf
+        end
+
+        if false
+            if abs(interaction.core.p.x) < 30 && abs(interaction.core.p.z) < 30 && abs(interaction.core.p.y)<5
+                print("\n")
+                print("p_hit ", interaction.core.p, "\n")
+                print("hit time ", interaction.core.t, "\n")
+                print("p_sample ", p_sample, "\n")
+                print("n_sample ", n_sample, "\n")
+                print("sampled_li ", sampled_li, "\n")
+                print("wi ", wi, "\n")
+                print("pdf ", pdf, "\n")
+                print("unoccluded? ", unoccluded(visibility_tester, scene.b), "\n")
+                print("f ", f, "\n")
+                print("n ", n, "\n")
+                print("contrib ", f .* sampled_li * abs(dot(wi, n)) / pdf, "\n")
+                print("denom ", abs(dot(wi, n)), "\n")
+
+                # why visability tester not working!
+                print("vt.p0.p: ", visibility_tester.p0.p, "\n")
+                print("vt.p1.p: ", visibility_tester.p1.p, "\n")
+
+                vtdirection = normalize(visibility_tester.p1.p - visibility_tester.p0.p)
+                vtorigin = visibility_tester.p0.p .+ 1e-6 .* vtdirection
+                print("vt ray: ", vtorigin, " ", vtdirection, "\n")
+                check = intersect_p(scene.b, Ray(vtorigin, vtdirection, 0, visibility_tester.p0.t))
+                print(check, "\n")
+                asdf
+            end
         end
     end
 
