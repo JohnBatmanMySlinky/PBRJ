@@ -11,6 +11,6 @@ struct VisibilityTester
 end
 
 function unoccluded(vt::VisibilityTester, scene::BVHAccel)::Bool
-    check = intersect_p(scene, spawn_ray(vt.p0, vt.p1))
+    check = intersect_p(scene, spawn_shadow_ray(vt.p0, vt.p1))
     return !check
 end

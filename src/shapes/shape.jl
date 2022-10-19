@@ -36,5 +36,5 @@ function pdf(s::Shape, si::Interaction, wi::Vec3)::Float64
     if !check
         return 0.0
     end 
-    return distance_squared(si.p, interaction.core.p) / (abs(dot(interaction.core.n, -wi) * area(s)))
+    return distance_squared(si.p, interaction.core.p) / (abs(dot(interaction.core.n, wi) * area(s)))
 end

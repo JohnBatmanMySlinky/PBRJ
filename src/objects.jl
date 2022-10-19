@@ -63,7 +63,7 @@ const Mat2 = SMatrix{2, 2, Float64}
 mutable struct Ray <: AbstractRay
     origin::Pnt3
     direction::Vec3
-    time::Float64
+    t::Float64
     tMax::Float64
 end
 
@@ -78,7 +78,7 @@ end
 mutable struct RayDifferential <: AbstractRay
     origin::Pnt3
     direction::Vec3
-    time::Float64
+    t::Float64
     tMax::Float64
 
     has_differentials::Bool
@@ -95,7 +95,7 @@ function RayDifferential(r::Ray)::RayDifferential
     return RayDifferential(
         r.origin,
         r.direction,
-        r.time,
+        r.t,
         r.tMax,
         false,
         Pnt3(0,0,0),

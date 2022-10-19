@@ -114,7 +114,7 @@ function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, May
 
     interaction = InstantiateSurfaceInteraction(
         p_hit,
-        r.time,
+        r.t,
         -r.direction,
         Pnt2(u, v),
         dpdu,
@@ -123,6 +123,11 @@ function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, May
         dndv,
         c
     )
+
+    if c.core.reverse_orientation == true
+        interaction.core.n = interaction.core.n * -1.0
+        interaction.shading.n = interaction.shading.n * -1.0
+    end
 
     # transform back to world coordinates
     interaction = c.core.object_to_world(interaction)

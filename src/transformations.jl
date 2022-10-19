@@ -56,7 +56,7 @@ function RotateX(theta::Float64)
         0 sin_theta cos_theta 0
         0 0         0          1
     ])
-    return Transformation(m, inv(m))
+    return Transformation(m, transpose(m))
 end
 
 function RotateY(theta::Float64)
@@ -68,7 +68,7 @@ function RotateY(theta::Float64)
         -sin_theta 0 cos_theta 0
         0          0 0         1
     ])
-    return Transformation(m, inv(m))
+    return Transformation(m, transpose(m))
 end
 
 function RotateZ(theta::Float64)
@@ -80,7 +80,7 @@ function RotateZ(theta::Float64)
         0         0          1 0
         0         0          0 1
     ])
-    return Transformation(m, inv(m))
+    return Transformation(m, transpose(m))
 end
 
 
@@ -150,7 +150,7 @@ function (t::Transformation)(r::Ray)::Ray
     return Ray(
         t(r.origin),
         t(r.direction),
-        r.time,
+        r.t,
         r.tMax
     )
 end
@@ -159,7 +159,7 @@ function (t::Transformation)(r::RayDifferential)::RayDifferential
     return RayDifferential(
         t(r.origin),
         t(r.direction),
-        r.time,
+        r.t,
         r.tMax,
         r.has_differentials,
         t(r.rx_origin),
@@ -214,7 +214,7 @@ end
 function (t::Transformation)(i::Interaction)::Interaction
     return Interaction(
         t(i.p),
-        i.time,
+        i.t,
         normalize(t(i.wo)),
         normalize(t(i.n)),
     )

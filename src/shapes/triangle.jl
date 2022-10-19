@@ -194,7 +194,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     end
 
     # fill interaction
-    interaction = InstantiateSurfaceInteraction(phit, ray.time, -ray.direction, uvhit, dpdu, dpdv, dndu, dndv, tri)
+    interaction = InstantiateSurfaceInteraction(phit, ray.t, -ray.direction, uvhit, dpdu, dpdv, dndu, dndv, tri)
     interaction.core.n = normalize(cross(dp13, dp23))   
     interaction.shading.n = cross(ss, ts)
     interaction.shading.dpdu = ss
@@ -274,4 +274,61 @@ function intersect_p(tri::Triangle, ray::AbstractRay, ::Bool=false)::Bool
     end
 
     return true
+end
+
+function area(tri::Triangle)::Float64
+    p0, p1, p2 = tri.core.world_to_object.(get_vertices(tri))
+    return 0.5 * length(cross(p1-p0, p2-p0))
+end
+
+function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3}
+    su0 = sqrt(u[1])
+    b = Pnt2(1 - su0, u[2] * su0)
+    p0, p1, p2 = get_vertices(tri)
+    p = b[1] * p0 + b[2] * p1 + (1-b[1]-b[2]) * p2
+    n = normalize(Vec3(cross(p1-p0, p2-p0)))
+
+    if tri.mesh.normals ≢ nothing
+        n = face_forward(n,n)
+    elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
+        n = -n
+    end
+    
+    return p, n
+end
+function sample(tri::Triangle, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
+    return sample(tri, u)
+end
+
+function rectangle(MIN::Pnt2, MAX::Pnt2, axis::Int64, sc::ShapeCore)::Vector{Triangle}
+    if axis == 1
+        return construct_triangle_mesh(
+            sc,
+            2,
+            4,
+            [Pnt3(0, MIN.x, MIN.y), Pnt3(0, MAX.x, MAX.y), Pnt3(0, MIN.x, MAX.y), Pnt3(0, MAX.x, MIN.y)],
+            [1,2,3,1,2,4],
+            [Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0)]
+        )
+    elseif axis == 2
+        return construct_triangle_mesh(
+            sc,
+            2,
+            4,
+            [Pnt3(MIN.x, 0, MIN.y), Pnt3(MAX.x, 0, MAX.y), Pnt3(MIN.x, 0, MAX.y), Pnt3(MAX.x, 0, MIN.y)],
+            [1,2,3,1,2,4],
+            [Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0)]
+        )
+    elseif axis == 3
+        return construct_triangle_mesh(
+            sc,
+            2,
+            4,
+            [Pnt3(MIN.x, MIN.y, 0), Pnt3(MAX.x, MAX.y, 0), Pnt3(MIN.x, MAX.y, 0), Pnt3(MAX.x, MIN.y, 0)],
+            [1,2,3,1,2,4],
+            [Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0)]
+        )
+    else
+        @assert false
+    end
 end

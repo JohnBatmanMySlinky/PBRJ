@@ -110,8 +110,8 @@ function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ra
         ray.direciton = normalize(Vec3(p_focus - ray.origin))
     end    
 
-    ray.time = lerp(
-        sample.time,
+    ray.t = lerp(
+        sample.t,
         camera.core.core.shutter_open,
         camera.core.core.shutter_closed,
     )
@@ -147,8 +147,8 @@ function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSamp
         ray.rx_direction = normalize(Vec3(p_camera) + camera.dy_camera)
     end
 
-    ray.time = lerp(
-        sample.time,
+    ray.t = lerp(
+        sample.t,
         camera.core.core.shutter_open,
         camera.core.core.shutter_closed,
     )

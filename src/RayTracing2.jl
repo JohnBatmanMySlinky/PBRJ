@@ -112,8 +112,8 @@ function test_integrate()
 
     ceiling_height = 200 # ~10ft * 20
     hallway_width = 160 # ~8ft * 20
-    pillar_width_1 = 90 # ~4.5ft * 20
-    pillar_width_2 = 30 # ~ 1.5ft * 20
+    pillar_width_1 = 60 # ~4.5ft * 20
+    pillar_width_2 = 20 # ~ 1.5ft * 20
     foyer_dim = 800 # ~30ft * 20
     ceiling_whole_size = 130 # ~6.5ft * 20
     ceiling_circle_thickness = 20 # ~1ft * 20
@@ -123,67 +123,46 @@ function test_integrate()
     ########################
     #### GEOMETRY ##########
     ########################
-
-    floor_transform = Translate(Pnt3(0, 0, 0))
-    floor = XZRectangle(
-        floor_transform, 
-        Pnt2(-foyer_dim/2, foyer_dim/2),
-        Pnt2(-foyer_dim/2, foyer_dim/2),
-        0.0,
-        nothing,
-        false,
-        false
+    floor_transform = Translate(Pnt3(0,0,0))
+    floor = rectangle(
+        Pnt2(-foyer_dim/2, -foyer_dim/2), 
+        Pnt2(foyer_dim/2, foyer_dim/2), 
+        2, 
+        ShapeCore(floor_transform, Inv(floor_transform), false, false)
     )
 
     ceiling_transform = Translate(Pnt3(0,ceiling_height,0))
-    ceiling = XZRectangle(
-        ceiling_transform,
-        Pnt2(-foyer_dim/2, foyer_dim/2),
-        Pnt2(-foyer_dim/2, foyer_dim/2),
-        0.0,
-        CircleProceduralTexture(Pnt2(.5, .5), ceiling_whole_size * .98 / foyer_dim, Pnt3(1,1,1), Pnt3(0,0,0)), 
-        true,
-        false
+    ceiling = rectangle(
+        Pnt2(-foyer_dim/2, -foyer_dim/2), 
+        Pnt2(foyer_dim/2, foyer_dim/2), 
+        2, 
+        ShapeCore(ceiling_transform, Inv(ceiling_transform), false, false)
     )
 
-    pillar_transform = RotateY(-12.0)
-    pillar1 = Box(
-        pillar_transform,
-        Pnt3(-pillar_width_1, -50, -pillar_width_2),
-        Pnt3(pillar_width_1, 300, pillar_width_2),
-        mat_blue
-    )
-    pillar2 = Box(
-        pillar_transform,
-        Pnt3(-pillar_width_2, -50, -pillar_width_1),
-        Pnt3(pillar_width_2, 300, pillar_width_1),
-        mat_green
+    sq_light_transform = Translate(Pnt3(0,0,0))
+    sq_light = rectangle(
+        Pnt2(-100, 0), 
+        Pnt2(0, 200), 
+        3, 
+        ShapeCore(sq_light_transform, Inv(sq_light_transform), true, false)
     )
 
     # vector of primitives & one for lights
     primitives = Primitive[]
     lights = Light[]    
 
-    # add geometry to primitives
-    primitives = vcat(primitives, pillar1, pillar2)
-    push!(primitives, Primitive(floor, mat_concrete, nothing))
-    push!(primitives, Primitive(ceiling, mat_concrete, nothing))
+    for tri in vcat(floor, ceiling)
+        push!(primitives, Primitive(tri, mat_white, nothing))
+    end
 
     # add area light ORBS
-    for t in [
-        Translate(Pnt3(0, 100, 200)), 
-        Translate(Pnt3(0, 100, -200))
-    ]
-        light_orb = Sphere(
-            ShapeCore(t, Inv(t), false, false),
-            20.0
+    for lit in sq_light      
+        alight = DiffuseAreaLight(
+            Spectrum(50000.0, 50000.0, 50000.0),
+            lit,
         )
-        area_light = DiffuseAreaLight(
-            Spectrum(5.0, 5.0, 5.0),
-            light_orb,
-        )
-        push!(lights, area_light)
-        push!(primitives, Primitive(light_orb, mat_white, area_light))
+        push!(lights, alight)
+        push!(primitives, Primitive(lit, mat_white, alight))
     end
 
     # instantiate accelerator
@@ -193,7 +172,7 @@ function test_integrate()
 
     # instantiate an env light
     env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
-    push!(lights, env_light)
+    # push!(lights, env_light)
 
     # print_BVH_bounds(BVH)
 

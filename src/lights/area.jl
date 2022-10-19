@@ -32,8 +32,10 @@ function sample_li(dal::DiffuseAreaLight, interaction::Interaction, u::Pnt2)
     pdf_val = pdf(dal.shape, interaction, wi)
     visibility = VisibilityTester(
         interaction,
-        Interaction(pshape, interaction.time, wi, nshape)
+        Interaction(pshape, interaction.t, wi, nshape)
     )
-    radiance = L(dal, interaction, wi)
+    # PBR
+    # "given a point on the surface of the area light"
+    radiance = L(dal, Interaction(pshape, interaction.t, -wi, nshape), -wi)
     return radiance, wi, pdf_val, visibility
 end

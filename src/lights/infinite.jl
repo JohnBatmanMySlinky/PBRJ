@@ -78,7 +78,7 @@ function sample_li(il::InfinteLight, interaction::Interaction, uv::Pnt2)
     # visibility
     visibility = VisibilityTester(
         interaction,
-        Interaction(interaction.p + wi .* 2 * il.world_radius, interaction.time, Vec3(0, 0, 0), Nml3(0, 0, 0))
+        Interaction(interaction.p + wi .* 2 * il.world_radius, interaction.t, Vec3(0, 0, 0), Nml3(0, 0, 0))
     )
 
     return radiance, wi, pdf_val, visibility

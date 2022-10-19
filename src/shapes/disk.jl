@@ -70,7 +70,7 @@ function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{S
     # instantiate surface interaction
     interaction = InstantiateSurfaceInteraction(
         p_hit,
-        r.time,
+        r.t,
         -r.direction,
         Pnt2(u, v),
         dpdu,

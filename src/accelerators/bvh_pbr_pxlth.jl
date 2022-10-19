@@ -227,6 +227,7 @@ end
 
 function intersect!(bvh::BVH, ray::AbstractRay)
     hit = false
+    final_time = nothing
     interaction::Maybe{SurfaceInteraction} = nothing
     length(bvh.nodes) == 0 && return hit, nothing, interaction
 
@@ -248,7 +249,7 @@ function intersect!(bvh::BVH, ray::AbstractRay)
                     )
                     if tmp_hit
                         hit = tmp_hit
-                        time = tmp_time
+                        final_time = tmp_time
                         interaction = tmp_interaction
                     end
                 end
@@ -271,7 +272,7 @@ function intersect!(bvh::BVH, ray::AbstractRay)
             current_node_i = nodes_to_visit[to_visit_offset]
         end
     end
-    hit, time, interaction
+    hit, final_time, interaction
 end
 
 function intersect_p(bvh::BVH, ray::AbstractRay)
