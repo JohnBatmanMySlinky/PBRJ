@@ -4,8 +4,17 @@ struct TriangleMesh
     vertices::Vector{Pnt3}
     indices::Vector{Int64}
     normals::Vector{Nml3}
+    uvs::Vector{Pnt2}
 
-    function TriangleMesh(object_to_world::Transformation, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64}, normals::Vector{Nml3})
+    function TriangleMesh(
+        object_to_world::Transformation, 
+        n_triangles::Int64, 
+        n_vertices::Int64, 
+        vertices::Vector{Pnt3}, 
+        indices::Vector{Int64}, 
+        normals::Vector{Nml3},
+        uvs::Vector{Pnt2}
+    )
         vertices = object_to_world.(vertices)
         normals = object_to_world.(normals)
         new(
@@ -13,7 +22,8 @@ struct TriangleMesh
             n_vertices,
             vertices,
             indices,
-            normals
+            normals,
+            uvs
         )
     end
 end
@@ -32,8 +42,16 @@ end
 ###### Instantiate a triangle mesh manually #######
 ###################################################
 
-function construct_triangle_mesh(core::ShapeCore, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64}, normals::Vector{Nml3})
-    mesh = TriangleMesh(core.object_to_world, n_triangles, n_vertices, vertices, indices, normals)
+function construct_triangle_mesh(
+    core::ShapeCore, 
+    n_triangles::Int64, 
+    n_vertices::Int64, 
+    vertices::Vector{Pnt3}, 
+    indices::Vector{Int64}, 
+    normals::Vector{Nml3},
+    uvs::Vector{Pnt2}
+)
+    mesh = TriangleMesh(core.object_to_world, n_triangles, n_vertices, vertices, indices, normals, uvs)
     return [Triangle(core, mesh, i) for i in 0:n_triangles - 1]
 end
 
@@ -74,8 +92,8 @@ function get_normals(t::Triangle)
 end
 
 function get_uvs(t::Triangle)
-    # TODO implement UVS
-    return return [Pnt2(0, 0), Pnt2(1,0), Pnt2(1,1)]
+    # TODO implement ability to NOT have UVs
+    return Pnt2[t.mesh.uvs[t.mesh.indices[t.i + j]] for j in 0:2]
 end
 
 ##################################################

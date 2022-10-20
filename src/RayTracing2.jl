@@ -178,7 +178,7 @@ function test_integrate()
 
     # add geometry
     for tri in vcat(floor, ceiling)
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, mat_concrete, nothing))
     end
     for tri in pillar_1
         push!(primitives, Primitive(tri, mat_blue, nothing))
@@ -189,7 +189,7 @@ function test_integrate()
 
     for lit in vcat(p_light_1, p_light_2)      
         alight = DiffuseAreaLight(
-            Spectrum(2500.0, 2500.0, 2500.0),
+            Spectrum(2500.0, 2500.0, 0),
             lit,
         )
         push!(lights, alight)
@@ -228,7 +228,7 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 75.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(4, 4, 4, true)
+    S = StratifiedSampler(10, 10, 4, true)
 
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
 
