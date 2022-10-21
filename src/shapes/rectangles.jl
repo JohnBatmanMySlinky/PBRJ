@@ -1,4 +1,4 @@
-function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore)::Vector{Triangle}
+function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore, alpha_mask::Maybe{Texture})::Vector{Triangle}
     if axis == 1
         return construct_triangle_mesh(
             sc,
@@ -8,6 +8,7 @@ function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore)
             [1,2,3,1,2,4],
             [Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0)],
             [Pnt2(0,0), Pnt2(1,1), Pnt2(0,1), Pnt2(1,0)],
+            alpha_mask
         )
     elseif axis == 2
         return construct_triangle_mesh(
@@ -18,6 +19,7 @@ function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore)
             [1,2,3,1,2,4],
             [Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0)],
             [Pnt2(0,0), Pnt2(1,1), Pnt2(0,1), Pnt2(1,0)],
+            alpha_mask
         )
     elseif axis == 3
         return construct_triangle_mesh(
@@ -28,54 +30,61 @@ function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore)
             [1,2,3,1,2,4],
             [Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0), Nml3(0,-1,0)],
             [Pnt2(0,0), Pnt2(1,1), Pnt2(0,1), Pnt2(1,0)],
+            alpha_mask
         )
     else
         @assert false
     end
 end
 
-function Box(MIN::Pnt3, MAX::Pnt3, sc::ShapeCore)::Vector{Triangle}
+function Box(MIN::Pnt3, MAX::Pnt3, sc::ShapeCore, alpha_mask::Maybe{Texture})::Vector{Triangle}
     top = Rectangle(
         Pnt2(MIN.x, MIN.z),
         Pnt2(MAX.x, MAX.z),
         MAX.y,
         2,
-        sc
+        sc,
+        alpha_mask
     )
     bottom = Rectangle(
         Pnt2(MIN.x, MIN.z),
         Pnt2(MAX.x, MAX.z),
         MIN.y,
         2,
-        sc
+        sc,
+        alpha_mask
     )
     front = Rectangle(
         Pnt2(MIN.y, MIN.z),
         Pnt2(MAX.y, MAX.z),
         MIN.x,
         1,
-        sc
+        sc,
+        alpha_mask
     )
     back = Rectangle(
         Pnt2(MIN.y, MIN.z),
         Pnt2(MAX.y, MAX.z),
         MAX.x,
         1,
-        sc
+        sc,
+        alpha_mask
     )
     left = Rectangle(
         Pnt2(MIN.x, MIN.y),
         Pnt2(MAX.x, MAX.y),
         MIN.z,
         3,
-        sc
+        sc,
+        alpha_mask
     )
     right = Rectangle(
         Pnt2(MIN.x, MIN.y),
         Pnt2(MAX.x, MAX.y),
         MAX.z,
         3,
-        sc
+        sc,
+        alpha_mask
     )
     return vcat(top, bottom, left, right, front, back)
 end

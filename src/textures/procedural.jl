@@ -1,5 +1,6 @@
 # TODO make this less hacky?
 struct CircleProceduralTexture <: Texture
+    # these are to be specified in UV so [0,1]
     center::Pnt2
     radius::Float64
     inside::Pnt3

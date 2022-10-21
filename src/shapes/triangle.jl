@@ -5,6 +5,7 @@ struct TriangleMesh
     indices::Vector{Int64}
     normals::Vector{Nml3}
     uvs::Vector{Pnt2}
+    alpha_mask::Maybe{Texture}
 
     function TriangleMesh(
         object_to_world::Transformation, 
@@ -13,7 +14,8 @@ struct TriangleMesh
         vertices::Vector{Pnt3}, 
         indices::Vector{Int64}, 
         normals::Vector{Nml3},
-        uvs::Vector{Pnt2}
+        uvs::Vector{Pnt2},
+        alpha_mask::Maybe{Texture},
     )
         vertices = object_to_world.(vertices)
         normals = object_to_world.(normals)
@@ -23,7 +25,8 @@ struct TriangleMesh
             vertices,
             indices,
             normals,
-            uvs
+            uvs,
+            alpha_mask
         )
     end
 end
@@ -49,9 +52,19 @@ function construct_triangle_mesh(
     vertices::Vector{Pnt3}, 
     indices::Vector{Int64}, 
     normals::Vector{Nml3},
-    uvs::Vector{Pnt2}
+    uvs::Vector{Pnt2},
+    alpha_mask::Maybe{Texture},
 )
-    mesh = TriangleMesh(core.object_to_world, n_triangles, n_vertices, vertices, indices, normals, uvs)
+    mesh = TriangleMesh(
+        core.object_to_world, 
+        n_triangles, 
+        n_vertices, 
+        vertices, 
+        indices, 
+        normals, 
+        uvs,
+        alpha_mask
+    )
     return [Triangle(core, mesh, i) for i in 0:n_triangles - 1]
 end
 
@@ -186,6 +199,13 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     # interpolate uv coords and hit point
     phit = b0 * p0 + b1 * p1 + b2 * p2
     uvhit = b0 * uv[1] + b1 * uv[2] + b2 * uv[3]
+
+    # check alpha mask
+    if !(tri.mesh.alpha_mask isa Nothing)
+        if tri.mesh.alpha_mask(uvhit) == Spectrum(1, 1, 1)
+            return false, nothing, nothing
+        end
+    end
 
     # TODO
     # make specifying normals optional

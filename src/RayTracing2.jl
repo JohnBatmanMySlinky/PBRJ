@@ -129,7 +129,8 @@ function test_integrate()
         Pnt2(foyer_dim/2, foyer_dim/2), 
         0.0,
         2, 
-        ShapeCore(floor_transform, Inv(floor_transform), true, false)
+        ShapeCore(floor_transform, Inv(floor_transform), true, false),
+        nothing
     )
 
     ceiling_transform = Translate(Pnt3(0,0,0))
@@ -138,20 +139,28 @@ function test_integrate()
         Pnt2(foyer_dim/2, foyer_dim/2), 
         ceiling_height,
         2, 
-        ShapeCore(ceiling_transform, Inv(ceiling_transform), false, false)
+        ShapeCore(ceiling_transform, Inv(ceiling_transform), false, false),
+        CircleProceduralTexture(
+            Pnt2(.5, .5),
+            ceiling_whole_size/foyer_dim,
+            Spectrum(1,1,1),
+            Spectrum(0,0,0)
+        )
     )
 
     pillar_1_t = Translate(Pnt3(0,0,0))
     pillar_1 = Box(
         Pnt3(-pillar_width_1, 0,             -pillar_width_2), 
         Pnt3(pillar_width_1,  ceiling_height, pillar_width_2), 
-        ShapeCore(pillar_1_t, Inv(pillar_1_t), false, false)
+        ShapeCore(pillar_1_t, Inv(pillar_1_t), false, false),
+        nothing
     )
     pillar_2_t = RotateY(90.0)
     pillar_2 = Box(
         Pnt3(-pillar_width_1, 0,             -pillar_width_2), 
         Pnt3(pillar_width_1,  ceiling_height, pillar_width_2), 
-        ShapeCore(pillar_2_t, Inv(pillar_2_t), false, false)
+        ShapeCore(pillar_2_t, Inv(pillar_2_t), false, false),
+        nothing
     )
 
     p_light_1_t = Translate(Pnt3(0,0,0))
@@ -160,7 +169,8 @@ function test_integrate()
         Pnt2(50,  pillar_width_2*.9), 
         pillar_width_1,
         1, 
-        ShapeCore(p_light_1_t, Inv(p_light_1_t), true, false)
+        ShapeCore(p_light_1_t, Inv(p_light_1_t), true, false),
+        nothing
     )
 
     p_light_2_t = Translate(Pnt3(0,0,0))
@@ -169,7 +179,8 @@ function test_integrate()
         Pnt2(pillar_width_2*.9,  50), 
         pillar_width_1,
         3, 
-        ShapeCore(p_light_2_t, Inv(p_light_2_t), true, false)
+        ShapeCore(p_light_2_t, Inv(p_light_2_t), true, false),
+        nothing
     )
 
     # vector of primitives & one for lights
