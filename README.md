@@ -7,7 +7,7 @@ Physically Based Rendering - in Julia
 - [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
 
 # Todo list
-- Alpha masking triangles.
+- Add optionality for one sided area lights
 - Make sure disks and cylindars are working properly.
 - Add in more advanced materials (disney / uber).
 - Improve scene interface.
