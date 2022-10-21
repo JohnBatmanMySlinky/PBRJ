@@ -118,7 +118,6 @@ function test_integrate()
     ceiling_whole_size = 130.0 # ~6.5ft * 20
     ceiling_circle_thickness = 20.0 # ~1ft * 20
     ceiling_circle_offset = 10.0 # ~6in * 20
-    pillar_alight_trim = 1.0
 
     ########################
     #### GEOMETRY ##########
@@ -151,35 +150,130 @@ function test_integrate()
     pillar_1_t = Translate(Pnt3(0,0,0))
     pillar_1 = Box(
         Pnt3(-pillar_width_1, 0,             -pillar_width_2), 
-        Pnt3(pillar_width_1,  ceiling_height, pillar_width_2), 
+        Pnt3(pillar_width_1,  ceiling_height+300, pillar_width_2), 
         ShapeCore(pillar_1_t, Inv(pillar_1_t), false, false),
         nothing
     )
     pillar_2_t = RotateY(90.0)
     pillar_2 = Box(
-        Pnt3(-pillar_width_1, 0,             -pillar_width_2), 
-        Pnt3(pillar_width_1,  ceiling_height, pillar_width_2), 
+        Pnt3(-pillar_width_1, 0,                  -pillar_width_2), 
+        Pnt3(pillar_width_1,  ceiling_height+300, pillar_width_2), 
         ShapeCore(pillar_2_t, Inv(pillar_2_t), false, false),
         nothing
     )
 
-    p_light_1_t = Translate(Pnt3(0,0,0))
-    p_light_1 = Rectangle(
-        Pnt2(5,  -pillar_width_2*.9), 
-        Pnt2(50,  pillar_width_2*.9), 
-        pillar_width_1,
+    outer_cyl_t = Translate(Pnt3(0,0,0))
+    outer_cyl = Cylindar(
+        outer_cyl_t,
+        ceiling_whole_size+ceiling_circle_thickness/2,
+        ceiling_height-ceiling_circle_offset,
+        ceiling_height+ceiling_circle_offset*50,
+        360.0,
+        false,
+        false
+    )
+    inner_cyl_t = Translate(Pnt3(0,0,0))
+    inner_cyl = Cylindar(
+        inner_cyl_t,
+        ceiling_whole_size-ceiling_circle_thickness/2,
+        ceiling_height-ceiling_circle_offset,
+        ceiling_height+ceiling_circle_offset*50,
+        360.0,
+        true,
+        false
+    )
+    disk_t = Translate(Pnt3(0,0,0))
+    disk = Disk(
+        disk_t,
+        ceiling_height-ceiling_circle_offset,
+        ceiling_whole_size+ceiling_circle_thickness/2,
+        ceiling_whole_size-ceiling_circle_thickness/2,
+        360.0,
+        true,
+        false
+    )
+
+    p_light_1_t = Translate(Pnt3(100,0,0))
+    p_light_1a = Rectangle(
+        Pnt2(5,  -pillar_width_2+5), 
+        Pnt2(55,  pillar_width_2-5), 
+        pillar_width_1+.5,
         1, 
-        ShapeCore(p_light_1_t, Inv(p_light_1_t), true, false),
+        ShapeCore(p_light_1_t, Inv(p_light_1_t), false, false),
+        nothing
+    )
+    p_light_1b = Rectangle(
+        Pnt2(60,  -pillar_width_2+5), 
+        Pnt2(110,  pillar_width_2-5), 
+        pillar_width_1+.5,
+        1, 
+        ShapeCore(p_light_1_t, Inv(p_light_1_t), false, false),
+        nothing
+    )
+    p_light_1c = Rectangle(
+        Pnt2(115,  -pillar_width_2+5), 
+        Pnt2(165,   pillar_width_2-5), 
+        pillar_width_1+.5,
+        1, 
+        ShapeCore(p_light_1_t, Inv(p_light_1_t), false, false),
+        nothing
+    )
+    p_light_1d = Rectangle(
+        Pnt2(170,  -pillar_width_2+5), 
+        Pnt2(210,   pillar_width_2-5), 
+        pillar_width_1+.5,
+        1, 
+        ShapeCore(p_light_1_t, Inv(p_light_1_t), false, false),
+        nothing
+    )
+    p_light_1e = Rectangle(
+        Pnt2(215,  -pillar_width_2+5), 
+        Pnt2(265,   pillar_width_2-5), 
+        pillar_width_1+.5,
+        1, 
+        ShapeCore(p_light_1_t, Inv(p_light_1_t), false, false),
         nothing
     )
 
     p_light_2_t = Translate(Pnt3(0,0,0))
-    p_light_2 = Rectangle(
-        Pnt2(-pillar_width_2*.9, 5), 
-        Pnt2(pillar_width_2*.9,  50), 
-        pillar_width_1,
+    p_light_2a = Rectangle(
+        Pnt2(-pillar_width_2+5, 5), 
+        Pnt2( pillar_width_2-5,  55), 
+        pillar_width_1+.5,
         3, 
-        ShapeCore(p_light_2_t, Inv(p_light_2_t), true, false),
+        ShapeCore(p_light_2_t, Inv(p_light_2_t), false, false),
+        nothing
+    )
+    p_light_2b = Rectangle(
+        Pnt2(-pillar_width_2+5, 60), 
+        Pnt2( pillar_width_2-5,  110), 
+        pillar_width_1+.5,
+        3, 
+        ShapeCore(p_light_2_t, Inv(p_light_2_t), false, false),
+        nothing
+    )
+    p_light_2c = Rectangle(
+        Pnt2(-pillar_width_2+5, 115), 
+        Pnt2( pillar_width_2-5,  165), 
+        pillar_width_1+.5,
+        3, 
+        ShapeCore(p_light_2_t, Inv(p_light_2_t), false, false),
+        nothing
+    )
+    p_light_2d = Rectangle(
+        Pnt2(-pillar_width_2+5, 170), 
+        Pnt2( pillar_width_2-5,  210), 
+        pillar_width_1+.5,
+        3, 
+        ShapeCore(p_light_2_t, Inv(p_light_2_t), false, false),
+        nothing
+    )
+    p_light_2e = Rectangle(
+        Pnt2(-pillar_width_2+5, 215), 
+        Pnt2( pillar_width_2-5,  265), 
+        pillar_width_1+.5,
+        3, 
+        ShapeCore(p_light_2_t, Inv(p_light_2_t), false, false),
         nothing
     )
 
@@ -188,20 +282,25 @@ function test_integrate()
     lights = Light[]    
 
     # add geometry
+    # push!(primitives, Primitive(outer_cyl, mat_red, nothing))
+    # push!(primitives, Primitive(inner_cyl, mat_red, nothing))
+    # push!(primitives, Primitive(disk, mat_red, nothing))
     for tri in vcat(floor, ceiling)
         push!(primitives, Primitive(tri, mat_concrete, nothing))
     end
-    for tri in pillar_1
-        push!(primitives, Primitive(tri, mat_blue, nothing))
-    end
-    for tri in pillar_2
-        push!(primitives, Primitive(tri, mat_green, nothing))
-    end
+    # for tri in pillar_1
+    #     push!(primitives, Primitive(tri, mat_blue, nothing))
+    # end
+    # for tri in pillar_2
+    #     push!(primitives, Primitive(tri, mat_green, nothing))
+    # end
 
-    for lit in vcat(p_light_1, p_light_2)      
+    # for lit in vcat(p_light_1a, p_light_1b, p_light_1c, p_light_1d, p_light_1e, p_light_2a, p_light_2b, p_light_2c, p_light_2d, p_light_2e)
+    for lit in p_light_1a
         alight = DiffuseAreaLight(
-            Spectrum(2500.0, 2500.0, 0),
+            Spectrum(25000.0, 25000.0, 0),
             lit,
+            false
         )
         push!(lights, alight)
         push!(primitives, Primitive(lit, mat_white, alight))
@@ -239,7 +338,7 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 75.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(10, 10, 4, true)
+    S = StratifiedSampler(5, 5, 4, true)
 
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
 
