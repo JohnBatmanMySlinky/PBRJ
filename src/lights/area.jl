@@ -2,12 +2,14 @@ struct DiffuseAreaLight <: Light
     Lemit::Spectrum
     shape::Shape
     area::Float64
+    two_sided::Bool
 
-    function DiffuseAreaLight(Lemit::Spectrum, shape::Shape)
+    function DiffuseAreaLight(Lemit::Spectrum, shape::Shape, two_sided::Bool)
         return new(
             Lemit,
             shape,
-            area(shape)
+            area(shape),
+            two_sided
         )
     end
 end
@@ -16,8 +18,8 @@ function le(dal::DiffuseAreaLight, ray::AbstractRay)
     return Spectrum(0,0,0)
 end
 
-function L(dal::DiffuseAreaLight, interaction::Interaction, w::Vec3)::Spectrum
-    return dot(interaction.n, w) > 0 ? dal.Lemit : Spectrum(0,0,0)
+function L(dal::DiffuseAreaLight, n::Nml3, w::Vec3)::Spectrum
+    return (dal.two_sided || dot(n, w) > 0) ? dal.Lemit : Spectrum(0,0,0)
 end
 
 function Power(li::DiffuseAreaLight)
@@ -36,6 +38,6 @@ function sample_li(dal::DiffuseAreaLight, interaction::Interaction, u::Pnt2)
     )
     # PBR
     # "given a point on the surface of the area light"
-    radiance = L(dal, Interaction(pshape, interaction.t, -wi, nshape), -wi)
+    radiance = L(dal, nshape, -wi)
     return radiance, wi, pdf_val, visibility, pshape, nshape
 end

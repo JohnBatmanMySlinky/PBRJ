@@ -240,7 +240,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     interaction.shading.dndu = dndu
     interaction.shading.dndv = dndv
 
-    if tri.mesh.normals ≢ nothing
+    if !(tri.mesh.normals isa Nothing)
         interaction.core.n = face_forward(
             interaction.core.n, interaction.shading.n,
         )
@@ -326,8 +326,10 @@ function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3}
     p = b[1] * p0 + b[2] * p1 + (1-b[1]-b[2]) * p2
     n = normalize(Vec3(cross(p1-p0, p2-p0)))
 
-    if tri.mesh.normals ≢ nothing
-        n = face_forward(n,n)
+    if !(tri.mesh.normals isa Nothing)
+        n1, n2, n3 = get_normals(tri)
+        ns = b[1] * n1 + b[2] * n2  + (1-b[1]-b[2]) * n3
+        n = face_forward(n,ns)
     elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
         n = -n
     end
