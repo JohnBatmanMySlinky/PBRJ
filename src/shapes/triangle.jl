@@ -330,6 +330,10 @@ function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3}
         n1, n2, n3 = get_normals(tri)
         ns = b[1] * n1 + b[2] * n2  + (1-b[1]-b[2]) * n3
         n = face_forward(n,ns)
+        # MORE JOHN HACKS
+        if tri.core.reverse_orientation
+            n = -n
+        end
     elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
         n = -n
     end

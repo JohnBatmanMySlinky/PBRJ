@@ -18,20 +18,17 @@ end
 
 function ObjectBounds(d::Disk)::Bounds3
     return Bounds3(
-        Pnt3(-d.radius, d.height - 0.000001, -d.radius),
-        Pnt3( d.radius, d.height + 0.000001,  d.radius),
+        Pnt3(-d.radius, -d.radius, d.height - 0.000001),
+        Pnt3( d.radius,  d.radius, d.height + 0.000001),
     )
 end
 
 function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
-    # Since my coordinate system is fucked, we have to switch coords. 
-    # as per XZ Plane, calculate hit on Y and then use X & Z throuhgout
-
     # transform the ray to object space
     r = d.core.world_to_object(r)
 
     # compute plane intersection for disk
-    t_shape_hit = (d.height - r.origin.y) / r.direction.y
+    t_shape_hit = (d.height - r.origin.z) / r.direction.z
     if t_shape_hit <= 0 || t_shape_hit >= r.tMax
         return false, nothing, nothing
     end
@@ -43,13 +40,13 @@ function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{S
 
     # see if hit is inside disk radii and phi max
     p_hit = at(r, t_shape_hit)
-    dist2 = p_hit.x^2 + p_hit.z^2
+    dist2 = p_hit.x^2 + p_hit.y^2
     if (dist2 > d.radius^2) || (dist2 < d.inner_radius^2)
         return false, nothing, nothing
     end
 
     # test against phimax
-    phi = atan(p_hit.z, p_hit.x)
+    phi = atan(p_hit.y, p_hit.x)
     if phi < 0
         phi += 2pi
     end
@@ -60,12 +57,13 @@ function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{S
     # now that we know we have a hit....
     u = phi / d.phi_max
     r_hit = sqrt(dist2)
-    one_minus_v =  ((r_hit - d.inner_radius)/(d.radius - d.inner_radius))
-    v = 1-one_minus_v
-    dpdu = Vec3(-d.phi_max * p_hit.z, d.phi_max * p_hit.x, 0)
-    dpdv = Vec3(p_hit.x, p_hit.z, 0) * (d.inner_radius - d.radius) / r_hit
+    v = (d.radius - r_hit) / (d.radius - d.inner_radius)
+    dpdu = Vec3(-d.phi_max * p_hit.y, d.phi_max * p_hit.x, 0)
+    dpdv = Vec3(p_hit.x, p_hit.y, 0) * (d.inner_radius - d.radius) / r_hit
     dndu = Nml3(0,0,0)
     dndv = Nml3(0,0,0)
+
+    p_hit = Pnt3(p_hit.x, p_hit.y, d.height)
 
     # instantiate surface interaction
     interaction = InstantiateSurfaceInteraction(
@@ -92,7 +90,7 @@ function intersect_p(d::Disk, r::AbstractRay)::Bool
     r = d.core.world_to_object(r)
 
     # compute plane intersection for disk
-    t_shape_hit = (d.height - r.origin.y) / r.direction.y
+    t_shape_hit = (d.height - r.origin.z) / r.direction.z
     if t_shape_hit <= 0 || t_shape_hit >= r.tMax
         return false
     end
@@ -104,13 +102,13 @@ function intersect_p(d::Disk, r::AbstractRay)::Bool
 
     # see if hit is inside disk radii and phi max
     p_hit = at(r, t_shape_hit)
-    dist2 = p_hit.x^2 + p_hit.z^2
+    dist2 = p_hit.x^2 + p_hit.y^2
     if dist2 > d.radius^2 || dist2 < d.inner_radius^2
         return false
     end
 
     # test against phimax
-    phi = atan(p_hit.z, p_hit.x)
+    phi = atan(p_hit.y, p_hit.x)
     if phi < 0
         phi += 2pi
     end

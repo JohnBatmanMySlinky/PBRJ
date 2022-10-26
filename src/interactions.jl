@@ -58,6 +58,12 @@ function InstantiateSurfaceInteraction(
 
     core = Interaction(p, t, wo, n)
     shading = ShadingInteraction(n, dpdu, dpdv, dndu, dndv)
+
+    if shape.core.reverse_orientation
+        core.n = core.n * -1
+        shading.n = shading.n * -1
+    end
+
     return SurfaceInteraction(
         core, 
         shading,
@@ -181,9 +187,6 @@ end
 function set_shading_geomerty!(si::SurfaceInteraction, dpdus::Vec3, dpdvs::Vec3, dndus::Nml3, dndvs::Nml3, orientation_is_authoritative::Bool)
     si.shading.n = normalize(cross(dpdus, dpdvs))
 
-    if !(si.shape isa Nothing) && (si.shape.core.reverse_orientation ⊻ si.shape.core.transform_swaps_handedness)
-        si.shading.n *= -1
-    end
     if orientation_is_authoritative
         si.core.n = face_forward(si.core.n, si.shading.n)
     else

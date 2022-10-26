@@ -19,8 +19,8 @@ end
 
 function ObjectBounds(c::Cylindar)::Bounds3
     return Bounds3(
-        Pnt3(-c.radius, c.z_min, -c.radius),
-        Pnt3( c.radius, c.z_max,  c.radius),
+        Pnt3(-c.radius, -c.radius, c.z_min),
+        Pnt3( c.radius, c.radius,  c.z_max),
     )
 end
 
@@ -29,9 +29,9 @@ function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, May
     r = c.core.world_to_object(r)
 
     # compute quadratic cylindar coefficients
-    a = r.direction.x^2 + r.direction.z^2
-    b = 2*(r.direction.x * r.origin.x + r.direction.z * r.origin.z)
-    C = r.origin.x^2 + r.origin.z^2 - c.radius ^2
+    a = r.direction.x^2 + r.direction.y^2
+    b = 2*(r.direction.x * r.origin.x + r.direction.y * r.origin.y)
+    C = r.origin.x^2 + r.origin.y^2 - c.radius ^2
 
     # solve quadratic equation for t values
     exists, t0, t1 = solve_quadratic(a, b, C)
@@ -52,13 +52,13 @@ function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, May
     # compute cylindar hit point and phi_max
     p_hit = at(r, t_shape_hit)
     p_hit = refine_Interaction(p_hit, c)
-    phi = atan(p_hit.z, p_hit.x)
+    phi = atan(p_hit.y, p_hit.x)
     if phi < 0
         phi += 2pi
     end
 
     # test clipping
-    if p_hit.y < c.z_min || p_hit.y > c.z_max || phi > c.phi_max
+    if p_hit.z < c.z_min || p_hit.z > c.z_max || phi > c.phi_max
         if t_shape_hit == t1
             return false, nothing, nothing
         end
@@ -68,31 +68,20 @@ function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, May
         end
         p_hit = at(r, t_shape_hit)
         p_hit = refine_Interaction(p_hit, c)
-        phi = atan(p_hit.z, p_hit.x)
+        phi = atan(p_hit.y, p_hit.x)
         if phi < 0
             phi += 2pi
         end
-        if p_hit.y < c.z_min || p_hit.y > c.z_max || phi > c.phi_max
+        if p_hit.z < c.z_min || p_hit.z > c.z_max || phi > c.phi_max
             return false, nothing, nothing
         end
     end
 
     u = phi / c.phi_max
-    v = (p_hit.y - c.z_min) / (c.z_max - c.z_min)
-    # absolute big brain debug here
-    # my coord system is fucked, had to figure out the right dpdu and dpdv by manually calculating the normal
-    dpdu = Vec3(c.phi_max * p_hit.z, 0, -c.phi_max * p_hit.x)
-    dpdv = Vec3(0, c.z_max - c.z_min, 0)
-
-    # print("OK DEBUG TIME\n")
-    # print("dpdu: ", dpdu, "\n")
-    # print("dpdv: ", dpdv, "\n")
-    # print("cross dpdu x dpdv: ", normalize(cross(dpdu, dpdv)), "\n")
-    # print("MANUAL:            ", (p_hit - Vec3(0, p_hit.y, 0))/c.radius, "\n")
-    # print("\n")
-    # asdf
-
-    d2pduu = -c.phi_max * c.phi_max * Vec3(p_hit.x, 0, p_hit.z)
+    v = (p_hit.z - c.z_min) / (c.z_max - c.z_min)
+    dpdu = Vec3(-c.phi_max * p_hit.y, c.phi_max * p_hit.x, 0)
+    dpdv = Vec3(0, 0, c.z_max - c.z_min)
+    d2pduu = -c.phi_max * c.phi_max * Vec3(p_hit.x, p_hit.y, 0)
     d2pduv = Vec3(0,0,0)
     d2pdvv = Vec3(0,0,0)
     E = dot(dpdu, dpdu)
@@ -124,11 +113,6 @@ function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, May
         c
     )
 
-    if c.core.reverse_orientation == true
-        interaction.core.n = interaction.core.n * -1.0
-        interaction.shading.n = interaction.shading.n * -1.0
-    end
-
     # transform back to world coordinates
     interaction = c.core.object_to_world(interaction)
 
@@ -140,9 +124,9 @@ function intersect_p(c::Cylindar, r::AbstractRay)::Bool
     r = c.core.world_to_object(r)
 
     # compute quadratic cylindar coefficients
-    a = r.direction.x^2 + r.direction.z^2
-    b = 2*(r.direction.x * r.origin.x + r.direction.z * r.origin.z)
-    C = r.origin.x^2 + r.origin.z^2 - c.radius ^2
+    a = r.direction.x^2 + r.direction.y^2
+    b = 2*(r.direction.x * r.origin.x + r.direction.y * r.origin.y)
+    C = r.origin.x^2 + r.origin.y^2 - c.radius ^2
 
     # solve quadratic equation for t values
     exists, t0, t1 = solve_quadratic(a, b, C)
@@ -163,13 +147,13 @@ function intersect_p(c::Cylindar, r::AbstractRay)::Bool
     # compute cylindar hit point and phi_max
     p_hit = at(r, t_shape_hit)
     p_hit = refine_Interaction(p_hit, c)
-    phi = atan(p_hit.z, p_hit.x)
+    phi = atan(p_hit.y, p_hit.x)
     if phi < 0
         phi += 2pi
     end
 
     # test clipping
-    if p_hit.y < c.z_min || p_hit.y > c.z_max || phi > c.phi_max
+    if p_hit.z < c.z_min || p_hit.z > c.z_max || phi > c.phi_max
         if t_shape_hit == t1
             return false
         end
@@ -179,11 +163,11 @@ function intersect_p(c::Cylindar, r::AbstractRay)::Bool
         end
         p_hit = at(r, t_shape_hit)
         p_hit = refine_Interaction(p_hit, c)
-        phi = atan(p_hit.z, p_hit.x)
+        phi = atan(p_hit.y, p_hit.x)
         if phi < 0
             phi += 2pi
         end
-        if p_hit.y < c.z_min || p_hit.y > c.z_max || phi > c.phi_max
+        if p_hit.z < c.z_min || p_hit.z > c.z_max || phi > c.phi_max
             return false
         end
     end
@@ -198,6 +182,6 @@ end
 
 # Interaction helper function
 function refine_Interaction(p::Pnt3, c::Cylindar)::Pnt3
-    hit_rad = sqrt(p.x^2 + p.z^2)
-    return Pnt3(p.x * c.radius / hit_rad, p.y, p.z * c.radius / hit_rad)
+    hit_rad = sqrt(p.x^2 + p.y^2)
+    return Pnt3(p.x * c.radius / hit_rad, p.y * c.radius / hit_rad, p.z)
 end

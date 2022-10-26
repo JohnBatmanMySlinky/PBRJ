@@ -33,16 +33,29 @@ function parse_normals(s::String)
     return Nml3(tmp[1], tmp[2], tmp[3])
 end
 
+function parse_uvs(s::String)
+    tmp = Float64[]
+    splitted = split(s, " ")
+    for each in splitted
+        if !(each in ["vt", ""])
+            push!(tmp, parse(Float64, each))
+        end
+    end
+    return Pnt2(tmp[1], tmp[2])
+end
+
 
 function parse_obj(
     fname::String, 
     object_to_world::Transformation, 
     reverse_orientation::Bool, 
     transform_swaps_handedness::Bool,
+    alpha_mask::Maybe{Texture},
 )
     vertices = Pnt3[]
     indices = Int64[]
     normals = Nml3[]
+    uvs = Pnt2[]
     open(fname) do f
         while !eof(f)
             # read current line
@@ -66,7 +79,11 @@ function parse_obj(
             elseif key == "vn"
                 n = parse_normals(s)
                 push!(normals, n)
+            elseif key == "vt"
+                vt = parse_uvs(s)
+                push!(uvs, vt)
             end
+            # parse UV
         end
     end
     @assert length(indices) % 3 == 0
@@ -76,6 +93,8 @@ function parse_obj(
         length(vertices),   # n_vertices
         vertices,
         indices,
-        normals
+        normals,
+        uvs,
+        alpha_mask
     )
 end 

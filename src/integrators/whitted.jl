@@ -109,9 +109,14 @@ function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1
         end
 
         if false
-            if abs(interaction.core.p.x) < 30 && abs(interaction.core.p.z) < 30 && abs(interaction.core.p.y)<5
+            # finding point that shouldn't be illuminated by single sided emitting light
+            # if abs(interaction.core.p.x) < 30 && abs(interaction.core.p.z) < 30 && abs(interaction.core.p.y)<5
+
+            # finding point on cylindar
+            if (abs(interaction.core.n.y) < .0001) && ((abs(interaction.core.n.x)-abs(interaction.core.n.z)) < .0001)
                 print("\n")
                 print("p_hit ", interaction.core.p, "\n")
+                print("n_hit ", interaction.core.n, "\n")
                 print("hit time ", interaction.core.t, "\n")
                 print("p_sample ", p_sample, "\n")
                 print("n_sample ", n_sample, "\n")
@@ -123,16 +128,6 @@ function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1
                 print("n ", n, "\n")
                 print("contrib ", f .* sampled_li * abs(dot(wi, n)) / pdf, "\n")
                 print("denom ", abs(dot(wi, n)), "\n")
-
-                # why visability tester not working!
-                print("vt.p0.p: ", visibility_tester.p0.p, "\n")
-                print("vt.p1.p: ", visibility_tester.p1.p, "\n")
-
-                vtdirection = normalize(visibility_tester.p1.p - visibility_tester.p0.p)
-                vtorigin = visibility_tester.p0.p .+ 1e-6 .* vtdirection
-                print("vt ray: ", vtorigin, " ", vtdirection, "\n")
-                check = intersect_p(scene.b, Ray(vtorigin, vtdirection, 0, visibility_tester.p0.t))
-                print(check, "\n")
                 asdf
             end
         end
