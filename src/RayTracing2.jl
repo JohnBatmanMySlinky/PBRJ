@@ -64,6 +64,7 @@ include("materials/bsdf.jl")
 include("materials/matte.jl")
 include("materials/plastic.jl")
 include("materials/mirror.jl")
+include("materials/substrate.jl")
 include("textures/constant.jl")
 include("textures/image.jl")
 include("textures/procedural.jl")
@@ -100,10 +101,13 @@ function test_integrate()
         ConstantTexture(Vec3(0, 0, 0)),
         nothing
     )
-    mat_concrete = Matte(
-        ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"),
-        ConstantTexture(Pnt3(0,0,0)),
-        ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg")
+    mat_concrete = Substrate(
+        ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"), # kd
+        ConstantTexture(Pnt3(.2, .2, .2)), # ks
+        ConstantTexture(Pnt3(.003, .003, .003)), # u
+        ConstantTexture(Pnt3(.003, .003, .003)), # v
+        true, # remap
+        ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg") # bump
     )
 
     ###################################
@@ -119,9 +123,17 @@ function test_integrate()
     ceiling_circle_thickness = 20.0 # ~1ft * 20
     ceiling_circle_offset = 10.0 # ~6in * 20
 
+    ##############################
+    ##### Instantiating light & primitive vectors
+    ##############################
+    primitives = Primitive[]
+    lights = Light[]    
+
     ########################
     #### GEOMETRY ##########
     ########################
+
+    ################# FLOOR
     floor_transform = Translate(Pnt3(0,0,0))
     floor = Rectangle(
         Pnt2(-foyer_dim/2, -foyer_dim/2), 
@@ -131,7 +143,11 @@ function test_integrate()
         ShapeCore(floor_transform, Inv(floor_transform), false, false),
         nothing
     )
+    for tri in floor
+        push!(primitives, Primitive(tri, mat_concrete, nothing))
+    end
 
+    ################# CEILING
     ceiling_transform = Translate(Pnt3(0,0,0))
     ceiling = Rectangle(
         Pnt2(-foyer_dim/2, -foyer_dim/2), 
@@ -146,7 +162,11 @@ function test_integrate()
             Spectrum(0,0,0)
         )
     )
+    for tri in ceiling
+        push!(primitives, Primitive(tri, mat_concrete, nothing))
+    end
 
+    ################# Pillar 1
     pillar_1_t = Translate(Pnt3(0,0,0))
     pillar_1 = Box(
         Pnt3(-pillar_width_1, 0,             -pillar_width_2), 
@@ -154,6 +174,11 @@ function test_integrate()
         ShapeCore(pillar_1_t, Inv(pillar_1_t), false, false),
         nothing
     )
+    for tri in pillar_1
+        push!(primitives, Primitive(tri, mat_blue, nothing))
+    end
+
+    ################# Pillar 2
     pillar_2_t = RotateY(90.0)
     pillar_2 = Box(
         Pnt3(-pillar_width_1, 0,                  -pillar_width_2), 
@@ -161,7 +186,11 @@ function test_integrate()
         ShapeCore(pillar_2_t, Inv(pillar_2_t), false, false),
         nothing
     )
+    for tri in pillar_2
+        push!(primitives, Primitive(tri, mat_green, nothing))
+    end
 
+    ################# CEILING CYLINDAR
     outer_cyl_t = RotateX(-90.0)
     outer_cyl = Cylindar(
         outer_cyl_t,
@@ -192,203 +221,60 @@ function test_integrate()
         false,
         false
     )
-
-    p_light_1_t = Translate(Pnt3(0,0,0))
-    p_light_1a = Rectangle(
-        Pnt2(5,  -pillar_width_2+5), 
-        Pnt2(55,  pillar_width_2-5), 
-        pillar_width_1+.5,
-        1, 
-        ShapeCore(p_light_1_t, Inv(p_light_1_t), false, false),
-        nothing
-    )
-    p_light_1b = Rectangle(
-        Pnt2(60,  -pillar_width_2+5), 
-        Pnt2(110,  pillar_width_2-5), 
-        pillar_width_1+.5,
-        1, 
-        ShapeCore(p_light_1_t, Inv(p_light_1_t), false, false),
-        nothing
-    )
-    p_light_1c = Rectangle(
-        Pnt2(115,  -pillar_width_2+5), 
-        Pnt2(165,   pillar_width_2-5), 
-        pillar_width_1+.5,
-        1, 
-        ShapeCore(p_light_1_t, Inv(p_light_1_t), false, false),
-        nothing
-    )
-    p_light_1d = Rectangle(
-        Pnt2(170,  -pillar_width_2+5), 
-        Pnt2(210,   pillar_width_2-5), 
-        pillar_width_1+.5,
-        1, 
-        ShapeCore(p_light_1_t, Inv(p_light_1_t), false, false),
-        nothing
-    )
-    p_light_1e = Rectangle(
-        Pnt2(215,  -pillar_width_2+5), 
-        Pnt2(265,   pillar_width_2-5), 
-        pillar_width_1+.5,
-        1, 
-        ShapeCore(p_light_1_t, Inv(p_light_1_t), false, false),
-        nothing
-    )
-
-    p_light_2_t = Translate(Pnt3(0,0,0))
-    p_light_2a = Rectangle(
-        Pnt2(-pillar_width_2+5, 5), 
-        Pnt2( pillar_width_2-5,  55), 
-        pillar_width_1+.5,
-        3, 
-        ShapeCore(p_light_2_t, Inv(p_light_2_t), false, false),
-        nothing
-    )
-    p_light_2b = Rectangle(
-        Pnt2(-pillar_width_2+5, 60), 
-        Pnt2( pillar_width_2-5,  110), 
-        pillar_width_1+.5,
-        3, 
-        ShapeCore(p_light_2_t, Inv(p_light_2_t), false, false),
-        nothing
-    )
-    p_light_2c = Rectangle(
-        Pnt2(-pillar_width_2+5, 115), 
-        Pnt2( pillar_width_2-5,  165), 
-        pillar_width_1+.5,
-        3, 
-        ShapeCore(p_light_2_t, Inv(p_light_2_t), false, false),
-        nothing
-    )
-    p_light_2d = Rectangle(
-        Pnt2(-pillar_width_2+5, 170), 
-        Pnt2( pillar_width_2-5,  210), 
-        pillar_width_1+.5,
-        3, 
-        ShapeCore(p_light_2_t, Inv(p_light_2_t), false, false),
-        nothing
-    )
-    p_light_2e = Rectangle(
-        Pnt2(-pillar_width_2+5, 215), 
-        Pnt2( pillar_width_2-5,  265), 
-        pillar_width_1+.5,
-        3, 
-        ShapeCore(p_light_2_t, Inv(p_light_2_t), false, false),
-        nothing
-    )
-
-    p_light_3_t = Translate(Pnt3(0,0,0))
-    p_light_3a = Rectangle(
-        Pnt2(5,  -pillar_width_2+5), 
-        Pnt2(55,  pillar_width_2-5), 
-        -pillar_width_1-.5,
-        1, 
-        ShapeCore(p_light_3_t, Inv(p_light_3_t), true, false),
-        nothing
-    )
-    p_light_3b = Rectangle(
-        Pnt2(60,  -pillar_width_2+5), 
-        Pnt2(110,  pillar_width_2-5), 
-        -pillar_width_1-.5,
-        1, 
-        ShapeCore(p_light_3_t, Inv(p_light_3_t), true, false),
-        nothing
-    )
-    p_light_3c = Rectangle(
-        Pnt2(115,  -pillar_width_2+5), 
-        Pnt2(165,   pillar_width_2-5), 
-        -pillar_width_1-.5,
-        1, 
-        ShapeCore(p_light_3_t, Inv(p_light_3_t), true, false),
-        nothing
-    )
-    p_light_3d = Rectangle(
-        Pnt2(170,  -pillar_width_2+5), 
-        Pnt2(210,   pillar_width_2-5), 
-        -pillar_width_1-.5,
-        1, 
-        ShapeCore(p_light_3_t, Inv(p_light_3_t), true, false),
-        nothing
-    )
-    p_light_3e = Rectangle(
-        Pnt2(215,  -pillar_width_2+5), 
-        Pnt2(265,   pillar_width_2-5), 
-        -pillar_width_1-.5,
-        1, 
-        ShapeCore(p_light_3_t, Inv(p_light_3_t), true, false),
-        nothing
-    )
-
-    p_light_4_t = Translate(Pnt3(0,0,0))
-    p_light_4a = Rectangle(
-        Pnt2(-pillar_width_2+5, 5), 
-        Pnt2( pillar_width_2-5,  55), 
-        -pillar_width_1-.5,
-        3, 
-        ShapeCore(p_light_4_t, Inv(p_light_4_t), true, false),
-        nothing
-    )
-    p_light_4b = Rectangle(
-        Pnt2(-pillar_width_2+5, 60), 
-        Pnt2( pillar_width_2-5,  110), 
-        -pillar_width_1-.5,
-        3, 
-        ShapeCore(p_light_4_t, Inv(p_light_4_t), true, false),
-        nothing
-    )
-    p_light_4c = Rectangle(
-        Pnt2(-pillar_width_2+5, 115), 
-        Pnt2( pillar_width_2-5,  165), 
-        -pillar_width_1-.5,
-        3, 
-        ShapeCore(p_light_4_t, Inv(p_light_4_t), true, false),
-        nothing
-    )
-    p_light_4d = Rectangle(
-        Pnt2(-pillar_width_2+5, 170), 
-        Pnt2( pillar_width_2-5,  210), 
-        -pillar_width_1-.5,
-        3, 
-        ShapeCore(p_light_4_t, Inv(p_light_4_t), true, false),
-        nothing
-    )
-    p_light_4e = Rectangle(
-        Pnt2(-pillar_width_2+5, 215), 
-        Pnt2( pillar_width_2-5,  265), 
-        -pillar_width_1-.5,
-        3, 
-        ShapeCore(p_light_4_t, Inv(p_light_4_t), true, false),
-        nothing
-    )
-
-    # vector of primitives & one for lights
-    primitives = Primitive[]
-    lights = Light[]    
-
-    # add geometry
     push!(primitives, Primitive(outer_cyl, mat_red, nothing))
     push!(primitives, Primitive(inner_cyl, mat_red, nothing))
     push!(primitives, Primitive(disk, mat_red, nothing))
-    for tri in vcat(floor, ceiling)
-        push!(primitives, Primitive(tri, mat_concrete, nothing))
-    end
-    # for tri in pillar_1
-    #     push!(primitives, Primitive(tri, mat_blue, nothing))
-    # end
-    # for tri in pillar_2
-    #     push!(primitives, Primitive(tri, mat_green, nothing))
-    # end
 
-    for lit in vcat(p_light_1a, p_light_1b, p_light_1c, p_light_1d, p_light_1e, p_light_2a, p_light_2b, p_light_2c, p_light_2d, p_light_2e, p_light_3a, p_light_3b, p_light_3c, p_light_3d, p_light_3e, p_light_4a, p_light_4b, p_light_4c, p_light_4d, p_light_4e)
-        alight = DiffuseAreaLight(
-            Spectrum(2500.0, 2500.0, 0),
-            lit,
-            false
+
+    ################# Pillar Area Lights
+    pillar_area_light_spec = Tuple{Pnt2, Pnt2, Float64, Int64, Spectrum, Bool}[
+        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
+        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
+        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
+        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
+        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
+
+        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
+        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
+        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
+        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
+        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
+
+        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
+        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
+        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
+        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
+        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
+
+        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
+        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
+        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
+        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
+        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
+    ]
+
+    t = Translate(Pnt3(0,0,0))
+    for (pmin, pmax, k, axis, brightness, flip) in pillar_area_light_spec
+        tmp_rec = Rectangle(
+            pmin, 
+            pmax, 
+            k,
+            axis, 
+            ShapeCore(t, Inv(t), flip, false),
+            nothing
         )
-        push!(lights, alight)
-        push!(primitives, Primitive(lit, mat_white, alight))
+        for tri in tmp_rec
+            alight = DiffuseAreaLight(
+                brightness,
+                tri,
+                false
+            )
+            push!(lights, alight)
+            push!(primitives, Primitive(tri, mat_white, alight))
+        end
     end
 
+    
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
@@ -421,7 +307,7 @@ function test_integrate()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 75.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(4, 4, 4, true)
+    S = StratifiedSampler(10, 10, 4, true)
 
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
 

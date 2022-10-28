@@ -81,3 +81,34 @@ end
 function (f::FresnelNoOp)(::Float64)
     return Spectrum(1,1,1)
 end
+
+
+############################################################
+###################### Fresnel Blend #######################
+############################################################
+struct FresnelBlend <: AbstractBxDF
+    Rd::Spectrum
+    Rs::Spectrum
+    distrib::MicrofacetDistribution
+    type::UInt8
+    function FresnelBlend(Rd::Spectrum, Rs::Spectrum, distrib::MicrofacetDistribution)
+        return new(
+            Rd, Rs, distrib, BSDF_REFLECTION | BSDF_GLOSSY    
+        )
+    end
+end
+
+function SchlickFresnel(Rs::Spectrum, cos_theta::Float64)
+    return Rs + (Spectrum(1,1,1)-Rs)*(1-cos_theta)^5
+end
+
+function f(f::FresnelBlend, wo::Vec3, wi::Vec3)
+    diffuse = Spectrum((28 / (23*pi) ) * f.Rd * (Spectrum(1,1,1)-f.Rs) * (1-(1-abs_cos_theta(wi)/2)^5) * (1-(1-abs_cos_theta(wo)/2)^5))
+    wh = wi + wo
+    if (wh.x==0)&&(wh.y==0)&&(wh.z==0)
+        return Spectrum(0,0,0)
+    end
+    wh = normalize(wh)
+    specular = Spectrum(D(f.distrib, wh) / (4 * abs(dot(wi,wh)) * max(abs_cos_theta(wo), abs_cos_theta(wi))) * SchlickFresnel(f.Rs, dot(wi, wh)))
+    return diffuse + specular
+end

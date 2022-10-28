@@ -71,7 +71,7 @@ end
 function roughness_to_alpha(roughness::Float64)
     roughness = max(roughness, 1e-3)
     x = log(roughness)
-    return 1.62142 + 0.819955 * x + 0.1734 * x^2 + 0.0171201f * x^3 + 0.000640711 * x^4
+    return 1.62142 + 0.819955 * x + 0.1734 * x^2 + 0.0171201 * x^3 + 0.000640711 * x^4
 end
 
 

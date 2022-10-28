@@ -40,7 +40,11 @@ function world_to_local(b::BSDF, v::Vec3)
 end
 
 function local_to_world(b::BSDF, v::Vec3)
-    return Mat3([b.ss b.ts b.ns]) * v
+    return Vec3(
+        b.ss.x * v.x + b.ts.x * v.y + b.ns.x * v.z,
+        b.ss.y * v.x + b.ts.y * v.y + b.ns.y * v.z,
+        b.ss.z * v.x + b.ts.z * v.y + b.ns.z * v.z
+    )
 end
 
 # Equivalent to PBR's f()

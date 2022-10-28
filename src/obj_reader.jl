@@ -1,3 +1,12 @@
+##############################
+##############################
+######## WARNING #############
+##############################
+##############################
+# This parser is really lazy. 
+# It only uses one index for verticies, normals and UVs. 
+
+
 function parse_vertex(s::String)
     tmp = Float64[]
     splitted = split(s, " ")

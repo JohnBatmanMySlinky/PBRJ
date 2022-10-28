@@ -347,6 +347,10 @@ function RGB_to_XYZ(rgb::Spectrum)
     return rgb
 end
 
+# TODO I don't think I should need this??
+function Base.:*(a::Spectrum, b::Spectrum)
+    return Spectrum(a.r*b.r, a.g*b.g, a.b*b.b)
+end
 
 ################################
 #### Miscellaneous #############
