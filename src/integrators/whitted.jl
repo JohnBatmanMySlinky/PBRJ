@@ -45,7 +45,7 @@ function render(i::WhittedIntegrator, scene::Scene, minimal::Bool=false)
                     end
                 else
                     if w > 0
-                        L = li(i, ray, scene, 5)
+                        L = li(i, ray, scene, 0)
                     end
                 end
 
@@ -70,7 +70,7 @@ function render(i::WhittedIntegrator, scene::Scene, minimal::Bool=false)
 end
 
 
-function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1)::Spectrum
+function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Spectrum
     L = Spectrum(0, 0, 0)
     check, t, interaction = intersect!(scene.b, ray)
     # if nothing is hit --> this is only for env light.

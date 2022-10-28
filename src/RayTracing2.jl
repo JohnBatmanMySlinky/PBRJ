@@ -118,10 +118,11 @@ function test_integrate()
     hallway_width = 160.0 # ~8ft * 20
     pillar_width_1 = 60.0 # ~4.5ft * 20
     pillar_width_2 = 20.0 # ~ 1.5ft * 20
-    foyer_dim = 800.0 # ~30ft * 20
+    foyer_dim = 600.0 # ~30ft * 20
     ceiling_whole_size = 130.0 # ~6.5ft * 20
     ceiling_circle_thickness = 20.0 # ~1ft * 20
     ceiling_circle_offset = 10.0 # ~6in * 20
+    hallway_corner_offset = 240.0
 
     ##############################
     ##### Instantiating light & primitive vectors
@@ -144,7 +145,7 @@ function test_integrate()
         nothing
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_concrete, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
 
     ################# CEILING
@@ -163,7 +164,35 @@ function test_integrate()
         )
     )
     for tri in ceiling
-        push!(primitives, Primitive(tri, mat_concrete, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
+    end
+
+    ################# RIGHT WALL
+    rwall_transform = Translate(Pnt3(0,0,0))
+    rwall = Rectangle(
+        Pnt2(-foyer_dim/2 + sqrt(hallway_corner_offset^2/2), 0), 
+        Pnt2(foyer_dim/2, ceiling_height), 
+        -foyer_dim/2,
+        3, 
+        ShapeCore(rwall_transform, Inv(rwall_transform), false, false),
+        nothing
+    )
+    for tri in rwall
+        push!(primitives, Primitive(tri, mat_blue, nothing))
+    end
+
+    ################# LEFT WALL
+    lwall_transform = Translate(Pnt3(0,0,0))
+    lwall = Rectangle(
+        Pnt2(0, -foyer_dim/2+sqrt(hallway_corner_offset^2/2)), 
+        Pnt2(ceiling_height, foyer_dim/2), 
+        -foyer_dim/2,
+        1, 
+        ShapeCore(lwall_transform, Inv(lwall_transform), false, false),
+        nothing
+    )
+    for tri in lwall
+        push!(primitives, Primitive(tri, mat_green, nothing))
     end
 
     ################# Pillar 1
@@ -274,6 +303,22 @@ function test_integrate()
         end
     end
 
+
+    ################# RIGHT HW WALL
+    primitives = Primitive[]
+    lights = Light[]
+    rhwall_transform = Translate(Pnt3(-500,0,-500)) * RotateY(.0)
+    rhwall = Rectangle(
+        Pnt2(-500, 0), 
+        Pnt2(500, ceiling_height), 
+        0.0,
+        3, 
+        ShapeCore(rhwall_transform, Inv(rhwall_transform), false, false),
+        nothing
+    )
+    for tri in rhwall
+        push!(primitives, Primitive(tri, mat_red, nothing))
+    end
     
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -283,8 +328,6 @@ function test_integrate()
     # instantiate an env light
     env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
     push!(lights, env_light)
-
-    # print_BVH_bounds(BVH)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.1, .1))
@@ -300,14 +343,14 @@ function test_integrate()
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(300, 100, 300)
-    look_at = Pnt3(0, 0, 0)
+    look_from = Pnt3(200, 120, 400)
+    look_at = Pnt3(0, 100, 0)
     up = Vec3(0, -1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 75.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 50.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(10, 10, 4, true)
+    S = StratifiedSampler(4, 4, 4, true)
 
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
 
@@ -317,7 +360,7 @@ function test_integrate()
     # Instantiate an Integrator
     I = WhittedIntegrator(C, S, 25)
 
-    render(I, scene)
+    render(I, scene, false)
 end
 
 

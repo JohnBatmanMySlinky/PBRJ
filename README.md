@@ -7,7 +7,16 @@ Physically Based Rendering - in Julia
 - [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
 
 # Todo list
-- Add optionality for one sided area lights
-- Make sure disks and cylindars are working properly.
-- Add in more advanced materials (disney / uber).
-- Improve scene interface.
+- Implement float texture.
+- Add in substrate material.
+    - Add substrate material & FresnelBlend bxdf.
+    - Copy wood material from bathroom scene as a start.
+- Add in uber material.
+- Add tests. 
+- Improve scene geometry & lighting.
+- Fix sampling. I think my shuffle in stratified sampler removes benefit of the stratification.
+- Improve scene specification interface.
+- Optimize code base.
+- Clean up code base, use more '.x' and less '[1]'
+- Quantify benefit of multi-threading.
+- Make CLI.
