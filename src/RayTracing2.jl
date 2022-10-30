@@ -101,6 +101,11 @@ function test_integrate()
         ConstantTexture(Vec3(0, 0, 0)),
         nothing
     )
+    mat_yellow = Matte(
+        ConstantTexture(Vec3(1, 1, 0)),
+        ConstantTexture(Vec3(0, 0, 0)),
+        nothing
+    )
     mat_concrete = Substrate(
         ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"), # kd
         ConstantTexture(Pnt3(.2, .2, .2)), # ks
@@ -123,6 +128,7 @@ function test_integrate()
     ceiling_circle_thickness = 20.0 # ~1ft * 20
     ceiling_circle_offset = 10.0 # ~6in * 20
     hallway_corner_offset = 240.0
+    hallway_total_length = 1000.0
 
     ##############################
     ##### Instantiating light & primitive vectors
@@ -303,22 +309,70 @@ function test_integrate()
         end
     end
 
-
-    ################# RIGHT HW WALL
-    primitives = Primitive[]
-    lights = Light[]
-    rhwall_transform = Translate(Pnt3(-500,0,-500)) * RotateY(.0)
-    rhwall = Rectangle(
-        Pnt2(-500, 0), 
-        Pnt2(500, ceiling_height), 
+    ################# CORNER WALLS
+    lcwall_transform = Translate(Pnt3(-300,0,-160))*RotateY(45.0)
+    lcwall = Rectangle(
+        Pnt2(-25, 0), 
+        Pnt2(25, ceiling_height), 
         0.0,
         3, 
-        ShapeCore(rhwall_transform, Inv(rhwall_transform), false, false),
+        ShapeCore(lcwall_transform, Inv(lcwall_transform), false, false),
         nothing
     )
-    for tri in rhwall
-        push!(primitives, Primitive(tri, mat_red, nothing))
+    for tri in lcwall
+        push!(primitives, Primitive(tri, mat_yellow, nothing))
     end
+
+    ################# HALLWAY
+    # adjustment = -750
+    # rhwall_transform = RotateY(-45.0)*Translate(Pnt3(adjustment,0,+hallway_width/2))
+    # rhwall = Rectangle(
+    #     Pnt2(-hallway_total_length/2, 0), 
+    #     Pnt2(hallway_total_length/2, ceiling_height), 
+    #     0.0,
+    #     3, 
+    #     ShapeCore(rhwall_transform, Inv(rhwall_transform), false, false),
+    #     nothing
+    # )
+    # for tri in rhwall
+    #     push!(primitives, Primitive(tri, mat_red, nothing))
+    # end
+    # lhwall_transform = RotateY(-45.0)*Translate(Pnt3(adjustment,0,-hallway_width/2))
+    # lhwall = Rectangle(
+    #     Pnt2(-hallway_total_length/2, 0), 
+    #     Pnt2(hallway_total_length/2, ceiling_height), 
+    #     0.0,
+    #     3, 
+    #     ShapeCore(lhwall_transform, Inv(lhwall_transform), false, false),
+    #     nothing
+    # )
+    # for tri in lhwall
+    #     push!(primitives, Primitive(tri, mat_yellow, nothing))
+    # end
+    # cewall_transform = RotateY(-45.0)*Translate(Pnt3(adjustment,0,0))
+    # cewall = Rectangle(
+    #     Pnt2(-hallway_total_length/2, -hallway_width/2), 
+    #     Pnt2(hallway_total_length/2, hallway_width/2), 
+    #     ceiling_height,
+    #     2, 
+    #     ShapeCore(cewall_transform, Inv(cewall_transform), false, false),
+    #     nothing
+    # )
+    # for tri in cewall
+    #     push!(primitives, Primitive(tri, mat_blue, nothing))
+    # end
+    # flwall_transform = RotateY(-45.0)*Translate(Pnt3(adjustment,0,0))
+    # flwall = Rectangle(
+    #     Pnt2(-hallway_total_length/2, -hallway_width/2), 
+    #     Pnt2(hallway_total_length/2, hallway_width/2), 
+    #     0.0,
+    #     2, 
+    #     ShapeCore(flwall_transform, Inv(flwall_transform), false, false),
+    #     nothing
+    # )
+    # for tri in flwall
+    #     push!(primitives, Primitive(tri, mat_blue, nothing))
+    # end
     
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -343,11 +397,11 @@ function test_integrate()
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(200, 120, 400)
+    look_from = Pnt3(100, 120, 400)
     look_at = Pnt3(0, 100, 0)
     up = Vec3(0, -1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 50.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 70.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(4, 4, 4, true)
@@ -360,7 +414,7 @@ function test_integrate()
     # Instantiate an Integrator
     I = WhittedIntegrator(C, S, 25)
 
-    render(I, scene, false)
+    render(I, scene, true)
 end
 
 
