@@ -26,13 +26,13 @@ struct ProjectiveCamera <: Camera
     )
         core = CameraCore(camera_to_world, shutter_open, shutter_closed, film)
         screen_to_raster = (
-            Translate(
-                Vec3(-screen_window.pMin.x, -screen_window.pMax.y, 0)
+            Scale(
+                Vec3(film.full_resolution.x, film.full_resolution.y, 1)
             ) * Scale(
                 Vec3(1 / (screen_window.pMax.x - screen_window.pMin.x), 1 / (screen_window.pMin.y - screen_window.pMax.y), 1)
-            ) * Scale(
-                Vec3(film.full_resolution.x, film.full_resolution.y, 1)
-            )
+            ) * Translate(
+                Vec3(-screen_window.pMin.x, -screen_window.pMax.y, 0)
+            )  
         )
         raster_to_screen = Inv(screen_to_raster)
         raster_to_camera = Inv(camera_to_screen) * raster_to_screen

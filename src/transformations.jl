@@ -56,7 +56,7 @@ function RotateX(theta::Float64)
         0 sin_theta cos_theta 0
         0 0         0          1
     ])
-    return Transformation(m, transpose(m))
+    return Transformation(m, inv(m))
 end
 
 function RotateY(theta::Float64)
@@ -68,7 +68,7 @@ function RotateY(theta::Float64)
         -sin_theta 0 cos_theta 0
         0          0 0         1
     ])
-    return Transformation(m, transpose(m))
+    return Transformation(m, inv(m))
 end
 
 function RotateZ(theta::Float64)
@@ -80,7 +80,7 @@ function RotateZ(theta::Float64)
         0         0          1 0
         0         0          0 1
     ])
-    return Transformation(m, transpose(m))
+    return Transformation(m, inv(m))
 end
 
 
@@ -116,7 +116,7 @@ end
 
 # mutliply two transformations
 function Base.:*(t1::Transformation, t2::Transformation)
-    return Transformation(t1.m * t2.m, t1.inv_m * t2.inv_m)
+    return Transformation(t1.m * t2.m, t2.inv_m * t1.inv_m)
 end
 
 # PBR 2.8.1
