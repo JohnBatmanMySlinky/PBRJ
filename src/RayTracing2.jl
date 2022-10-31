@@ -309,11 +309,33 @@ function test_integrate()
         end
     end
 
+    ################# CORNER CONSTANTS
+    edge_of_foyer = Pnt2(-foyer_dim/2, -foyer_dim/2)
+    edge_of_back_right_wall = Pnt2(-foyer_dim/2+sqrt(hallway_corner_offset^2/2), -foyer_dim/2)
+    edge_of_back_left_wall = Pnt2(-foyer_dim/2, -foyer_dim/2+sqrt(hallway_corner_offset^2/2))
+    hallway_corner_tmp = sqrt(((hallway_corner_offset - hallway_width)/2)^2/2)
+    hallway_corner_right = Pnt2(edge_of_back_right_wall.x - hallway_corner_tmp, edge_of_back_right_wall.y + hallway_corner_tmp)
+    hallway_corner_left = Pnt2(edge_of_back_left_wall.x + hallway_corner_tmp, edge_of_back_left_wall.y - hallway_corner_tmp)
+    hallway_corner_wall_right = Pnt2(
+        (edge_of_back_right_wall.x + hallway_corner_right.x)/2,
+        (edge_of_back_right_wall.y + hallway_corner_right.y)/2,
+    )
+    hallway_corner_wall_left = Pnt2(
+        (edge_of_back_left_wall.x + hallway_corner_left.x)/2,
+        (edge_of_back_left_wall.y + hallway_corner_left.y)/2,
+    )
+    hallway_walls_offset = sqrt((hallway_width/2)^2/2)
+    hallway_centroid = Pnt2(
+        (edge_of_back_right_wall.x + edge_of_back_left_wall.x)/2 - sqrt((hallway_total_length/2)^2/2),
+        (edge_of_back_right_wall.y + edge_of_back_left_wall.y)/2 - sqrt((hallway_total_length/2)^2/2),
+    )
+    hallway_walls_adj = sqrt((hallway_width/2)^2/2)
+
     ################# CORNER WALLS
-    lcwall_transform = Translate(Pnt3(-300,0,-160))*RotateY(45.0)
+    lcwall_transform = Translate(Pnt3(hallway_corner_wall_left.x,0,hallway_corner_wall_left.y))*RotateY(45.0)
     lcwall = Rectangle(
-        Pnt2(-25, 0), 
-        Pnt2(25, ceiling_height), 
+        Pnt2(-40, 0), 
+        Pnt2(40, ceiling_height), 
         0.0,
         3, 
         ShapeCore(lcwall_transform, Inv(lcwall_transform), false, false),
@@ -322,57 +344,68 @@ function test_integrate()
     for tri in lcwall
         push!(primitives, Primitive(tri, mat_yellow, nothing))
     end
+    rcwall_transform = Translate(Pnt3(hallway_corner_wall_right.x,0,hallway_corner_wall_right.y))*RotateY(45.0)
+    rcwall = Rectangle(
+        Pnt2(-40, 0), 
+        Pnt2(40, ceiling_height), 
+        0.0,
+        3, 
+        ShapeCore(rcwall_transform, Inv(rcwall_transform), false, false),
+        nothing
+    )
+    for tri in rcwall
+        push!(primitives, Primitive(tri, mat_yellow, nothing))
+    end
 
     ################# HALLWAY
-    # adjustment = -750
-    # rhwall_transform = RotateY(-45.0)*Translate(Pnt3(adjustment,0,+hallway_width/2))
-    # rhwall = Rectangle(
-    #     Pnt2(-hallway_total_length/2, 0), 
-    #     Pnt2(hallway_total_length/2, ceiling_height), 
-    #     0.0,
-    #     3, 
-    #     ShapeCore(rhwall_transform, Inv(rhwall_transform), false, false),
-    #     nothing
-    # )
-    # for tri in rhwall
-    #     push!(primitives, Primitive(tri, mat_red, nothing))
-    # end
-    # lhwall_transform = RotateY(-45.0)*Translate(Pnt3(adjustment,0,-hallway_width/2))
-    # lhwall = Rectangle(
-    #     Pnt2(-hallway_total_length/2, 0), 
-    #     Pnt2(hallway_total_length/2, ceiling_height), 
-    #     0.0,
-    #     3, 
-    #     ShapeCore(lhwall_transform, Inv(lhwall_transform), false, false),
-    #     nothing
-    # )
-    # for tri in lhwall
-    #     push!(primitives, Primitive(tri, mat_yellow, nothing))
-    # end
-    # cewall_transform = RotateY(-45.0)*Translate(Pnt3(adjustment,0,0))
-    # cewall = Rectangle(
-    #     Pnt2(-hallway_total_length/2, -hallway_width/2), 
-    #     Pnt2(hallway_total_length/2, hallway_width/2), 
-    #     ceiling_height,
-    #     2, 
-    #     ShapeCore(cewall_transform, Inv(cewall_transform), false, false),
-    #     nothing
-    # )
-    # for tri in cewall
-    #     push!(primitives, Primitive(tri, mat_blue, nothing))
-    # end
-    # flwall_transform = RotateY(-45.0)*Translate(Pnt3(adjustment,0,0))
-    # flwall = Rectangle(
-    #     Pnt2(-hallway_total_length/2, -hallway_width/2), 
-    #     Pnt2(hallway_total_length/2, hallway_width/2), 
-    #     0.0,
-    #     2, 
-    #     ShapeCore(flwall_transform, Inv(flwall_transform), false, false),
-    #     nothing
-    # )
-    # for tri in flwall
-    #     push!(primitives, Primitive(tri, mat_blue, nothing))
-    # end
+    rhwall_transform = Translate(Pnt3(hallway_centroid.x+hallway_walls_adj,0,hallway_centroid.y-hallway_walls_adj)) * RotateY(-45.0)
+    rhwall = Rectangle(
+        Pnt2(-hallway_total_length/2, 0), 
+        Pnt2(hallway_total_length/2, ceiling_height), 
+        0.0,
+        3, 
+        ShapeCore(rhwall_transform, Inv(rhwall_transform), false, false),
+        nothing
+    )
+    for tri in rhwall
+        push!(primitives, Primitive(tri, mat_red, nothing))
+    end
+    lhwall_transform = Translate(Pnt3(hallway_centroid.x-hallway_walls_adj,0,hallway_centroid.y+hallway_walls_adj)) * RotateY(-45.0)
+    lhwall = Rectangle(
+        Pnt2(-hallway_total_length/2, 0), 
+        Pnt2(hallway_total_length/2, ceiling_height), 
+        0.0,
+        3, 
+        ShapeCore(lhwall_transform, Inv(lhwall_transform), false, false),
+        nothing
+    )
+    for tri in lhwall
+        push!(primitives, Primitive(tri, mat_red, nothing))
+    end
+    cewall_transform = Translate(Pnt3(hallway_centroid.x,0,hallway_centroid.y)) * RotateY(-45.0)
+    cewall = Rectangle(
+        Pnt2(-hallway_total_length/2, -hallway_width/2), 
+        Pnt2(hallway_total_length/2, hallway_width/2), 
+        ceiling_height,
+        2, 
+        ShapeCore(cewall_transform, Inv(cewall_transform), false, false),
+        nothing
+    )
+    for tri in cewall
+        push!(primitives, Primitive(tri, mat_blue, nothing))
+    end
+    flwall_transform = Translate(Pnt3(hallway_centroid.x,0,hallway_centroid.y)) * RotateY(-45.0)
+    flwall = Rectangle(
+        Pnt2(-hallway_total_length/2, -hallway_width/2), 
+        Pnt2(hallway_total_length/2, hallway_width/2), 
+        0.0,
+        2, 
+        ShapeCore(flwall_transform, Inv(flwall_transform), false, false),
+        nothing
+    )
+    for tri in flwall
+        push!(primitives, Primitive(tri, mat_blue, nothing))
+    end
     
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
