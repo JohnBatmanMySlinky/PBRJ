@@ -68,6 +68,7 @@ include("materials/substrate.jl")
 include("textures/constant.jl")
 include("textures/image.jl")
 include("textures/procedural.jl")
+include("textures/mix.jl")
 include("lights/light.jl")
 include("lights/area.jl")
 include("lights/point.jl")
@@ -130,6 +131,30 @@ function test_integrate()
     hallway_corner_offset = 240.0
     hallway_total_length = 1000.0
 
+    ################# CORNER CONSTANTS
+    edge_of_foyer = Pnt2(-foyer_dim/2, -foyer_dim/2)
+    edge_of_back_right_wall = Pnt2(-foyer_dim/2+sqrt(hallway_corner_offset^2/2), -foyer_dim/2)
+    edge_of_back_left_wall = Pnt2(-foyer_dim/2, -foyer_dim/2+sqrt(hallway_corner_offset^2/2))
+    hallway_corner_tmp = sqrt(((hallway_corner_offset - hallway_width)/2)^2/2)
+    hallway_corner_right = Pnt2(edge_of_back_right_wall.x - hallway_corner_tmp, edge_of_back_right_wall.y + hallway_corner_tmp)
+    hallway_corner_left = Pnt2(edge_of_back_left_wall.x + hallway_corner_tmp, edge_of_back_left_wall.y - hallway_corner_tmp)
+    hallway_corner_wall_right = Pnt2(
+        (edge_of_back_right_wall.x + hallway_corner_right.x)/2,
+        (edge_of_back_right_wall.y + hallway_corner_right.y)/2,
+    )
+    hallway_corner_wall_left = Pnt2(
+        (edge_of_back_left_wall.x + hallway_corner_left.x)/2,
+        (edge_of_back_left_wall.y + hallway_corner_left.y)/2,
+    )
+    hallway_walls_offset = sqrt((hallway_width/2)^2/2)
+    hallway_centroid = Pnt2(
+        (edge_of_back_right_wall.x + edge_of_back_left_wall.x)/2 - sqrt((hallway_total_length/2)^2/2),
+        (edge_of_back_right_wall.y + edge_of_back_left_wall.y)/2 - sqrt((hallway_total_length/2)^2/2),
+    )
+    hallway_walls_adj = sqrt((hallway_width/2)^2/2)
+
+    ceiling_floor_corner_alpha_mask_threshold = (edge_of_back_right_wall.x - -300)/600
+    
     ##############################
     ##### Instantiating light & primitive vectors
     ##############################
@@ -148,7 +173,11 @@ function test_integrate()
         0.0,
         2, 
         ShapeCore(floor_transform, Inv(floor_transform), false, false),
-        nothing
+        CornerProceduralTexture(
+            ceiling_floor_corner_alpha_mask_threshold,
+            Spectrum(1,1,1),
+            Spectrum(0,0,0),
+        )
     )
     for tri in floor
         push!(primitives, Primitive(tri, mat_white, nothing))
@@ -162,11 +191,18 @@ function test_integrate()
         ceiling_height,
         2, 
         ShapeCore(ceiling_transform, Inv(ceiling_transform), false, false),
-        CircleProceduralTexture(
-            Pnt2(.5, .5),
-            ceiling_whole_size/foyer_dim,
-            Spectrum(1,1,1),
-            Spectrum(0,0,0)
+        MixAddTexture(
+            CircleProceduralTexture(
+                Pnt2(.5, .5),
+                ceiling_whole_size/foyer_dim,
+                Spectrum(1,1,1),
+                Spectrum(0,0,0)
+            ),
+            CornerProceduralTexture(
+                ceiling_floor_corner_alpha_mask_threshold,
+                Spectrum(1,1,1),
+                Spectrum(0,0,0),
+            )
         )
     )
     for tri in ceiling
@@ -309,28 +345,6 @@ function test_integrate()
         end
     end
 
-    ################# CORNER CONSTANTS
-    edge_of_foyer = Pnt2(-foyer_dim/2, -foyer_dim/2)
-    edge_of_back_right_wall = Pnt2(-foyer_dim/2+sqrt(hallway_corner_offset^2/2), -foyer_dim/2)
-    edge_of_back_left_wall = Pnt2(-foyer_dim/2, -foyer_dim/2+sqrt(hallway_corner_offset^2/2))
-    hallway_corner_tmp = sqrt(((hallway_corner_offset - hallway_width)/2)^2/2)
-    hallway_corner_right = Pnt2(edge_of_back_right_wall.x - hallway_corner_tmp, edge_of_back_right_wall.y + hallway_corner_tmp)
-    hallway_corner_left = Pnt2(edge_of_back_left_wall.x + hallway_corner_tmp, edge_of_back_left_wall.y - hallway_corner_tmp)
-    hallway_corner_wall_right = Pnt2(
-        (edge_of_back_right_wall.x + hallway_corner_right.x)/2,
-        (edge_of_back_right_wall.y + hallway_corner_right.y)/2,
-    )
-    hallway_corner_wall_left = Pnt2(
-        (edge_of_back_left_wall.x + hallway_corner_left.x)/2,
-        (edge_of_back_left_wall.y + hallway_corner_left.y)/2,
-    )
-    hallway_walls_offset = sqrt((hallway_width/2)^2/2)
-    hallway_centroid = Pnt2(
-        (edge_of_back_right_wall.x + edge_of_back_left_wall.x)/2 - sqrt((hallway_total_length/2)^2/2),
-        (edge_of_back_right_wall.y + edge_of_back_left_wall.y)/2 - sqrt((hallway_total_length/2)^2/2),
-    )
-    hallway_walls_adj = sqrt((hallway_width/2)^2/2)
-
     ################# CORNER WALLS
     lcwall_transform = Translate(Pnt3(hallway_corner_wall_left.x,0,hallway_corner_wall_left.y))*RotateY(45.0)
     lcwall = Rectangle(
@@ -430,11 +444,11 @@ function test_integrate()
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(100, 120, 400)
+    look_from = Pnt3(150, 120, 400)
     look_at = Pnt3(0, 100, 0)
     up = Vec3(0, -1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 70.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(4, 4, 4, true)
