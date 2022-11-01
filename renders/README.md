@@ -7,3 +7,4 @@
 6) + bump map (finally correct but slow as all hell) + area light 100 spp
 7) + stratified sampling + OrenNayer & Plastic teapots (+ fixed normals!) 25x25 spp
 8) + updated BVH and bump mapping go brrrrrr. 25x25 spp in 1h:15m
+9) Munich Re scene geometry

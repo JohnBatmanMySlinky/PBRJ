@@ -64,9 +64,11 @@ include("materials/bsdf.jl")
 include("materials/matte.jl")
 include("materials/plastic.jl")
 include("materials/mirror.jl")
+include("materials/substrate.jl")
 include("textures/constant.jl")
 include("textures/image.jl")
 include("textures/procedural.jl")
+include("textures/mix.jl")
 include("lights/light.jl")
 include("lights/area.jl")
 include("lights/point.jl")
@@ -76,7 +78,7 @@ include("integrators/whitted.jl")
 include("handy_prints.jl")
 include("obj_reader.jl")
 
-function test_integrate()
+function render_munich_re_scene(destination::String)
     ###########################
     ######## Materials ########
     ###########################
@@ -85,7 +87,6 @@ function test_integrate()
         ConstantTexture(Vec3(0, 0, 0)),
         nothing
     )
-
     mat_red = Matte(
         ConstantTexture(Vec3(1, 0, 0)),
         ConstantTexture(Vec3(0, 0, 0)),
@@ -101,159 +102,336 @@ function test_integrate()
         ConstantTexture(Vec3(0, 0, 0)),
         nothing
     )
-
-    mat_concrete = Matte(
-        ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"),
-        ConstantTexture(Pnt3(0,0,0)),
-        ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg")
+    mat_yellow = Matte(
+        ConstantTexture(Vec3(1, 1, 0)),
+        ConstantTexture(Vec3(0, 0, 0)),
+        nothing
+    )
+    mat_concrete = Substrate(
+        ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"), # kd
+        ConstantTexture(Pnt3(.2, .2, .2)), # ks
+        ConstantTexture(Pnt3(.003, .003, .003)), # u
+        ConstantTexture(Pnt3(.003, .003, .003)), # v
+        true, # remap
+        ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg") # bump
     )
 
     ###################################
     ###### GEOMETRICAL CONSTANTS ######
     ###################################
 
-    ceiling_height = 200 # ~10ft * 20
-    hallway_width = 160 # ~8ft * 20
-    pillar_width_1 = 100 # ~5ft * 20
-    pillar_width_2 = 30 # ~ 1.5ft * 20
-    foyer_dim = 800 # ~30ft * 20
-    ceiling_whole_size = 130 # ~6.5ft * 20
-    ceiling_circle_thickness = 20 # ~1ft * 20
-    ceiling_circle_offset = 10 # ~6in * 20
-    pillar_alight_trim = 1
+    ceiling_height = 200.0 # ~10ft * 20
+    hallway_width = 160.0 # ~8ft * 20
+    pillar_width_1 = 60.0 # ~4.5ft * 20
+    pillar_width_2 = 20.0 # ~ 1.5ft * 20
+    foyer_dim = 600.0 # ~30ft * 20
+    ceiling_whole_size = 130.0 # ~6.5ft * 20
+    ceiling_circle_thickness = 20.0 # ~1ft * 20
+    ceiling_circle_offset = 10.0 # ~6in * 20
+    hallway_corner_offset = 240.0
+    hallway_total_length = 1000.0
+
+    ################# CORNER CONSTANTS
+    edge_of_foyer = Pnt2(-foyer_dim/2, -foyer_dim/2)
+    edge_of_back_right_wall = Pnt2(-foyer_dim/2+sqrt(hallway_corner_offset^2/2), -foyer_dim/2)
+    edge_of_back_left_wall = Pnt2(-foyer_dim/2, -foyer_dim/2+sqrt(hallway_corner_offset^2/2))
+    hallway_corner_tmp = sqrt(((hallway_corner_offset - hallway_width)/2)^2/2)
+    hallway_corner_right = Pnt2(edge_of_back_right_wall.x - hallway_corner_tmp, edge_of_back_right_wall.y + hallway_corner_tmp)
+    hallway_corner_left = Pnt2(edge_of_back_left_wall.x + hallway_corner_tmp, edge_of_back_left_wall.y - hallway_corner_tmp)
+    hallway_corner_wall_right = Pnt2(
+        (edge_of_back_right_wall.x + hallway_corner_right.x)/2,
+        (edge_of_back_right_wall.y + hallway_corner_right.y)/2,
+    )
+    hallway_corner_wall_left = Pnt2(
+        (edge_of_back_left_wall.x + hallway_corner_left.x)/2,
+        (edge_of_back_left_wall.y + hallway_corner_left.y)/2,
+    )
+    hallway_walls_offset = sqrt((hallway_width/2)^2/2)
+    hallway_centroid = Pnt2(
+        (edge_of_back_right_wall.x + edge_of_back_left_wall.x)/2 - sqrt((hallway_total_length/2)^2/2),
+        (edge_of_back_right_wall.y + edge_of_back_left_wall.y)/2 - sqrt((hallway_total_length/2)^2/2),
+    )
+    hallway_walls_adj = sqrt((hallway_width/2)^2/2)
+
+    ceiling_floor_corner_alpha_mask_threshold = (edge_of_back_right_wall.x - -300)/600
+    
+    ##############################
+    ##### Instantiating light & primitive vectors
+    ##############################
+    primitives = Primitive[]
+    lights = Light[]    
 
     ########################
     #### GEOMETRY ##########
     ########################
 
-    floor_transform = Translate(Pnt3(0, 0, 0))
-    floor = XZRectangle(
-        floor_transform, 
-        Pnt2(-foyer_dim/2, foyer_dim/2),
-        Pnt2(-foyer_dim/2, foyer_dim/2),
+    ################# FLOOR
+    floor_transform = Translate(Pnt3(0,0,0))
+    floor = Rectangle(
+        Pnt2(-foyer_dim/2, -foyer_dim/2), 
+        Pnt2(foyer_dim/2, foyer_dim/2), 
         0.0,
-        nothing,
+        2, 
+        ShapeCore(floor_transform, Inv(floor_transform), false, false),
+        CornerProceduralTexture(
+            ceiling_floor_corner_alpha_mask_threshold,
+            Spectrum(1,1,1),
+            Spectrum(0,0,0),
+        )
+    )
+    for tri in floor
+        push!(primitives, Primitive(tri, mat_concrete, nothing))
+    end
+
+    ################# CEILING
+    ceiling_transform = Translate(Pnt3(0,0,0))
+    ceiling = Rectangle(
+        Pnt2(-foyer_dim/2, -foyer_dim/2), 
+        Pnt2(foyer_dim/2, foyer_dim/2), 
+        ceiling_height,
+        2, 
+        ShapeCore(ceiling_transform, Inv(ceiling_transform), false, false),
+        MixAddTexture(
+            CircleProceduralTexture(
+                Pnt2(.5, .5),
+                ceiling_whole_size/foyer_dim,
+                Spectrum(1,1,1),
+                Spectrum(0,0,0)
+            ),
+            CornerProceduralTexture(
+                ceiling_floor_corner_alpha_mask_threshold,
+                Spectrum(1,1,1),
+                Spectrum(0,0,0),
+            )
+        )
+    )
+    for tri in ceiling
+        push!(primitives, Primitive(tri, mat_white, nothing))
+    end
+
+    ################# RIGHT WALL
+    rwall_transform = Translate(Pnt3(0,0,0))
+    rwall = Rectangle(
+        Pnt2(-foyer_dim/2 + sqrt(hallway_corner_offset^2/2), 0), 
+        Pnt2(foyer_dim/2, ceiling_height), 
+        -foyer_dim/2,
+        3, 
+        ShapeCore(rwall_transform, Inv(rwall_transform), false, false),
+        nothing
+    )
+    for tri in rwall
+        push!(primitives, Primitive(tri, mat_blue, nothing))
+    end
+
+    ################# LEFT WALL
+    lwall_transform = Translate(Pnt3(0,0,0))
+    lwall = Rectangle(
+        Pnt2(0, -foyer_dim/2+sqrt(hallway_corner_offset^2/2)), 
+        Pnt2(ceiling_height, foyer_dim/2), 
+        -foyer_dim/2,
+        1, 
+        ShapeCore(lwall_transform, Inv(lwall_transform), false, false),
+        nothing
+    )
+    for tri in lwall
+        push!(primitives, Primitive(tri, mat_green, nothing))
+    end
+
+    ################# Pillar 1
+    pillar_1_t = Translate(Pnt3(0,0,0))
+    pillar_1 = Box(
+        Pnt3(-pillar_width_1, 0,             -pillar_width_2), 
+        Pnt3(pillar_width_1,  ceiling_height+300, pillar_width_2), 
+        ShapeCore(pillar_1_t, Inv(pillar_1_t), false, false),
+        nothing
+    )
+    for tri in pillar_1
+        push!(primitives, Primitive(tri, mat_blue, nothing))
+    end
+
+    ################# Pillar 2
+    pillar_2_t = RotateY(90.0)
+    pillar_2 = Box(
+        Pnt3(-pillar_width_1, 0,                  -pillar_width_2), 
+        Pnt3(pillar_width_1,  ceiling_height+300, pillar_width_2), 
+        ShapeCore(pillar_2_t, Inv(pillar_2_t), false, false),
+        nothing
+    )
+    for tri in pillar_2
+        push!(primitives, Primitive(tri, mat_green, nothing))
+    end
+
+    ################# CEILING CYLINDAR
+    outer_cyl_t = RotateX(-90.0)
+    outer_cyl = Cylindar(
+        outer_cyl_t,
+        ceiling_whole_size+ceiling_circle_thickness/2,
+        ceiling_height-ceiling_circle_offset,
+        ceiling_height+ceiling_circle_offset*50,
+        360.0,
         false,
         false
     )
-
-    ceiling_transform = Translate(Pnt3(0,ceiling_height,0))
-    ceiling = XZRectangle(
-        ceiling_transform,
-        Pnt2(-foyer_dim/2, foyer_dim/2),
-        Pnt2(-foyer_dim/2, foyer_dim/2),
-        0.0,
-        CircleProceduralTexture(Pnt2(.5, .5), ceiling_whole_size * .98 / foyer_dim, Pnt3(1,1,1), Pnt3(0,0,0)), 
-        true,
-        false
-    )
-
-    pillar_transform = RotateY(-12.0)
-    pillar1 = Box(
-        pillar_transform,
-        Pnt3(-pillar_width_1/2, -50, -pillar_width_2/2),
-        Pnt3(pillar_width_1/2, 300, pillar_width_2/2),
-        mat_blue
-    )
-    pillar2 = Box(
-        pillar_transform,
-        Pnt3(-pillar_width_2/2, -50, -pillar_width_1/2),
-        Pnt3(pillar_width_2/2, 300, pillar_width_1/2),
-        mat_green
-    )
-
-    pillar_alight_1 = YZRectangle(
-        pillar_transform,
-        # Ymin, Ymax 
-        Pnt2(5, 50),                  
-        # Xmin, Xmax
-        Pnt2(-pillar_width_2/2 + 1, pillar_width_2/2-1),
-        # Z
-        pillar_width_1/2 + 1,                        
-        nothing,
-        true,
-        false
-    )
-
-    ceiling_circle_t = Translate(Pnt3(0,ceiling_height - ceiling_circle_offset, 0))
-    ceiling_circle_lip = Disk(
-        ceiling_circle_t,
-        0.0,                                 
-        ceiling_whole_size * 1.0,
-        (ceiling_whole_size - ceiling_circle_thickness)*1.0,
-        360.0,
-        true,
-        false
-    )
-    ceiling_circle_inner = Cylindar(
-        ceiling_circle_t,
-        (ceiling_whole_size - ceiling_circle_thickness)*1.0,
-        0.0,
-        100.0,
-        360.0,
-        true,
-        false
-    )
-    ceiling_circle_outer = Cylindar(
-        ceiling_circle_t,
-        ceiling_whole_size*1.0,
-        0.0,
-        100.0,
+    inner_cyl_t = RotateX(-90.0)
+    inner_cyl = Cylindar(
+        inner_cyl_t,
+        ceiling_whole_size-ceiling_circle_thickness/2,
+        ceiling_height-ceiling_circle_offset,
+        ceiling_height+ceiling_circle_offset*50,
         360.0,
         false,
         false
     )
-
-    # vector of primitives & one for lights
-    primitives = Primitive[]
-    lights = Light[]    
-
-    # add box
-    primitives = vcat(primitives, pillar1, pillar2)
-
-    # add pillar lights
-    pillar_alight_1_l = DiffuseAreaLight(
-        Spectrum(50.0, 50.0, 50.0),
-        pillar_alight_1
+    disk_t = RotateX(-90.0)
+    disk = Disk(
+        disk_t,
+        ceiling_height-ceiling_circle_offset,
+        ceiling_whole_size+ceiling_circle_thickness/2,
+        ceiling_whole_size-ceiling_circle_thickness/2,
+        360.0,
+        false,
+        false
     )
-    push!(lights, pillar_alight_1_l)
-    push!(primitives, Primitive(pillar_alight_1, mat_red, pillar_alight_1_l))
+    push!(primitives, Primitive(outer_cyl, mat_red, nothing))
+    push!(primitives, Primitive(inner_cyl, mat_red, nothing))
+    push!(primitives, Primitive(disk, mat_red, nothing))
 
-    # add floor & ceiling
-    push!(primitives, Primitive(floor, mat_concrete, nothing))
-    push!(primitives, Primitive(ceiling, mat_concrete, nothing))
 
-    # # add ceiling circle components
-    push!(primitives, Primitive(ceiling_circle_lip, mat_red, nothing))
-    push!(primitives, Primitive(ceiling_circle_inner, mat_red, nothing))
-    push!(primitives, Primitive(ceiling_circle_outer, mat_red, nothing))
+    ################# Pillar Area Lights
+    pillar_area_light_spec = Tuple{Pnt2, Pnt2, Float64, Int64, Spectrum, Bool}[
+        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
+        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
+        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
+        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
+        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
 
-    # # instantiate area light ORBS
-    # for t in [
-    #     Translate(Pnt3(120, 100, 0)), 
-    #     Translate(Pnt3(-120, 100, 0))
-    # ]
-    #     light_orb = Sphere(
-    #         ShapeCore(t, Inv(t), false, false),
-    #         20.0
-    #     )
-    #     area_light = DiffuseAreaLight(
-    #         Spectrum(5.0, 5.0, 5.0),
-    #         light_orb,
-    #     )
-    #     push!(lights, area_light)
-    #     push!(primitives, Primitive(light_orb, mat_white, area_light))
-    # end
+        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
+        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
+        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
+        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
+        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
 
+        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
+        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
+        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
+        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
+        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
+
+        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
+        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
+        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
+        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
+        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
+    ]
+
+    t = Translate(Pnt3(0,0,0))
+    for (pmin, pmax, k, axis, brightness, flip) in pillar_area_light_spec
+        tmp_rec = Rectangle(
+            pmin, 
+            pmax, 
+            k,
+            axis, 
+            ShapeCore(t, Inv(t), flip, false),
+            nothing
+        )
+        for tri in tmp_rec
+            alight = DiffuseAreaLight(
+                brightness,
+                tri,
+                false
+            )
+            push!(lights, alight)
+            push!(primitives, Primitive(tri, mat_white, alight))
+        end
+    end
+
+    ################# CORNER WALLS
+    lcwall_transform = Translate(Pnt3(hallway_corner_wall_left.x,0,hallway_corner_wall_left.y))*RotateY(45.0)
+    lcwall = Rectangle(
+        Pnt2(-40, 0), 
+        Pnt2(40, ceiling_height), 
+        0.0,
+        3, 
+        ShapeCore(lcwall_transform, Inv(lcwall_transform), false, false),
+        nothing
+    )
+    for tri in lcwall
+        push!(primitives, Primitive(tri, mat_yellow, nothing))
+    end
+    rcwall_transform = Translate(Pnt3(hallway_corner_wall_right.x,0,hallway_corner_wall_right.y))*RotateY(45.0)
+    rcwall = Rectangle(
+        Pnt2(-40, 0), 
+        Pnt2(40, ceiling_height), 
+        0.0,
+        3, 
+        ShapeCore(rcwall_transform, Inv(rcwall_transform), false, false),
+        nothing
+    )
+    for tri in rcwall
+        push!(primitives, Primitive(tri, mat_yellow, nothing))
+    end
+
+    ################# HALLWAY
+    rhwall_transform = Translate(Pnt3(hallway_centroid.x+hallway_walls_adj,0,hallway_centroid.y-hallway_walls_adj)) * RotateY(-45.0)
+    rhwall = Rectangle(
+        Pnt2(-hallway_total_length/2, 0), 
+        Pnt2(hallway_total_length/2, ceiling_height), 
+        0.0,
+        3, 
+        ShapeCore(rhwall_transform, Inv(rhwall_transform), false, false),
+        nothing
+    )
+    for tri in rhwall
+        push!(primitives, Primitive(tri, mat_red, nothing))
+    end
+    lhwall_transform = Translate(Pnt3(hallway_centroid.x-hallway_walls_adj,0,hallway_centroid.y+hallway_walls_adj)) * RotateY(-45.0)
+    lhwall = Rectangle(
+        Pnt2(-hallway_total_length/2, 0), 
+        Pnt2(hallway_total_length/2, ceiling_height), 
+        0.0,
+        3, 
+        ShapeCore(lhwall_transform, Inv(lhwall_transform), false, false),
+        nothing
+    )
+    for tri in lhwall
+        push!(primitives, Primitive(tri, mat_red, nothing))
+    end
+    cewall_transform = Translate(Pnt3(hallway_centroid.x,0,hallway_centroid.y)) * RotateY(-45.0)
+    cewall = Rectangle(
+        Pnt2(-hallway_total_length/2, -hallway_width/2), 
+        Pnt2(hallway_total_length/2, hallway_width/2), 
+        ceiling_height,
+        2, 
+        ShapeCore(cewall_transform, Inv(cewall_transform), false, false),
+        nothing
+    )
+    for tri in cewall
+        push!(primitives, Primitive(tri, mat_blue, nothing))
+    end
+    flwall_transform = Translate(Pnt3(hallway_centroid.x,0,hallway_centroid.y)) * RotateY(-45.0)
+    flwall = Rectangle(
+        Pnt2(-hallway_total_length/2, -hallway_width/2), 
+        Pnt2(hallway_total_length/2, hallway_width/2), 
+        0.0,
+        2, 
+        ShapeCore(flwall_transform, Inv(flwall_transform), false, false),
+        nothing
+    )
+    for tri in flwall
+        push!(primitives, Primitive(tri, mat_concrete, nothing))
+    end
+    
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
-    # print_BVH_bounds(BVH)
+    # instantiate an env light
+    env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
+    push!(lights, env_light)
 
     # Instantiate a Filter
-    filter = BoxFilter(Pnt2(.5, .5))
+    filter = BoxFilter(Pnt2(.1, .1))
 
     # Instantiate a Film
     film = Film(
@@ -262,24 +440,20 @@ function test_integrate()
         filter,
         1.0,
         1.0,
-        "yeehaw.png"
+        destination
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(600, 100, 600)
-    look_at = Pnt3(250, -100, 0) # TODO something is off here....
+    look_from = Pnt3(150, 120, 400)
+    look_at = Pnt3(0, 100, 0)
     up = Vec3(0, -1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 175.5, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(4, 4, 4, true)
 
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
-
-    # instantiate an env light
-    env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
-    # push!(lights, env_light)
 
     # Instantiate Scene
     scene = Scene(lights, bvh)
@@ -287,10 +461,7 @@ function test_integrate()
     # Instantiate an Integrator
     I = WhittedIntegrator(C, S, 25)
 
-    render(I, scene)
+    render(I, scene, true)
 end
-
-
-@time test_integrate()
 
 end
