@@ -60,8 +60,8 @@ function start_pixel!(ss::StratifiedSampler, ::Pnt2)
     end
 
     # now shuffle!
-    shuffle!(ss.pixel_sampler.sampels1D)
-    shuffle!(ss.pixel_sampler.sampels2D)
+    # shuffle!(ss.pixel_sampler.sampels1D)
+    # shuffle!(ss.pixel_sampler.sampels2D)
 end
 
 function get_1D!(ss::StratifiedSampler)

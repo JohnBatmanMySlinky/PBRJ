@@ -1,4 +1,4 @@
-function random_in_concentric_disk(p::Pnt2)::Pnt2
+function random_in_concentric_disk(u::Pnt2)::Pnt2
     offset = 2 * u - Pnt2(1,1)
 
     if offset[1] == 0 && offset[2] == 0

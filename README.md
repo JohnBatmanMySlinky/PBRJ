@@ -8,9 +8,6 @@ Physically Based Rendering - in Julia
 
 # Todo list
 - Implement float texture.
-- Add in substrate material.
-    - Add substrate material & FresnelBlend bxdf.
-    - Copy wood material from bathroom scene as a start.
 - Add in uber material.
 - Add tests. 
 - Improve scene geometry & lighting.

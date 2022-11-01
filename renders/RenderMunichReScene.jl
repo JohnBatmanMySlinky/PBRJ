@@ -1,3 +1,3 @@
 include("../src/RayTracing.jl")
 
-RayTracing.render_munich_re_scene("9.png")
+@time RayTracing.render_munich_re_scene("yeehaw.png")

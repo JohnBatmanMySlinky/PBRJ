@@ -1,0 +1,21 @@
+struct LanczosSincFilter <: Filter
+    radius::Pnt2
+    tau::Float64
+end
+
+function (f::LanczosSincFilter)(p::Pnt2)::Float64
+    windowed_sinc(p.x, f.radius.x, f.tau) * windowed_sinc(p.y, f.radius.y, f.tau)
+end
+
+function sinc(x::Float64)::Float64
+    x = abs(x)
+    x < 1e-5 && return 1.0
+    x *= π
+    return sin(x) / x
+end
+
+function windowed_sinc(x::Float64, r::Float64, tau::Float64)::Float64
+    x = abs(x)
+    x > r && return 0.0
+    return sinc(x) * sinc(x / tau)
+end

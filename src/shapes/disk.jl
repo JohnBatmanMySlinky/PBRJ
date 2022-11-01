@@ -123,3 +123,16 @@ end
 function area(d::Disk)::Float64
     return d.phi_max * (d.radius^2 - d.inner_radius^2) / 2.0
 end
+
+function sample(d::Disk, u::Pnt2)::Tuple{Pnt3, Nml3}
+    pd = random_in_concentric_disk(u)
+    p_obj = Pnt3(pd.x * d.radius, pd.y * d.radius, d.height)
+    n = d.core.object_to_world(Nml3(0,0,1))
+    if d.core.reverse_orientation
+        n = -n
+    end
+    return d.core.object_to_world(p_obj), n
+end
+function sample(d::Disk, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
+    return sample(d, u)
+end

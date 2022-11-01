@@ -45,6 +45,7 @@ include("rand_utils.jl")
 include("accelerators/bvh_naive.jl")
 include("accelerators/bvh_pbr_pxlth.jl")
 include("filters/box.jl")
+include("filters/lanczos_sinc.jl")
 include("film.jl")
 include("distributions.jl")
 include("cameras/camera.jl")
@@ -109,7 +110,7 @@ function render_munich_re_scene(destination::String)
     )
     mat_concrete = Substrate(
         ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"), # kd
-        ConstantTexture(Pnt3(.2, .2, .2)), # ks
+        ConstantTexture(Pnt3(.1, .1, .1)), # ks
         ConstantTexture(Pnt3(.003, .003, .003)), # u
         ConstantTexture(Pnt3(.003, .003, .003)), # v
         true, # remap
@@ -122,12 +123,14 @@ function render_munich_re_scene(destination::String)
 
     ceiling_height = 200.0 # ~10ft * 20
     hallway_width = 160.0 # ~8ft * 20
+    hallway_width_extra = 20.0
     pillar_width_1 = 60.0 # ~4.5ft * 20
     pillar_width_2 = 20.0 # ~ 1.5ft * 20
     foyer_dim = 600.0 # ~30ft * 20
     ceiling_whole_size = 130.0 # ~6.5ft * 20
     ceiling_circle_thickness = 20.0 # ~1ft * 20
     ceiling_circle_offset = 10.0 # ~6in * 20
+    ceiling_circle_height = 250.0
     hallway_corner_offset = 240.0
     hallway_total_length = 1000.0
 
@@ -220,7 +223,7 @@ function render_munich_re_scene(destination::String)
         nothing
     )
     for tri in rwall
-        push!(primitives, Primitive(tri, mat_blue, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
 
     ################# LEFT WALL
@@ -234,31 +237,31 @@ function render_munich_re_scene(destination::String)
         nothing
     )
     for tri in lwall
-        push!(primitives, Primitive(tri, mat_green, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
 
     ################# Pillar 1
     pillar_1_t = Translate(Pnt3(0,0,0))
     pillar_1 = Box(
         Pnt3(-pillar_width_1, 0,             -pillar_width_2), 
-        Pnt3(pillar_width_1,  ceiling_height+300, pillar_width_2), 
+        Pnt3(pillar_width_1,  ceiling_circle_height, pillar_width_2), 
         ShapeCore(pillar_1_t, Inv(pillar_1_t), false, false),
         nothing
     )
     for tri in pillar_1
-        push!(primitives, Primitive(tri, mat_blue, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
 
     ################# Pillar 2
     pillar_2_t = RotateY(90.0)
     pillar_2 = Box(
         Pnt3(-pillar_width_1, 0,                  -pillar_width_2), 
-        Pnt3(pillar_width_1,  ceiling_height+300, pillar_width_2), 
+        Pnt3(pillar_width_1,  ceiling_circle_height, pillar_width_2), 
         ShapeCore(pillar_2_t, Inv(pillar_2_t), false, false),
         nothing
     )
     for tri in pillar_2
-        push!(primitives, Primitive(tri, mat_green, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
 
     ################# CEILING CYLINDAR
@@ -267,7 +270,7 @@ function render_munich_re_scene(destination::String)
         outer_cyl_t,
         ceiling_whole_size+ceiling_circle_thickness/2,
         ceiling_height-ceiling_circle_offset,
-        ceiling_height+ceiling_circle_offset*50,
+        ceiling_circle_height,
         360.0,
         false,
         false
@@ -277,7 +280,7 @@ function render_munich_re_scene(destination::String)
         inner_cyl_t,
         ceiling_whole_size-ceiling_circle_thickness/2,
         ceiling_height-ceiling_circle_offset,
-        ceiling_height+ceiling_circle_offset*50,
+        ceiling_circle_height,
         360.0,
         false,
         false
@@ -292,10 +295,27 @@ function render_munich_re_scene(destination::String)
         false,
         false
     )
-    push!(primitives, Primitive(outer_cyl, mat_red, nothing))
-    push!(primitives, Primitive(inner_cyl, mat_red, nothing))
-    push!(primitives, Primitive(disk, mat_red, nothing))
+    push!(primitives, Primitive(outer_cyl, mat_white, nothing))
+    push!(primitives, Primitive(inner_cyl, mat_white, nothing))
+    push!(primitives, Primitive(disk, mat_white, nothing))
 
+    ########### Disk Area Light from Above
+    disk_light_above = Disk(
+        disk_t,
+        ceiling_circle_height+5,
+        ceiling_whole_size+ceiling_circle_thickness/2,
+        0.0,
+        360.0,
+        false,
+        false
+    )
+    disk_light_above_alight = DiffuseAreaLight(
+        Spectrum(2500.0, 2500.0, 2500.0),
+        disk_light_above,
+        false
+    )
+    push!(lights, disk_light_above_alight)
+    push!(primitives, Primitive(disk_light_above, mat_white, disk_light_above_alight))
 
     ################# Pillar Area Lights
     pillar_area_light_spec = Tuple{Pnt2, Pnt2, Float64, Int64, Spectrum, Bool}[
@@ -356,7 +376,7 @@ function render_munich_re_scene(destination::String)
         nothing
     )
     for tri in lcwall
-        push!(primitives, Primitive(tri, mat_yellow, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
     rcwall_transform = Translate(Pnt3(hallway_corner_wall_right.x,0,hallway_corner_wall_right.y))*RotateY(45.0)
     rcwall = Rectangle(
@@ -368,13 +388,13 @@ function render_munich_re_scene(destination::String)
         nothing
     )
     for tri in rcwall
-        push!(primitives, Primitive(tri, mat_yellow, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
 
     ################# HALLWAY
     rhwall_transform = Translate(Pnt3(hallway_centroid.x+hallway_walls_adj,0,hallway_centroid.y-hallway_walls_adj)) * RotateY(-45.0)
     rhwall = Rectangle(
-        Pnt2(-hallway_total_length/2, 0), 
+        Pnt2(-hallway_total_length/2, hallway_width_extra), 
         Pnt2(hallway_total_length/2, ceiling_height), 
         0.0,
         3, 
@@ -382,7 +402,20 @@ function render_munich_re_scene(destination::String)
         nothing
     )
     for tri in rhwall
-        push!(primitives, Primitive(tri, mat_red, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
+    end
+    extra_hallway_walls_adj = sqrt((hallway_width/2+hallway_width_extra)^2/2)
+    rh_extra_wall_transform = Translate(Pnt3(hallway_centroid.x+extra_hallway_walls_adj,0,hallway_centroid.y-extra_hallway_walls_adj)) * RotateY(-45.0)
+    rh_extra_wall = Rectangle(
+        Pnt2(-hallway_total_length/2, 0), 
+        Pnt2(hallway_total_length/2, hallway_width_extra), 
+        0.0,
+        3, 
+        ShapeCore(rh_extra_wall_transform, Inv(rh_extra_wall_transform), false, false),
+        nothing
+    )
+    for tri in rh_extra_wall
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
     lhwall_transform = Translate(Pnt3(hallway_centroid.x-hallway_walls_adj,0,hallway_centroid.y+hallway_walls_adj)) * RotateY(-45.0)
     lhwall = Rectangle(
@@ -394,7 +427,7 @@ function render_munich_re_scene(destination::String)
         nothing
     )
     for tri in lhwall
-        push!(primitives, Primitive(tri, mat_red, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
     cewall_transform = Translate(Pnt3(hallway_centroid.x,0,hallway_centroid.y)) * RotateY(-45.0)
     cewall = Rectangle(
@@ -406,11 +439,11 @@ function render_munich_re_scene(destination::String)
         nothing
     )
     for tri in cewall
-        push!(primitives, Primitive(tri, mat_blue, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
     flwall_transform = Translate(Pnt3(hallway_centroid.x,0,hallway_centroid.y)) * RotateY(-45.0)
     flwall = Rectangle(
-        Pnt2(-hallway_total_length/2, -hallway_width/2), 
+        Pnt2(-hallway_total_length/2, -hallway_width/2-hallway_width_extra), 
         Pnt2(hallway_total_length/2, hallway_width/2), 
         0.0,
         2, 
@@ -419,6 +452,26 @@ function render_munich_re_scene(destination::String)
     )
     for tri in flwall
         push!(primitives, Primitive(tri, mat_concrete, nothing))
+    end
+
+    # hallway floor area light
+    hallway_light_transform = Translate(Pnt3(hallway_centroid.x,0,hallway_centroid.y)) * RotateY(-45.0)
+    hallway_light = Rectangle(
+        Pnt2(-hallway_total_length/2, -hallway_width/2-hallway_width_extra), 
+        Pnt2(hallway_total_length/2, -hallway_width/2-1), 
+        hallway_width_extra,
+        2, 
+        ShapeCore(hallway_light_transform, Inv(hallway_light_transform), false, false),
+        nothing
+    )
+    for tri in hallway_light
+        alight = DiffuseAreaLight(
+            Spectrum(10000, 10000, 10000),
+            tri,
+            false
+        )
+        push!(lights, alight)
+        push!(primitives, Primitive(tri, mat_white, alight))
     end
     
     # instantiate accelerator
@@ -435,7 +488,7 @@ function render_munich_re_scene(destination::String)
 
     # Instantiate a Film
     film = Film(
-        Pnt2(250, 250),
+        Pnt2(1000, 1000),
         Bounds2(Pnt2(0,0), Pnt2(1,1)),
         filter,
         1.0,
@@ -451,7 +504,8 @@ function render_munich_re_scene(destination::String)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(4, 4, 4, true)
+    S = StratifiedSampler(5, 5, 4, true)
+    S = UniformSampler(25)
 
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
 
@@ -461,7 +515,7 @@ function render_munich_re_scene(destination::String)
     # Instantiate an Integrator
     I = WhittedIntegrator(C, S, 25)
 
-    render(I, scene, true)
+    render(I, scene, false)
 end
 
 end
