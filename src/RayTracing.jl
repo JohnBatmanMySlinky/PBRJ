@@ -488,7 +488,7 @@ function render_munich_re_scene(destination::String)
 
     # Instantiate a Film
     film = Film(
-        Pnt2(1000, 1000),
+        Pnt2(500, 500),
         Bounds2(Pnt2(0,0), Pnt2(1,1)),
         filter,
         1.0,
@@ -504,8 +504,7 @@ function render_munich_re_scene(destination::String)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(5, 5, 4, true)
-    S = UniformSampler(25)
+    S = StratifiedSampler(10, 10, 4, true)
 
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
 
