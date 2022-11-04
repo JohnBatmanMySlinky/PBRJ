@@ -84,6 +84,22 @@ function InstantiateSurfaceInteraction(
     )
 end
 
+function empty_surface_interation(s::Shape)
+    return InstantiateSurfaceInteraction(
+        Pnt3(1,1,1), 
+        0.0,
+        Vec3(1,1,1),
+        Pnt2(.5, .5),
+        Vec3(1,0,0),
+        Vec3(0,1,0),
+        Nml3(1,0,0),
+        Nml3(0,1,0),
+        s,
+        nothing,
+        nothing,
+    )
+end
+
 #################
 ### Spawn Ray ###
 #################

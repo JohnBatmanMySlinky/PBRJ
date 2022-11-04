@@ -70,6 +70,7 @@ include("textures/constant.jl")
 include("textures/image.jl")
 include("textures/procedural.jl")
 include("textures/mix.jl")
+include("textures/noise.jl")
 include("lights/light.jl")
 include("lights/area.jl")
 include("lights/point.jl")
@@ -115,6 +116,14 @@ function render_munich_re_scene(destination::String)
         ConstantTexture(Pnt3(.003, .003, .003)), # v
         true, # remap
         ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg") # bump
+    )
+    mat_concrete = Substrate(
+        PerlinNoise(.1), # kd
+        ConstantTexture(Pnt3(.1, .1, .1)), # ks
+        ConstantTexture(Pnt3(.003, .003, .003)), # u
+        ConstantTexture(Pnt3(.003, .003, .003)), # v
+        true, # remap
+        PerlinNoise(.1) # bump
     )
 
     ###################################
@@ -488,7 +497,7 @@ function render_munich_re_scene(destination::String)
 
     # Instantiate a Film
     film = Film(
-        Pnt2(500, 500),
+        Pnt2(250, 250),
         Bounds2(Pnt2(0,0), Pnt2(1,1)),
         filter,
         1.0,
@@ -504,7 +513,7 @@ function render_munich_re_scene(destination::String)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(10, 10, 4, true)
+    S = StratifiedSampler(4, 4, 4, true)
 
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
 

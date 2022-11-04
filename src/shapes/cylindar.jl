@@ -24,7 +24,7 @@ function ObjectBounds(c::Cylindar)::Bounds3
     )
 end
 
-function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
+function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
     # transform the ray to object space
     r = c.core.world_to_object(r)
 
@@ -36,15 +36,15 @@ function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, May
     # solve quadratic equation for t values
     exists, t0, t1 = solve_quadratic(a, b, C)
     if !exists
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(c)
     elseif t0 > r.tMax || t1 <= 0
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(c)
     else
         t_shape_hit = t0
         if t_shape_hit <= 0
             t_shape_hit = t1
             if t_shape_hit > r.tMax
-                return false, nothing, nothing
+                return false, 0.0, empty_surface_interation(c)
             end
         end
     end
@@ -60,11 +60,11 @@ function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, May
     # test clipping
     if p_hit.z < c.z_min || p_hit.z > c.z_max || phi > c.phi_max
         if t_shape_hit == t1
-            return false, nothing, nothing
+            return false, 0.0, empty_surface_interation(c)
         end
         t_shape_hit = t1
         if t1 > r.tMax
-            return false, nothing, nothing
+            return false, 0.0, empty_surface_interation(c)
         end
         p_hit = at(r, t_shape_hit)
         p_hit = refine_Interaction(p_hit, c)
@@ -73,7 +73,7 @@ function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, May
             phi += 2pi
         end
         if p_hit.z < c.z_min || p_hit.z > c.z_max || phi > c.phi_max
-            return false, nothing, nothing
+            return false, 0.0, empty_surface_interation(c)
         end
     end
 

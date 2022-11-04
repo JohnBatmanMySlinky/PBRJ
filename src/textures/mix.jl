@@ -4,11 +4,7 @@ struct MixAddTexture <: Texture
 end
 
 function (t::MixAddTexture)(si::SurfaceInteraction)
-    return t(si.uv)
-end
-
-function (t::MixAddTexture)(uv::Pnt2)
-    a_tex = t.a(uv)
-    b_tex = t.b(uv)
+    a_tex = t.a(si)
+    b_tex = t.b(si)
     return clamp.(a_tex + b_tex, 0, 1)
 end

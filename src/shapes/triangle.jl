@@ -154,11 +154,11 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
 
     ## perform edge & det tests
     if (e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0)
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(tri)
     end
     det = e0 + e1 + e2
     if det == 0
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(tri)
     end
 
     ## compute scaled sitance to triangle and test against rayt
@@ -167,10 +167,10 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     p2t = Vec3(p2t.x, p2t.y, p2t.z * Sz)
     t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z
     if (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax * det))
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(tri)
     end
     if (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax * det))
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(tri)
     end
 
     ## compute barycentric coords and t for intesection
@@ -202,8 +202,21 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
 
     # check alpha mask
     if !(tri.mesh.alpha_mask isa Nothing)
-        if tri.mesh.alpha_mask(uvhit) == Spectrum(1, 1, 1)
-            return false, nothing, nothing
+        si = InstantiateSurfaceInteraction(
+                phit,
+                0.0,
+                Vec3(1,1,1),
+                uvhit,
+                Vec3(1,1,1),
+                Vec3(1,1,1),
+                Nml3(1,1,1),
+                Nml3(1,1,1),
+                tri,
+                nothing,
+                nothing
+            )
+        if tri.mesh.alpha_mask(si) == Spectrum(1, 1, 1)
+            return false, 0.0, si
         end
     end
 

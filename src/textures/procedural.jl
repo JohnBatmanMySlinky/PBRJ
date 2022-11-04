@@ -10,12 +10,7 @@ struct CircleProceduralTexture <: Texture
 end
 
 function (cpt::CircleProceduralTexture)(si::SurfaceInteraction)
-    return cpt(si.uv)
-end
-
-function (cpt::CircleProceduralTexture)(uv::Pnt2)
-    u, v = uv
-
+    u, v = si.uv
     if (u-cpt.center[1])^2 + (v-cpt.center[2])^2 <= cpt.radius^2
         return cpt.inside
     else
@@ -34,11 +29,7 @@ struct CornerProceduralTexture <: Texture
 end
 
 function (cpt::CornerProceduralTexture)(si::SurfaceInteraction)
-    return cpt(si.uv)
-end
-
-function (cpt::CornerProceduralTexture)(uv::Pnt2)
-    u, v = uv
+    u, v = si.uv
 
     if u+v < cpt.threshold
         return cpt.inside

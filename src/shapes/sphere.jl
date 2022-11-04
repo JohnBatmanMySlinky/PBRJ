@@ -32,7 +32,7 @@ function ObjectBounds(s::Sphere)::Bounds3
 end
 
 # PBR 3.2.2
-function intersect(s::Sphere, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
+function intersect(s::Sphere, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
     # transform ray to object space 
     r = s.core.world_to_object(r)
 
@@ -43,15 +43,15 @@ function intersect(s::Sphere, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe
     # solve quadratic
     exists, t0, t1 = solve_quadratic(a, b, c)
     if !exists
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(s)
     elseif t0 > r.tMax || t1 <= 0
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(s)
     else
         t_shape_hit = t0
         if t_shape_hit <= 0
             t_shape_hit = t1
             if t_shape_hit > r.tMax
-                return false, nothing, nothing
+                return false, 0.0, empty_surface_interation(s)
             end
         end
     end
@@ -74,10 +74,10 @@ function intersect(s::Sphere, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe
     # test clipping
     if (s.zMin > -s.radius && p.z < s.zMin) || (s.zMax < s.radius && p.z > s.zMax) || phi > s.phiMax
         if t_shape_hit == t1
-            return false, nothing, nothing
+            return false, 0.0, empty_surface_interation(s)
         end
         if t1 > r.tMax
-            return false, nothing, nothing
+            return false, 0.0, empty_surface_interation(s)
         end
         t_shape_hit = t1
         p = at(r, t_shape_hit)
@@ -95,7 +95,7 @@ function intersect(s::Sphere, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe
         end
 
         if (s.zMin > -s.radius && p.z < s.zMin) || (s.zMax < radius && p.z > s.zMax) || phi > s.phiMax
-            return false, nothing, nothing
+            return false, 0.0, empty_surface_interation(s)
         end
     end
 

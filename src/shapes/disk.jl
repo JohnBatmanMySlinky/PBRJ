@@ -23,26 +23,26 @@ function ObjectBounds(d::Disk)::Bounds3
     )
 end
 
-function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
+function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
     # transform the ray to object space
     r = d.core.world_to_object(r)
 
     # compute plane intersection for disk
     t_shape_hit = (d.height - r.origin.z) / r.direction.z
     if t_shape_hit <= 0 || t_shape_hit >= r.tMax
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(d)
     end
 
     # reject disk intersections for rays parallel to disk's plane
     if r.direction.z == 0
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(d)
     end
 
     # see if hit is inside disk radii and phi max
     p_hit = at(r, t_shape_hit)
     dist2 = p_hit.x^2 + p_hit.y^2
     if (dist2 > d.radius^2) || (dist2 < d.inner_radius^2)
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(d)
     end
 
     # test against phimax
@@ -51,7 +51,7 @@ function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{S
         phi += 2pi
     end
     if phi > d.phi_max
-        return false, nothing, nothing
+        return false, 0.0, empty_surface_interation(d)
     end
 
     # now that we know we have a hit....
