@@ -110,21 +110,14 @@ function render_munich_re_scene(destination::String)
         nothing
     )
     mat_concrete = Substrate(
-        ImageTexture("../ref/Stone_Floor_007_basecolor.jpg"), # kd
-        ConstantTexture(Pnt3(.1, .1, .1)), # ks
+        ImageTexture("../ref/Substance_Graph_BaseColor.jpg"), # kd
+        ConstantTexture(Pnt3(.15, .15, .15)), # ks
         ConstantTexture(Pnt3(.003, .003, .003)), # u
         ConstantTexture(Pnt3(.003, .003, .003)), # v
         true, # remap
-        ImageTexture("../ref/Stone_Floor_007_basecolor_edit.jpg") # bump
+        ImageTexture("../ref/Substance_Graph_Height.jpg"), # kd
     )
-    mat_concrete = Substrate(
-        PerlinNoise(.1), # kd
-        ConstantTexture(Pnt3(.1, .1, .1)), # ks
-        ConstantTexture(Pnt3(.003, .003, .003)), # u
-        ConstantTexture(Pnt3(.003, .003, .003)), # v
-        true, # remap
-        PerlinNoise(.1) # bump
-    )
+
 
     ###################################
     ###### GEOMETRICAL CONSTANTS ######
@@ -171,7 +164,9 @@ function render_munich_re_scene(destination::String)
     ##### Instantiating light & primitive vectors
     ##############################
     primitives = Primitive[]
-    lights = Light[]    
+    lights = Light[]
+    primitives2 = Primitive[]
+    lights2 = Light[]
 
     ########################
     #### GEOMETRY ##########
@@ -192,7 +187,7 @@ function render_munich_re_scene(destination::String)
         )
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_concrete, nothing))
+        push!(primitives2, Primitive(tri, mat_concrete, nothing))
     end
 
     ################# CEILING
@@ -308,49 +303,38 @@ function render_munich_re_scene(destination::String)
     push!(primitives, Primitive(inner_cyl, mat_white, nothing))
     push!(primitives, Primitive(disk, mat_white, nothing))
 
-    ########### Disk Area Light from Above
-    disk_light_above = Disk(
-        disk_t,
-        ceiling_circle_height+5,
-        ceiling_whole_size+ceiling_circle_thickness/2,
-        0.0,
-        360.0,
-        false,
-        false
-    )
-    disk_light_above_alight = DiffuseAreaLight(
-        Spectrum(2500.0, 2500.0, 2500.0),
-        disk_light_above,
-        false
-    )
-    push!(lights, disk_light_above_alight)
-    push!(primitives, Primitive(disk_light_above, mat_white, disk_light_above_alight))
-
     ################# Pillar Area Lights
+    MULT = 500
+    yellow = Spectrum(1.0, 1.0, 0.0)
+    white = Spectrum(1.0, 1.0, 1.0)
+    blue = Spectrum(0.0, 0.0, 1.0)
+    red = Spectrum(1.0, 0.0, 0.0)
+    pink = Spectrum(1.0, 0.0, 1.0)
+    green = Spectrum(0.0, 1.0, 0.0)
     pillar_area_light_spec = Tuple{Pnt2, Pnt2, Float64, Int64, Spectrum, Bool}[
-        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
-        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
-        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
-        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
-        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), pillar_width_1+.5, 1, Spectrum(2500, 2500, 0), false),
+        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), pillar_width_1+.5, 1, yellow, false),
+        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), pillar_width_1+.5, 1, white, false),
+        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), pillar_width_1+.5, 1, pink, false),
+        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), pillar_width_1+.5, 1, blue, false),
+        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), pillar_width_1+.5, 1, red, false),
 
-        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
-        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
-        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
-        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
-        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), pillar_width_1+.5, 3, Spectrum(2500, 2500, 0), false),
+        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  pillar_width_1+.5, 3, white, false),
+        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), pillar_width_1+.5, 3, blue, false),
+        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), pillar_width_1+.5, 3, red, false),
+        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), pillar_width_1+.5, 3, pink, false),
+        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), pillar_width_1+.5, 3, green, false),
 
-        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
-        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
-        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
-        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
-        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), -pillar_width_1-.5, 1, Spectrum(2500, 2500, 0), true),
+        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), -pillar_width_1-.5, 1, yellow, true),
+        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), -pillar_width_1-.5, 1, white, true),
+        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), -pillar_width_1-.5, 1, pink, true),
+        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), -pillar_width_1-.5, 1, blue, true),
+        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), -pillar_width_1-.5, 1, red, true),
 
-        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
-        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
-        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
-        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
-        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), -pillar_width_1-.5, 3, Spectrum(2500, 2500, 0), true),
+        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  -pillar_width_1-.5, 3, white, true),
+        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), -pillar_width_1-.5, 3, blue, true),
+        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), -pillar_width_1-.5, 3, red, true),
+        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), -pillar_width_1-.5, 3, pink, true),
+        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), -pillar_width_1-.5, 3, green, true),
     ]
 
     t = Translate(Pnt3(0,0,0))
@@ -363,14 +347,19 @@ function render_munich_re_scene(destination::String)
             ShapeCore(t, Inv(t), flip, false),
             nothing
         )
+        mat_tmp = Matte(
+            ConstantTexture(brightness),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
+        )
         for tri in tmp_rec
             alight = DiffuseAreaLight(
-                brightness,
+                brightness*MULT,
                 tri,
                 false
             )
             push!(lights, alight)
-            push!(primitives, Primitive(tri, mat_white, alight))
+            push!(primitives, Primitive(tri, mat_tmp, alight))
         end
     end
 
@@ -399,6 +388,7 @@ function render_munich_re_scene(destination::String)
     for tri in rcwall
         push!(primitives, Primitive(tri, mat_white, nothing))
     end
+
 
     ################# HALLWAY
     rhwall_transform = Translate(Pnt3(hallway_centroid.x+hallway_walls_adj,0,hallway_centroid.y-hallway_walls_adj)) * RotateY(-45.0)
@@ -484,20 +474,20 @@ function render_munich_re_scene(destination::String)
     end
     
     # instantiate accelerator
-    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
-    @time bvh = BVH(primitives)
+    print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
+    @time bvh = BVH(primitives2)
     print("Done building BVH\n")
 
     # instantiate an env light
-    env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(.5,.5,.5), "../ref/parking_lot.jpg")
-    push!(lights, env_light)
+    env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(1, 1, 1), "../ref/parking_lot.jpg")
+    push!(lights2, env_light)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.1, .1))
 
     # Instantiate a Film
     film = Film(
-        Pnt2(250, 250),
+        Pnt2(500, 500),
         Bounds2(Pnt2(0,0), Pnt2(1,1)),
         filter,
         1.0,
@@ -513,15 +503,14 @@ function render_munich_re_scene(destination::String)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(4, 4, 4, true)
-
+    S = StratifiedSampler(25, 25, 4, true)
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
-
+    
     # Instantiate Scene
-    scene = Scene(lights, bvh)
+    scene = Scene(lights2, bvh)
     
     # Instantiate an Integrator
-    I = WhittedIntegrator(C, S, 25)
+    I = WhittedIntegrator(C, S, 50)
 
     render(I, scene, false)
 end

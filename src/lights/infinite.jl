@@ -4,19 +4,19 @@ struct InfinteLight <: Light
     light_to_world::Transformation
     world_to_light::Transformation
     I::Spectrum
-    pdf::PDF_2D
+    pdf::Distribution2D
     map::Matrix
     world_radius::Float64
 
     function InfinteLight(bvh::BVHAccel, light_to_world::Transformation, world_to_light::Transformation, I::Spectrum, map_url::String)
         dat = load(map_url)
-        pdf = construct_pdf_2d(dat)
+        pdf = Distribution2D(dat)
 
         bounds = world_bounds(bvh)
 
         pMin = abs.(bounds.pMin)
         pMax = abs.(bounds.pMax)
-        world_radius = max(pMin[1], pMin[2], pMin[3], pMax[1], pMax[2], pMax[3]) * 1.01
+        world_radius = max(pMin.x, pMin.y, pMin.z, pMax.x, pMax.y, pMax.z) * 1.01
 
         return new(
             LightArea,
@@ -30,13 +30,12 @@ struct InfinteLight <: Light
     end
 end
 
-function power(il::InfinteLight)
+function power(il::InfinteLight)::Float64
     u_idx, v_idx = sample_pdf_2d(il.pdf, Pnt2(.5, .5))
-    tmp = pi .* il.world_radius .* il.world_radius .* Spectrum(il.map[u_idx, v_idx])
-    return tmp
+    return pi .* il.world_radius .* il.world_radius .* Spectrum(il.map[u_idx, v_idx])
 end
 
-function le(il::InfinteLight, ray::AbstractRay)
+function le(il::InfinteLight, ray::AbstractRay)::Spectrum
     x, y = size(il.map)
     w = normalize(il.world_to_light(ray.direction))
     s = Int(trunc(spherical_phi(w) / (2pi) * x) + 1)
@@ -45,7 +44,7 @@ function le(il::InfinteLight, ray::AbstractRay)
     return Spectrum(l.r, l.g, l.b)
 end
 
-function sample_li(il::InfinteLight, interaction::Interaction, uv::Pnt2)
+function sample_li(il::InfinteLight, interaction::Interaction, uv::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     # find (u,v) sample coordinates in infinite light texture
     u_idx, v_idx = sample_pdf_2d(il.pdf, uv)
 
@@ -81,6 +80,6 @@ function sample_li(il::InfinteLight, interaction::Interaction, uv::Pnt2)
         Interaction(interaction.p + wi .* 2 * il.world_radius, interaction.t, Vec3(0, 0, 0), Nml3(0, 0, 0))
     )
 
-    return radiance, wi, pdf_val, visibility, 0.0, 0.0
+    return radiance, wi, pdf_val, visibility, Pnt3(0,0,0), Nml3(0,0,0)
 end
 

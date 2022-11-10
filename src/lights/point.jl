@@ -17,7 +17,7 @@ struct PointLight <: Light
 end
 
 
-function sample_li(p::PointLight, interaction::Interaction, u::Pnt2)
+function sample_li(p::PointLight, interaction::Interaction, u::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     wi = normalize(Vec3(p.light_position - interaction.p))
     pdf_val = 1.0
     visibility = VisibilityTester(
@@ -25,7 +25,7 @@ function sample_li(p::PointLight, interaction::Interaction, u::Pnt2)
         Interaction(p.light_position, interaction.t, Vec3(0, 0, 0), Nml3(0, 0, 0))
     )
     radiance = p.I / distance_squared(p.light_position, interaction.p)
-    return radiance, wi, pdf_val, visibility
+    return radiance, wi, pdf_val, visibility, Pnt3(0,0,0), Nml3(0,0,0)
 end
 
 function power(p::PointLight)

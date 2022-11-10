@@ -69,8 +69,8 @@ function get_1D!(ss::StratifiedSampler)
     if ss.pixel_sampler.current1DDimension >= size(ss.pixel_sampler.sampels1D)[1]
         return rand()
     else
-        return rand()
-        # return ss.pixel_sampler.sampels1D[ss.pixel_sampler.current1DDimension, ss.current_pixel]
+        # return rand()
+        return ss.pixel_sampler.sampels1D[ss.pixel_sampler.current1DDimension, ss.current_pixel]
     end    
 end
 
@@ -79,8 +79,8 @@ function get_2D!(ss::StratifiedSampler)
     if ss.pixel_sampler.current2DDimension >= size(ss.pixel_sampler.sampels2D)[1]
         return Pnt2(rand(), rand())
     else
-        return Pnt2(rand(), rand())
-        # return ss.pixel_sampler.sampels2D[ss.pixel_sampler.current2DDimension, ss.current_pixel]
+        # return Pnt2(rand(), rand())
+        return ss.pixel_sampler.sampels2D[ss.pixel_sampler.current2DDimension, ss.current_pixel]
     end    
 end
 

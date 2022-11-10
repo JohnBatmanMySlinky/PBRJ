@@ -27,7 +27,7 @@ function falloff(sl::SpotLight, wi::Vec3)::Float64
     return ((cos_theta-sl.cos_total_width)/(sl.cos_falloff_start-sl.cos_total_width))^4
 end
 
-function sample_li(sl::SpotLight, interaction::Interaction, u::Pnt2)
+function sample_li(sl::SpotLight, interaction::Interaction, u::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     wi = normalize(Vec3(sl.p_light - interaction.p))
     pdf_val = 1.0
     visibility = VisibilityTester(
