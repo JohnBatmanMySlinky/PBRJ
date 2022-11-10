@@ -15,6 +15,7 @@ Physically Based Rendering - in Julia
     - Wall material.
     - Better ambient lighting.
 - Stratified sampler edges...
+- Add metal material
 - Add fourier material.
 - I can assume all objects are static and simplify some camera shutter and sampling details.
 - Make CLI.

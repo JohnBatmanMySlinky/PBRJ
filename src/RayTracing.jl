@@ -187,7 +187,7 @@ function render_munich_re_scene(destination::String)
         )
     )
     for tri in floor
-        push!(primitives2, Primitive(tri, mat_concrete, nothing))
+        push!(primitives, Primitive(tri, mat_concrete, nothing))
     end
 
     ################# CEILING
@@ -474,13 +474,13 @@ function render_munich_re_scene(destination::String)
     end
     
     # instantiate accelerator
-    print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
-    @time bvh = BVH(primitives2)
+    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+    @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
     # instantiate an env light
     env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(1, 1, 1), "../ref/parking_lot.jpg")
-    push!(lights2, env_light)
+    push!(lights, env_light)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.1, .1))
@@ -503,11 +503,11 @@ function render_munich_re_scene(destination::String)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(25, 25, 4, true)
+    S = StratifiedSampler(10, 10, 4, true)
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
-    scene = Scene(lights2, bvh)
+    scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
     I = WhittedIntegrator(C, S, 50)
