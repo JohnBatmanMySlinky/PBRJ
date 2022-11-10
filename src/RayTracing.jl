@@ -7,6 +7,7 @@ using Images
 using Statistics
 using ProgressMeter
 using Random
+using ArgParse
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -79,8 +80,11 @@ include("scene.jl")
 include("integrators/whitted.jl")
 include("handy_prints.jl")
 include("obj_reader.jl")
+include("args.jl")
 
-function render_munich_re_scene(destination::String)
+function render_munich_re_scene()
+    parsed_args = parse_commandline()
+
     ###########################
     ######## Materials ########
     ###########################
@@ -487,12 +491,12 @@ function render_munich_re_scene(destination::String)
 
     # Instantiate a Film
     film = Film(
-        Pnt2(500, 500),
+        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
         Bounds2(Pnt2(0,0), Pnt2(1,1)),
         filter,
         1.0,
         1.0,
-        destination
+        parsed_args["file-name"]
     )
 
     # Instantiate a Camera
@@ -503,7 +507,7 @@ function render_munich_re_scene(destination::String)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(10, 10, 4, true)
+    S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["samples-per-pixel"], 4, true)
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
@@ -512,7 +516,11 @@ function render_munich_re_scene(destination::String)
     # Instantiate an Integrator
     I = WhittedIntegrator(C, S, 50)
 
-    render(I, scene, false)
+    render(I, scene, parsed_args["render-simple"])
+end
+
+if abspath(PROGRAM_FILE) == @__FILE__
+    @time render_munich_re_scene()
 end
 
 end
