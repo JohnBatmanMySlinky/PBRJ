@@ -76,6 +76,7 @@ include("lights/light.jl")
 include("lights/area.jl")
 include("lights/point.jl")
 include("lights/infinite.jl")
+include("lights/distant.jl")
 include("scene.jl")
 include("integrators/whitted.jl")
 include("handy_prints.jl")
@@ -191,7 +192,7 @@ function render_munich_re_scene()
         )
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_concrete, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
 
     ################# CEILING
@@ -483,8 +484,23 @@ function render_munich_re_scene()
     print("Done building BVH\n")
 
     # instantiate an env light
-    env_light = InfinteLight(bvh, Translate(Vec3(0,0,0)), Translate(Vec3(0,0,0)), Spectrum(1, 1, 1), "../ref/parking_lot.jpg")
+    env_light = InfinteLight(
+        world_bounds(bvh), 
+        Translate(Vec3(0,0,0)), 
+        Spectrum(1, 1, 1), 
+        "../ref/parking_lot.jpg"
+    )
     push!(lights, env_light)
+
+    # instantiate a distant light
+    distant_light = DistantLight(
+        Spectrum(.5, .5, .5),
+        Vec3(1,0,1),
+        Pnt3(0,0,0),
+        world_radius(bvh),
+        Translate(Pnt3(0,0,0))
+    )
+    push!(lights, distant_light)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.1, .1))

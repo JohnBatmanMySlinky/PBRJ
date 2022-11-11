@@ -139,7 +139,7 @@ function compute_scattering!(p::Primitive, si::SurfaceInteraction, allow_multipl
         p.material(si, allow_multiple_lobes, T)
     end
     # TODO WHY FAIL
-    # @assert (dot(si.core.n, si.shading.n)) >= 0
+    @assert (dot(si.core.n, si.shading.n)) >= 0
 end
 
 #########################################

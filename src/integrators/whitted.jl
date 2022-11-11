@@ -109,14 +109,11 @@ function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64):
         end
 
         if false
-            # finding point that shouldn't be illuminated by single sided emitting light
-            # if abs(interaction.core.p.x) < 30 && abs(interaction.core.p.z) < 30 && abs(interaction.core.p.y)<5
-
-            # finding point on cylindar
-            if (abs(interaction.core.n.y) < .0001) && ((abs(interaction.core.n.x)-abs(interaction.core.n.z)) < .0001)
+            if (interaction.core.p.z ≈ -300.0) && (interaction.core.p.x > -50) && (interaction.core.p.x < 50) && (interaction.core.p.y > 50) && (interaction.core.p.y < 150)
                 print("\n")
                 print("p_hit ", interaction.core.p, "\n")
                 print("n_hit ", interaction.core.n, "\n")
+                print("n shading ", interaction.shading.n, "\n")
                 print("hit time ", interaction.core.t, "\n")
                 print("p_sample ", p_sample, "\n")
                 print("n_sample ", n_sample, "\n")
@@ -127,7 +124,7 @@ function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64):
                 print("f ", f, "\n")
                 print("n ", n, "\n")
                 print("contrib ", f .* sampled_li * abs(dot(wi, n)) / pdf, "\n")
-                print("denom ", abs(dot(wi, n)), "\n")
+                print("absdot ", abs(dot(wi, n)), "\n")
                 asdf
             end
         end

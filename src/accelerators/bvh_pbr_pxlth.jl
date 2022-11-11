@@ -221,6 +221,11 @@ function world_bounds(bvh::BVH)::Bounds3
     length(bvh.nodes) > 0 ? bvh.nodes[1].bounds : Bounds3()
 end
 
+function world_radius(bvh::BVH)::Float64
+    bounds = length(bvh.nodes) > 0 ? bvh.nodes[1].bounds : Bounds3()
+    return (maximum(bounds.pMax) - minimum(bounds.pMin))/2
+end
+
 #################################################
 #### Intersect with BVH
 #################################################

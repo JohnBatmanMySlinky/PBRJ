@@ -8,20 +8,18 @@ struct InfinteLight <: Light
     map::Matrix
     world_radius::Float64
 
-    function InfinteLight(bvh::BVHAccel, light_to_world::Transformation, world_to_light::Transformation, I::Spectrum, map_url::String)
+    function InfinteLight(bounds::Bounds3, light_to_world::Transformation, I::Spectrum, map_url::String)
         dat = load(map_url)
-        pdf = Distribution2D(dat)
-
-        bounds = world_bounds(bvh)
+        pdf = Distribution2D(dat)      
 
         pMin = abs.(bounds.pMin)
         pMax = abs.(bounds.pMax)
         world_radius = max(pMin.x, pMin.y, pMin.z, pMax.x, pMax.y, pMax.z) * 1.01
 
         return new(
-            LightArea,
+            LightInfinite,
             light_to_world,
-            world_to_light,
+            Inv(light_to_world),
             I,
             pdf,
             dat,

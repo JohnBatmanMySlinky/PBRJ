@@ -1,4 +1,5 @@
 struct DiffuseAreaLight <: Light
+    flags::LightFlags
     Lemit::Spectrum
     shape::Shape
     area::Float64
@@ -6,6 +7,7 @@ struct DiffuseAreaLight <: Light
 
     function DiffuseAreaLight(Lemit::Spectrum, shape::Shape, two_sided::Bool)
         return new(
+            LightArea,
             Lemit,
             shape,
             area(shape),
@@ -14,7 +16,7 @@ struct DiffuseAreaLight <: Light
     end
 end
 
-function le(dal::DiffuseAreaLight, ray::AbstractRay)
+function le(dal::DiffuseAreaLight, ray::AbstractRay)::Spectrum
     return Spectrum(0,0,0)
 end
 
@@ -22,7 +24,7 @@ function L(dal::DiffuseAreaLight, n::Nml3, w::Vec3)::Spectrum
     return (dal.two_sided || dot(n, w) > 0) ? dal.Lemit : Spectrum(0,0,0)
 end
 
-function Power(li::DiffuseAreaLight)
+function Power(li::DiffuseAreaLight)::Spectrum
     return li.Lemit * li.area * pi
 end
 

@@ -6,6 +6,7 @@ struct TriangleMesh
     normals::Vector{Nml3}
     uvs::Vector{Pnt2}
     alpha_mask::Maybe{Texture}
+    shading_tangent::Nothing
 
     function TriangleMesh(
         object_to_world::Transformation, 
@@ -26,7 +27,8 @@ struct TriangleMesh
             indices,
             normals,
             uvs,
-            alpha_mask
+            alpha_mask,
+            nothing
         )
     end
 end
@@ -180,27 +182,35 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     b2 = e2 * inv_det
     t = t_scaled * inv_det
 
-    # compute partials
+    # Compute triangle partial derivatives
     uv = get_uvs(tri)
     duv13 = uv[1] - uv[3]
     duv23 = uv[2] - uv[3]
     dp13 = p0 - p2
     dp23 = p1  - p2
     determinate = duv13[1] * duv23[2] - duv13[2] * duv23[1]
-    if determinate == 0
-        v = normalize(cross(p2-p0, p1-p0))
-        _, dpdu, dpdv = orthonormal_basis(v)
-    else
-        inv_determinate = 1 / determinate
-        dpdu = Vec3(duv23[2] * dp13 - duv13[2] * dp23) * inv_determinate
-        dpdv = Vec3(-duv23[1] * dp13 + duv13[1] * dp23) * inv_determinate
+    degenerateUV = abs(determinate) < 1e-8
+    if !degenerateUV
+        invdet = 1/determinate
+        dpdu = Vec3(( duv23[2]*dp13 - duv13[2]*dp23) * inv_det)
+        dpdv = Vec3((-duv23[1]*dp13 + duv13[1]*dp23) * inv_det)
+    end
+    if degenerateUV || norm(cross(dpdu, dpdv))^2==0
+        # Handle zero determinant for triangle partial derivative matrix
+        ng = cross(p2 - p0, p1 - p0)
+        if norm(ng)^2 == 0
+            return false, 0.0, empty_surface_interation(tri)
+        end
+        _, dpu, dpv = orthonormal_basis(ng)
+        dpdu = Vec3(dpu)
+        dpdv = Vec3(dpv)
     end
 
     # interpolate uv coords and hit point
     phit = b0 * p0 + b1 * p1 + b2 * p2
     uvhit = b0 * uv[1] + b1 * uv[2] + b2 * uv[3]
 
-    # check alpha mask
+    # Test intersection against alpha texture, if present
     if !(tri.mesh.alpha_mask isa Nothing)
         si = InstantiateSurfaceInteraction(
                 phit,
@@ -220,49 +230,104 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         end
     end
 
-    # TODO
-    # make specifying normals optional
-    n1, n2, n3 = get_normals(tri)
-    ns = b0 * n1 + b1 * n2 + b2 * n3
-    ss = normalize(dpdu) # TODO specify bitangent
-    ts = cross(ns, ss)
-    if dot(ts, ts)^2 > 0
-        ts = normalize(ts)
-        ss = cross(ts, ns)
-    else
-        _, ss, ts = orthonormal_basis(Vec3(ns))
+    # Fill in _SurfaceInteraction_ from triangle hit
+    interaction = InstantiateSurfaceInteraction(phit, ray.t, -ray.direction, uvhit, dpdu, dpdv, Nml3(0,0,0), Nml3(0,0,0), tri)
+
+    # Override surface normal in _isect_ for triangle
+    interaction.core.n = interaction.shading.n = Nml3(normalize(cross(dp13, dp23)))
+    if tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
+        interaction.core.n = interaction.shading.n = -interaction.core.n    
     end
 
+    # TODO making shading tangents real
+    if !(tri.mesh.normals isa Nothing) || !(tri.mesh.shading_tanget isa Nothing)
+        # Initialize _Triangle_ shading geometry
 
-    dn13 = n1 - n3
-    dn23 = n2 - n3
-    if determinate == 0
-        dndu = Nml3(0,0,0)
-        dndv = Nml3(0,0,0)
-    else
-        dndu = Nml3(duv23[2] * dn13 - duv13[2] * dn23) * inv_determinate
-        dndv = Nml3(-duv23[1] * dn13 + duv13[1] * dn23) * inv_determinate
+        # Compute shading normal _ns_ for triangle
+        if !(tri.mesh.normals isa Nothing)
+            n1, n2, n3 = get_normals(tri)
+            ns = normalize(
+                b0 * n1 + b1 * n2 + b2 * n3
+            )
+            if norm(ns)^2 > 0
+                ns = normalize(ns)
+            else
+                ns = interaction.core.n
+            end
+        else
+            ns = interaction.core.n
+        end
+
+        # Compute shading tangent _ss_ for triangle
+        if !(tri.mesh.shading_tangent isa Nothing)
+            s1, s2, s3 = get_shading_tangents(tri)
+            ss = b0 * s1 + b1 * s2 + b2 * s3
+            if norm(ss)^2 > 0 
+                ss = normalize(ss)
+            else
+                ss = normalize(interaction.dpdu)
+            end
+        else
+            ss = normalize(interaction.dpdu)
+        end
+
+        # Compute shading bitangent _ts_ for triangle and adjust _ss_
+        ts = cross(ss, ns)
+        if norm(ts)^2 > 0
+            ts = normalize(ts)
+            ss = cross(ts, ns)
+        else
+            _, ss, ts = orthonormal_basis(Vec3(ns))
+        end
+
+        # Compute $\dndu$ and $\dndv$ for triangle shading geometry
+        if !(tri.mesh.normals isa Nothing)
+            n1, n2, n3 = get_normals(tri)
+            # Compute deltas for triangle partial derivatives of normal
+            duv02 = uv[1] - uv[3]
+            duv12 = uv[2] - uv[3]
+            dn1 = n1 - n3
+            dn2 = n2 - n3
+            determinant = duv02[1] * duv12[2] - duv02[2] * duv12[1]
+            degenerateUV = abs(determinant) < 1e-8
+            if degenerateUV
+                dn = cross(
+                    Vec3(n[3]-n[1]),
+                    Vec3(n[2]-n[1])
+                )
+                if norm(dn)^2 == 0
+                    dndu = dndv = Nml3(0,0,0)
+                else
+                    _, dnu, dnv = orthonormal_basis(dn)
+                    dndu = Nml3(dnu)
+                    dndv = Nml3(dnv)
+                end
+            else
+                inv_det = 1 / determinant
+                dndu = (duv12[2] * dn1 - duv02[2] * dn2) * inv_det
+                dndv = (-duv12[1] * dn1 + duv02[1] * dn2) * inv_det
+            end
+        else
+            dndu = dndv = Nml3(0,0,0)
+        end
+        if tri.core.reverse_orientation
+            ts = -ts
+        end
+        set_shading_geomerty!(interaction, ss, ts, dndu, dndv, true)
+        # print("here \n")
+        # print("ss: ", ss, "\n")
+        # print("ss: ", ts, "\n")
+        # print("cross: ", cross(ss, ts), "\n")
+        # print("n: ", interaction.core.n, "\n")
+        # print("shading n: ", interaction.shading.n, "\n")
+        # asdf
     end
 
-    # fill interaction
-    interaction = InstantiateSurfaceInteraction(phit, ray.t, -ray.direction, uvhit, dpdu, dpdv, dndu, dndv, tri)
-    interaction.core.n = normalize(cross(dp13, dp23))   
-    interaction.shading.n = cross(ss, ts)
-    interaction.shading.dpdu = ss
-    interaction.shading.dpdv = ts
-    interaction.shading.dndu = dndu
-    interaction.shading.dndv = dndv
-
-    if !(tri.mesh.normals isa Nothing)
-        interaction.core.n = face_forward(
-            interaction.core.n, interaction.shading.n,
-        )
-    elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
-        interaction.core.n = interaction.shading.n = -interaction.core.n
-    end
-
-
-    return true, t, interaction
+    # if abs(dot(interaction.core.n, interaction.shading.n)) == 0
+    #     print(interaction.core.n, "\n")
+    #     print(interaction.shading.n, "\n")
+    # end
+    return true, t, interaction 
 end
 
 function intersect_p(tri::Triangle, ray::AbstractRay, ::Bool=false)::Bool
