@@ -185,6 +185,7 @@ function render_munich_re_scene()
         0.0,
         2, 
         ShapeCore(floor_transform, Inv(floor_transform), false, false),
+        false,
         CornerProceduralTexture(
             ceiling_floor_corner_alpha_mask_threshold,
             Spectrum(1,1,1),
@@ -203,6 +204,7 @@ function render_munich_re_scene()
         ceiling_height,
         2, 
         ShapeCore(ceiling_transform, Inv(ceiling_transform), false, false),
+        true,
         MixAddTexture(
             CircleProceduralTexture(
                 Pnt2(.5, .5),
@@ -229,6 +231,7 @@ function render_munich_re_scene()
         -foyer_dim/2,
         3, 
         ShapeCore(rwall_transform, Inv(rwall_transform), false, false),
+        false,
         nothing
     )
     for tri in rwall
@@ -243,6 +246,7 @@ function render_munich_re_scene()
         -foyer_dim/2,
         1, 
         ShapeCore(lwall_transform, Inv(lwall_transform), false, false),
+        false,
         nothing
     )
     for tri in lwall
@@ -350,6 +354,7 @@ function render_munich_re_scene()
             k,
             axis, 
             ShapeCore(t, Inv(t), flip, false),
+            false,
             nothing
         )
         mat_tmp = Matte(
@@ -376,6 +381,7 @@ function render_munich_re_scene()
         0.0,
         3, 
         ShapeCore(lcwall_transform, Inv(lcwall_transform), false, false),
+        false,
         nothing
     )
     for tri in lcwall
@@ -388,6 +394,7 @@ function render_munich_re_scene()
         0.0,
         3, 
         ShapeCore(rcwall_transform, Inv(rcwall_transform), false, false),
+        false,
         nothing
     )
     for tri in rcwall
@@ -403,6 +410,7 @@ function render_munich_re_scene()
         0.0,
         3, 
         ShapeCore(rhwall_transform, Inv(rhwall_transform), false, false),
+        false,
         nothing
     )
     for tri in rhwall
@@ -416,6 +424,7 @@ function render_munich_re_scene()
         0.0,
         3, 
         ShapeCore(rh_extra_wall_transform, Inv(rh_extra_wall_transform), false, false),
+        false,
         nothing
     )
     for tri in rh_extra_wall
@@ -428,6 +437,7 @@ function render_munich_re_scene()
         0.0,
         3, 
         ShapeCore(lhwall_transform, Inv(lhwall_transform), false, false),
+        false,
         nothing
     )
     for tri in lhwall
@@ -440,6 +450,7 @@ function render_munich_re_scene()
         ceiling_height,
         2, 
         ShapeCore(cewall_transform, Inv(cewall_transform), false, false),
+        true,
         nothing
     )
     for tri in cewall
@@ -452,6 +463,7 @@ function render_munich_re_scene()
         0.0,
         2, 
         ShapeCore(flwall_transform, Inv(flwall_transform), false, false),
+        false,
         nothing
     )
     for tri in flwall
@@ -466,6 +478,7 @@ function render_munich_re_scene()
         hallway_width_extra,
         2, 
         ShapeCore(hallway_light_transform, Inv(hallway_light_transform), false, false),
+        false,
         nothing
     )
     for tri in hallway_light
