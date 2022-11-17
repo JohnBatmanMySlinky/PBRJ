@@ -10,6 +10,7 @@ Physically Based Rendering - in Julia
 - add path integrator
     - add better light sampling strategies from github
     - infinite light is broken
+    - harmoinze bsdf flags and light flags
 - instead of copying sampler within multi-threaded loop, can we instantiate a list?
 - Scene work
     - Add more walls (left wall corner).
