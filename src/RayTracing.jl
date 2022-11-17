@@ -79,6 +79,8 @@ include("lights/infinite.jl")
 include("lights/distant.jl")
 include("scene.jl")
 include("integrators/whitted.jl")
+include("integrators/path.jl")
+include("integrators/integrator.jl")
 include("handy_prints.jl")
 include("obj_reader.jl")
 include("args.jl")
@@ -543,7 +545,7 @@ function render_munich_re_scene()
     scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
-    I = WhittedIntegrator(C, S, 50)
+    I = PathIntegrator(C, S, 1.0, 25, "")
 
     render(I, scene, parsed_args["render-simple"])
 end

@@ -7,6 +7,9 @@ Physically Based Rendering - in Julia
 - [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
 
 # TODO
+- add path integrator
+    - add better light sampling strategies from github
+- instead of copying sampler within multi-threaded loop, can we instantiate a list?
 - Scene work
     - Add more walls (left wall corner).
     - Add colored panels.
