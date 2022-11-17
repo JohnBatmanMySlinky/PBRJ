@@ -64,3 +64,13 @@ function partition!(x::Vector, range::UnitRange, predicate::Function)
     end
     left
 end
+
+function same_hemisphere(wo::Vec3, wi::Vec3)::Bool
+    return wo.z * wi.z > 0
+end
+
+function power_heuristic(nf::Float64, fpdf::Float64, ng::Float64, gpdf::Float64)
+    f = nf*fpdf
+    g = ng*gpdf
+    return (f^2)/(f^2 + g^2)
+end

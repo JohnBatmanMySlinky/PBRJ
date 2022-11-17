@@ -54,7 +54,7 @@ include("cameras/projective.jl")
 include("samplers/sampler.jl")
 include("samplers/random.jl")
 include("samplers/stratified.jl")
-include("reflection/bxdf.jl")
+include("reflection/flags.jl")
 include("reflection/math.jl")
 include("reflection/fresnel.jl")
 include("reflection/specular.jl")
@@ -62,6 +62,7 @@ include("reflection/lambertian.jl")
 include("reflection/oren_nayar.jl")
 include("reflection/microfacet_distributions.jl")
 include("reflection/microfacet.jl")
+include("reflection/bxdf.jl")
 include("materials/bsdf.jl")
 include("materials/matte.jl")
 include("materials/plastic.jl")
@@ -469,7 +470,7 @@ function render_munich_re_scene()
         nothing
     )
     for tri in flwall
-        push!(primitives, Primitive(tri, mat_concrete, nothing))
+        push!(primitives, Primitive(tri, mat_white, nothing))
     end
 
     # hallway floor area light
@@ -499,15 +500,15 @@ function render_munich_re_scene()
     print("Done building BVH\n")
 
     # instantiate an env light
-    env_light = InfinteLight(
-        world_bounds(bvh), 
-        Translate(Vec3(0,0,0)), 
-        Spectrum(1, 1, 1), 
-        "../ref/parking_lot.jpg"
-    )
-    push!(lights, env_light)
+    # env_light = InfinteLight(
+    #     world_bounds(bvh), 
+    #     Translate(Vec3(0,0,0)), 
+    #     Spectrum(1, 1, 1), 
+    #     "../ref/parking_lot.jpg"
+    # )
+    # push!(lights, env_light)
 
-    # instantiate a distant light
+    # # instantiate a distant light
     distant_light = DistantLight(
         Spectrum(.5, .5, .5),
         Vec3(1,0,1),
@@ -538,14 +539,16 @@ function render_munich_re_scene()
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["samples-per-pixel"], 4, true)
+    spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
+    S = StratifiedSampler(spp, spp, 4, true)
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
+    print("\nThere are " * num2str(length(lights)) * " lights in the scene\n")
     scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
-    I = PathIntegrator(C, S, 1.0, 25, "")
+    I = PathIntegrator(C, S, 25)
 
     render(I, scene, parsed_args["render-simple"])
 end

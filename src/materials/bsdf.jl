@@ -110,7 +110,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
 
     # TODO when to update sampled type
     sampled_type = bxdf.type
-    wi, pdf, f, sampled_type_tmp = sample_f(bxdf, wo, u_remapped)
+    wi, pdf, f_val, sampled_type_tmp = sample_f(bxdf, wo, u_remapped)
     if sampled_type_tmp ≢ nothing
         sampled_type = sampled_type_tmp
     end
@@ -133,16 +133,16 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
     # Compute value of BSDF for sampled direction.
     if !(bxdf.type & BSDF_SPECULAR != 0)
         reflect = ((wi_world ⋅ b.ng) * (wo_world ⋅ b.ng)) > 0
-        f = RGBSpectrum(0f0)
+        f_val = Spectrum(0,0,0)
         for i in 1:b.n_bxdfs
             bxdf = b.bxdfs[i]
             if ((bxdf & type) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0))))
-                f += bxdf(wo, wi)
+                f_val += f(bxdf, wo, wi)
             end
         end
     end
 
-    return wi_world, f, pdf, sampled_type
+    return wi_world, f_val, pdf, sampled_type
 end
 
 function compute_pdf(b::BSDF, wo_world::Vec3, wi_world::Vec3, flags::UInt8,)::Float64

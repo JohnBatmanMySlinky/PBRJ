@@ -43,3 +43,7 @@ function sample_li(dal::DiffuseAreaLight, interaction::Interaction, u::Pnt2)::Tu
     radiance = L(dal, nshape, -wi)
     return radiance, wi, pdf_val, visibility, pshape, nshape
 end
+
+function pdf_li(light::DiffuseAreaLight, isect::SurfaceInteraction, wi::Vec3)::Float64
+    return pdf(light.shape, isect.core, wi)
+end

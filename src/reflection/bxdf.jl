@@ -1,15 +1,14 @@
-# 8.1 Basic Interface
-
-const BSDF_NONE         = UInt8(0b00000)
-const BSDF_REFLECTION   = UInt8(0b00001)
-const BSDF_TRANSMISSION = UInt8(0b00010)
-const BSDF_DIFFUSE      = UInt8(0b00100)
-const BSDF_GLOSSY       = UInt8(0b01000)
-const BSDF_SPECULAR     = UInt8(0b10000)
-const BSDF_ALL          = UInt8(0b11111)
-
-function Base.:&(b::B, type::UInt8)::Bool where B <: AbstractBxDF
-    (b.type & type) == b.type
+#14.1 sampling reflection functions
+function sample_f(bxdf::AbstractBxDF, wo::Vec3, u::Pnt2)
+    wi = cosine_sample_hemisphere(u)
+    if wo.z < 0 
+        wo = Vec3(wo.x, wo.y, wo.z * -1)
+    end
+    pdf_val = pdf(bxdf, wo, wi)
+    f_val = f(bxdf, wo, wi)
+    return wi, pdf_val, f_val, nothing
 end
 
-
+function pdf(bxdf::AbstractBxDF, wo::Vec3, wi::Vec3)::Float64
+    return same_hemisphere(wo, wi) ? abs_cos_theta(wi) / pi : 0 
+end

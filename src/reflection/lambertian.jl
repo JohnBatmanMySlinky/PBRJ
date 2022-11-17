@@ -12,7 +12,6 @@ end
 # The reflection distribution function for LambertianReflection is quite straightforward, since its value is constant. 
 # However, the value  must be returned, rather than the reflectance  supplied to the constructor. 
 # This can be seen by equating  to Equation (8.1), which defined , and solving for the BRDF’s value.
-# equivalent to PBR's f()
 function f(l::LambertianReflection{S}, ::Vec3, ::Vec3)::Spectrum where S <: Spectrum
     return l.r / pi
 end

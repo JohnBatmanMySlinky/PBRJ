@@ -35,3 +35,7 @@ end
 function le(l::PointLight, ray::AbstractRay)
     return Spectrum(0, 0, 0)
 end
+
+function pdf_li(light::PointLight, isect::SurfaceInteraction, wi::Vec3)::Float64
+    return 0.0
+end

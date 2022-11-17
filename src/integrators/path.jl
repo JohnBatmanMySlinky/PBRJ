@@ -39,7 +39,7 @@ function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Sp
             else
                 for light in scene.lights
                     # add infinite area lights
-                    L += beta * Le(light, ray)
+                    L += beta * le(light, ray)
                 end
             end
         end
@@ -60,23 +60,23 @@ function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Sp
         # Sample illumination from lights to find path contribution.
         # (But skip this for perfectly specular BSDFs.)
         """this gives an estimate of the exitant radiance from direct lighting at the vertex of the current path"""
-        L += beta * uniform_sample_one_light(isect, scene, sampler, false)
+        L += beta * uniform_sample_one_light(isect, scene, i.sampler, false)
 
         # Sample BSDF to get new path direction
         wo = -ray.direction
-        wi, f, pdf, sampled_type = sample_f(surface_interaction.bsdf, wo, get_2D!(i.sampler), BSDF_ALL)
+        wi, f, pdf, sampled_type = sample_f(isect.bsdf, wo, get_2D!(i.sampler), BSDF_ALL)
         (pdf == 0.0) && break
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf
         specular_bounce = (sampled_type & BSDF_SPECULAR) != 0
-        ray = spawn_ray(isect, wi)
+        ray = spawn_ray(isect.core, wi)
 
         # account for subsurface scattering, if applicable
         # it ain't appicable
 
         # Possibly terminate the path with Russian roulette.
         if bounces > 3
-            q = max(.05, 1-rr_beta.y)
-            if get_1D!(sampler) < q
+            q = max(.05, 1-beta.g)
+            if get_1D!(i.sampler) < q
                 break
             end
             beta /= 1-q

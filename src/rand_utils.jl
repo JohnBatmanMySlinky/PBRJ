@@ -27,3 +27,9 @@ function random_on_sphere(u::Pnt2)::Pnt3
     phi = 2 * pi * u[2]
     return Vec3(r *cos(phi), r*sin(phi), z)
 end
+
+function cosine_sample_hemisphere(u::Pnt2)::Vec3
+    d = random_in_concentric_disk(u)
+    z = sqrt(max(0,1-d.x^2-d.y^2))
+    return Vec3(d.x, d.y, z)
+end

@@ -8,4 +8,5 @@
 7) + stratified sampling + OrenNayer & Plastic teapots (+ fixed normals!) 25x25 spp
 8) + updated BVH and bump mapping go brrrrrr. 25x25 spp in 1h:15m
 9) Munich Re scene geometry
-10) Munich Re initial scene.
+10) Munich Re initial scene using the **Whitted**Integartor
+11) Munich Re initial scene using the **Path**Integartor

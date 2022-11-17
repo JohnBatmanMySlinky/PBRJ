@@ -62,7 +62,7 @@ function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, minim
     save(got_film)
 end
 
-function uniform_sample_one_light(isect::SurfaceInteraction, scene::Scene, sampler::Sampler, handle_media::Bool=false)::Spectrum
+function uniform_sample_one_light(isect::SurfaceInteraction, scene::Scene, sampler::AbstractSampler, handle_media::Bool=false)::Spectrum
     # randomly chose a single light to sample
     n_lights = length(scene.lights)   
     (n_lights==0) && return Spectrum(0,0,0)
@@ -80,7 +80,7 @@ function estimate_direct(
     light::Light, 
     u_light::Pnt2, 
     scene::Scene, 
-    sampler::Sampler, 
+    sampler::AbstractSampler, 
     handle_media::Bool=false, 
     specular::Bool=false
 )::Spectrum
@@ -88,12 +88,12 @@ function estimate_direct(
     Ld = Spectrum(0,0,0)
     
     # sample light source with multiple importance sampling
-    Li, wi, light_pdf, vis, _, _  = sample_li(light, isect, u_light)
+    Li, wi, light_pdf, vis, _, _  = sample_li(light, isect.core, u_light)
     if light_pdf > 0
         # compute BSDF or phase functions value for light sample
         # TODO: not checking for phase function, assuming is surface interaction
         f = isect.bsdf(isect.core.wo, wi, bsdf_flags) * abs(dot(wi, isect.shading.n))
-        scattering_pdf = 0
+        scattering_pdf = 0.0
 
         # IF NOT BLACK
         # compute effect of visibility for light source sample
@@ -107,21 +107,21 @@ function estimate_direct(
 
         # add light's contribution to reflected radiance
         # IF NOT BLACK
-        if is_delta_light(light.flags)
+        if is_delta_light(light)
             Ld += f * Li / light_pdf
         else
-            weight = power_hueristic(1.0, light_pdf, 1.0, scattering_pdf)
+            weight = power_heuristic(1.0, light_pdf, 1.0, scattering_pdf)
             Ld += f * Li * weight / light_pdf
         end
     end
 
     # sampling BSDF with multiple importance sampling
-    if !is_delta_light(light.flags)
+    if !is_delta_light(light)
         # ASSUMING THIS IS A SURFACE INTERACTION 
         # sample scattered direction for surface interaction
-        wi, f, scattering_pdf, sampled_type = sample_f(isect.bsdf, wo, u_scattering, bsdf_flags)
+        wi, f, scattering_pdf, sampled_type = sample_f(isect.bsdf, isect.core.wo, u_scattering, bsdf_flags)
         f *= abs(dot(wi, isect.shading.n))
-        sampled_specular = sampled_type & BSDF_SPECULAR
+        sampled_specular = sampled_type & BSDF_SPECULAR == sampled_type
     end
 
     # ASSUMING IS NOT BLACK
@@ -130,24 +130,24 @@ function estimate_direct(
         weight = 1.0
         if !sampled_specular
             light_pdf = pdf_li(light, isect, wi)
-            (light_pdf = 0) && return Ld
+            (light_pdf == 0) && return Ld
             weight = power_heuristic(1.0, scattering_pdf, 1.0, light_pdf)
         end
 
         # find intersection and compute transmittance
-        ray = spawn_ray(isect, wi)
+        ray = spawn_ray(isect.core, wi)
         Tr = Spectrum(1,1,1)
         # assuming no media to handle
-        found_surface_interaction, t, light_isect = intersect(scene.b, ray)
+        found_surface_interaction, t, light_isect = intersect!(scene.b, ray)
 
         # add light contribution from material sampling
         Li = Spectrum(0,0,0)
         if found_surface_interaction
             if !(light_isect.primitive.area_light isa Nothing)
-                Li = Le(light_isect, -wi)
+                Li = le(light_isect, -wi)
             end
         else
-            Li = Le(light, ray)
+            Li = le(light, ray)
         end
         # IF NOT BLACK
         Ld += f * Li * Tr * weight / scattering_pdf

@@ -40,3 +40,7 @@ function sample_li(dl::DistantLight, interaction::Interaction, u::Pnt2)::Tuple{S
     radiance = L(dl, nshape, -wi)
     return radiance, wi, pdf_val, visibility, pshape, nshape
 end
+
+function pdf_li(light::DistantLight, isect::SurfaceInteraction, wi::Vec3)::Float64
+    return 0.0
+end

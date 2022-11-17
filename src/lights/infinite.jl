@@ -46,8 +46,8 @@ function sample_li(il::InfinteLight, interaction::Interaction, uv::Pnt2)::Tuple{
     # find (u,v) sample coordinates in infinite light texture
     u_idx, v_idx = sample_pdf_2d(il.pdf, uv)
 
-    u_pdf = il.pdf.col_pdf[min(2,u_idx)]
-    v_pdf = il.pdf.row_pdf[min(2,v_idx), min(2,u_idx)]
+    u_pdf = il.pdf.col_pdf[u_idx]
+    v_pdf = il.pdf.row_pdf[v_idx, u_idx]
 
     u = u_idx / (length(il.pdf.col_cdf)+1)
     v = v_idx / (length(il.pdf.row_pdf[:,1])+1)
@@ -81,3 +81,19 @@ function sample_li(il::InfinteLight, interaction::Interaction, uv::Pnt2)::Tuple{
     return radiance, wi, pdf_val, visibility, Pnt3(0,0,0), Nml3(0,0,0)
 end
 
+function pdf_li(light::InfinteLight, isect::SurfaceInteraction, wi::Vec3)::Float64
+    wi = normalize(light.world_to_light(wi))
+    theta = spherical_theta(wi)
+    phi = spherical_phi(wi)
+    sin_theta = sin(theta)
+    (sin_theta == 0.0) && return 0.0
+
+    x, y = size(light.map)
+    u_idx = Int(trunc(phi / 2pi * x)+1)
+    v_idx = Int(trunc(theta / pi * y)+1)
+
+    u_pdf = light.pdf.col_pdf[u_idx]
+    v_pdf = light.pdf.row_pdf[u_idx, v_idx]
+
+    return length(light.pdf.col_cdf) * length(light.pdf.row_cdf[:,1]) * u_pdf * v_pdf / (2 * pi * pi * sin_theta)
+end
