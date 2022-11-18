@@ -8,10 +8,14 @@ Physically Based Rendering - in Julia
 
 # TODO
 - add path integrator
+    - document bxdf and bsdf and fresnel and stuff!
     - add better light sampling strategies from github
     - infinite light is broken
     - harmoinze bsdf flags and light flags
+- Texture tiling.
 - instead of copying sampler within multi-threaded loop, can we instantiate a list?
+- Halton sampler
+- What are the right filter parameters
 - Scene work
     - Add more walls (left wall corner).
     - Add colored panels.
@@ -22,7 +26,7 @@ Physically Based Rendering - in Julia
 - Stratified sampler edges...
 - Add metal material
 - Add fourier material.
-- I can assume all objects are static and simplify some camera shutter and sampling details.
+- Dimensions 3-5 of each sample vector are consumed for time and lens samples, even though none of my scenes (so far) need these. Remove em!
 - Expand tests. 
 - Improve scene specification interface.
 - Profile code base.
