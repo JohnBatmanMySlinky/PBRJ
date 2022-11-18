@@ -196,7 +196,7 @@ function render_munich_re_scene()
         )
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, mat_concrete, nothing))
     end
 
     ################# CEILING
@@ -470,7 +470,7 @@ function render_munich_re_scene()
         nothing
     )
     for tri in flwall
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, mat_concrete, nothing))
     end
 
     # hallway floor area light
@@ -519,7 +519,7 @@ function render_munich_re_scene()
     push!(lights, distant_light)
 
     # Instantiate a Filter
-    filter = BoxFilter(Pnt2(.1, .1))
+    filter = BoxFilter(Pnt2(.5, .5))
 
     # Instantiate a Film
     film = Film(
