@@ -38,3 +38,23 @@ using Test
     invr = RayTracing.Inv(r)
     @test  invr(r(RayTracing.Pnt3(1,1,1))) ≈ RayTracing.Pnt3(1,1,1) 
 end
+
+@testset "Distributions - 1D" begin
+    x = Float64[1.0, 2.0, 3.0, 4.0]
+    d = RayTracing.Distribution1D(x)
+    @test d.pdf ≈ Float64[0.1, 0.2, 0.3, 0.4]
+    @test d.cdf ≈ Float64[0.0, 0.1, 0.3, 0.6, 1.0]
+    @test d.len ≈ 4
+
+    val, val_pdf = RayTracing.sample_continuous(d, 0.05)
+    @test val ≈ 0.125
+    @test val_pdf ≈ 0.1
+
+    val, val_pdf = RayTracing.sample_continuous(d, 0.75)
+    @test val ≈ 0.84375
+    @test val_pdf ≈ 0.4
+
+    val, val_pdf = RayTracing.sample_continuous(d, 0.3)
+    @test val ≈ 0.5
+    @test val_pdf ≈ 0.2
+end
