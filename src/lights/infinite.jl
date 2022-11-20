@@ -29,8 +29,8 @@ struct InfinteLight <: Light
 end
 
 function power(il::InfinteLight)::Float64
-    u_idx, v_idx = sample_pdf_2d(il.pdf, Pnt2(.5, .5))
-    return pi .* il.world_radius .* il.world_radius .* Spectrum(il.map[u_idx, v_idx])
+    u, v = size(il.map)
+    return pi .* il.world_radius .* il.world_radius .* Spectrum(il.map[u ÷ 2, v ÷ 2])
 end
 
 function le(il::InfinteLight, ray::AbstractRay)::Spectrum
@@ -42,34 +42,30 @@ function le(il::InfinteLight, ray::AbstractRay)::Spectrum
     return Spectrum(l.r, l.g, l.b)
 end
 
-function sample_li(il::InfinteLight, interaction::Interaction, uv::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
-    # find (u,v) sample coordinates in infinite light texture
-    u_idx, v_idx = sample_pdf_2d(il.pdf, uv)
+function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
+    # Find $(u,v)$ sample coordinates in infinite light texture
+    uv, map_pdf = sample_continuous(il.pdf, uvu)
+    (map_pdf == 0) && return Spectrum(0,0,0)
 
-    u_pdf = il.pdf.col_pdf[u_idx]
-    v_pdf = il.pdf.row_pdf[v_idx, u_idx]
+    # Convert infinite light sample point to direction
+    theta = uv.y * pi
+    phi = uv.x * 2 * pi
+    cos_theta = cos(theta)
+    sin_theta = sin(theta)
+    sin_phi = sin(phi)
+    cos_phi = cos(phi)
+    wi = il.light_to_world(Vec3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta))
 
-    u = u_idx / (length(il.pdf.col_cdf)+1)
-    v = v_idx / (length(il.pdf.row_pdf[:,1])+1)
+    # Compute PDF for sampled infinite light direction
+    map_pdf /= (2 * pi * pi * sin_theta)
+    (sin_theta == 0) && (map_pdf = 0.0)
 
-    # convert infinite light sample point to direction
-    theta = v * pi
-    phi = u * 2 * pi
-    cosTheta = cos(theta)
-    sinTheta = sin(theta)
-    sinPhi = sin(phi)
-    cosPhi = cos(phi)
-    wi = normalize(il.light_to_world(Vec3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta)))
-
-    # compute pdf for sampled infinite light direction
-    if sinTheta == 0
-        pdf_val = 0
-    else
-        pdf_val = length(il.pdf.col_cdf) * length(il.pdf.row_cdf[:,1]) * u_pdf * v_pdf / (2 * pi * pi * sinTheta)
-    end
-
-    # return radiance value for infinite light direction
-    color = il.map[v_idx, u_idx]
+    # Return radiance value for infinite light direction
+    # John convert float to ints for the radiance lookup
+    x,y = size(il.map)
+    u = Int(trunc(uv.x * x))+1
+    v = Int(trunc(uv.y * y))+1
+    color = il.map[u,v]
     radiance = Spectrum(color.r, color.g, color.b)
 
     # visibility
@@ -78,22 +74,20 @@ function sample_li(il::InfinteLight, interaction::Interaction, uv::Pnt2)::Tuple{
         Interaction(interaction.p + wi .* 2 * il.world_radius, interaction.t, Vec3(0, 0, 0), Nml3(0, 0, 0))
     )
 
-    return radiance, wi, pdf_val, visibility, Pnt3(0,0,0), Nml3(0,0,0)
+    return radiance, wi, map_pdf, visibility, Pnt3(0,0,0), Nml3(0,0,0)
 end
 
-function pdf_li(light::InfinteLight, isect::SurfaceInteraction, wi::Vec3)::Float64
-    wi = normalize(light.world_to_light(wi))
+function pdf_li(il::InfinteLight, isect::SurfaceInteraction, wi::Vec3)::Float64
+    wi = il.world_to_light(wi)
     theta = spherical_theta(wi)
     phi = spherical_phi(wi)
     sin_theta = sin(theta)
     (sin_theta == 0.0) && return 0.0
 
-    x, y = size(light.map)
-    u_idx = Int(trunc(phi / 2pi * x)+1)
-    v_idx = Int(trunc(theta / pi * y)+1)
+    u_idx = phi / 2pi
+    v_idx = theta / pi
 
-    u_pdf = light.pdf.col_pdf[u_idx]
-    v_pdf = light.pdf.row_pdf[u_idx, v_idx]
+    pdf_val = pdf(il.pdf, Pnt2(u_idx, v_idx))
 
-    return length(light.pdf.col_cdf) * length(light.pdf.row_cdf[:,1]) * u_pdf * v_pdf / (2 * pi * pi * sin_theta)
+    return pdf_val / (2 * pi * pi * sin_theta)
 end

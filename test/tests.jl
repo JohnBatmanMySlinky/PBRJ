@@ -39,22 +39,63 @@ using Test
     @test  invr(r(RayTracing.Pnt3(1,1,1))) ≈ RayTracing.Pnt3(1,1,1) 
 end
 
-@testset "Distributions - 1D" begin
-    x = Float64[1.0, 2.0, 3.0, 4.0]
+@testset "Distributions1D --> continuous sampling" begin
+    # tests stolein from PBRT :)
+    x = Float64[1.0, 1.0, 2.0, 4.0, 8.0]
     d = RayTracing.Distribution1D(x)
-    @test d.pdf ≈ Float64[0.1, 0.2, 0.3, 0.4]
-    @test d.cdf ≈ Float64[0.0, 0.1, 0.3, 0.6, 1.0]
-    @test d.len ≈ 4
 
-    val, val_pdf = RayTracing.sample_continuous(d, 0.05)
-    @test val ≈ 0.125
-    @test val_pdf ≈ 0.1
+    # test 1: u=0.0, lower bound
+    val, val_pdf, val_offset = RayTracing.sample_continuous(d, 0.0)
+    @test val ≈ 0.0
+    @test val_pdf ≈ length(x) / 16.0
+    @test val_offset ≈ 1
 
-    val, val_pdf = RayTracing.sample_continuous(d, 0.75)
-    @test val ≈ 0.84375
-    @test val_pdf ≈ 0.4
+    # test 2: u=0.5, on the cut point
+    val, val_pdf, val_offset = RayTracing.sample_continuous(d, 0.5)
+    @test val ≈ 0.8    
 
-    val, val_pdf = RayTracing.sample_continuous(d, 0.3)
-    @test val ≈ 0.5
-    @test val_pdf ≈ 0.2
+    # test 3: u = .75, middle of section
+    val, val_pdf, val_offset = RayTracing.sample_continuous(d, 0.75)
+    @test val ≈ 0.9
+    @test val_pdf ≈ length(x) * 8.0 / 16.0
+    @test val_offset ≈ 5
+
+    # test 4: u = 1.0, upper bound
+    val, val_pdf, val_offset = RayTracing.sample_continuous(d, 1.0)
+    @test val ≈ 1.0
+end
+
+@testset "Distributions1D --> discrete sampling" begin
+    # tests stolein from PBRT :)
+    x = Float64[0.0, 1.0, 0.0, 3.0]
+    d = RayTracing.Distribution1D(x)
+
+    @test 0.00 ≈ RayTracing.discrete_pdf(d, 1)
+    @test 0.25 ≈ RayTracing.discrete_pdf(d, 2)
+    @test 0.00 ≈ RayTracing.discrete_pdf(d, 3)
+    @test 0.75 ≈ RayTracing.discrete_pdf(d, 4)
+
+    val, val_pdf, val_offset = RayTracing.sample_discrete(d, 0.0)
+    @test val ≈ 2
+    @test val_pdf ≈ 0.25
+    val, val_pdf, val_offset = RayTracing.sample_discrete(d, 0.125)
+    @test val ≈ 2
+    @test val_pdf ≈ 0.25
+    @test val_offset ≈ 0.5
+    val, val_pdf, val_offset = RayTracing.sample_discrete(d, 0.24999)
+    @test val ≈ 2
+    @test val_pdf ≈ 0.25
+    val, val_pdf, val_offset = RayTracing.sample_discrete(d, 0.250001)
+    @test val ≈ 4
+    @test val_pdf ≈ 0.75
+    val, val_pdf, val_offset = RayTracing.sample_discrete(d, 0.625)
+    @test val ≈ 4
+    @test val_pdf ≈ 0.75
+    @test val_offset ≈ 0.5
+    val, val_pdf, val_offset = RayTracing.sample_discrete(d, 1-eps(Float64))
+    @test val ≈ 4
+    @test val_pdf ≈ 0.75
+    val, val_pdf, val_offset = RayTracing.sample_discrete(d, 1.0)
+    @test val ≈ 4
+    @test val_pdf ≈ 0.75
 end

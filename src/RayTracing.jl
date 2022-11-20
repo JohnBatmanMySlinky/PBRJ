@@ -544,7 +544,7 @@ function render_munich_re_scene()
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
-    print("\nThere are " * num2str(length(lights)) * " lights in the scene\n")
+    print("There are " * num2str(length(lights)) * " lights in the scene\n")
     scene = Scene(lights, bvh)
     
     # Instantiate an Integrator

@@ -177,7 +177,10 @@ function intersect_p(s::Sphere, r::AbstractRay)::Bool
     p = refine_Interaction(p, s)
 
     # compute phi
-    phi = compute_phi(p)
+    phi = atan(p.y, p.x)
+    if phi < 0 
+        phi += 2 * pi
+    end
 
     # test clipping
     if (s.zMin > -s.radius && p[3] < s.zMin) || (s.zMax < s.radius && p[3] > s.zMax) || phi > s.phiMax
@@ -254,4 +257,10 @@ function sample(s::Sphere, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     p = s.core.object_to_world(pobj)
     n = s.core.object_to_world(nobj)
     return (p, n)
+end
+
+function refine_Interaction(p::Pnt3, s::Sphere)
+    p *= s.radius ./ distance(Pnt3(0,0,0), p)
+    p[1] ≈ 0 && p[2] ≈ 0 && (p = Pnt3(1f-6 * s.radius, p[2], p[3]))
+    return p
 end
