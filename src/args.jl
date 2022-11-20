@@ -2,6 +2,10 @@ function parse_commandline()::Dict
     s = ArgParseSettings()
 
     @add_arg_table s begin
+        "--scene-number"
+            help = "pick a scene"
+            arg_type = Int
+            default = 1
         "--render-simple"
             help = "bool for simple or complex"
             arg_type = Bool
