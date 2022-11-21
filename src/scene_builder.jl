@@ -467,9 +467,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         lights = Light[]
 
         # MATERIALS
-        mat_gray = Matte(
-            ConstantTexture(Vec3(.4, .4, .4)),
-            ConstantTexture(Vec3(0, 0, 0)),
+        mat_concrete = Substrate(
+            ImageTexture("../ref/tiling_24_basecolor-1K.png", Pnt2(2,2)), # kd
+            ConstantTexture(Pnt3(.05, .05, .05)), # ks
+            ConstantTexture(Pnt3(.003, .003, .003)), # u
+            ConstantTexture(Pnt3(.003, .003, .003)), # v
+            true, # remap
+            # ImageTexture("../ref/Substance_Graph_Height.jpg", Pnt2(1,1)), # kd
             nothing
         )
         mat_blue = Matte(
@@ -502,7 +506,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_gray, nothing))
+            push!(primitives, Primitive(tri, mat_concrete, nothing))
         end
 
         # instantiate accelerator

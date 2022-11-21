@@ -74,3 +74,7 @@ function power_heuristic(nf::Float64, fpdf::Float64, ng::Float64, gpdf::Float64)
     g = ng*gpdf
     return (f^2)/(f^2 + g^2)
 end
+
+function do_tile(u::Float64, tile::Float64)::Float64
+    return (u - trunc((u-eps(Float64))/(1/tile))/tile)*tile
+end
