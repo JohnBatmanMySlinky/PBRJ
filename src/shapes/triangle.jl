@@ -201,7 +201,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         if norm(ng)^2 == 0
             return false, 0.0, empty_surface_interation(tri)
         end
-        _, dpu, dpv = orthonormal_basis(ng)
+        _, dpu, dpv = orthonormal_basis(Vec3(ng))
         dpdu = Vec3(dpu)
         dpdv = Vec3(dpv)
     end
@@ -292,8 +292,8 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
             degenerateUV = abs(determinant) < 1e-8
             if degenerateUV
                 dn = cross(
-                    Vec3(n[3]-n[1]),
-                    Vec3(n[2]-n[1])
+                    Vec3(n3-n1),
+                    Vec3(n2-n1)
                 )
                 if norm(dn)^2 == 0
                     dndu = dndv = Nml3(0,0,0)

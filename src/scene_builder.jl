@@ -462,6 +462,181 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         I = PathIntegrator(C, S, 25)
 
         return I, scene
+    elseif parsed_args["scene-number"] == 2
+        primitives = Primitive[]
+        lights = Light[]
+
+        # MATERIALS
+        mat_gray = Matte(
+            ConstantTexture(Vec3(.4, .4, .4)),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
+        )
+        mat_blue = Matte(
+            ConstantTexture(Vec3(0, .4, .8)),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
+        )
+
+        # GEOMETRY
+        sphere_transform = Translate(Pnt3(0,50,0))
+        sphere = Sphere(
+            ShapeCore(
+                sphere_transform,
+                Inv(sphere_transform),
+                false,
+                false
+            ),
+            50.0
+        )
+        push!(primitives, Primitive(sphere, mat_blue, nothing))
+
+        floor_transform = Translate(Pnt3(0,0,0))
+        floor = Rectangle(
+            Pnt2(-300, -300), 
+            Pnt2(300, 300), 
+            0.0,
+            2, 
+            ShapeCore(floor_transform, Inv(floor_transform), false, false),
+            false,
+            nothing
+        )
+        for tri in floor
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
+
+        # instantiate accelerator
+        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives)
+        print("Done building BVH\n")
+
+        # instantiate an env light
+        env_light = InfinteLight(
+            world_bounds(bvh), 
+            Translate(Vec3(0,0,0)), 
+            Spectrum(1, 1, 1), 
+            "../ref/parking_lot.jpg"
+        )
+        push!(lights, env_light)
+
+        # Instantiate a Filter
+        filter = BoxFilter(Pnt2(.5, .5))
+
+        # Instantiate a Film
+        film = Film(
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+            Bounds2(Pnt2(0,0), Pnt2(1,1)),
+            filter,
+            1.0,
+            1.0,
+            parsed_args["file-name"]
+        )
+
+        # Instantiate a Camera
+        look_from = Pnt3(150, 120, 400)
+        look_at = Pnt3(0, 100, 0)
+        up = Vec3(0, -1, 0)
+        screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
+
+        # Instantiate a Sampler
+        spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
+        S = StratifiedSampler(spp, spp, 4, true)
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+        
+        # Instantiate Scene
+        print("There are " * num2str(length(lights)) * " lights in the scene\n")
+        scene = Scene(lights, bvh)
+        
+        # Instantiate an Integrator
+        I = PathIntegrator(C, S, 25)
+
+        return I, scene
+    elseif parsed_args["scene-number"] == 3
+        primitives = Primitive[]
+        lights = Light[]
+
+        # MATERIALS
+        mat_gray = Matte(
+            ConstantTexture(Vec3(.4, .4, .4)),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
+        )
+
+        orb_translate = RotateZ(-135.0)
+        orb =  parse_obj(
+            "../ref/dragon1.obj",
+            orb_translate,
+            false,
+            false,
+            nothing
+        )
+
+        for tri in orb
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
+
+        floor_transform = Translate(Pnt3(0,-40,0))
+        floor = Rectangle(
+            Pnt2(-300, -300), 
+            Pnt2(300, 300), 
+            0.0,
+            2, 
+            ShapeCore(floor_transform, Inv(floor_transform), false, false),
+            false,
+            nothing
+        )
+        for tri in floor
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
+
+        # instantiate accelerator
+        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives)
+        print("Done building BVH\n")
+
+        # instantiate an env light
+        env_light = InfinteLight(
+            world_bounds(bvh), 
+            Translate(Vec3(0,0,0)), 
+            Spectrum(1, 1, 1), 
+            "../ref/parking_lot.jpg"
+        )
+        push!(lights, env_light)
+
+        # Instantiate a Filter
+        filter = BoxFilter(Pnt2(.5, .5))
+
+        # Instantiate a Film
+        film = Film(
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+            Bounds2(Pnt2(0,0), Pnt2(1,1)),
+            filter,
+            1.0,
+            1.0,
+            parsed_args["file-name"]
+        )
+
+        # Instantiate a Camera
+        look_from = Pnt3(200, 200, 200)
+        look_at = Pnt3(-35, 0, -35)
+        up = Vec3(0, -1, 0)
+        screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
+
+        # Instantiate a Sampler
+        spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
+        S = StratifiedSampler(spp, spp, 4, true)
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+        
+        # Instantiate Scene
+        print("There are " * num2str(length(lights)) * " lights in the scene\n")
+        scene = Scene(lights, bvh)
+        
+        # Instantiate an Integrator
+        I = PathIntegrator(C, S, 25)
+
+        return I, scene
     else
         @assert false
     end

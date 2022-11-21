@@ -96,6 +96,14 @@ function parse_obj(
         end
     end
     @assert length(indices) % 3 == 0
+
+    # if no UVs found, add dummy UVs
+    if length(uvs) == 0
+        for i in 1:length(vertices)
+            push!(uvs, Pnt2(1,1))
+        end
+    end
+
     return construct_triangle_mesh(
         ShapeCore(object_to_world, Inv(object_to_world), reverse_orientation, transform_swaps_handedness), 
         length(indices)÷3,  # n_triangles
