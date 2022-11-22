@@ -13,7 +13,10 @@ Physically Based Rendering - in Julia
     - ~~infinite light is broken~~
     - harmoinze bsdf flags and light flags
 - instead of copying sampler within multi-threaded loop, can we instantiate a list?
-- Halton sampler
+- Improve sampling
+    - a notebook to visually test results
+    - Halton Sampler
+    - remove unnecessary sampling dims
 - What are the right filter parameters
 - Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc
 - Scene work
@@ -26,7 +29,7 @@ Physically Based Rendering - in Julia
 - Stratified sampler edges...
 - Add metal material
 - Add fourier material.
-- Dimensions 3-5 of each sample vector are consumed for time and lens samples, even though none of my scenes (so far) need these. Remove em!
+- Make obj_parser less anemic.
 - Expand tests. 
 - Profile code base.
     - @inline some stuff?
