@@ -6,40 +6,52 @@ Physically Based Rendering - in Julia
 - [This implementation of PBRT in Julia](https://github.com/pxl-th/Trace.jl) repo has been an invaluable reference.
 - [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
 
+# How to use
+- TODO
+
+# General Commentary on this whole experience
+- BVH is (obviously) really important and am forever grateful of pxl-th's implementation
+- Samplers gave (and continue to give) me a migraine
+- BxDFs make sense in practice but their implementation hurts my brain.
+
 # TODO
-- add path integrator
-    - document bxdf and bsdf and fresnel and stuff!
+- Implement PathIntegrator
+    - document bxdf and bsdf and fresnel and stuff hierarchy!
     - ~~add better light sampling strategies from github~~ (not doing, will wait for light bvh in v4)
     - ~~infinite light is broken~~
     - harmoinze bsdf flags and light flags
-- instead of copying sampler within multi-threaded loop, can we instantiate a list?
 - Improve sampling
     - a notebook to visually test results
     - Halton Sampler
     - remove unnecessary sampling dims
-- What are the right filter parameters
-- Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc
-- Scene work
-    - Add more walls (left wall corner).
-    - Add colored panels.
+    - Need to implement and use the, Sampler, PixelSampler, and GlobalSampler class structure from PBRT
+- What are the right filter parameters?
+- Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc.
+- Improve munich re scene 
+    - Add more walls (left wall corner)
+    - ~~Add colored panels~~
     - Add in more scene geometry (baseboards? stairs? elevator?)
-    - Get reflections in back hallway looking nice and in general floor material.
-    - Wall material.
-    - Better ambient lighting.
-- Stratified sampler edges...
-- Add metal material
-- Add fourier material.
-- Make obj_parser less anemic.
-- Expand tests. 
-- Profile code base.
+    - Get reflections in back hallway looking nice and in general floor material
+    - Wall material
+    - Better ambient lighting
+- Implement more materials
+    - Add metal material
+    - Add fourier material
+- Make obj_parser less anemic
+- Expand tests
+- Profile code base
     - @inline some stuff?
-    - Sampler feels inefficient. 
+    - Sampler feels inefficient
     - How does multi-threading interact with sampler?
-- Clean up code base, use more '.x' and less '[1]'
+- Improvements
+    - Clean up code base, use more '.x' and less '[1]'
+    - Remove sampling dimensions for lens & time. What is the improvement?
+    - Should I instantiate a list of samplers or stick with deepcopy()?
 - ~~Make CLI.~~
 - ~~Distant light~~
 - ~~Improve scene specification interface.~~
 - ~~Texture tiling.~~
+- ~~Stratified sampler edges...~~
 
 # Research
 - Quantify benefit of multi threading (todo after CLI)

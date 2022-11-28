@@ -33,3 +33,16 @@ function cosine_sample_hemisphere(u::Pnt2)::Vec3
     z = sqrt(max(0,1-d.x^2-d.y^2))
     return Vec3(d.x, d.y, z)
 end
+
+function shuffle!(samp::Vector, cnt::Int64, n_dimensions::Int64)
+    for i = 1:cnt
+        other = i + rand(0:(cnt-i))
+        for j = 0:(n_dimensions-1)
+            # JOHN HACK!
+            a = samp[n_dimensions * i + j]
+            b = samp[n_dimensions * other + j]
+            samp[n_dimensions * i + j] = b
+            samp[n_dimensions * other + j] = a
+        end
+    end
+end

@@ -78,3 +78,8 @@ end
 function do_tile(u::Float64, tile::Float64)::Float64
     return (u - trunc((u-eps(Float64))/(1/tile))/tile)*tile
 end
+
+function multiplicative_inverse(a::Int64, n::Int64)
+    x = gcd(a,n)
+    return mod(x,n)
+end
