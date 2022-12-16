@@ -1,9 +1,13 @@
 # EXECUTE WITH julia -i test_samplers.jl
 
 using Plots
+using Random
 pyplot()
 include("../src/RayTracing.jl")
 
+#######################################
+######## VISUALIZE SAMPLERS ##########
+#######################################
 
 function do_US(n::Int64)::Tuple{Vector{Float64}, Vector{Float64}}
     X = Float64[]
@@ -35,7 +39,9 @@ function do_SS(n::Int64, jitter::Bool)::Tuple{Vector{Float64}, Vector{Float64}}
         push!(Y,y)
         RayTracing.start_next_sample!(SS)
     end
-    return X, Y
+    # shuffle the indices because SS goes stratification by stratification
+    idx=shuffle(1:length(X))
+    return X[idx], Y[idx]
 end
 
 function do_HS(n::Int64)::Tuple{Vector{Float64}, Vector{Float64}}
@@ -55,18 +61,56 @@ function do_HS(n::Int64)::Tuple{Vector{Float64}, Vector{Float64}}
     return X, Y
 end
 
-# US_x, US_y = do_US(1024)
-# US_plot = plot(US_x, US_y, seriestype=:scatter, label="Uniform Sampler")
-# gui(US_plot)
 
-# SS_x, SS_y = do_SS(1024, false)
-# SS_plot = plot(SS_x, SS_y, seriestype=:scatter, label="Stratified Sampler - no jitter", reuse=false)
-# gui(SS_plot)
+function estimate_area_of_a_circle(n_samples::Int64)
+    US_x, US_y = do_US(n_samples)
+    SS_x, SS_y = do_SS(n_samples, true)
+    HS_x, HS_y = do_HS(n_samples)
 
-# SS_x, SS_y = do_SS(1024, true)
-# SS_plot = plot(SS_x, SS_y, seriestype=:scatter, label="Stratified Sampler - yes jitter", reuse=false)
-# gui(SS_plot)
+    US_in = 0
+    SS_in = 0
+    HS_in = 0
+    US_π = Vector{Float64}(undef, n_samples)
+    SS_π = Vector{Float64}(undef, n_samples)
+    HS_π = Vector{Float64}(undef, n_samples)
+    for n in 1:n_samples
+        if (US_x[n]-.5)^2 + (US_y[n]-.5)^2 <= .5^2
+            US_in += 1
+        end
+        if (SS_x[n]-.5)^2 + (SS_y[n]-.5)^2 <= .5^2
+            SS_in += 1
+        end
+        if (HS_x[n]-.5)^2 + (HS_y[n]-.5)^2 <= .5^2
+            HS_in += 1
+        end
+        US_π[n] = US_in * 4 / n
+        SS_π[n] = SS_in * 4 / n
+        HS_π[n] = HS_in * 4 / n
+    end
+    
+    π_plot = plot(1:n_samples, [US_π, SS_π, HS_π])
+    gui(π_plot)
+end
 
-HS_x, HS_y = do_HS(1024)
-HS_plot = plot(HS_x, HS_y, seriestype=:scatter, label="Halton Sampler", reuse=false)
-gui(HS_plot)
+function PLOT(N::Int64)
+    US_x, US_y = do_US(N)
+    US_plot = plot(US_x, US_y, seriestype=:scatter, label="Uniform Sampler: " * string(N) * " samples")
+    gui(US_plot)
+
+    SS_x, SS_y = do_SS(N, false)
+    SS_plot = plot(SS_x, SS_y, seriestype=:scatter, label="Stratified Sampler: no jitter: " * string(N) * " samples", reuse=false)
+    gui(SS_plot)
+
+    SS_x, SS_y = do_SS(N, true)
+    SS_plot = plot(SS_x, SS_y, seriestype=:scatter, label="Stratified Sampler: yes jitter: " * string(N) * " samples", reuse=false)
+    gui(SS_plot)
+
+    HS_x, HS_y = do_HS(N)
+    HS_plot = plot(HS_x, HS_y, seriestype=:scatter, label="Halton Sampler: " * string(N) * " samples", reuse=false)
+    gui(HS_plot)
+end
+
+
+
+PLOT(256)
+estimate_area_of_a_circle(256)
