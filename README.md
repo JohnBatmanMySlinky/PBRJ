@@ -31,6 +31,11 @@ Physically Based Rendering - in Julia
     - Halton Sampler
     - remove unnecessary sampling dims
     - Need to implement and use the, Sampler, PixelSampler, and GlobalSampler class structure from PBRT
+    - implement a discrepancy function to also test with (if halton isnt better im gunna be mad!)
+    - quantify convergence of estimation of pi using simple rejection sampling as an evaluation metric
+- Implement BDPT
+    - my scene is never going to look decent without it
+- Implement Cornell Box
 - What are the right filter parameters?
 - Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc.
 - Improve munich re scene 
