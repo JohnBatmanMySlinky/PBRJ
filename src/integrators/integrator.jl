@@ -26,7 +26,7 @@ function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, minim
             while has_next_sample(k_sampler)
                 camera_sample = get_camera_sample!(k_sampler, pixel)
                 ray, w = generate_ray_differential(i.camera, camera_sample)
-                scale_differentials!(ray, 1.0 / sqrt(k_sampler.samples_per_pixel))
+                scale_differentials!(ray, 1.0 / sqrt(k_sampler.pixel_sampler.sampler.samples_per_pixel))
                 L = Spectrum(0,0,0)
 
                 if minimal

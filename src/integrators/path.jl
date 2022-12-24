@@ -6,8 +6,8 @@ struct PathIntegrator <: AbstractIntegrator
 end
 
 function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Spectrum
-    L = Spectrum(0,0,0)
-    beta = Spectrum(1,1,1) # the throughput weight
+    L = Spectrum(0)
+    beta = Spectrum(1) # the throughput weight
     specular_bounce = false
     bounces = 0
 
@@ -52,6 +52,8 @@ function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Sp
         compute_scattering!(isect, ray)
         """ bsdf is a nothing when passing in between participating media"""
         if isect.bsdf isa Nothing
+            # we have no participating media so we shouldn't get here
+            @assert false
             ray = spawn_ray(isect.core, ray.direction)
             bounces -= 1
             continue

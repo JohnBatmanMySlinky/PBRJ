@@ -103,11 +103,9 @@ function SchlickFresnel(Rs::Spectrum, cos_theta::Float64)
 end
 
 function f(f::FresnelBlend, wo::Vec3, wi::Vec3)
-    diffuse = Spectrum((28 / (23*pi) ) * f.Rd * (Spectrum(1,1,1)-f.Rs) * (1-(1-abs_cos_theta(wi)/2)^5) * (1-(1-abs_cos_theta(wo)/2)^5))
+    diffuse = Spectrum((28 / (23pi)) * f.Rd * (Spectrum(1)-f.Rs) * (1-(1-abs_cos_theta(wi)/2)^5) * (1-(1-abs_cos_theta(wo)/2)^5))
     wh = wi + wo
-    if (wh.x==0)&&(wh.y==0)&&(wh.z==0)
-        return Spectrum(0,0,0)
-    end
+    (wh.x==0)&&(wh.y==0)&&(wh.z==0) && return Spectrum(0)
     wh = normalize(wh)
     specular = Spectrum(D(f.distrib, wh) / (4 * abs(dot(wi,wh)) * max(abs_cos_theta(wo), abs_cos_theta(wi))) * SchlickFresnel(f.Rs, dot(wi, wh)))
     return diffuse + specular

@@ -1,5 +1,8 @@
 include("primes.jl")
 
+# IDK JUST DEFINE THIS
+const k_max_resolution = 128
+
 mutable struct HaltonSampler <: AbstractSampler
     global_sampler::GlobalSampler
     radical_inverse_permutations::Vector{UInt16}
@@ -13,9 +16,6 @@ mutable struct HaltonSampler <: AbstractSampler
     function HaltonSampler(samples_per_pixel::Int64, sample_bounds::Bounds2)
         global_sampler = GlobalSampler(samples_per_pixel)
         radical_inverse_permutations = compute_radical_inverse_permutations()
-
-        # IDK JUST DEFINE THIS
-        k_max_resolution = 128
 
         # final radical inverse base scales and exponents that cover sampling area
         base_scales = Int64[0, 0]
@@ -58,7 +58,7 @@ mutable struct HaltonSampler <: AbstractSampler
     end
 end
 
-function start_pixel!(hs::HaltonSampler, current_pixel::Pnt2)
+ function start_pixel!(hs::HaltonSampler, current_pixel::Pnt2)
     hs.global_sampler.dimension = 1
     hs.global_sampler.interval_sample_index = get_index_for_sample(hs, 0, current_pixel)
     array_end_dim = hs.global_sampler.array_start_dim + length(hs.global_sampler.sampler.sample_1d_array_sizes) + 2 * length(hs.global_sampler.sampler.sample_2d_array_sizes)
@@ -86,7 +86,7 @@ function start_pixel!(hs::HaltonSampler, current_pixel::Pnt2)
     @assert dim == array_end_dim
 end
 
-function get_1D!(hs::HaltonSampler)
+ function get_1D!(hs::HaltonSampler)
     if hs.global_sampler.dimension >= hs.global_sampler.array_start_dim && hs.global_sampler.dimension < hs.array_end_dim
         hs.global_sampler.dimension = hs.array_end_dim
     end
@@ -95,7 +95,7 @@ function get_1D!(hs::HaltonSampler)
     return p
 end
 
-function get_2D!(hs::HaltonSampler)
+ function get_2D!(hs::HaltonSampler)
     if hs.global_sampler.dimension + 1 >= hs.global_sampler.array_start_dim && hs.global_sampler.dimension < hs.array_end_dim
         hs.global_sampler.dimension = hs.array_end_dim
     end
@@ -107,15 +107,16 @@ function get_2D!(hs::HaltonSampler)
     return p
 end
 
-function has_next_sample(hs::HaltonSampler)
+ function has_next_sample(hs::HaltonSampler)
     return hs.global_sampler.sampler.current_pixel_sample_index <= hs.global_sampler.sampler.samples_per_pixel
 end
-function start_next_sample!(hs::HaltonSampler)
+
+ function start_next_sample!(hs::HaltonSampler)
     hs.global_sampler.dimension = 0
     hs.global_sampler.interval_sample_index = get_index_for_sample(hs, hs.global_sampler.sampler.current_pixel_sample_index, hs.global_sampler.sampler.current_pixel)
     hs.global_sampler.sampler.current_pixel_sample_index += 1
 end
-function get_camera_sample!(hs::HaltonSampler, ::Pnt2)
+ function get_camera_sample!(hs::HaltonSampler, ::Pnt2)
     p_film = p_raster .+ get_2D!(hs) # 1,2
     timesample = get_1D!(hs)               # 3
     p_lens = get_2D!(hs)             # 4,5
@@ -144,7 +145,7 @@ function get_index_for_sample(hs::HaltonSampler, sample_num::Int64, current_pixe
             for i = 1:2
                 # JOHN dont have specialized functions?
                 # dim_offset = (i==1) ? inverse_radical_inverse(pm[i], hs.base_exponents[i]) : inverse_radical_inverse(pm[i], hs.base_exponents[i])
-                dim_offset = inverse_radical_inverse(pm[i], UInt(hs.base_exponents[i]))
+                dim_offset = inverse_radical_inverse(Int(pm[i]), hs.base_scales[i], hs.base_exponents[i])
                 hs.offset_for_current_pixel += dim_offset * (hs.sample_stride / hs.base_scales[i]) * hs.mult_inverse[i]
             end
         end

@@ -22,6 +22,14 @@ struct Vec2 <: FieldVector{2, Float64}
     y::Float64
 end
 
+function Vec3(a::Union{Float64, Int64})::Vec3
+    return Vec3(a,a,a)
+end
+
+function Vec2(a::Union{Float64, Int64})::Vec2
+    return Vec2(a,a)
+end
+
 ################################
 #### Points ####################
 ################################
@@ -41,6 +49,14 @@ struct Pnt2 <: FieldVector{2, Float64}
     y::Float64
 end
 
+function Pnt3(a::Union{Float64, Int64})::Pnt3
+    return Pnt3(a,a,a)
+end
+
+function Pnt2(a::Union{Float64, Int64})::Pnt2
+    return Pnt2(a,a)
+end
+
 ################################
 #### Normals ####################
 ################################
@@ -48,6 +64,10 @@ struct Nml3 <: FieldVector{3, Float64}
     x::Float64
     y::Float64
     z::Float64
+end
+
+function Nml3(a::Union{Float64, Int64})::Nml3
+    return Nml3(a,a,a)
 end
 
 ################################
@@ -98,10 +118,10 @@ function RayDifferential(r::Ray)::RayDifferential
         r.t,
         r.tMax,
         false,
-        Pnt3(0,0,0),
-        Pnt3(0,0,0),
-        Vec3(0,0,0),
-        Vec3(0,0,0)
+        Pnt3(0),
+        Pnt3(0),
+        Vec3(0),
+        Vec3(0)
     )
 end
 
@@ -130,14 +150,14 @@ struct Bounds2
     pMax::Pnt2
 end
 
-function Bounds2()
-    return Bounds2(Pnt2(Inf64, Inf64, Inf64), Pnt2(-Inf64, -Inf64, -Inf64))
+function Bounds2()::Bounds2
+    return Bounds2(Pnt2(Inf64), Pnt2(-Inf64))
 end
-function Bounds3()
-    return Bounds3(Pnt3(Inf64, Inf64, Inf64), Pnt3(-Inf64, -Inf64, -Inf64))
+function Bounds3()::Bounds3
+    return Bounds3(Pnt3(Inf64), Pnt3(-Inf64))
 end
 
-function inclusive_sides(b::Union{Bounds2, Bounds3})
+function inclusive_sides(b::Union{Bounds2, Bounds3})::Vec{Union{Bounds2, Bounds3}}
     return [abs(b1 - (b0 - 1f0)) for (b1, b0) in zip(b.pMax, b.pMin)]
 end
 
@@ -330,6 +350,11 @@ struct Spectrum <: FieldVector{3, Float64}
     g::Float64
     b::Float64
 end
+
+function Spectrum(a::Union{Float64,Int64})::Spectrum
+    return Spectrum(a,a,a)
+end
+
 function XYZ_to_RGB(xyz::Pnt3)
     # return Spectrum(
     #     0.412453 * xyz.x + 0.357580 * xyz.y + 0.180423 * xyz.z,

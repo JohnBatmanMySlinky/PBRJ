@@ -43,7 +43,7 @@ function do_HS(n::Int64)::Tuple{Vector{Float64}, Vector{Float64}}
     Y = Float64[]
     HS = RayTracing.HaltonSampler(
         n,
-        RayTracing.Bounds2(RayTracing.Pnt2(0,0), RayTracing.Pnt2(1,1))
+        RayTracing.Bounds2(RayTracing.Pnt2(0,0), RayTracing.Pnt2(10,1))
     )
     RayTracing.start_pixel!(HS, RayTracing.Pnt2(0,0))
     while RayTracing.has_next_sample(HS)

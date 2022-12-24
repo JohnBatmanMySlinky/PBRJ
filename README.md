@@ -20,6 +20,12 @@ Physically Based Rendering - in Julia
     - ~~add better light sampling strategies from github~~ (not doing, will wait for light bvh in v4)
     - ~~infinite light is broken~~
     - harmoinze bsdf flags and light flags
+- Implement Bidirectional Path Tracing
+    - this is a doozy
+- Is my BSDF sampling right? I should create some tests here
+- theres a bug in my filtering!!!
+- I need a linter or some static code analysis
+- Also some dynamic code analysis
 - Improve sampling
     - a notebook to visually test results
     - Halton Sampler
@@ -58,3 +64,24 @@ Physically Based Rendering - in Julia
 
 # Beyond PBRT
 - Importance sampling
+
+
+# Notes
+## Reflectance
+### Material
+#### What they do
+- Instantiate BSDF
+- Add BxDFs to BSDF
+#### Methods
+- (Material)(SurfaceInteraction, Bool, TransportMode)
+- bump!(Material, SurfaceInteraction)
+### AbstractBSDF
+#### What they do
+- Hold collection of AbstractBxDFs
+#### Methods
+- (BSDF)(Vec3, Vec3, Flags)
+- sample_f(BSDF, Vec3, Pnt2, UInt8)
+- compute_pdf(BSDF, Vec3, Vec3, UInt8)
+### AbstractBxDF
+#### What they do
+#### Methods
