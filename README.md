@@ -22,6 +22,7 @@ Physically Based Rendering - in Julia
     - harmoinze bsdf flags and light flags
 - Implement Bidirectional Path Tracing
     - this is a doozy
+- My world is upside down! Use real pbrt to debug
 - Is my BSDF sampling right? I should create some tests here
 - theres a bug in my filtering!!!
 - I need a linter or some static code analysis

@@ -109,8 +109,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             CornerProceduralTexture(
                 ceiling_floor_corner_alpha_mask_threshold,
-                Spectrum(1,1,1),
-                Spectrum(0,0,0),
+                Spectrum(1),
+                Spectrum(0),
             )
         )
         for tri in floor
@@ -130,13 +130,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 CircleProceduralTexture(
                     Pnt2(.5, .5),
                     ceiling_whole_size/foyer_dim,
-                    Spectrum(1,1,1),
-                    Spectrum(0,0,0)
+                    Spectrum(1),
+                    Spectrum(0)
                 ),
                 CornerProceduralTexture(
                     ceiling_floor_corner_alpha_mask_threshold,
-                    Spectrum(1,1,1),
-                    Spectrum(0,0,0),
+                    Spectrum(1),
+                    Spectrum(0),
                 )
             )
         )

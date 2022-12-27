@@ -120,7 +120,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
     # Compute value of BSDF for sampled direction.
     if !(bxdf.type & BSDF_SPECULAR != 0)
         reflect = ((wi_world ⋅ b.ng) * (wo_world ⋅ b.ng)) > 0
-        f_val = Spectrum(0,0,0)
+        f_val = Spectrum(0)
         for i in 1:b.n_bxdfs
             bxdf = b.bxdfs[i]
             if ((bxdf & type) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0))))

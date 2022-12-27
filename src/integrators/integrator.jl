@@ -1,5 +1,5 @@
 function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, minimal::Bool=false)
-    sample_bounds = get_sample_bounds(get_film(i.camera))
+    sample_bounds = get_sample_bounds(i.camera.core.core.film)
     sample_extent = diagonal(sample_bounds)
     tile_size = 16
     width, height = Int64.(floor.((sample_extent .+ tile_size) ./ tile_size))
@@ -20,21 +20,21 @@ function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, minim
         tb_min = sample_bounds.pMin .+ tile .* tile_size
         tb_max = min.(tb_min .+ (tile_size - 1), sample_bounds.pMax)
         tile_bounds = Bounds2(tb_min, tb_max)
-        film_tile = FilmTile(get_film(i.camera), tile_bounds)
+        film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
             start_pixel!(k_sampler, pixel)
             while has_next_sample(k_sampler)
                 camera_sample = get_camera_sample!(k_sampler, pixel)
                 ray, w = generate_ray_differential(i.camera, camera_sample)
                 scale_differentials!(ray, 1.0 / sqrt(k_sampler.pixel_sampler.sampler.samples_per_pixel))
-                L = Spectrum(0,0,0)
+                L = Spectrum(0)
 
                 if minimal
                     check, t, interaction, = intersect!(scene.b, ray)
                     if check
                         L = Spectrum(interaction.primitive.material.Kd(interaction))
                     else
-                        L = Spectrum(0,0,0)
+                        L = Spectrum(0)
                     end
                 else
                     if w > 0
@@ -43,7 +43,7 @@ function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, minim
                 end
 
                 if any(isnan.(L))
-                    L = Spectrum(0,0,0)
+                    L = Spectrum(0)
                 end
 
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
@@ -51,21 +51,21 @@ function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, minim
                 start_next_sample!(k_sampler)
             end
         end
-        merge_film_tile!(get_film(i.camera) , film_tile)
+        merge_film_tile!(i.camera.core.core.film , film_tile)
         # print("$(k)\n")
         Threads.atomic_add!(jj,1)
         Threads.lock(l)
         update!(prog, jj[])
         Threads.unlock(l)
     end
-    @time got_film = get_film(i.camera)
+    @time got_film = i.camera.core.core.film
     save(got_film)
 end
 
 function uniform_sample_one_light(isect::SurfaceInteraction, scene::Scene, sampler::AbstractSampler, handle_media::Bool=false)::Spectrum
     # randomly chose a single light to sample
     n_lights = length(scene.lights)   
-    (n_lights==0) && return Spectrum(0,0,0)
+    (n_lights==0) && return Spectrum(0)
     light_num = Int(floor(rand()*n_lights)+1)
     light = scene.lights[light_num]
 
@@ -85,7 +85,7 @@ function estimate_direct(
     specular::Bool=false
 )::Spectrum
     bsdf_flags = specular ? BSDF_ALL : (BSDF_ALL & ~BSDF_SPECULAR)
-    Ld = Spectrum(0,0,0)
+    Ld = Spectrum(0)
     
     # sample light source with multiple importance sampling
     Li, wi, light_pdf, vis, _, _  = sample_li(light, isect.core, u_light)
@@ -101,7 +101,7 @@ function estimate_direct(
             @assert false
         else
             if !unoccluded(vis, scene.b)
-                Li = Spectrum(0,0,0)
+                Li = Spectrum(0)
             end
         end
 
@@ -141,7 +141,7 @@ function estimate_direct(
         found_surface_interaction, t, light_isect = intersect!(scene.b, ray)
 
         # add light contribution from material sampling
-        Li = Spectrum(0,0,0)
+        Li = Spectrum(0)
         if found_surface_interaction
             if !(light_isect.primitive.area_light isa Nothing)
                 Li = le(light_isect, -wi)

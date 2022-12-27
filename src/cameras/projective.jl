@@ -81,10 +81,10 @@ struct PerspectiveCamera <: Camera
             focal_distance,
             film
         )
-        dx_camera = projcam.raster_to_camera(Pnt3(1,0,0)) - projcam.raster_to_camera(Pnt3(0,0,0))
-        dy_camera = projcam.raster_to_camera(Pnt3(0,1,0)) - projcam.raster_to_camera(Pnt3(0,0,0))
+        dx_camera = projcam.raster_to_camera(Pnt3(1,0,0)) - projcam.raster_to_camera(Pnt3(0))
+        dy_camera = projcam.raster_to_camera(Pnt3(0,1,0)) - projcam.raster_to_camera(Pnt3(0))
 
-        p_min = projcam.raster_to_camera(Pnt3(0,0,0))
+        p_min = projcam.raster_to_camera(Pnt3(0))
         p_max = projcam.raster_to_camera(Pnt3(film.full_resolution.x, film.full_resolution.y, 0))
         p_min /= p_min.z
         p_max /= p_max.z
@@ -101,12 +101,12 @@ function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ra
     p_film = Pnt3(sample.film.x, sample.film.y, 0)
     p_camera = camera.core.raster_to_camera(p_film)
 
-    ray = Ray(Pnt3(0, 0, 0), normalize(Vec3(p_camera)), 0, typemax(Float64))
+    ray = Ray(Pnt3(0), normalize(Vec3(p_camera)), 0, typemax(Float64))
     if camera.core.lens_radius > 0
         p_lens = camera.core.lens_radius .* random_in_concentric_disk(sample.lens)
-        t = camera.core.focal_distance / ray.direction[3]
+        t = camera.core.focal_distance / ray.direction.z
         p_focus = at(ray, t)
-        ray.origin = Pnt3(p_lens[1], p_lens[2], 0)
+        ray.origin = Pnt3(p_lens.x, p_lens.y, 0)
         ray.direciton = normalize(Vec3(p_focus - ray.origin))
     end    
 
@@ -122,22 +122,22 @@ end
 function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSample)::Tuple{RayDifferential, Float64}
     p_film = Pnt3(sample.film.x, sample.film.y, 0)
     p_camera = camera.core.raster_to_camera(p_film)
-    ray = RayDifferential(Ray(Pnt3(0, 0, 0), normalize(Vec3(p_camera)), 0, typemax(Float64)))
+    ray = RayDifferential(Ray(Pnt3(0), normalize(Vec3(p_camera)), 0, typemax(Float64)))
 
     if camera.core.lens_radius > 0
         p_lens = camera.core.lens_radius .* random_in_concentric_disk(sample.lens)
-        t = camera.core.focal_distance / ray.direction[3]
+        t = camera.core.focal_distance / ray.direction.z
         p_focus = at(ray, t)
-        ray.origin = Pnt3(p_lens[1], p_lens[2], 0)
+        ray.origin = Pnt3(p_lens.x, p_lens.y, 0)
         ray.direciton = normalize(Vec3(p_focus - ray.origin))
 
         dx = normalize(Vec3(p_camera + camera.dx_camera))
-        pfocus = Pnt3(0,0,0) + (t * dx)
+        pfocus = Pnt3(0) + (t * dx)
         ray.rx_origin = Pnt3(p_lens.x, p_lens.y, 0)
         ray.rx_direction = normalize(pfocus - ray.rx_origin)
 
         dy = normalize(Vec3(p_camera + camera.dy_camera))
-        pfocus = Pnt3(0,0,0) + (t * dy)
+        pfocus = Pnt3(0) + (t * dy)
         ray.ry_origin = Pnt3(p_lens.x, p_lens.y, 0)
         ray.ry_direction = normalize(pfocus - ray.ry_origin)
     else
@@ -154,11 +154,4 @@ function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSamp
     )
     ray = camera.core.core.camera_to_world(ray)
     return ray, 1.0
-end
-
-#####################################
-####### Misc ########################
-#####################################
-function get_film(c::PerspectiveCamera)::Film
-    return c.core.core.film
 end

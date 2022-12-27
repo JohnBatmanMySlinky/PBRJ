@@ -157,7 +157,7 @@ function Bounds3()::Bounds3
     return Bounds3(Pnt3(Inf64), Pnt3(-Inf64))
 end
 
-function inclusive_sides(b::Union{Bounds2, Bounds3})::Vec{Union{Bounds2, Bounds3}}
+function inclusive_sides(b::Union{Bounds2, Bounds3})::Vector{Float64}
     return [abs(b1 - (b0 - 1f0)) for (b1, b0) in zip(b.pMax, b.pMin)]
 end
 
