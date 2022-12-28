@@ -823,7 +823,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # push!(lights, env_light)
 
         # Instantiate a Filter
-        filter = BoxFilter(Pnt2(.5, .5))
+        filter = BoxFilter(Pnt2(.1, .1))
 
         # Instantiate a Film
         film = Film(

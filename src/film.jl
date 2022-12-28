@@ -98,7 +98,7 @@ struct FilmTile
     pixel_bounds::Bounds2
     filter_radius::Pnt2
     inv_filter_radius::Pnt2
-    filter_table::Matrix{Float32}
+    filter_table::Matrix{Float64}
     filter_table_width::Int32
     pixels::Matrix{FilmTilePixel}
 
@@ -174,7 +174,7 @@ function merge_film_tile!(f::Film, ft::FilmTile)
 end
 
 function save(film::Film, splat_scale::Float64 = 1.0)
-    image = Array{Float32}(undef, size(film.pixels)..., 3)
+    image = Array{Float64}(undef, size(film.pixels)..., 3)
     for y in 1:size(film.pixels)[1], x in 1:size(film.pixels)[2]
         pixel = film.pixels[y, x]
         image[y, x, :] .= XYZ_to_RGB(pixel.xyz)

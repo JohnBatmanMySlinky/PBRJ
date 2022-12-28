@@ -59,7 +59,7 @@ struct PerspectiveCamera <: Camera
     core::ProjectiveCamera
     dx_camera::Pnt3
     dy_camera::Pnt3
-    A::Float32
+    A::Float64
 
     function PerspectiveCamera(
         camera_to_world::Transformation,
@@ -154,4 +154,58 @@ function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSamp
     )
     ray = camera.core.core.camera_to_world(ray)
     return ray, 1.0
+end
+
+#########################################
+######## 16.1.1 Sampling Cameras ########
+#########################################
+
+function we(camera::PerspectiveCamera, ray::Ray)::Tuple{Spectrum, Pnt2}
+    # interpolate camera matrix and check if w is forward facing
+    # JOHN HACK no interpolation
+    cos_theta = dot(ray.direction, camera.core.core.camera_to_world(Vec3(0,0,1)))
+    (cos_theta <= 0) && return Spectrum(0), Pnt2(0, 0)
+
+    # map ray (p,w) onto the raster grid
+    # JOHN HACK: what is ray() doing here?
+    p_focus = (camera.core.lens_radius > 0 ? camera.core.focal_distance : 1) / cos_theta
+    p_raster = Inv(camera.core.raster_to_camera)(Inv(camera.core.core.camera_to_world)(p_focus))
+
+    # return raster position if requested
+    p_raster2 = Pnt2(p_raster.x, p_raster.y)
+
+    # return zero importance for out of bound points
+    sample_bounds = get_sample_bounds(camera.core.core.film)
+    if (p_raster.x < sample_bounds.p_min.x) || (p_raster.x >= sample_bounds.p_max.x) || (p_raster.y < sample_bounds.p_min.y) || (p_raster.y >= sample_bounds.p_max.y)
+        return Spectrum(0), p_raster2
+    end
+    
+    # compute lens area of perspective camera
+    lens_area = camera.core.lens_radius != 0 ? (pi * camera.core.lens_radius ^ 2) : 1.0
+
+    # return importance for point on image plane
+    return Spectrum(1/(camera.A * lens_area * cos_theta ^ 4)), p_raster2
+end
+
+function pdf_we(camera::PerspectiveCamera, ray::Ray)::Tuple{Float64, Float64}
+    # interpolate camera matrix and fail if w is not forward-facing
+    cos_theta = dot(ray.direction, camera.core.core.camera_to_world(Vec3(0,0,1)))
+    (cos_theta <= 0) && return 0.0, 0.0
+
+    # map ray (p,w) onto the raster grid
+    # JOHN HACK: what is ray() doing here?
+    p_focus = (camera.core.lens_radius > 0 ? camera.core.focal_distance : 1) / cos_theta
+    p_raster = Inv(camera.core.raster_to_camera)(Inv(camera.core.core.camera_to_world)(p_focus))
+
+    # return 0 for out of bounds points
+    sample_bounds = get_sample_bounds(camera.core.core.film)
+    if (p_raster.x < sample_bounds.p_min.x) || (p_raster.x >= sample_bounds.p_max.x) || (p_raster.y < sample_bounds.p_min.y) || (p_raster.y >= sample_bounds.p_max.y)
+        return 0.0, 0.0
+    end
+
+    # compute lens area of perspective camera
+    lens_area = camera.core.lens_radius != 0 ? (pi * camera.core.lens_radius ^ 2) : 1.0
+
+    # pdf_pos, pdf_dir
+    return 1 / lens_area, 1 / (camera.A * cos_theta ^ 3)
 end

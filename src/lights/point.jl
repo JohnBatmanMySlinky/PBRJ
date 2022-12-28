@@ -39,3 +39,13 @@ end
 function pdf_li(light::PointLight, isect::SurfaceInteraction, wi::Vec3)::Float64
     return 0.0
 end
+
+
+# 16.1.2 Sampling Light Rays
+function sample_le(light::PointLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
+    ray = Ray(light.light_position, uniform_sample_sphere(u1), t, typemax(Float64))
+    n_light = Nml3(ray.direction)
+    pdf_pos = 1.0
+    pdf_dir = uniform_sphere_pdf()
+    return light.I, ray, n_light, pdf_pos, pdf_dir
+end

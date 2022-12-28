@@ -1,14 +1,14 @@
 struct Sphere <: Shape
     core::ShapeCore
-    radius::Float32
+    radius::Float64
     # z ranges from [-r,r]
-    zMin::Float32
-    zMax::Float32
+    zMin::Float64
+    zMax::Float64
     # theta ranges from [0,2pi]
-    thetaMin::Float32
-    thetaMax::Float32
+    thetaMin::Float64
+    thetaMax::Float64
     # phi ranges from [0,2pi]
-    phiMax::Float32
+    phiMax::Float64
 
     function Sphere(core::ShapeCore, radius::Float64)
         new(

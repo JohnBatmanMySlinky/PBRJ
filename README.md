@@ -21,7 +21,7 @@ Physically Based Rendering - in Julia
     - ~~infinite light is broken~~
     - harmoinze bsdf flags and light flags
 - Implement Bidirectional Path Tracing
-    - this is a doozy
+    - implement different light distributions: uniform + power
 - My world is upside down! Use real pbrt to debug
 - Is my BSDF sampling right? I should create some tests here
 - theres a bug in my filtering!!!
