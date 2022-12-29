@@ -5,11 +5,12 @@
 ######################################
 
 # the four different kinds of vertices supported in pbrt.
-const VTCamera = Val{:VTCamera}
-const VTLight = Val{:VTLight}
-const VTSurface = Val{:VTSurface}
-const VTMedium = Val{:VTMedium}
-const VertexType = Union{VTCamera, VTLight, VTSurface, VTMedium}
+@enum VertexType::UInt8 begin
+    VTCamera  = 0b1
+    VTLight   = 0b10
+    VTSurface = 0b100
+    VTMedium  = 0b1000
+end
 
 # EndpointInteraction is a new interaction implementation that is only used in BDPT. 
 # It records the path end point, ie a position on a light source or the lens of a cemera
@@ -27,15 +28,16 @@ mutable struct Vertex
     # John hack, maybe{} instead of unions
     ei::Maybe{EndpointInteraction}
     # mi::MediumInteraction --> no medium 
-    si::Maytbe{SurfaceInteraction}
+    si::Maybe{SurfaceInteraction}
     delta::Bool
     pdf_fwd::Float64
     pdf_rev::Float64
 
     function Vertex(type::VertexType, beta::Spectrum, ei::Maybe{EndpointInteraction}, si::Maybe{SurfaceInteraction})
-    return new(
-        type, beta, ei, si, false, 0.0, 0.0
-    )
+        return new(
+            type, beta, ei, si, false, 0.0, 0.0
+        )
+    end
 end
 
 ####################
@@ -46,17 +48,20 @@ end
 function EndpointInteraction()::EndpointInteraction
     return EndpointInteraction(Interaction(), nothing, nothing)
 end
-function EndpointInteraction(camera::Camera, ray::Ray)::EndpointInteraction
-    return EndpointInteraction(
-        Interaction(ray), 
-        camera, 
-        nothing
-    )
+function EndpointInteraction(ray::AbstractRay)::EndpointInteraction
+    return EndpointInteraction(Interaction(ray), nothing, nothing)
+end
+function EndpointInteraction(camera::Camera, ray::AbstractRay)::EndpointInteraction
+    return EndpointInteraction(Interaction(ray), camera, nothing)
+end
+function EndpointInteraction(it::Interaction, camera::Camera)::EndpointInteraction
+    return EndpointInteraction(it, camera, nothing)
 end
 
 
 ############ Vertex constructors
-function create_camera_vertex(camera::Camera, ray::Ray, beta::Spectrum)::Vertex
+# bdpt.h line 448
+function create_camera_vertex(camera::Camera, ray::AbstractRay, beta::Spectrum)::Vertex
     return Vertex(
         VTCamera,
         beta,
@@ -64,9 +69,30 @@ function create_camera_vertex(camera::Camera, ray::Ray, beta::Spectrum)::Vertex
         nothing
     )
 end
-# VTCreateLight()
-# VTCreateMedium()
-# VTCreateSurface()
+# bdpt.h line 453
+function create_camera_vertex(camera::Camera, it::Interaction, beta::Spectrum)::Vertex
+    return Vertex(
+        VTCamera,
+        beta,
+        EndpointInteraction(it, camera),
+        nothing
+    )
+end
+# bdpt line 458
+function create_light_vertex(light::Light, ray::Ray, n::Nml3, le::Spectrum, pdf::Float64)::Vertex
+    return nothing
+end
+# bdpt line 482
+function create_light_vertex(ei::EndpointInteraction, beta::Spectrum, pdf::Float64)::Vertex
+    v = Vertex(
+        VTLight,
+        beta,
+        ei,
+        nothing
+    )
+    v.pdf_fwd = pdf
+    return v
+end
 
 ############# Vertex Utilities
 """

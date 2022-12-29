@@ -187,19 +187,18 @@ function we(camera::PerspectiveCamera, ray::Ray)::Tuple{Spectrum, Pnt2}
     return Spectrum(1/(camera.A * lens_area * cos_theta ^ 4)), p_raster2
 end
 
-function pdf_we(camera::PerspectiveCamera, ray::Ray)::Tuple{Float64, Float64}
+function pdf_we(camera::PerspectiveCamera, ray::AbstractRay)::Tuple{Float64, Float64}
     # interpolate camera matrix and fail if w is not forward-facing
     cos_theta = dot(ray.direction, camera.core.core.camera_to_world(Vec3(0,0,1)))
     (cos_theta <= 0) && return 0.0, 0.0
 
     # map ray (p,w) onto the raster grid
-    # JOHN HACK: what is ray() doing here?
-    p_focus = (camera.core.lens_radius > 0 ? camera.core.focal_distance : 1) / cos_theta
+    p_focus = at(ray,(camera.core.lens_radius > 0 ? camera.core.focal_distance : 1) / cos_theta)
     p_raster = Inv(camera.core.raster_to_camera)(Inv(camera.core.core.camera_to_world)(p_focus))
 
     # return 0 for out of bounds points
     sample_bounds = get_sample_bounds(camera.core.core.film)
-    if (p_raster.x < sample_bounds.p_min.x) || (p_raster.x >= sample_bounds.p_max.x) || (p_raster.y < sample_bounds.p_min.y) || (p_raster.y >= sample_bounds.p_max.y)
+    if (p_raster.x < sample_bounds.pMin.x) || (p_raster.x >= sample_bounds.pMax.x) || (p_raster.y < sample_bounds.pMin.y) || (p_raster.y >= sample_bounds.pMax.y)
         return 0.0, 0.0
     end
 

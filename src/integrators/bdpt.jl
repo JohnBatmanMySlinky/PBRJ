@@ -8,7 +8,7 @@ end
 function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
     # create light sampling light_distribution
     # JOHN HACK --> hard coding uniform dist
-    light_distribution = Distribution1D(ones(length(scene.lights)))
+    light_distr = Distribution1D(ones(length(scene.lights)))
 
     # partition the image into tiles
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
@@ -40,20 +40,20 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
             start_pixel!(tile_sampler, pixel)
             while has_next_sample(tile_sampler)
                 # Generate a single sample using BDPT
-                p_film = pixel + get_2D!(tile_sampler)
+                # JOHN HACK: dont do this here, do this in get_camera_sample!() in generate_camera_subpath!()
 
-                light_distr = 0.0
+                # JOHN HACK: using light distribution defined earlier.
 
                 # Trace the camera and light subpaths
                 camera_vertices = Vector{Vertex}(undef,i.max_depth + 2)
                 light_vertices = Vector{Vertex}(undef,i.max_depth + 1)
-                n_camera = generate_camera_subpath(
+                n_camera = generate_camera_subpath!(
                     camera_vertices,
                     scene, 
                     tile_sampler, 
                     i.max_depth + 2, 
                     i.camera,
-                    p_film, 
+                    pixel, 
                 )
                 n_light = generate_light_subpath(
                     light_vertices,
@@ -65,17 +65,17 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                 )
 
                 # execute all BDPT connection strategies
+                # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
                 L = Spectrum(0)
-                for t in 2:length(n_camera)
-                    for s in 1:length(n_light)
+                for t in 1:length(n_camera)
+                    for s in 0:length(n_light)
                         depth = t + s - 2
                         if ((s==1)&&(t==1) || (depth<0) || (depth>i.max_depth))
                             continue
                         end
 
-                        p_film_new = p_film
                         mis_weight = 0.0
-                        L_path = connect_BDPT(
+                        L_path, mis_weight, p_film_new = connect_BDPT(
                             scene,
                             light_vertices,
                             camera_vertices,
@@ -83,9 +83,7 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                             t,
                             light_distr,
                             i.camera,
-                            tile_sampler,
-                            p_film_new,
-                            mis_weight
+                            tile_sampler
                         )
 
                         if t != 1
@@ -119,7 +117,14 @@ generate the two corresponding types of subpaths. both do some initial work to g
 then call out to a second function RandomWalk() which takes care of sampling the following vertices and 
 initializing the path array. Both functions return the number of vertices in the path
 """
-function generate_camera_subpath!(path::Vector{Vertex}, scene::Scene, sampler::Sampler, max_depth::Int64, camera::Camera, p_film::Pnt2)::Int64
+function generate_camera_subpath!(
+    path::Vector{Vertex}, 
+    scene::Scene, 
+    sampler::AbstractSampler, 
+    max_depth::Int64, 
+    camera::Camera, 
+    p_film::Pnt2
+)::Int64
     (max_depth == 0) && return 0
 
     # sample initial ray for camera subpath
@@ -127,17 +132,25 @@ function generate_camera_subpath!(path::Vector{Vertex}, scene::Scene, sampler::S
     a camera path starts with a camera ray from generate_ray_differential(). 
     as in sample integrator, differentials are scaled so they reflect the actual pixel sampling density
     """
-    camera_sample = get_camera_sample!(sampler, pixel)
+    camera_sample = get_camera_sample!(sampler, p_film)
     ray, beta = generate_ray_differential(camera, camera_sample)
+    beta = Spectrum(beta) # john hack; casting to spectrum
     scale_differentials!(ray, 1.0 / sqrt(sampler.pixel_sampler.sampler.samples_per_pixel))
 
     # generate first vertex on camera subpath and start random walk
     path[1] = create_camera_vertex(camera, ray, beta)
     pdf_pos, pdf_dir = pdf_we(camera, ray)
-    return random_walk(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path) + 1
+    return random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path) + 1
 end
 
-function generate_light_subpath!(path::Vector{Vertex}, scene::Scene, sampler::Sampler, max_depth::Int64, t::Float64, light_distr::Distribution1D)::Int64
+function generate_light_subpath!(
+    path::Vector{Vertex}, 
+    scene::Scene, 
+    sampler::AbstractSampler, 
+    max_depth::Int64, 
+    t::Float64, 
+    light_distr::Distribution1D
+)::Int64
     (max_depth == 0) && return 0
     
     # sample initial ray for light subpath
@@ -149,31 +162,35 @@ function generate_light_subpath!(path::Vector{Vertex}, scene::Scene, sampler::Sa
     end
 
     # generate first vertex on light subpath and start random walk
-    path[1] = CreateLightVertex(light, ray, n_light, Le, pdf_pos * light_pdf)
+    path[0+1] = CreateLightVertex(light, ray, n_light, Le, pdf_pos * light_pdf)
     beta = Le * abs(dot(n_light, ray.direciton)) / (light_pdf * pdf_pos * pdf_dir)
-    n_vertices = random_walk(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path)
+    n_vertices = random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path)
 
     # correct subpath sampling densities for infinite area lights
     if is_infinite_light(path[1])
         # set spatial density of path[2] for infinite area light
         if n_vertices > 0
-            path[2].pdf_fwd = pdf_pos
-            if is_on_surface(path[2])
-                path[2].pdf_fwd *= abs(dot(ray.direction, path[2].ng))
+            path[1+1].pdf_fwd = pdf_pos
+            if is_on_surface(path[1+1])
+                path[1+1].pdf_fwd *= abs(dot(ray.direction, path[1+1].ng))
             end
         end
-        # 
-        path[1].pdf_fwd = infinite_light_density(scene, light_distr, ray.direction)
+        path[0+1].pdf_fwd = infinite_light_density(scene, light_distr, ray.direction)
     end
     return n_vertices + 1
 end
 
-function random_walk(scene::Scene, ray::RayDifferential, sampler::Sampler, beta::Spectrum, pdf::Float64, max_depth::Int64, mode::TransportMode, path::Vector{Vertex})::Int64
-    # JOHN NOTES
-    # I DONT SEE HOW path gets updated with new subpaths...
-
+function random_walk!(
+    scene::Scene, 
+    ray::RayDifferential, 
+    sampler::AbstractSampler, 
+    beta::Spectrum, 
+    pdf::Float64, 
+    max_depth::Int64, 
+    mode::Type{T}, 
+    path::Vector{Vertex}
+)::Int64 where T <: TransportMode
     (max_depth == 0) && return 0
-    
     # decleare variables for forward and reverse probability densities
     bounces = 0
     pdf_fwd = pdf
@@ -182,15 +199,17 @@ function random_walk(scene::Scene, ray::RayDifferential, sampler::Sampler, beta:
         # attempt to create the next subpath verte in *path*
         check, t, isect = intersect!(scene.b, ray)
         
-        # JOHN HACK --> no medium no is black
-        vertex = path[bounces]
-        prev = path[bounces-1]
+        # JOHN HACK --> no medium no is black so continue
+
+        # JOHN HACK --> no using addresses
+        # vertex = path[bounces]
+        # prev = path[bounces-1]
 
         # handle surface interaction for path generation
         if !check
             # capture escaped rays when tracing from camera
             if mode == Radiance
-                vertex = CreateLightVertex(EndpointInteraction(ray), beta, pdf_fwd)
+                path[bounces+1] = create_light_vertex(EndpointInteraction(ray), beta, pdf_fwd)
                 bounces += 1
             end
             break
@@ -204,7 +223,7 @@ function random_walk(scene::Scene, ray::RayDifferential, sampler::Sampler, beta:
         end
         
         # initialize vertex with surface scattering information
-        vertex = create_surface_vertex(isect, beta, pdf_fwd, prev)
+        path[bounces+1] = create_surface_vertex(isect, beta, pdf_fwd, prev)
 
         bounces += 1
         if bounces >= max_depth
@@ -241,9 +260,7 @@ function connect_BDPT(
     t::Int64,
     light_distr::Distribution1D,
     camera::Camera,
-    sampler::Sampler,
-    p_raster::Pnt2,
-    mis_weight::Float64
+    sampler::AbstractSampler,
 )::Spectrum
     # ignore invalid connections related to infinite light
     if (t > 1) && (s != 0) && (camera_vertices[t-1].type == VTLight)
@@ -256,6 +273,7 @@ function connect_BDPT(
         pt = camera_vertices[t-1]
         if is_light(pt)
             L = le(pt, scene, camera_vertices[t-2]) * pt.beta
+        end
     elseif t == 1
         # sample a point on the camera and connect it to the light subpath
         qs = light_vertices[s-1]
@@ -269,6 +287,7 @@ function connect_BDPT(
                     L *= abs(dot(wi, qs.ns))
                 end
             end
+        end
     elseif s == 1
         # sample a point on the light and connect it to the camera subpath
         pt = camera_vertices[t-1]
@@ -283,6 +302,7 @@ function connect_BDPT(
                 L = pt.beta * f(pt, sampled) * tr(vis, scene, sampler) * sampled.beta
                 if is_on_surface(pt)
                     L *= abs(dot(wi, pt.ns))
+                end
             end
         end
     else

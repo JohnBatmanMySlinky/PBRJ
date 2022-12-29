@@ -852,7 +852,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = PathIntegrator(C, S, 25)
+        I = BDPTIntegrator(C, S, 25)
 
         return I, scene
     else

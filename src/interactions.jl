@@ -14,7 +14,7 @@ function Interaction()
     return Interaction(Pnt3(0), 0.0, Vec3(0), Nml3(0))
 end
 
-function Interaction(r::Ray)::Interaction
+function Interaction(r::AbstractRay)::Interaction
     return Interaction(r.origin, r.t, -r.direction, Nml3(r.direction))
 end
 
