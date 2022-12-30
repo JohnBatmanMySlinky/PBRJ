@@ -55,12 +55,12 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                     i.camera,
                     pixel, 
                 )
-                n_light = generate_light_subpath(
+                n_light = generate_light_subpath!(
                     light_vertices,
                     scene,
                     tile_sampler,
                     i.max_depth + 1,
-                    camera_vertices[0].time(),
+                    time(camera_vertices[1]),
                     light_distr
                 )
 
@@ -154,16 +154,16 @@ function generate_light_subpath!(
     (max_depth == 0) && return 0
     
     # sample initial ray for light subpath
-    light_num, light_pdf, _ = sample_discrete(light_distr, get_1D(sampler))
+    light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
     light = scene.lights[light_num]
-    Le, ray, n_light, pdf_pos, pdf_dur = sample_le(light, get_2D(sampler), get_2D(sampler), t)
+    Le, ray, n_light, pdf_pos, pdf_dir = sample_le(light, get_2D!(sampler), get_2D!(sampler), t)
     if (pdf_pos == 0.0) || (pdf_dir == 0.0)
         return 0
     end
 
     # generate first vertex on light subpath and start random walk
-    path[0+1] = CreateLightVertex(light, ray, n_light, Le, pdf_pos * light_pdf)
-    beta = Le * abs(dot(n_light, ray.direciton)) / (light_pdf * pdf_pos * pdf_dir)
+    path[0+1] = create_light_vertex(light, ray, n_light, Le, pdf_pos * light_pdf)
+    beta = Le * abs(dot(n_light, ray.direction)) / (light_pdf * pdf_pos * pdf_dir)
     n_vertices = random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path)
 
     # correct subpath sampling densities for infinite area lights
@@ -192,12 +192,19 @@ function random_walk!(
 )::Int64 where T <: TransportMode
     (max_depth == 0) && return 0
     # decleare variables for forward and reverse probability densities
-    bounces = 0
+    bounces = 1
     pdf_fwd = pdf
     pdf_rev = 0.0
     while true
+        print("\n\nWe are inside random walk\n")
+        print("Current path is as follows: ")
+        print_nice(path)
+        print("\n")
+
         # attempt to create the next subpath verte in *path*
-        check, t, isect = intersect!(scene.b, ray)
+        check, _, isect = intersect!(scene.b, ray)
+
+        print("ray intersection test: ", check, "\n")
         
         # JOHN HACK --> no medium no is black so continue
 
@@ -238,14 +245,17 @@ function random_walk!(
         pdf_rev = pdf(isect.bsdf, wi, wo, BSDF_ALL)
         if sampled_type & BSDF_SPECULAR
             vertex.delta = true
-            pdf_rev = 0
-            pdf_fwd = 0
+            pdf_rev = 0.0
+            pdf_fwd = 0.0
         end
         beta *= correct_shading_normal(isect, wo, wi, mode)
         ray = spawn_ray(isect, wi)
     end
+    print("we are exiting random walk with paths: ")
+    print_nice(path)
+    print("\n")
     # Compute reverse area density at preceding vertex
-    prev.pdf_rev = convert_density(vertex, pdf_rev, prev)
+    path[bounces-1].pdf_rev = convert_density(path[bounces], pdf_rev, path[bounces-1])
     return bounces
 end
 

@@ -17,7 +17,7 @@ struct DiffuseAreaLight <: Light
 end
 
 function le(dal::DiffuseAreaLight, ray::AbstractRay)::Spectrum
-    return Spectrum(0,0,0)
+    return Spectrum(0)
 end
 
 function L(dal::DiffuseAreaLight, n::Nml3, w::Vec3)::Spectrum
@@ -46,4 +46,26 @@ end
 
 function pdf_li(light::DiffuseAreaLight, isect::SurfaceInteraction, wi::Vec3)::Float64
     return pdf(light.shape, isect.core, wi)
+end
+
+
+##############
+### 16.1.2 bdpt stuff
+##############
+
+function sample_le(light::DiffuseAreaLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
+    # JOHN HACK: kludging around in this function
+    
+    # samplea  point on the area lights shape, pshape
+    p_shape, n_light = sample(light.shape, u1)
+    pdf_pos = pdf(light.shape)
+
+    # sample a cosine weighted outgoing direction w for area light
+    w = cosine_sample_hemisphere(u2)
+    pdf_dir = cosine_hemisphere_pdf(w.z)
+    w, v1, v2 = orthonormal_basis(w)
+    W = w.x * v1 + w.y * v2 + w.z * n_light
+
+    ray = spawn_ray(Interaction(p_shape, t, n_light, n_light), W)
+    return L(light, Nml3(W), W), ray, n_light, pdf_pos, pdf_dir
 end

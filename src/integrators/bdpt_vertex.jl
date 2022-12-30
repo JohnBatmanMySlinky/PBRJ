@@ -57,6 +57,9 @@ end
 function EndpointInteraction(it::Interaction, camera::Camera)::EndpointInteraction
     return EndpointInteraction(it, camera, nothing)
 end
+function EndpointInteraction(light::Light, ray::AbstractRay, nml::Nml3)::EndpointInteraction
+    return EndpointInteraction(Interaction(ray, nml), nothing, light)
+end
 
 
 ############ Vertex constructors
@@ -79,8 +82,15 @@ function create_camera_vertex(camera::Camera, it::Interaction, beta::Spectrum)::
     )
 end
 # bdpt line 458
-function create_light_vertex(light::Light, ray::Ray, n::Nml3, le::Spectrum, pdf::Float64)::Vertex
-    return nothing
+function create_light_vertex(light::Light, ray::AbstractRay, n::Nml3, le::Spectrum, pdf::Float64)::Vertex
+    v = Vertex(
+        VTLight,
+        le,
+        EndpointInteraction(light, ray, n),
+        nothing
+    )
+    v.pdf_fwd = pdf
+    return v
 end
 # bdpt line 482
 function create_light_vertex(ei::EndpointInteraction, beta::Spectrum, pdf::Float64)::Vertex
@@ -104,7 +114,7 @@ if the latter case the vertex is marked with a VertexType::Light but ei.light st
 """
 function is_infinite_light(v::Vertex)::Bool
     # in either case if VertexType isn't light, it isnt an infinite light
-    if v.VertexType != VTLight
+    if v.type != VTLight
         return false
     else
         # if we have a VTLight but null light --> case 2 --> true
@@ -114,5 +124,39 @@ function is_infinite_light(v::Vertex)::Bool
             # if we have a VTLight and a light in ei, check type of light
             return v.ei.light.flags & LightInfinite
         end
+    end
+end
+
+function is_on_surface(v::Vertex)::Bool
+    return ng(v) != Nml3(0,0,0)
+end
+
+# JOHN HACK: Can I get away without get_interaction()? would be more type stable I think?
+function p(v::Vertex)::Pnt3
+    if v.type == VTSurface
+        return v.si.core.p
+    else
+        return v.ei.interaction.p
+    end
+end
+function ng(v::Vertex)::Nml3
+    if v.type == VTSurface
+        return v.si.core.n
+    else
+        return v.ei.interaction.n
+    end
+end
+function ns(v::Vertex)::Nml3
+    if v.type == VTSurface
+        return v.si.shading.n
+    else
+        return v.ei.interaction.n
+    end
+end
+function time(v::Vertex)::Float64
+    if v.type == VTSurface
+        return v.si.core.t
+    else
+        return v.ei.interaction.t
     end
 end

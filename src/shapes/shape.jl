@@ -38,3 +38,8 @@ function pdf(s::Shape, si::Interaction, wi::Vec3)::Float64
     end 
     return distance_squared(si.p, interaction.core.p) / (abs(dot(interaction.core.n, wi) * area(s)))
 end
+
+##### pdf for bdpt
+function pdf(s::Shape)::Float64
+    return 1 / area(s)
+end
