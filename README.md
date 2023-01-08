@@ -41,11 +41,7 @@ Physically Based Rendering - in Julia
 - Code
     - Static & dynamic code analysis
 - Improve sampling
-    - a notebook to visually test results
     - remove unnecessary sampling dims
-    - Need to implement and use the, Sampler, PixelSampler, and GlobalSampler class structure from PBRT
-    - implement a discrepancy function to also test with (if halton isnt better im gunna be mad!)
-    - quantify convergence of estimation of pi using simple rejection sampling as an evaluation metric
 - Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc.
 
 ## Bugs
@@ -61,6 +57,7 @@ Physically Based Rendering - in Julia
 - ~~Improve scene specification interface.~~
 - ~~Texture tiling.~~
 - ~~Stratified sampler edges...~~
+- ~~a notebook to visually test results~~
 
 # Beyond PBRT
 - Importance sampling
