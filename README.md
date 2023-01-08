@@ -15,62 +15,56 @@ Physically Based Rendering - in Julia
 - BxDFs make sense in practice but their implementation hurts my brain.
 
 # TODO
+## Features
 - Implement PathIntegrator
     - document bxdf and bsdf and fresnel and stuff hierarchy!
     - ~~add better light sampling strategies from github~~ (not doing, will wait for light bvh in v4)
     - ~~infinite light is broken~~
     - harmoinze bsdf flags and light flags
 - Implement Bidirectional Path Tracing
-    - implement different light distributions: uniform + power
-- My world is upside down! Use real pbrt to debug
-- Is my BSDF sampling right? I should create some tests here
-- theres a bug in my filtering!!!
-- I need a linter or some static code analysis
-- Also some dynamic code analysis
-- Improve sampling
-    - a notebook to visually test results
-    - Halton Sampler
-    - remove unnecessary sampling dims
-    - Need to implement and use the, Sampler, PixelSampler, and GlobalSampler class structure from PBRT
-    - implement a discrepancy function to also test with (if halton isnt better im gunna be mad!)
-    - quantify convergence of estimation of pi using simple rejection sampling as an evaluation metric
-- Implement BDPT
-    - my scene is never going to look decent without it
-- Implement Cornell Box
-- What are the right filter parameters?
-- Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc.
+    - move from book's `uniform_sample_one_light()` to the code's `light_distribution` abstraction 
+    - THEN what I implemented a `sample_lights_based_on_distance()` ? That should help the back hallway?
+- Implement more materials
+    - Add metal material
+    - Add fourier material
 - Improve munich re scene 
     - Add more walls (left wall corner)
     - ~~Add colored panels~~
     - Add in more scene geometry (baseboards? stairs? elevator?)
     - Get reflections in back hallway looking nice and in general floor material
     - Wall material
-    - Better ambient lighting
-- Implement more materials
-    - Add metal material
-    - Add fourier material
 - Make obj_parser less anemic
 - Expand tests
-- Profile code base
-    - @inline some stuff?
-    - Sampler feels inefficient
-    - How does multi-threading interact with sampler?
-- Improvements
-    - Clean up code base, use more '.x' and less '[1]'
-    - Remove sampling dimensions for lens & time. What is the improvement?
-    - Should I instantiate a list of samplers or stick with deepcopy()?
+
+## Debt
+- Is my BSDF sampling right? I should create some tests here
+- Code
+    - Static & dynamic code analysis
+- Improve sampling
+    - a notebook to visually test results
+    - remove unnecessary sampling dims
+    - Need to implement and use the, Sampler, PixelSampler, and GlobalSampler class structure from PBRT
+    - implement a discrepancy function to also test with (if halton isnt better im gunna be mad!)
+    - quantify convergence of estimation of pi using simple rejection sampling as an evaluation metric
+- Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc.
+
+## Bugs
+- My world is upside down! Use real pbrt to debug (or pxl-th's)
+- Halton sampler doesn't work for more than 0,0 - 1,1
+- Filtering or sampling has a bug and has alias around the edge.
+- Should I instantiate a list of samplers or stick with deepcopy()?
+
+
+## DONE    
 - ~~Make CLI.~~
 - ~~Distant light~~
 - ~~Improve scene specification interface.~~
 - ~~Texture tiling.~~
 - ~~Stratified sampler edges...~~
 
-# Research
-- Quantify benefit of multi threading (todo after CLI)
-
 # Beyond PBRT
 - Importance sampling
-
+- Denoiser. Opportunity for ML here?
 
 # Notes
 ## Reflectance
