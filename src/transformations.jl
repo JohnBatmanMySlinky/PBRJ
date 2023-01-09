@@ -56,7 +56,7 @@ function RotateX(theta::Float64)
         0 sin_theta cos_theta 0
         0 0         0          1
     ])
-    return Transformation(m, transpose(m))
+    return Transformation(m, inv(m))
 end
 
 function RotateY(theta::Float64)
@@ -68,7 +68,7 @@ function RotateY(theta::Float64)
         -sin_theta 0 cos_theta 0
         0          0 0         1
     ])
-    return Transformation(m, transpose(m))
+    return Transformation(m, inv(m))
 end
 
 function RotateZ(theta::Float64)
@@ -80,35 +80,34 @@ function RotateZ(theta::Float64)
         0         0          1 0
         0         0          0 1
     ])
-    return Transformation(m, transpose(m))
+    return Transformation(m, inv(m))
 end
 
 
 function Perspective(fov::Float64, near::Float64, far::Float64)::Transformation
     a = far / (far - near)
     b = -far * near / (far - near)
-    p = transpose(Mat4([
+    p = Mat4([
         1 0 0 0
         0 1 0 0
         0 0 a b
         0 0 1 0
-    ]))
+    ])
     inv_tan = 1 / tan(deg2rad(fov) / 2)
     return Scale(Vec3(inv_tan, inv_tan, 1)) * Transformation(p, inv(p))
 end
 
-function LookAt(position::Pnt3, target::Pnt3, up::Vec3)
-    z_axis = normalize(position - target)
-    x_axis = normalize(cross(up, z_axis))
-    y_axis = cross(z_axis, x_axis)
-
-    m = transpose(Mat4(
-        x_axis[1], y_axis[1], z_axis[1], 0,
-        x_axis[2], y_axis[2], z_axis[2], 0,
-        x_axis[3], y_axis[3], z_axis[3], 0,
-        0, 0, 0, 1,
-    ))
-    return Translate(position) * Transformation(m, inv(m))
+function LookAt(pos::Pnt3, look::Pnt3, up::Vec3)
+    dir = normalize(look - pos)
+    left = normalize(cross(normalize(up), dir))
+    new_up = cross(dir, left)
+    m = Mat4([
+        left.x new_up.x dir.x pos.x
+        left.y new_up.y dir.y pos.y
+        left.z new_up.z dir.z pos.z
+        0      0        0     1
+    ])
+    return Transformation(m, inv(m))
 end
 
 ########################################
@@ -117,7 +116,7 @@ end
 
 # mutliply two transformations
 function Base.:*(t1::Transformation, t2::Transformation)
-    return Transformation(t1.m * t2.m, t1.inv_m * t2.inv_m)
+    return Transformation(t1.m * t2.m, t2.inv_m * t1.inv_m)
 end
 
 # PBR 2.8.1
@@ -151,7 +150,7 @@ function (t::Transformation)(r::Ray)::Ray
     return Ray(
         t(r.origin),
         t(r.direction),
-        r.time,
+        r.t,
         r.tMax
     )
 end
@@ -160,7 +159,7 @@ function (t::Transformation)(r::RayDifferential)::RayDifferential
     return RayDifferential(
         t(r.origin),
         t(r.direction),
-        r.time,
+        r.t,
         r.tMax,
         r.has_differentials,
         t(r.rx_origin),
@@ -215,7 +214,7 @@ end
 function (t::Transformation)(i::Interaction)::Interaction
     return Interaction(
         t(i.p),
-        i.time,
+        i.t,
         normalize(t(i.wo)),
         normalize(t(i.n)),
     )

@@ -35,25 +35,27 @@ function add!(b::BSDF, x::B) where B <: AbstractBxDF
     b.bxdfs[b.n_bxdfs] = x
 end
 
-function world_to_local(b::BSDF, v::Vec3)
+function world_to_local(b::BSDF, v::Vec3)::Vec3
     return Vec3(dot(v, b.ss), dot(v, b.ts), dot(v, b.ns))
 end
 
-function local_to_world(b::BSDF, v::Vec3)
-    return Mat3([b.ss b.ts b.ns]) * v
+function local_to_world(b::BSDF, v::Vec3)::Vec3
+    return Vec3(
+        b.ss.x * v.x + b.ts.x * v.y + b.ns.x * v.z,
+        b.ss.y * v.x + b.ts.y * v.y + b.ns.y * v.z,
+        b.ss.z * v.x + b.ts.z * v.y + b.ns.z * v.z
+    )
 end
 
 # Equivalent to PBR's f()
 function (b::BSDF)(woW::Vec3, wiW::Vec3, flags::UInt8=BSDF_ALL)::Spectrum
     wo = world_to_local(b, woW)
-    if wo.z == 0
-        return Spectrum(0, 0, 0)
-    end
+    wo.z == 0 && return Spectrum(0)
     wi = world_to_local(b, wiW)
     
     reflect = (dot(wiW, b.ng) * dot(woW, b.ng)) > 0 
 
-    output = Spectrum(0, 0, 0)
+    output = Spectrum(0)
     for i in 1:b.n_bxdfs
         bxdf = b.bxdfs[i]
         if (bxdf & flags) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0)))
@@ -69,11 +71,7 @@ end
 function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, UInt8}
     # Choose which BxDF to sample.
     matching_components = num_components(b, type)
-    if matching_components == 0
-        return (
-            Vec3(0, 0, 0), Spectrum(0, 0, 0), 0, BSDF_NONE,
-        )
-    end
+    matching_components == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)
     component = min(
         max(1, Int64(ceil(u[1] * matching_components))),
         matching_components,
@@ -94,28 +92,21 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
     @assert bxdf ≢ nothing "n bxdfs $(b.n_bxdfs), component $component, count $count"
     # Remap BxDF sample u to [0, 1)^2.
     u_remapped = Pnt2(
-        min(u[1] * matching_components - component, 1), u[2],
+        min(u.x * matching_components - component, 1), u.y,
     )
     # Sample chosen BxDF.
     wo = world_to_local(b, wo_world)
-    if wo[3] == 0
-        return (
-            Vec3(0, 0, 0), Spectrum(0, 0, 0), 0, BSDF_NONE,
-        )   
-    end
+    wo.z == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)   
 
     # TODO when to update sampled type
     sampled_type = bxdf.type
-    wi, pdf, f, sampled_type_tmp = sample_f(bxdf, wo, u_remapped)
+    wi, pdf, f_val, sampled_type_tmp = sample_f(bxdf, wo, u_remapped)
     if sampled_type_tmp ≢ nothing
         sampled_type = sampled_type_tmp
     end
 
-    if pdf == 0
-        return (
-            Vec3(0, 0, 0), Spectrum(0, 0, 0), 0, BSDF_NONE,
-        )
-    end
+    pdf == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)
+
     wi_world = local_to_world(b, wi)
     # Compute overall PDF with all matching BxDFs.
     if !(bxdf.type & BSDF_SPECULAR != 0) && matching_components > 1
@@ -129,26 +120,24 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
     # Compute value of BSDF for sampled direction.
     if !(bxdf.type & BSDF_SPECULAR != 0)
         reflect = ((wi_world ⋅ b.ng) * (wo_world ⋅ b.ng)) > 0
-        f = RGBSpectrum(0f0)
+        f_val = Spectrum(0)
         for i in 1:b.n_bxdfs
             bxdf = b.bxdfs[i]
             if ((bxdf & type) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0))))
-                f += bxdf(wo, wi)
+                f_val += f(bxdf, wo, wi)
             end
         end
     end
 
-    return wi_world, f, pdf, sampled_type
+    return wi_world, f_val, pdf, sampled_type
 end
 
 function compute_pdf(b::BSDF, wo_world::Vec3, wi_world::Vec3, flags::UInt8,)::Float64
-    if b.n_bxdfs == 0
-        return 0
-    end
+    b.n_bxdfs == 0 && return 0.0
+
     wo = world_to_local(b, wo_world)
-    if wo[3] == 0
-        return 0
-    end
+    wo.z == 0 && return 0.0
+
     wi = world_to_local(b, wi_world)
     pdf = 0
     matching_components = 0

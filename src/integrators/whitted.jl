@@ -4,72 +4,7 @@ struct WhittedIntegrator <: AbstractIntegrator
     max_depth::Int64
 end
 
-
-function render(i::WhittedIntegrator, scene::Scene)
-    sample_bounds = get_sample_bounds(get_film(i.camera))
-    sample_extent = diagonal(sample_bounds)
-    tile_size = 16
-    width, height = Int64.(floor.((sample_extent .+ tile_size) ./ tile_size))
-    total_tiles = width * height - 1
-    print("Rendering " * num2str(total_tiles + 1) * " tiles\n")
-
-    prog = Progress(total_tiles)
-    update!(prog,0)
-    jj = Threads.Atomic{Int}(0)
-    l = Threads.SpinLock()
-
-    print("Utilizing $(Threads.nthreads()) threads\n")
-    Threads.@threads for k in 0:total_tiles
-        x, y = k % width, k ÷ width
-        tile = Pnt2(x, y)
-        k_sampler = deepcopy(i.sampler)
-
-        tb_min = sample_bounds.pMin .+ tile .* tile_size
-        tb_max = min.(tb_min .+ (tile_size - 1), sample_bounds.pMax)
-        tile_bounds = Bounds2(tb_min, tb_max)
-        film_tile = FilmTile(get_film(i.camera), tile_bounds)
-        for pixel in tile_bounds # adding iterator method is cool
-            start_pixel!(k_sampler, pixel)
-            while has_next_sample(k_sampler)
-                camera_sample = get_camera_sample!(k_sampler, pixel)
-                ray, w = generate_ray_differential(i.camera, camera_sample)
-                scale_differentials!(ray, 1.0 / sqrt(k_sampler.samples_per_pixel))
-                L = Spectrum(0,0,0)
-
-                # BEGIN
-                if w > 0
-                    L = li(i, ray, scene, 5)
-                end
-
-                # check, t, interaction, = intersect!(scene.b, ray)
-                # if check
-                #     L = Spectrum(interaction.primitive.material.Kd(interaction))
-                # else
-                #     L = Spectrum(0,0,0)
-                # end
-
-                if any(isnan.(L))
-                    L = Spectrum(0,0,0)
-                end
-
-
-                add_sample!(film_tile, camera_sample.film, L, 1.0)
-
-                start_next_sample!(k_sampler)
-            end
-        end
-        merge_film_tile!(get_film(i.camera) , film_tile)
-        # print("$(k)\n")
-        Threads.atomic_add!(jj,1)
-        Threads.lock(l)
-        update!(prog, jj[])
-        Threads.unlock(l)
-    end
-    save(get_film(i.camera))
-end
-
-
-function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1)::Spectrum
+function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Spectrum
     L = Spectrum(0, 0, 0)
     check, t, interaction = intersect!(scene.b, ray)
     # if nothing is hit --> this is only for env light.
@@ -95,13 +30,37 @@ function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64=1
 
     # for each light source, add contrib
     for light in scene.lights
-        sampled_li, wi, pdf, visibility_tester = sample_li(light, interaction.core, get_2D!(i.sampler))   
+        # JOHN HACK TODO clean up extra args
+        sampled_li, wi, pdf, visibility_tester, p_sample, n_sample = sample_li(light, interaction.core, get_2D!(i.sampler))  
+
         if pdf == 0
             continue
         end
         f = interaction.bsdf(wo, wi)
+
         if unoccluded(visibility_tester, scene.b)
             L += f .* sampled_li * abs(dot(wi, n)) / pdf
+        end
+
+        if false
+            if (interaction.core.p.z ≈ -300.0) && (interaction.core.p.x > -50) && (interaction.core.p.x < 50) && (interaction.core.p.y > 50) && (interaction.core.p.y < 150)
+                print("\n")
+                print("p_hit ", interaction.core.p, "\n")
+                print("n_hit ", interaction.core.n, "\n")
+                print("n shading ", interaction.shading.n, "\n")
+                print("hit time ", interaction.core.t, "\n")
+                print("p_sample ", p_sample, "\n")
+                print("n_sample ", n_sample, "\n")
+                print("sampled_li ", sampled_li, "\n")
+                print("wi ", wi, "\n")
+                print("pdf ", pdf, "\n")
+                print("unoccluded? ", unoccluded(visibility_tester, scene.b), "\n")
+                print("f ", f, "\n")
+                print("n ", n, "\n")
+                print("contrib ", f .* sampled_li * abs(dot(wi, n)) / pdf, "\n")
+                print("absdot ", abs(dot(wi, n)), "\n")
+                asdf
+            end
         end
     end
 

@@ -36,11 +36,11 @@ end
 # and the fourth and fifth dimensions give a  lens position for depth of field.
 function get_camera_sample!(sampler::UniformSampler, p_raster::Pnt2)
     p_film = p_raster .+ get_2D!(sampler) # 1,2
-    time = get_1D!(sampler)               # 3
+    timesample = get_1D!(sampler)               # 3
     p_lens = get_2D!(sampler)             # 4,5
     return CameraSample(
         p_film,
         p_lens,
-        time
+        timesample
     )
 end

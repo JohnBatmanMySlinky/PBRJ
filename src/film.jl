@@ -1,7 +1,7 @@
 mutable struct Pixel
     xyz::Pnt3
     filter_weight_sum::Float64
-    splat_xyz::Pnt3
+    splat_xyz::AtomicPnt3
 end
 
 # PBR 7.9.1
@@ -47,14 +47,13 @@ struct Film
 
         # allocate film image storage
         pixels = Pixel[
-            Pixel(Pnt3(0, 0, 0), 0, Pnt3(0, 0, 0)) for y in 1:cropped_resolution[end], x in 1:cropped_resolution[begin]
+            Pixel(Pnt3(0), 0, AtomicPnt3(0.0, 0.0, 0.0)) for y in 1:cropped_resolution[end], x in 1:cropped_resolution[begin]
         ]
 
         # precompute filter weight table
-        r = filter.radius ./ filter_table_width
-        for y in 0:filter_table_width - 1
-            for x in 0:filter_table_width - 1
-                p = Pnt2((x + 0.5) * r[1], (y + 0.5) * r[2])
+        for y in 0:(filter_table_width - 1)
+            for x in 0:(filter_table_width - 1)
+                p = Pnt2((x + 0.5) * filter.radius.x / filter_table_width, (y + 0.5) * filter.radius.y / filter_table_width)
                 filter_table[y+1,x+1] = filter(p)
             end
         end
@@ -84,8 +83,8 @@ function get_sample_bounds(f::Film)
 end
 
 function get_pixel(f::Film, p::Pnt2)
-    pp = Int32.(p .- f.cropped_pixel_bounds.pMin .+ 1.0)
-    return f.pixels[pp[2], pp[1]]
+    pp = Int64.(p .- f.cropped_pixel_bounds.pMin .+ 1.0)
+    return f.pixels[pp.y, pp.x]
 end
 
 # PBR 7.9.2
@@ -98,16 +97,16 @@ struct FilmTile
     pixel_bounds::Bounds2
     filter_radius::Pnt2
     inv_filter_radius::Pnt2
-    filter_table::Matrix{Float32}
-    filter_table_width::Int32
+    filter_table::Matrix{Float64}
+    filter_table_width::Int64
     pixels::Matrix{FilmTilePixel}
 
     function FilmTile(f::Film, sample_bounds::Bounds2)
         p0 = ceil.(sample_bounds.pMin .- 0.5 .- f.filter.radius)
         p1 = floor.(sample_bounds.pMax .- 0.5 .+ f.filter.radius) .+ 1.0
         pixel_bounds = intersection(Bounds2(p0, p1), f.cropped_pixel_bounds)
-        tile_res = Int32.(inclusive_sides(pixel_bounds))
-        pixels = [FilmTilePixel(Spectrum(0, 0, 0), 0) for _ in 1:tile_res[2], __ in 1:tile_res[1]]
+        tile_res = Pnt2(inclusive_sides(pixel_bounds))
+        pixels = [FilmTilePixel(Spectrum(0, 0, 0), 0) for _ in 1:tile_res.y, __ in 1:tile_res.x]
 
         new(
             pixel_bounds, 
@@ -121,74 +120,82 @@ struct FilmTile
 end
 
 function get_pixel(t::FilmTile, p::Pnt2)
-    pp = Int32.(p .- t.pixel_bounds.pMin .+ 1f0)
-    return t.pixels[pp[2], pp[1]]
+    pp = Int64.(p .- t.pixel_bounds.pMin .+ 1)
+    return t.pixels[pp.y, pp.x]
 end
 
-function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float64 = 1,) where S <: Spectrum
+function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float64 = 1.0) where S <: Spectrum
     # Compute sample's raster bounds.
-    # print(point)
-
     discrete_point = point .- 0.5
     p0 = ceil.(discrete_point .- t.filter_radius)
     p1 = floor.(discrete_point .+ t.filter_radius) .+ 1
     p0 = max.(p0, max.(t.pixel_bounds.pMin, Pnt2(1,1)))
     p1 = min.(p1, t.pixel_bounds.pMax)   
 
-    # print("$(p0)-$(p1)")
-    # print("\n\n")
-
     # Precompute x & y filter offsets.
-    offsets_x = Vector{Int32}(undef, Int32(p1[1] - p0[1] + 1))
-    offsets_y = Vector{Int32}(undef, Int32(p1[2] - p0[2] + 1))
-    for (i, x) in enumerate(p0[1]:p1[1])
-        fx = abs((x - discrete_point[1]) * t.inv_filter_radius[1] * t.filter_table_width)
+    offsets_x = Vector{Int64}(undef, Int(p1.x - p0.x + 1))
+    offsets_y = Vector{Int64}(undef, Int(p1.y - p0.y + 1))
+    for (i, x) in enumerate(p0.x:p1.x)
+        fx = abs((x - discrete_point.x) * t.inv_filter_radius.x * t.filter_table_width)
         offsets_x[i] = clamp(ceil(fx), 1, t.filter_table_width)  # TODO is clipping ok?
     end
-    for (i, y) in enumerate(p0[2]:p1[2])
-        fy = abs((y - discrete_point[2]) * t.inv_filter_radius[2] * t.filter_table_width)
+    for (i, y) in enumerate(p0.y:p1.y)
+        fy = abs((y - discrete_point.y) * t.inv_filter_radius.y * t.filter_table_width)
         offsets_y[i] = clamp(floor(fy), 1, t.filter_table_width)
     end
     # Loop over filter support & add sample to pixel array.
-    for (j, y) in enumerate(p0[2]:p1[2]), (i, x) in enumerate(p0[1]:p1[1])
-        w = t.filter_table[offsets_y[j], offsets_x[i]]
-        pixel = get_pixel(t, Pnt2(x, y))
-        @assert sample_weight <= 1
-        @assert w <= 1
-        pixel.contrib_sum += spectrum * sample_weight * w
-        pixel.filter_weight_sum += w
+    for (j, y) in enumerate(p0.y:p1.y)
+        for (i, x) in enumerate(p0.x:p1.x)
+            w = t.filter_table[offsets_y[j], offsets_x[i]]
+            pixel = get_pixel(t, Pnt2(x, y))
+            @assert sample_weight <= 1
+            @assert w <= 1
+            pixel.contrib_sum += spectrum * sample_weight * w
+            pixel.filter_weight_sum += w
+        end
     end
 end
 
 function merge_film_tile!(f::Film, ft::FilmTile)
-    x_range = ft.pixel_bounds.pMin[1]:ft.pixel_bounds.pMax[1]
-    y_range = ft.pixel_bounds.pMin[2]:ft.pixel_bounds.pMax[2]
+    for y in ft.pixel_bounds.pMin.y:ft.pixel_bounds.pMax.y
+        for x in ft.pixel_bounds.pMin.x:ft.pixel_bounds.pMax.x
+            pixel = Pnt2(x, y)
+            tile_pixel = get_pixel(ft, pixel)
+            merge_pixel = get_pixel(f, pixel)
+            merge_pixel.xyz += RGB_to_XYZ(convert(Spectrum, tile_pixel.contrib_sum))
+            merge_pixel.filter_weight_sum += tile_pixel.filter_weight_sum
+        end
+    end
+end
 
-    for y in y_range, x in x_range
-        pixel = Pnt2(x, y)
-        tile_pixel = get_pixel(ft, pixel)
-        merge_pixel = get_pixel(f, pixel)
-        merge_pixel.xyz += RGB_to_XYZ(tile_pixel.contrib_sum)
-        merge_pixel.filter_weight_sum += tile_pixel.filter_weight_sum
+function add_splat!(f::Film, p::Pnt2, v::Spectrum)
+    pixel = get_pixel(f, p)
+    if !inside_exclusive(p, f.cropped_pixel_bounds)
+        Threads.atomic_add!(pixel.splat_xyz, AtomicPnt3(0.0, 0.0, 0.0))
+    else
+        Threads.atomic_add!(pixel.splat_xyz, RGB_to_XYZ(v))
     end
 end
 
 function save(film::Film, splat_scale::Float64 = 1.0)
-    image = Array{Float32}(undef, size(film.pixels)..., 3)
-    for y in 1:size(film.pixels)[1], x in 1:size(film.pixels)[2]
-        pixel = film.pixels[y, x]
-        image[y, x, :] .= XYZ_to_RGB(pixel.xyz)
-        # Normalize pixel with weight sum.
-        filter_weight_sum = pixel.filter_weight_sum
-        if filter_weight_sum != 0
-            inv_weight = 1 / filter_weight_sum
-            image[y, x, :] .= max.(0, image[y, x, :] .* inv_weight)
+    X, Y = size(film.pixels)
+    image = Array{Float64}(undef, X, Y, 3)
+    for y in 1:Y
+        for x in 1:X
+            pixel = film.pixels[y, x]
+            image[y, x, :] .= XYZ_to_RGB(pixel.xyz)
+            # Normalize pixel with weight sum.
+            filter_weight_sum = pixel.filter_weight_sum
+            if filter_weight_sum != 0
+                inv_weight = 1 / filter_weight_sum
+                image[y, x, :] .= max.(0, image[y, x, :] .* inv_weight)
+            end
+            # Add splat value at pixel & scale.
+            splat_rgb = XYZ_to_RGB(convert(Pnt3, pixel.splat_xyz))
+            image[y, x, :] .+= splat_scale .* splat_rgb
+            image[y, x, :] .*= film.scale
         end
-        # Add splat value at pixel & scale.
-        splat_rgb = XYZ_to_RGB(pixel.splat_xyz)
-        image[y, x, :] .+= splat_scale .* splat_rgb
-        image[y, x, :] .*= film.scale
     end
-    clamp!(image, 0f0, 1f0) # TODO remap instead of clamping?
+    clamp!(image, 0.0, 1.0)
     FileIO.save(film.filename, image[end:-1:begin, :, :])
 end

@@ -4,7 +4,6 @@ mutable struct StratifiedSampler <: AbstractSampler
     n_sampled_dimensions::Int64
     x_pixel_samples::Int64
     y_pixel_samples::Int64
-    samples_per_pixel::Int64
     jitter::Bool
 
     function StratifiedSampler(
@@ -22,7 +21,6 @@ mutable struct StratifiedSampler <: AbstractSampler
             n_sampled_dimensions,
             x_pixel_samples,
             y_pixel_samples,
-            x_pixel_samples * y_pixel_samples,
             jitter
         )
     end
@@ -60,33 +58,33 @@ function start_pixel!(ss::StratifiedSampler, ::Pnt2)
     end
 
     # now shuffle!
-    shuffle!(ss.pixel_sampler.sampels1D)
-    shuffle!(ss.pixel_sampler.sampels2D)
+    # shuffle!(ss.pixel_sampler.sampels1D)
+    # shuffle!(ss.pixel_sampler.sampels2D)
 end
 
 function get_1D!(ss::StratifiedSampler)
-    ss.pixel_sampler.current1DDimension += 1
-    if ss.pixel_sampler.current1DDimension >= size(ss.pixel_sampler.sampels1D)[1]
-        return rand()
+    if ss.pixel_sampler.current1DDimension > size(ss.pixel_sampler.sampels1D)[1]
+        p = rand()
     else
-        return rand()
-        # return ss.pixel_sampler.sampels1D[ss.pixel_sampler.current1DDimension, ss.current_pixel]
+        p = ss.pixel_sampler.sampels1D[ss.pixel_sampler.current1DDimension, ss.current_pixel]
     end    
+    ss.pixel_sampler.current1DDimension += 1
+    return p
 end
 
 function get_2D!(ss::StratifiedSampler)
-    ss.pixel_sampler.current2DDimension += 1
-    if ss.pixel_sampler.current2DDimension >= size(ss.pixel_sampler.sampels2D)[1]
-        return Pnt2(rand(), rand())
+    if ss.pixel_sampler.current2DDimension > size(ss.pixel_sampler.sampels2D)[1]
+        p = Pnt2(rand(), rand())
     else
-        return Pnt2(rand(), rand())
-        # return ss.pixel_sampler.sampels2D[ss.pixel_sampler.current2DDimension, ss.current_pixel]
+        p = ss.pixel_sampler.sampels2D[ss.pixel_sampler.current2DDimension, ss.current_pixel]
     end    
+    ss.pixel_sampler.current2DDimension += 1
+    return p
 end
 
 
 function has_next_sample(ss::StratifiedSampler)
-    return ss.current_pixel <= ss.samples_per_pixel
+    return ss.current_pixel <= ss.pixel_sampler.sampler.samples_per_pixel
 end
 function start_next_sample!(ss::StratifiedSampler)
     ss.current_pixel += 1
@@ -97,11 +95,11 @@ end
 
 function get_camera_sample!(sampler::StratifiedSampler, p_raster::Pnt2)
     p_film = p_raster .+ get_2D!(sampler) # 1,2
-    time = get_1D!(sampler)               # 3
+    timesample = get_1D!(sampler)               # 3
     p_lens = get_2D!(sampler)             # 4,5
     return CameraSample(
         p_film,
         p_lens,
-        time
+        timesample
     )
 end

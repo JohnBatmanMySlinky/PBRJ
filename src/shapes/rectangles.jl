@@ -1,83 +1,100 @@
-struct XZRectangle <: Shape
-    core::ShapeCore
-    x::Pnt2
-    z::Pnt2
-    k::Float64
-
-    function XZRectangle(t::Transformation, x::Pnt2, z::Pnt2, k::Float64, reverse_orientation::Bool, transform_swaps_handedness::Bool)
-        return new(
-            ShapeCore(t, Inv(t), reverse_orientation, transform_swaps_handedness),
-            x,
-            z
+function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore, flip_normals::Bool, alpha_mask::Maybe{Texture})::Vector{Triangle}
+    flip = flip_normals ? -1 : 1
+    if axis == 1
+        return construct_triangle_mesh(
+            sc,
+            2,
+            4,
+            [Pnt3(k, MIN.x, MIN.y), Pnt3(k, MAX.x, MAX.y), Pnt3(k, MIN.x, MAX.y), Pnt3(k, MAX.x, MIN.y)],
+            # BE REALLY CAREFUL OF YOUR WINDING ORDER
+            [1,2,3,1,4,2],
+            [Nml3(1,0,0)*flip, Nml3(1,0,0)*flip, Nml3(1,0,0)*flip, Nml3(1,0,0)*flip],
+            [Pnt2(0,0), Pnt2(1,1), Pnt2(0,1), Pnt2(1,0)],
+            alpha_mask
         )
+    elseif axis == 2
+        return construct_triangle_mesh(
+            sc,
+            2,
+            4,
+            [Pnt3(MIN.x, k, MIN.y), Pnt3(MAX.x, k, MAX.y), Pnt3(MIN.x, k, MAX.y), Pnt3(MAX.x, k, MIN.y)],
+            # BE REALLY CAREFUL OF YOUR WINDING ORDER
+            [1,2,3,1,4,2],
+            [Nml3(0,1,0)*flip, Nml3(0,1,0)*flip, Nml3(0,1,0)*flip, Nml3(0,1,0)*flip],
+            [Pnt2(0,0), Pnt2(1,1), Pnt2(0,1), Pnt2(1,0)],
+            alpha_mask
+        )
+    elseif axis == 3
+        return construct_triangle_mesh(
+            sc,
+            2,
+            4,
+            [Pnt3(MIN.x, MIN.y, k), Pnt3(MAX.x, MAX.y, k), Pnt3(MIN.x, MAX.y, k), Pnt3(MAX.x, MIN.y, k)],
+            # BE REALLY CAREFUL OF YOUR WINDING ORDER
+            [1,2,3,1,4,2],
+            [Nml3(0,0,1)*flip, Nml3(0,0,1)*flip, Nml3(0,0,1)*flip, Nml3(0,0,1)*flip],
+            [Pnt2(0,0), Pnt2(1,1), Pnt2(0,1), Pnt2(1,0)],
+            alpha_mask
+        )
+    else
+        @assert false
     end
 end
 
-function ObjectBounds(xz::XZRectangle)
-    return Bounds3(
-        Pnt3(xz.x[1], xz.k - .00001, xz.z[1]),
-        Pnt3(xz.x[2], xz.k + .00001, xz.z[2]),
+function Box(MIN::Pnt3, MAX::Pnt3, sc::ShapeCore, alpha_mask::Maybe{Texture})::Vector{Triangle}
+    top = Rectangle(
+        Pnt2(MIN.x, MIN.z),
+        Pnt2(MAX.x, MAX.z),
+        MAX.y,
+        2,
+        sc,
+        false,
+        alpha_mask
     )
-end
-
-function intersect(xz::XZRectangle, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
-    r = xz.core.world_to_object(r)
-
-    t = (xz.k - r.origin[2]) / r.direction[2]
-    if (t < r.time) || (t > r.tMax)
-        return false, nothing, nothing
-    end
-
-    x = r.origin[1] + t * r.direction[1]
-    z = r.origin[3] + t * r.direction[3]
-    if (x < xz.x[1]) || (x > xz.x[2]) || (z < xz.z[1]) || (z > xz.z[2])
-        return false, nothing, nothing
-    end
-    u = (x-xz.x[1]) / (xz.x[2] - xz.x[1])
-    v = (z-xz.z[1]) / (xz.z[2] - xz.z[1])
-    p = at(r, t)
-    n = Nml3(0, 1, 0)
-
-    # TODO IS THIS RIGHT??
-    _, dpdu, dpdv = orthonormal_basis(Vec3(0,1,0))
-
-    # instantiate surface interaction
-    interaction = InstantiateSurfaceInteraction(
-        p,
-        t,
-        -r.direction,
-        Pnt2(u, v),
-        dpdu,
-        dpdv,
-        Nml3(0,0,0),
-        Nml3(0,0,0),
-        xz
+    bottom = Rectangle(
+        Pnt2(MIN.x, MIN.z),
+        Pnt2(MAX.x, MAX.z),
+        MIN.y,
+        2,
+        sc,
+        true,
+        alpha_mask
     )
-
-    # because normal is defined as cross(dpdu, dpdv)
-    interaction.core.n = Nml3(0,1,0)
-    interaction.shading.n = Nml3(0,1,0)
-
-    # transform back to world coordinates
-    interaction = xz.core.object_to_world(interaction)
-
-    return true, t, interaction
-end
-
-
-function intersect_p(xz::XZRectangle, r::AbstractRay)::Bool
-    r = xz.core.world_to_object(r)
-
-    t = (xz.k - r.origin[2]) / r.direction[2]
-    if (t < r.time) || (t > r.tMax)
-        return false
-    end
-
-    x = r.origin[1] + t * r.direction[1]
-    z = r.origin[3] + t * r.direction[3]
-    if (x < xz.x[1]) || (x > xz.x[2]) || (z < xz.z[1]) || (z > xz.z[2])
-        return false
-    end
-   
-    return true
+    front = Rectangle(
+        Pnt2(MIN.y, MIN.z),
+        Pnt2(MAX.y, MAX.z),
+        MIN.x,
+        1,
+        sc,
+        false,
+        alpha_mask
+    )
+    back = Rectangle(
+        Pnt2(MIN.y, MIN.z),
+        Pnt2(MAX.y, MAX.z),
+        MAX.x,
+        1,
+        sc,
+        true,
+        alpha_mask
+    )
+    left = Rectangle(
+        Pnt2(MIN.x, MIN.y),
+        Pnt2(MAX.x, MAX.y),
+        MIN.z,
+        3,
+        sc,
+        false,
+        alpha_mask
+    )
+    right = Rectangle(
+        Pnt2(MIN.x, MIN.y),
+        Pnt2(MAX.x, MAX.y),
+        MAX.z,
+        3,
+        sc,
+        true,
+        alpha_mask
+    )
+    return vcat(top, bottom, left, right, front, back)
 end

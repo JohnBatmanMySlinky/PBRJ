@@ -1,4 +1,4 @@
-function random_in_concentric_disk(p::Pnt2)::Pnt2
+function random_in_concentric_disk(u::Pnt2)::Pnt2
     offset = 2 * u - Pnt2(1,1)
 
     if offset[1] == 0 && offset[2] == 0
@@ -26,4 +26,27 @@ function random_on_sphere(u::Pnt2)::Pnt3
     r = sqrt(max(0, 1-z^2))
     phi = 2 * pi * u[2]
     return Vec3(r *cos(phi), r*sin(phi), z)
+end
+
+function cosine_sample_hemisphere(u::Pnt2)::Vec3
+    d = random_in_concentric_disk(u)
+    z = sqrt(max(0,1-d.x^2-d.y^2))
+    return Vec3(d.x, d.y, z)
+end
+
+function shuffle!(samp::Vector, cnt::Int64, n_dimensions::Int64)
+    for i = 1:cnt
+        other = i + rand(0:(cnt-i))
+        for j = 0:(n_dimensions-1)
+            # JOHN HACK!
+            a = samp[n_dimensions * i + j]
+            b = samp[n_dimensions * other + j]
+            samp[n_dimensions * i + j] = b
+            samp[n_dimensions * other + j] = a
+        end
+    end
+end
+
+function cosine_hemisphere_pdf(cos_theta::Float64)::Float64
+    return cos_theta / pi
 end

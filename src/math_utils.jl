@@ -28,20 +28,20 @@ function lerp(t::Float64, a::Float64, b::Float64)::Float64
     return a + t * (b - a)
 end
 
-function spherical_phi(v::Vec3)
+function spherical_phi(v::Vec3)::Float64
     p = atan(v.y, v.x)
     return p < 0 ? (p + 2 * pi) : p
 end
 
-function spherical_theta(v::Vec3)
+function spherical_theta(v::Vec3)::Float64
     return acos(clamp(v.z, -1, 1))
 end
 
-function spherical_direction(sin_theta::Float64, cos_theta::Float64, phi::Float64, x::Vec3, y::Vec3, z::Vec3)
+function spherical_direction(sin_theta::Float64, cos_theta::Float64, phi::Float64, x::Vec3, y::Vec3, z::Vec3)::Float64
     return sin_theta * cos(phi) * x + sin_theta * sin(phi) * y + cos_theta * z
 end
 
-function orthonormal_basis(v::Vec3)
+function orthonormal_basis(v::Vec3)::Tuple{Vec3, Vec3, Vec3}
     if abs(v.x) > abs(v.y)
         v2 = Vec3(-v.z, 0, v.x) / sqrt(v.x^2 + v.z^2)
     else
@@ -50,7 +50,7 @@ function orthonormal_basis(v::Vec3)
     return v, v2, cross(v, v2)
 end
 
-function face_forward(n, v)
+function face_forward(n, v)::Nml3
     return dot(n, v) < 0 ? -n : n
 end
 
@@ -63,4 +63,23 @@ function partition!(x::Vector, range::UnitRange, predicate::Function)
         end
     end
     left
+end
+
+function same_hemisphere(wo::Vec3, wi::Vec3)::Bool
+    return wo.z * wi.z > 0
+end
+
+function power_heuristic(nf::Float64, fpdf::Float64, ng::Float64, gpdf::Float64)::Float64
+    f = nf*fpdf
+    g = ng*gpdf
+    return (f^2)/(f^2 + g^2)
+end
+
+function do_tile(u::Float64, tile::Float64)::Float64
+    return (u - trunc((u-eps(Float64))/(1/tile))/tile)*tile
+end
+
+function multiplicative_inverse(a::Int64, n::Int64)::Int64
+    x = gcd(a,n)
+    return mod(x,n)
 end

@@ -2,8 +2,9 @@ struct ImageTexture <: Texture
     data::Matrix{Pnt3}
     l::Int64
     w::Int64
+    tile::Pnt2
 
-    function ImageTexture(path::String)
+    function ImageTexture(path::String, tile::Pnt2=Pnt2(1,1))
         raw = load(path)
         L, W = size(raw)
         dat = zeros(Pnt3, L, W)
@@ -16,23 +17,18 @@ struct ImageTexture <: Texture
         return new(
             dat,
             size(dat)[1],
-            size(dat)[2]
+            size(dat)[2],
+            tile::Pnt2
         )
     end
 end
 
 function (it::ImageTexture)(si::SurfaceInteraction)
-    return it(si.uv)
-end
-
-
-# JOHN's to make for fsater bump mapping?
-function (it::ImageTexture)(uv::Pnt2)
-    u, v = uv
+    u, v = si.uv
     # TODO
     # fucking bump mapping
-    u = clamp(u,0,.9999)
-    v = clamp(v,0,.9999)
+    u = min(do_tile(u, it.tile.x), 1-eps(Float64))
+    v = min(do_tile(v, it.tile.y), 1-eps(Float64))
 
     L = Int(floor(u*it.l)+1)
     W = Int(floor(v*it.w)+1)

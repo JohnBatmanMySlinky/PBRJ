@@ -16,10 +16,10 @@ function f(mr::MicrofacetReflection, wo::Vec3, wi::Vec3)
     cos_theta_i = abs(cos_theta(wi))
     wh = Vec3(wo + wi)
     if cos_theta_i == 0 || cos_theta_o == 0
-        return Spectrum(0,0,0)
+        return Spectrum(0)
     end
     if wh.x == 0 && wh.y == 0 & wh.z == 0
-        return Spectrum(0,0,0)
+        return Spectrum(0)
     end
     wh = normalize(wh)
     F = mr.fresnel(dot(wi, wh))
