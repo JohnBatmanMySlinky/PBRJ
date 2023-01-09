@@ -1,0 +1,23 @@
+# PROBLEMS
+- How to balance scene with finite infinite lights?
+- What if only infinite area lights?
+- works best when NO infinte lights. 
+
+p = inter.core.p
+inv_distances = Vector{Float64}(undef, length(lights))
+for i, light in enumerate(lights)
+	if light isa AreaLight
+		d = typemax(Float64)
+		for corner in corners(light.box)
+			dd = distance(p, corner)
+			if dd < d
+				d = dd
+			end
+		end
+	else
+		d = distance(p, light.center)
+	end
+	distances[i] = 1/d
+end
+
+return Distribution1D(distances)
