@@ -553,7 +553,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Sampler
         spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
         S = StratifiedSampler(spp, spp, 4, true)
-        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+        print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
         print("There are " * num2str(length(lights)) * " lights in the scene\n")
