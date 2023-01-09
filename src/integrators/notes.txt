@@ -3,6 +3,14 @@
 - What if only infinite area lights?
 - works best when NO infinte lights. 
 
+# uniform_sample_one_light() gets updated to have a final arg which is a light distribution which is a distribution1D
+# uniform_sample_one_light is just like (sample light via estimate direct) / (prob of selecting light to be sampled)
+# So light distribution would have several potential stratigies. 
+    1. uniform
+    2. power (not helpful)
+    3. spatial (hard)
+    4. distance (john's idea)
+
 p = inter.core.p
 inv_distances = Vector{Float64}(undef, length(lights))
 for i, light in enumerate(lights)
