@@ -11,6 +11,8 @@ function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Sp
     specular_bounce = false
     bounces = 0
 
+    # TODO instantiate light distribution builder
+
     """
     Each time through the (while) loop of the integrator, the next vertex of the path is found by intersecting the
     current ray with the scene geometry and computing the contribution of the path to the overall radiance
@@ -59,10 +61,12 @@ function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Sp
             continue
         end
 
+        # TODO build light distribution
+
         # Sample illumination from lights to find path contribution.
         # (But skip this for perfectly specular BSDFs.)
         """this gives an estimate of the exitant radiance from direct lighting at the vertex of the current path"""
-        L += beta * uniform_sample_one_light(isect, scene, i.sampler, false)
+        L += beta * uniform_sample_one_light(isect, scene, i.sampler, false) # TODO pass light distribution here
 
         # Sample BSDF to get new path direction
         wo = -ray.direction
