@@ -46,3 +46,7 @@ function shuffle!(samp::Vector, cnt::Int64, n_dimensions::Int64)
         end
     end
 end
+
+function cosine_hemisphere_pdf(cos_theta::Float64)::Float64
+    return cos_theta / pi
+end

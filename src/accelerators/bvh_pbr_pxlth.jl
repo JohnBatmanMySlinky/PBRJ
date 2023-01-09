@@ -150,7 +150,7 @@ function _build_tree(
             buckets[b].bounds = world_bounds(buckets[b].bounds,primitives_info[i].bounds)
         end
 
-        costs = Vector{Float32}(undef, n_buckets - 1)
+        costs = Vector{Float64}(undef, n_buckets - 1)
         for i in 1:(n_buckets - 1)
             it1, it2 = 1:i, (i + 1):(n_buckets - 1)
             s1, s2 = 0, 0

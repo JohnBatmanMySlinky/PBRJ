@@ -49,3 +49,17 @@ end
 function pdf_li(light::SpotLight, isect::SurfaceInteraction, wi::Vec3)::Float64
     return 0.0
 end
+
+
+##############
+### 16.1.2 BDPT stuff
+##############
+
+function sample_le(light::SpotLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
+    w = uniform_sample_cone(u1, light.cos_total_width)
+    ray = Ray(light.p_light, light.light_to_world(w), t, typemax(Float64))
+    n_light = Nml3(ray.direction)
+    pdf_pos = 1.0
+    pdf_dir = uniform_cone_pdf(light.cos_total_width)
+    return light.I * falloff(light, ray.direction), ray, n_light, pdf_pos, pdf_dir
+end

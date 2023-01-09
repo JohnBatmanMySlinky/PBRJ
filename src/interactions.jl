@@ -2,12 +2,22 @@ mutable struct Interaction
     # world coordinates
     p::Pnt3
     # time of intersection
-    t::Float32
+    t::Float64
     # negative of ray direciton
     # direction from intersection to viewer
     wo::Vec3
     # surface normal in world coordinates
     n::Nml3
+end
+
+function Interaction()
+    return Interaction(Pnt3(0), 0.0, Vec3(0), Nml3(0))
+end
+function Interaction(r::AbstractRay)::Interaction
+    return Interaction(r.origin, r.t, -r.direction, Nml3(r.direction))
+end
+function Interaction(r::AbstractRay, n::Nml3)::Interaction
+    return Interaction(r.origin, r.t, -r.direction, n)
 end
 
 mutable struct ShadingInteraction
@@ -28,7 +38,7 @@ mutable struct SurfaceInteraction
     dndu::Nml3
     dndv::Nml3
 
-    shape::Shape
+    shape::Maybe{Shape}
     primitive::Maybe{Primitive}
     bsdf::Maybe{AbstractBSDF}
 
@@ -54,7 +64,7 @@ function InstantiateSurfaceInteraction(
     primitive::Maybe{Primitive}=nothing,
     bsdf::Maybe{AbstractBSDF}=nothing,
 )::SurfaceInteraction
-    n = normalize(cross(dpdu, dpdv))
+    n = Nml3(normalize(cross(dpdu, dpdv)))
 
     core = Interaction(p, t, wo, n)
     shading = ShadingInteraction(n, dpdu, dpdv, dndu, dndv)
@@ -79,14 +89,30 @@ function InstantiateSurfaceInteraction(
         0,
         0,
         0,
-        Vec3(0,0,0),
-        Vec3(0,0,0),
+        Vec3(0),
+        Vec3(0),
     )
 end
 
-function empty_surface_interation(s::Shape)
+function empty_surface_interation(s::Shape)::SurfaceInteraction
     return InstantiateSurfaceInteraction(
         Pnt3(1,1,1), 
+        0.0,
+        Vec3(1,1,1),
+        Pnt2(.5, .5),
+        Vec3(1,0,0),
+        Vec3(0,1,0),
+        Nml3(1,0,0),
+        Nml3(0,1,0),
+        s,
+        nothing,
+        nothing,
+    )
+end
+
+function empty_surface_interation()::SurfaceInteraction
+    return InstantiateSurfaceInteraction(
+        Pnt3(1), 
         0.0,
         Vec3(1,1,1),
         Pnt2(.5, .5),

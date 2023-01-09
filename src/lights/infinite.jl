@@ -91,3 +91,13 @@ function pdf_li(il::InfinteLight, isect::SurfaceInteraction, wi::Vec3)::Float64
 
     return pdf_val / (2 * pi * pi * sin_theta)
 end
+
+################
+#### 16.1.2 BDPT 
+################
+
+function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
+    # compute direction for infinite light sample ray
+    # compute origin for infinite light sample ray
+    # compute infinite area light ray pdfs
+end
