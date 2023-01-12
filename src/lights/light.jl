@@ -19,6 +19,14 @@ function is_delta_light(light::Light)::Bool
     return (light.flags & LightDeltaDirection) || (light.flags & LightDeltaPosition)
 end
 
+function is_infinite_light(light::Light)::Bool
+    return (light.flags & LightInfinite)
+end
+
+function is_area_light(light::Light)::Bool
+    return (light.flags & LightArea)
+end
+
 function Base.:&(a::LightFlags, b::LightFlags)::Bool
     return (UInt8(a) & UInt8(b)) == UInt8(a)
 end

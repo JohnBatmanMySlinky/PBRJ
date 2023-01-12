@@ -12,6 +12,7 @@ using ArgParse
 abstract type Aggregate end
 abstract type AbstractBxDF end
 abstract type AbstractBSDF end
+abstract type AbstractLightDistribution end
 abstract type AbstractRay end
 abstract type BVHAccel end
 abstract type Camera end
