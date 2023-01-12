@@ -52,14 +52,21 @@ end
 struct DistanceLightDistribution <: AbstractLightDistribution
     points::Vector{Pnt3}
     aabb::Vector{Bounds3}
+    points_idx::Vector{UInt8} # 1 means points 0 means aabb
 
     function DistanceLightDistribution(name::String, scene::Scene)
         points = Vector{Pnt3}(undef, len(scene.lights))
         aabb = Vector{Bounds3}(undef, len(scene.lights))
-        for l in scene.lights
+        for (i, l) in enumerate(scene.lights)
             if is_area_light(l)
+                points[i] = Pnt3(0)
+                aabb[i] = bounding_box(l.shape)
             elseif is_delta_light(l)
+                points[i] = 
+                aabb[i] = scene.bounds
             elseif is_infinite_light(l)
+                points[i] = Pnt3(0)
+                aabb[i] = scene.bounds # TODO make distant light sampling smarter
             else
                 @assert false, "your light flags suck"
             end
