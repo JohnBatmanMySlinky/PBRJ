@@ -10,7 +10,7 @@ function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Sp
     beta = Spectrum(1) # the throughput weight
     specular_bounce = false
     bounces = 0
-    light_distribution_generator = LightDistribution("uniform", scene)
+    light_distribution_generator = LightDistribution("centriod_distance", scene)
 
     # TODO instantiate light distribution builder
 
@@ -68,7 +68,7 @@ function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Sp
         # Sample illumination from lights to find path contribution.
         # (But skip this for perfectly specular BSDFs.)
         """this gives an estimate of the exitant radiance from direct lighting at the vertex of the current path"""
-        L += beta * uniform_sample_one_light(isect, scene, i.sampler, false, light_distribution) # TODO pass light distribution here
+        L += beta * uniform_sample_one_light(isect, scene, i.sampler, light_distribution, false) # TODO pass light distribution here
 
         # Sample BSDF to get new path direction
         wo = -ray.direction

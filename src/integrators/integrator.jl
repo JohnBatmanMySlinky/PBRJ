@@ -66,8 +66,8 @@ function uniform_sample_one_light(
     isect::SurfaceInteraction, 
     scene::Scene, 
     sampler::AbstractSampler, 
+    light_distribution::Distribution1D,
     handle_media::Bool=false, 
-    light_distribution::AbstractLightDistribution
 )::Spectrum
     # chose a single light to sample
     light_num, light_pdf, _ = sample_discrete(light_distribution, get_1D!(sampler))

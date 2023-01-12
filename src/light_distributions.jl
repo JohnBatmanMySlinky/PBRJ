@@ -60,8 +60,8 @@ struct DistanceLightDistribution <: AbstractLightDistribution
     # GIVE INFINITES x% split evenly????
 
     function DistanceLightDistribution(name::String, scene::Scene, weight_for_infinites::Float64)
-        points = Vector{Pnt3}(undef, len(scene.lights))
-        infinite_idx = Vector{UInt8}(undef, len(scene.lights)) # 1 means inf 0 means not inf
+        points = Vector{Pnt3}(undef, length(scene.lights))
+        infinite_idx = Vector{UInt8}(undef, length(scene.lights)) # 1 means inf 0 means not inf
 
         weight_for_each_infinite = weight_for_infinites / sum([1 for l in scene.lights if is_infinite_light(l)])
 
@@ -122,14 +122,14 @@ function lookup(ld::VoxelLightDistribution, p::Pnt3)::Distribution1D
 end
 
 function lookup(ld::DistanceLightDistribution, p::Pnt3)::Distribution1D
-    distances = Vector{Float64}(undef, len(ld.points))
+    distances = Vector{Float64}(undef, length(ld.points))
 
     # first pass fill with distances
     for (inf_check, point) in zip(ld.infinite_idx, ld.points)
         if inf_check
             distances = 0
         else
-            distance = distance(p, point)
+            distances = distance(p, point)
         end
     end
 
@@ -138,7 +138,9 @@ function lookup(ld::DistanceLightDistribution, p::Pnt3)::Distribution1D
 
     # plop in weight_for_each_infinites
     for (i, inf_check) in enumerate(ld.infinite_idx)
-        distances[i] = weight_for_each_infinites
+        if inf_check
+            distances[i] = weight_for_each_infinites
+        end
     end
 
     return Distribution1D(distances)
