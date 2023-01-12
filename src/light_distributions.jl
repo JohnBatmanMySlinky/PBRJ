@@ -57,16 +57,24 @@ struct DistanceLightDistribution <: AbstractLightDistribution
     function DistanceLightDistribution(name::String, scene::Scene)
         points = Vector{Pnt3}(undef, len(scene.lights))
         aabb = Vector{Bounds3}(undef, len(scene.lights))
+        points_idx = Vector{UInt8}(undef, len(scene.lights))
+
         for (i, l) in enumerate(scene.lights)
             if is_area_light(l)
                 points[i] = Pnt3(0)
                 aabb[i] = bounding_box(l.shape)
+                points_idx[i] = UInt8(0)
+
             elseif is_delta_light(l)
-                points[i] = 
+                points[i] = l.light_position # TODO make point and spot consistent
                 aabb[i] = scene.bounds
+                points_idx[i] = UInt8(1)
+
             elseif is_infinite_light(l)
                 points[i] = Pnt3(0)
                 aabb[i] = scene.bounds # TODO make distant light sampling smarter
+                points_idx[i] = UInt8(0)
+
             else
                 @assert false, "your light flags suck"
             end
@@ -74,7 +82,8 @@ struct DistanceLightDistribution <: AbstractLightDistribution
 
         return new(
             points,
-            aabb
+            aabb,
+            points_idx
         )
     end
 end
@@ -97,4 +106,4 @@ function LightDistribution(name::String, scene::Scene)::AbstractLightDistributio
 end
 
 ### Light distributions are created via lookup
-# for static, this is
+# trivial for static, less trivial for voxel & distant
