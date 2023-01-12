@@ -51,30 +51,33 @@ end
 # this covers Distance
 struct DistanceLightDistribution <: AbstractLightDistribution
     points::Vector{Pnt3}
-    aabb::Vector{Bounds3}
-    points_idx::Vector{UInt8} # 1 means points 0 means aabb
+    infinite_idx::Vector{Bool}
+    weight_for_infinites::Float64
+    weight_for_each_infinite::Float64
 
-    function DistanceLightDistribution(name::String, scene::Scene)
+
+    # JOHGN HACK
+    # GIVE INFINITES x% split evenly????
+
+    function DistanceLightDistribution(name::String, scene::Scene, weight_for_infinites::Float64)
         points = Vector{Pnt3}(undef, len(scene.lights))
-        aabb = Vector{Bounds3}(undef, len(scene.lights))
-        points_idx = Vector{UInt8}(undef, len(scene.lights))
+        infinite_idx = Vector{UInt8}(undef, len(scene.lights)) # 1 means inf 0 means not inf
+
+        weight_for_each_infinite = weight_for_infinites / sum([1 for l in scene.lights if is_infinite_light(l)])
 
         for (i, l) in enumerate(scene.lights)
             if is_area_light(l)
-                points[i] = Pnt3(0)
-                aabb[i] = bounding_box(l.shape)
-                points_idx[i] = UInt8(0)
-
+                points[i] = centroid(world_bounds(l.shape))
+                infinite_idx[i] = false
+                
             elseif is_delta_light(l)
-                points[i] = l.light_position # TODO make point and spot consistent
-                aabb[i] = scene.bounds
-                points_idx[i] = UInt8(1)
+                points[i] = l.light_position
+                infinite_idx[i] = false
 
             elseif is_infinite_light(l)
                 points[i] = Pnt3(0)
-                aabb[i] = scene.bounds # TODO make distant light sampling smarter
-                points_idx[i] = UInt8(0)
-
+                infinite_idx[i] = true
+                
             else
                 @assert false, "your light flags suck"
             end
@@ -82,14 +85,15 @@ struct DistanceLightDistribution <: AbstractLightDistribution
 
         return new(
             points,
-            aabb,
-            points_idx
+            infinite_idx,
+            weight_for_infinites,
+            weight_for_each_infinite
         )
     end
 end
 
 ##### The constructor
-function LightDistribution(name::String, scene::Scene)::AbstractLightDistribution
+function LightDistribution(name::String, scene::Scene, weight_for_infinites::Float64=0.10)::AbstractLightDistribution
     if (name == "uniform") || (name == "power")
         return StaticLightDistribution(name, scene)
 
@@ -98,7 +102,7 @@ function LightDistribution(name::String, scene::Scene)::AbstractLightDistributio
         return VoxelLightDistribution(name, scene)
 
     elseif name == "centriod_distance"
-        return DistanceLightDistribution(name, scene)
+        return DistanceLightDistribution(name, scene, weight_for_infinites)
 
     else
         @assert false, "please pick one of uniform, power, spatial, or centriod_distance"
@@ -107,3 +111,35 @@ end
 
 ### Light distributions are created via lookup
 # trivial for static, less trivial for voxel & distant
+
+function lookup(ld::StaticLightDistribution, p::Pnt3)::Distribution1D
+    return ld.distr
+end
+
+function lookup(ld::VoxelLightDistribution, p::Pnt3)::Distribution1D
+    @assert false, "NOT IMPLEMENTED"
+    return Distribution1D(ones(5))
+end
+
+function lookup(ld::DistanceLightDistribution, p::Pnt3)::Distribution1D
+    distances = Vector{Float64}(undef, len(ld.points))
+
+    # first pass fill with distances
+    for (inf_check, point) in zip(ld.infinite_idx, ld.points)
+        if inf_check
+            distances = 0
+        else
+            distance = distance(p, point)
+        end
+    end
+
+    # normalize distances to 1-weight_for_infinites
+    distances ./= (sum(distances)/(1-weight_for_infinites))
+
+    # plop in weight_for_each_infinites
+    for (i, inf_check) in enumerate(ld.infinite_idx)
+        distances[i] = weight_for_each_infinites
+    end
+
+    return Distribution1D(distances)
+end
