@@ -132,7 +132,7 @@ function lookup(ld::DistanceLightDistribution, p::Pnt3)::Distribution1D
         if inf_check
             distances[i] = 0.0
         else
-            distances[i] = 1/distance(p, point)
+            distances[i] = 1/distance(p, point)^2
         end
     end
 
