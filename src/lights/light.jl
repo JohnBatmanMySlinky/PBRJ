@@ -19,6 +19,14 @@ function is_delta_light(light::Light)::Bool
     return (light.flags & LightDeltaDirection) || (light.flags & LightDeltaPosition)
 end
 
+function is_delta_pos_light(light::Light)::Bool
+    return (light.flags & LightDeltaPosition)
+end
+
+function is_delta_dir_light(light::Light)::Bool
+    return (light.flags & LightDeltaDirection)
+end
+
 function is_infinite_light(light::Light)::Bool
     return (light.flags & LightInfinite)
 end

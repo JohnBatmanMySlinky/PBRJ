@@ -10,7 +10,8 @@ function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Sp
     beta = Spectrum(1) # the throughput weight
     specular_bounce = false
     bounces = 0
-    light_distribution_generator = LightDistribution("centriod_distance", scene)
+    light_distribution_generator = LightDistribution("centroid_distance", scene)
+    # light_distribution_generator = LightDistribution("uniform", scene)
 
     # TODO instantiate light distribution builder
 

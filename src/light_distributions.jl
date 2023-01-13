@@ -66,15 +66,18 @@ struct DistanceLightDistribution <: AbstractLightDistribution
         weight_for_each_infinite = weight_for_infinites / sum([1 for l in scene.lights if is_infinite_light(l)])
 
         for (i, l) in enumerate(scene.lights)
+            # area lights
             if is_area_light(l)
                 points[i] = centroid(world_bounds(l.shape))
                 infinite_idx[i] = false
                 
-            elseif is_delta_light(l)
+            # spot & point lights
+            elseif is_delta_pos_light(l)
                 points[i] = l.light_position
                 infinite_idx[i] = false
 
-            elseif is_infinite_light(l)
+            # infinite and distant
+            elseif is_infinite_light(l) || is_delta_dir_light(l)
                 points[i] = Pnt3(0)
                 infinite_idx[i] = true
                 
@@ -101,11 +104,11 @@ function LightDistribution(name::String, scene::Scene, weight_for_infinites::Flo
         @assert false, "spatial light distribution isn't implemented yet"
         return VoxelLightDistribution(name, scene)
 
-    elseif name == "centriod_distance"
+    elseif name == "centroid_distance"
         return DistanceLightDistribution(name, scene, weight_for_infinites)
 
     else
-        @assert false, "please pick one of uniform, power, spatial, or centriod_distance"
+        @assert false, "please pick one of uniform, power, spatial, or centroid_distance"
     end
 end
 
@@ -125,23 +128,29 @@ function lookup(ld::DistanceLightDistribution, p::Pnt3)::Distribution1D
     distances = Vector{Float64}(undef, length(ld.points))
 
     # first pass fill with distances
-    for (inf_check, point) in zip(ld.infinite_idx, ld.points)
+    for (i,(inf_check, point)) in enumerate(zip(ld.infinite_idx, ld.points))
         if inf_check
-            distances = 0
+            distances[i] = 0.0
         else
-            distances = distance(p, point)
+            distances[i] = 1/distance(p, point)
         end
     end
 
-    # normalize distances to 1-weight_for_infinites
-    distances ./= (sum(distances)/(1-weight_for_infinites))
+    # if no infinites, no need to account for them
+    if sum(ld.infinite_idx) == 0
+        return Distribution1D(distances)
+    else
+        # normalize distances to 1-weight_for_infinites
+        norm_factor = sum(distances)/(1-ld.weight_for_infinites)
+        distances ./= norm_factor
 
-    # plop in weight_for_each_infinites
-    for (i, inf_check) in enumerate(ld.infinite_idx)
-        if inf_check
-            distances[i] = weight_for_each_infinites
+        # plop in weight_for_each_infinites
+        for (i, inf_check) in enumerate(ld.infinite_idx)
+            if inf_check
+                distances[i] = ld.weight_for_each_infinite
+            end
         end
-    end
 
-    return Distribution1D(distances)
+        return Distribution1D(distances)
+    end
 end

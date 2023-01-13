@@ -216,6 +216,14 @@ function Base.length(b::Bounds2)::Int64
     return Int64(delta[1] * delta[2])
 end
 
+function centroid(b::Bounds3)::Pnt3
+    return Pnt3(
+        (b.pMax.x + b.pMin.x)/2.0,
+        (b.pMax.y + b.pMin.y)/2.0,
+        (b.pMax.z + b.pMin.z)/2.0
+    )
+end
+
 function world_bounds(b1::Bounds3, b2::Bounds3)::Bounds3
     small = Vec3(
         min(b1.pMin[1], b2.pMin[1]),
