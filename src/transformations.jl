@@ -47,7 +47,7 @@ function Scale(v::Vec3)::Transformation
     return Transformation(m, m_inv)
 end
 
-function RotateX(theta::Float64)
+function RotateX(theta::Float64)::Transformation
     sin_theta = sin(deg2rad(theta))
     cos_theta = cos(deg2rad(theta))
     m = Mat4([
@@ -59,7 +59,7 @@ function RotateX(theta::Float64)
     return Transformation(m, transpose(m))
 end
 
-function RotateY(theta::Float64)
+function RotateY(theta::Float64)::Transformation
     sin_theta = sin(deg2rad(theta))
     cos_theta = cos(deg2rad(theta))
     m = Mat4([
@@ -71,7 +71,7 @@ function RotateY(theta::Float64)
     return Transformation(m, transpose(m))
 end
 
-function RotateZ(theta::Float64)
+function RotateZ(theta::Float64)::Transformation
     sin_theta = sin(deg2rad(theta))
     cos_theta = cos(deg2rad(theta))
     m = Mat4([
@@ -97,7 +97,7 @@ function Perspective(fov::Float64, near::Float64, far::Float64)::Transformation
     return Scale(Vec3(inv_tan, inv_tan, 1)) * Transformation(p, inv(p))
 end
 
-function LookAt(position::Pnt3, target::Pnt3, up::Vec3)
+function LookAt(position::Pnt3, target::Pnt3, up::Vec3)::Transformation
     z_axis = normalize(position - target)
     x_axis = normalize(cross(up, z_axis))
     y_axis = cross(z_axis, x_axis)
@@ -116,7 +116,7 @@ end
 ########################################
 
 # mutliply two transformations
-function Base.:*(t1::Transformation, t2::Transformation)
+function Base.:*(t1::Transformation, t2::Transformation)::Transformation
     return Transformation(t1.m * t2.m, t1.inv_m * t2.inv_m)
 end
 

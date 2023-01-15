@@ -5,7 +5,14 @@ struct TriangleMesh
     indices::Vector{Int64}
     normals::Vector{Nml3}
 
-    function TriangleMesh(object_to_world::Transformation, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64}, normals::Vector{Nml3})
+    function TriangleMesh(
+        object_to_world::Transformation, 
+        n_triangles::Int64, 
+        n_vertices::Int64, 
+        vertices::Vector{Pnt3}, 
+        indices::Vector{Int64}, 
+        normals::Vector{Nml3}
+    )
         vertices = object_to_world.(vertices)
         normals = object_to_world.(normals)
         new(
@@ -32,7 +39,14 @@ end
 ###### Instantiate a triangle mesh manually #######
 ###################################################
 
-function construct_triangle_mesh(core::ShapeCore, n_triangles::Int64, n_vertices::Int64, vertices::Vector{Pnt3}, indices::Vector{Int64}, normals::Vector{Nml3})
+function construct_triangle_mesh(
+    core::ShapeCore, 
+    n_triangles::Int64, 
+    n_vertices::Int64, 
+    vertices::Vector{Pnt3}, 
+    indices::Vector{Int64}, 
+    normals::Vector{Nml3}
+)::Vector{Triangle}
     mesh = TriangleMesh(core.object_to_world, n_triangles, n_vertices, vertices, indices, normals)
     return [Triangle(core, mesh, i) for i in 0:n_triangles - 1]
 end
@@ -44,17 +58,17 @@ end
 # PBR 3.6.1
 # "The Triangle shape is one of the shapes that can compute a better world space bound than can be found by transforming its 
 # object space bounding box to world space. Its world space bound can be directly computed from the world space vertices."
-function ObjectBounds(tri::Triangle)
+function ObjectBounds(tri::Triangle)::Bounds3
     # TODO
     # triangles have their vertices already in world space so go backwards because
     # results of this function are transformed back
     # ugh
     p0, p1, p2 = tri.core.world_to_object.(get_vertices(tri))
     # TODO why must I do this
-    buffer = Float64[0, 0, 0]
+    buffer = MVector(0,0,0)
     for i in 1:3
         if p0[i] == p1[i] == p2[i]
-            buffer[i] = .0001
+            buffer[i] += .0001
         end
     end
     return world_bounds(world_bounds(Bounds3(p0-buffer, p0+buffer), Bounds3(p1-buffer, p1+buffer)), Bounds3(p2-buffer, p2+buffer))
