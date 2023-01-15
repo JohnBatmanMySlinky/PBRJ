@@ -3,7 +3,7 @@ include("../src/RayTracing.jl")
 using Dates
 
 const NUM_RAYS = 100
-const NUM_TRIANGLES = 1_000 * 100
+const NUM_TRIANGLES = 1_000 * 1000
 
 # instantiate vector of Rays
 # instantiate vector of Triangles
@@ -91,3 +91,64 @@ print("intersection test took: ", t, "\n")
 print("number of intersections tested: ", RayTracing.num2str(NUM_RAYS * NUM_TRIANGLES), "\n")
 print(round(hit / (NUM_RAYS * NUM_TRIANGLES) * 100, digits=3), "% of rays intersected\n")
 print(round((NUM_RAYS * NUM_TRIANGLES) / t.value / 1_000, digits=3), " million intersections per second\n")
+
+
+"""
+Generating Rays & Triangles
+Running FAST tests...
+intersection test took: 4 milliseconds
+number of intersections tested: 100,000
+8.702% of rays intersected
+25.0 million intersections per second
+
+Running SLOW tests...
+intersection test took: 5 milliseconds
+number of intersections tested: 100,000
+8.702% of rays intersected
+20.0 million intersections per second
+"""
+
+"""
+Generating Rays & Triangles
+Running FAST tests...
+intersection test took: 43 milliseconds
+number of intersections tested: 1,000,000
+8.615% of rays intersected
+23.256 million intersections per second
+
+Running SLOW tests...
+intersection test took: 64 milliseconds
+number of intersections tested: 1,000,000
+8.615% of rays intersected
+15.625 million intersections per second
+"""
+
+"""
+Generating Rays & Triangles
+Running FAST tests...
+intersection test took: 854 milliseconds
+number of intersections tested: 10,000,000
+9.512% of rays intersected
+11.71 million intersections per second
+
+Running SLOW tests...
+intersection test took: 1220 milliseconds
+number of intersections tested: 10,000,000
+9.512% of rays intersected
+8.197 million intersections per second
+"""
+
+"""
+Generating Rays & Triangles
+Running FAST tests...
+intersection test took: 9555 milliseconds
+number of intersections tested: 100,000,000
+8.912% of rays intersected
+10.466 million intersections per second
+
+Running SLOW tests...
+intersection test took: 13726 milliseconds
+number of intersections tested: 100,000,000
+8.912% of rays intersected
+7.285 million intersections per second
+"""
