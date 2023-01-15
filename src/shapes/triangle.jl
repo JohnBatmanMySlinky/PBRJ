@@ -89,9 +89,9 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     
     # perform ray-triangle intersection test
     ## transform vertices to ray coord space
-    p0t = p0 - Vec3(ray.origin)
-    p1t = p1 - Vec3(ray.origin)
-    p2t = p2 - Vec3(ray.origin)
+    p0t = p0 - ray.origin
+    p1t = p1 - ray.origin
+    p2t = p2 - ray.origin
     kz = argmax(abs.(ray.direction))
     kx = kz + 1
     kx == 4 && (kx = 1)
@@ -119,25 +119,17 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     # TODO
 
     ## perform edge & det tests
-    if (e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0)
-        return false, nothing, nothing
-    end
+    (e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0) && (return false, nothing, nothing)
     det = e0 + e1 + e2
-    if det == 0
-        return false, nothing, nothing
-    end
+    det == 0 && (return false, nothing, nothing)
 
     ## compute scaled sitance to triangle and test against rayt
     p0t = Vec3(p0t.x, p0t.y, p0t.z * Sz)
     p1t = Vec3(p1t.x, p1t.y, p1t.z * Sz)
     p2t = Vec3(p2t.x, p2t.y, p2t.z * Sz)
     t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z
-    if (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax * det))
-        return false, nothing, nothing
-    end
-    if (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax * det))
-        return false, nothing, nothing
-    end
+    (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax * det)) && (return false, nothing, nothing)
+    (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax * det)) && (return false, nothing, nothing)
 
     ## compute barycentric coords and t for intesection
     inv_det = 1 / det
@@ -147,24 +139,24 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     t = t_scaled * inv_det
 
     # compute partials
-    uv = get_uvs(tri)
-    duv13 = uv[1] - uv[3]
-    duv23 = uv[2] - uv[3]
+    uv1, uv2, uv3 = get_uvs(tri)
+    duv13 = uv1 - uv3
+    duv23 = uv2 - uv3
     dp13 = p0 - p2
     dp23 = p1  - p2
-    determinate = duv13[1] * duv23[2] - duv13[2] * duv23[1]
+    determinate = duv13.x * duv23.y - duv13.y * duv23.x
     if determinate == 0
         v = normalize(cross(p2-p0, p1-p0))
         _, dpdu, dpdv = orthonormal_basis(v)
     else
         inv_determinate = 1 / determinate
-        dpdu = Vec3(duv23[2] * dp13 - duv13[2] * dp23) * inv_determinate
-        dpdv = Vec3(-duv23[1] * dp13 + duv13[1] * dp23) * inv_determinate
+        dpdu = duv23[2] * dp13 - duv13[2] * dp23 * inv_determinate
+        dpdv = -duv23[1] * dp13 + duv13[1] * dp23 * inv_determinate
     end
 
     # interpolate uv coords and hit point
     phit = b0 * p0 + b1 * p1 + b2 * p2
-    uvhit = b0 * uv[1] + b1 * uv[2] + b2 * uv[3]
+    uvhit = b0 * uv1 + b1 * uv2 + b2 * uv3
 
     # TODO
     # make specifying normals optional
@@ -186,12 +178,12 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         dndu = Nml3(0,0,0)
         dndv = Nml3(0,0,0)
     else
-        dndu = Nml3(duv23[2] * dn13 - duv13[2] * dn23) * inv_determinate
-        dndv = Nml3(-duv23[1] * dn13 + duv13[1] * dn23) * inv_determinate
+        dndu = duv23[2] * dn13 - duv13[2] * dn23 * inv_determinate
+        dndv = -duv23[1] * dn13 + duv13[1] * dn23 * inv_determinate
     end
 
     # fill interaction
-    interaction = InstantiateSurfaceInteraction(phit, ray.time, -ray.direction, uvhit, dpdu, dpdv, dndu, dndv, tri)
+    interaction = InstantiateSurfaceInteraction(phit, ray.time, -ray.direction, uvhit, Vec3(dpdu), Vec3(dpdv), Nml3(dndu), Nml3(dndv), tri)
     interaction.core.n = normalize(cross(dp13, dp23))   
     interaction.shading.n = cross(ss, ts)
     interaction.shading.dpdu = ss
