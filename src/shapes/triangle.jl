@@ -65,12 +65,7 @@ function ObjectBounds(tri::Triangle)::Bounds3
     # ugh
     p0, p1, p2 = tri.core.world_to_object.(get_vertices(tri))
     # TODO why must I do this
-    buffer = MVector(0,0,0)
-    for i in 1:3
-        if p0[i] == p1[i] == p2[i]
-            buffer[i] += .0001
-        end
-    end
+    buffer = (p0 .== p1 .==  p2) .* .0001
     return world_bounds(world_bounds(Bounds3(p0-buffer, p0+buffer), Bounds3(p1-buffer, p1+buffer)), Bounds3(p2-buffer, p2+buffer))
 end
 
