@@ -271,3 +271,27 @@ function intersect_p(tri::Triangle, ray::AbstractRay, ::Bool=false)::Bool
 
     return true
 end
+
+# MT algorithm for comparison purposes
+function intersect_p_MT(tri::Triangle, ray::AbstractRay, ::Bool=false)::Bool
+    # get triangle vertices
+    p0, p1, p2 = get_vertices(tri)
+
+    p0p1 = p1 - p0
+    p0p2 = p2 - p0
+    pvec = cross(r.direction, p0p2)
+    det = dot(p0p1, pvec)
+
+    det < 0.000001 && (return false)
+
+    inv_det = 1.0 / det
+    tvec = r.origin - p0
+    u = dot(tvec, pvec) * inv_det
+    (u < 0) || (u > 1) && (return false)
+
+    qvec = cross(tvec, p0p1)
+    v = dot(r.direction, qvec) * inv_det
+    (v < 0) || (u + v > 1) && (return false)
+
+    return true
+end
