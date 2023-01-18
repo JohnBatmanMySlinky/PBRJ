@@ -57,6 +57,20 @@ function run_p(tri_vec::Vector{RayTracing.Triangle}, ray_vec::Vector{RayTracing.
     return t1-t0, hit
 end
 
+function run_p_MT(tri_vec::Vector{RayTracing.Triangle}, ray_vec::Vector{RayTracing.Ray})::Tuple{Millisecond, Int64}
+    hit = 0
+    t0 = now()
+    for ri in 1:length(ray_vec)
+        r = ray_vec[ri]
+        for ti in 1:length(tri_vec)
+            t = tri_vec[ti]
+            RayTracing.intersect_p_MT(t, r) && (hit += 1)
+        end
+    end
+    t1 = now()
+    return t1-t0, hit
+end
+
 function run(tri_vec::Vector{RayTracing.Triangle}, ray_vec::Vector{RayTracing.Ray})::Tuple{Millisecond, Int64}
     hit = 0
     t0 = now()
@@ -78,6 +92,13 @@ tri_vec = make_tris(NUM_TRIANGLES)
 ray_vec = make_rays(NUM_RAYS)
 
 print("Running FAST tests...\n")
+t, hit = run_p(tri_vec, ray_vec)
+print("intersection test took: ", t, "\n")
+print("number of intersections tested: ", RayTracing.num2str(NUM_RAYS * NUM_TRIANGLES), "\n")
+print(round(hit / (NUM_RAYS * NUM_TRIANGLES) * 100, digits=3), "% of rays intersected\n")
+print(round((NUM_RAYS * NUM_TRIANGLES) / t.value / 1_000, digits=3), " million intersections per second\n")
+
+print("Running FAST MT tests...\n")
 t, hit = run_p(tri_vec, ray_vec)
 print("intersection test took: ", t, "\n")
 print("number of intersections tested: ", RayTracing.num2str(NUM_RAYS * NUM_TRIANGLES), "\n")

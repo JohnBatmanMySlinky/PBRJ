@@ -1,0 +1,6 @@
+- sampler is probably slow
+- bounding box implementation could probably be cleaned up
+- can we use strided arrays? I think anywhere I see a vector is room for improvement
+- make sure i am type stable
+- passing around film so much feels inefficient
+- are my matrix mults & transformations optimal?

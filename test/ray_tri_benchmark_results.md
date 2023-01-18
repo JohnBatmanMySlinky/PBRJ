@@ -28,10 +28,16 @@ idx | function | number of tests | total run time | M intersections / s | % hits
 2 | `intersect_p()` | 1,000,000 | 43ms | 23.3 | 8.6%
 3 | `intersect_p()` | 10,000,000 | 854ms | 11.7 | 9.5%
 4 | `intersect_p()` | 100,000,000 | 9,555ms | 10.5 | 8.9%
-5 | `intersect()` | 100,000 | 5ms | 20.0 | 8.7%
-6 | `intersect()` | 1,000,000 | 64ms | 15.6 | 8.6%
-7 | `intersect()` | 10,000,000 | 1,220ms | 8.2 | 9.5%
-8 | `intersect()` | 100,000,000 | 13,726ms | 7.3 | 8.9%
+--- | --- | --- | --- | -- | ---
+5 | `intersect_p_MT()` | 100,000 | ms |  | 
+6 | `intersect_p_MT()` | 1,000,000 | ms |  | 
+7 | `intersect_p_MT()` | 10,000,000 | ms |  | 
+8 | `intersect_p_MT()` | 100,000,000 | ms |  | 
+--- | --- | --- | --- | -- | ---
+9 | `intersect()` | 100,000 | 5ms | 20.0 | 8.7%
+10 | `intersect()` | 1,000,000 | 64ms | 15.6 | 8.6%
+11 | `intersect()` | 10,000,000 | 1,220ms | 8.2 | 9.5%
+12 | `intersect()` | 100,000,000 | 13,726ms | 7.3 | 8.9%
 
 If we benchmarking with the Cornell Box scene, results are as follows
 ```
