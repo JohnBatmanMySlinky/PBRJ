@@ -97,18 +97,18 @@ end
 ####### Helper Functions #####
 ##############################
 
-function get_vertices(t::Triangle)
-    return Pnt3[t.mesh.vertices[t.mesh.indices[t.i + j]] for j in 0:2]
+@inline function get_vertices(t::Triangle)::Tuple{Pnt3, Pnt3, Pnt3}
+    return t.mesh.vertices[t.mesh.indices[t.i + 0]], t.mesh.vertices[t.mesh.indices[t.i + 1]], t.mesh.vertices[t.mesh.indices[t.i + 2]]
 end
 
-function get_normals(t::Triangle)
+@inline function get_normals(t::Triangle)::Tuple{Nml3, Nml3, Nml3}
     # TODO implement ability to NOT have normals
-    return Nml3[t.mesh.normals[t.mesh.indices[t.i + j]] for j in 0:2]
+    return t.mesh.normals[t.mesh.indices[t.i + 0]], t.mesh.normals[t.mesh.indices[t.i + 1]], t.mesh.normals[t.mesh.indices[t.i + 2]]
 end
 
-function get_uvs(t::Triangle)
+@inline function get_uvs(t::Triangle)::Tuple{Pnt2, Pnt2, Pnt2}
     # TODO implement ability to NOT have UVs
-    return Pnt2[t.mesh.uvs[t.mesh.indices[t.i + j]] for j in 0:2]
+    return t.mesh.uvs[t.mesh.indices[t.i + 0]], t.mesh.uvs[t.mesh.indices[t.i + 1]], t.mesh.uvs[t.mesh.indices[t.i + 2]]
 end
 
 ##################################################
@@ -134,7 +134,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     if ky == 4
         ky = 1
     end
-    permute = [kx, ky, kz]
+    permute = SVector(kx, ky, kz)
     d = Vec3(ray.direction[permute])
     p0t = Vec3(p0t[permute])
     p1t = Vec3(p1t[permute])
@@ -348,7 +348,7 @@ function intersect_p(tri::Triangle, ray::AbstractRay, ::Bool=false)::Bool
     if ky == 4
         ky = 1
     end
-    permute = [kx, ky, kz]
+    permute = SVector(kx, ky, kz)
     d = Vec3(ray.direction[permute])
     p0t = Vec3(p0t[permute])
     p1t = Vec3(p1t[permute])
