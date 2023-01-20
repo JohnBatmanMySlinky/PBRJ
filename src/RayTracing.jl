@@ -12,6 +12,7 @@ using ArgParse
 abstract type Aggregate end
 abstract type AbstractBxDF end
 abstract type AbstractBSDF end
+abstract type AbstractLightDistribution end
 abstract type AbstractRay end
 abstract type BVHAccel end
 abstract type Camera end
@@ -81,6 +82,7 @@ include("lights/point.jl")
 include("lights/infinite.jl")
 include("lights/distant.jl")
 include("scene.jl")
+include("light_distributions.jl")
 include("integrators/whitted.jl")
 include("integrators/path.jl")
 include("integrators/integrator.jl")
