@@ -99,3 +99,54 @@ end
     @test val ≈ 4
     @test val_pdf ≈ 0.75
 end
+
+
+@testset "LightDistribution --> centroid_distance distribution" begin
+    # Case 1: Four point lights equally far away fom p
+    mat1 = RayTracing.Matte(
+        RayTracing.ConstantTexture(RayTracing.Vec3(.4, .4, .4)),
+        RayTracing.ConstantTexture(RayTracing.Vec3(0, 0, 0)),
+        nothing
+    )
+    ball1 = RayTracing.Sphere(
+        RayTracing.ShapeCore(RayTracing.Translate(RayTracing.Pnt3(0)), RayTracing.Inv(RayTracing.Translate(RayTracing.Pnt3(0))), false, false),
+        5.0
+    )
+    bvh = RayTracing.BVH(RayTracing.Primitive[
+        RayTracing.Primitive(ball1, mat1, nothing),
+    ])
+    lights = RayTracing.Light[
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 10,0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(10, 0,0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(-10, 0,0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, -10,0)), RayTracing.Spectrum(10,10,10)),
+    ]
+    fake_scene = RayTracing.Scene(lights, bvh)
+    ld_generator = RayTracing.LightDistribution("centroid_distance", fake_scene)
+    ld = RayTracing.lookup(ld_generator, RayTracing.Pnt3(0,0,0))
+    @test ld.cdf ≈ [0.0, 0.25, 0.5, 0.75, 1.0]
+
+    val, val_pdf, val_offset = RayTracing.sample_discrete(ld, 1.0)
+    @test val ≈ 4
+    @test val_pdf ≈ 0.25
+
+    val, val_pdf, val_offset = RayTracing.sample_discrete(ld, 0.1)
+    @test val ≈ 1
+    @test val_pdf ≈ 0.25
+
+    # Case 2: Four point lights NOT equally far away fom p
+    lights = RayTracing.Light[
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 10,0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 20,0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 40,0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 80,0)), RayTracing.Spectrum(10,10,10)),
+    ]
+    fake_scene = RayTracing.Scene(lights, bvh)
+    ld_generator = RayTracing.LightDistribution("centroid_distance", fake_scene)
+    ld = RayTracing.lookup(ld_generator, RayTracing.Pnt3(0,0,0))
+    @test ld.cdf ≈ [0.0, 16.0/30.0, 0.8, 28.0/30.0, 1.0]
+
+    val, val_pdf, val_offset = RayTracing.sample_discrete(ld, 0.5)
+    @test val ≈ 1
+    @test val_pdf ≈ 16.0/30.0
+end

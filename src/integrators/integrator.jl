@@ -62,16 +62,20 @@ function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, minim
     save(got_film)
 end
 
-function uniform_sample_one_light(isect::SurfaceInteraction, scene::Scene, sampler::AbstractSampler, handle_media::Bool=false)::Spectrum
-    # randomly chose a single light to sample
-    n_lights = length(scene.lights)   
-    (n_lights==0) && return Spectrum(0)
-    light_num = Int(floor(rand()*n_lights)+1)
+function uniform_sample_one_light(
+    isect::SurfaceInteraction, 
+    scene::Scene, 
+    sampler::AbstractSampler, 
+    light_distribution::Distribution1D,
+    handle_media::Bool=false, 
+)::Spectrum
+    # chose a single light to sample
+    light_num, light_pdf, _ = sample_discrete(light_distribution, get_1D!(sampler))
     light = scene.lights[light_num]
 
     u_light = get_2D!(sampler)
     u_scattering = get_2D!(sampler)
-    return n_lights * estimate_direct(isect, u_scattering, light, u_light, scene, sampler, handle_media, false)
+    return estimate_direct(isect, u_scattering, light, u_light, scene, sampler, handle_media, false) / light_pdf
 end
 
 function estimate_direct(

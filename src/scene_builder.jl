@@ -234,7 +234,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(disk, mat_white, nothing))
 
         ################# Pillar Area Lights
-        MULT = 500
+        MULT = 5_000
         yellow = Spectrum(1.0, 1.0, 0.0)
         white = Spectrum(1.0, 1.0, 1.0)
         blue = Spectrum(0.0, 0.0, 1.0)
@@ -427,14 +427,14 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # push!(lights, env_light)
 
         # # instantiate a distant light
-        distant_light = DistantLight(
-            Spectrum(.5, .5, .5),
-            Vec3(1,0,1),
-            Pnt3(0,0,0),
-            world_radius(bvh),
-            Translate(Pnt3(0,0,0))
-        )
-        push!(lights, distant_light)
+        # distant_light = DistantLight(
+        #     Spectrum(.5, .5, .5),
+        #     Vec3(1,0,1),
+        #     Pnt3(0,0,0),
+        #     world_radius(bvh),
+        #     Translate(Pnt3(0,0,0))
+        # )
+        # push!(lights, distant_light)
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
@@ -458,7 +458,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # Instantiate a Sampler
         spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
-        S = StratifiedSampler(spp, spp, 4, true)
+        S = StratifiedSampler(spp, spp, 8, true)
         print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
@@ -852,7 +852,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = BDPTIntegrator(C, S, 25)
+        I = PathIntegrator(C, S, 25)
 
         return I, scene
     else
