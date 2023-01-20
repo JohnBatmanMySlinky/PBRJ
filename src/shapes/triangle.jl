@@ -236,85 +236,84 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         interaction.core.n = interaction.shading.n = -interaction.core.n
     end
 
-        # Compute shading normal _ns_ for triangle
-        if !(tri.mesh.normals isa Nothing)
-            n1, n2, n3 = get_normals(tri)
-            ns = normalize(
-                b0 * n1 + b1 * n2 + b2 * n3
-            )
-            if norm(ns)^2 > 0
-                ns = normalize(ns)
-            else
-                ns = interaction.core.n
-            end
+    # Compute shading normal _ns_ for triangle
+    if !(tri.mesh.normals isa Nothing)
+        n1, n2, n3 = get_normals(tri)
+        ns = normalize(
+            b0 * n1 + b1 * n2 + b2 * n3
+        )
+        if norm(ns)^2 > 0
+            ns = normalize(ns)
         else
             ns = interaction.core.n
         end
+    else
+        ns = interaction.core.n
+    end
 
-        # Compute shading tangent _ss_ for triangle
-        if !(tri.mesh.shading_tangent isa Nothing)
-            s1, s2, s3 = get_shading_tangents(tri)
-            ss = b0 * s1 + b1 * s2 + b2 * s3
-            if norm(ss)^2 > 0 
-                ss = normalize(ss)
-            else
-                ss = normalize(interaction.dpdu)
-            end
+    # Compute shading tangent _ss_ for triangle
+    if !(tri.mesh.shading_tangent isa Nothing)
+        s1, s2, s3 = get_shading_tangents(tri)
+        ss = b0 * s1 + b1 * s2 + b2 * s3
+        if norm(ss)^2 > 0 
+            ss = normalize(ss)
         else
             ss = normalize(interaction.dpdu)
         end
+    else
+        ss = normalize(interaction.dpdu)
+    end
 
-        # Compute shading bitangent _ts_ for triangle and adjust _ss_
-        ts = cross(ss, ns)
-        if norm(ts)^2 > 0
-            ts = normalize(ts)
-            ss = cross(ts, ns)
-        else
-            _, ss, ts = orthonormal_basis(Vec3(ns))
-        end
+    # Compute shading bitangent _ts_ for triangle and adjust _ss_
+    ts = cross(ss, ns)
+    if norm(ts)^2 > 0
+        ts = normalize(ts)
+        ss = cross(ts, ns)
+    else
+        _, ss, ts = orthonormal_basis(Vec3(ns))
+    end
 
-        # Compute $\dndu$ and $\dndv$ for triangle shading geometry
-        if !(tri.mesh.normals isa Nothing)
-            n1, n2, n3 = get_normals(tri)
-            # Compute deltas for triangle partial derivatives of normal
-            duv02 = uv[1] - uv[3]
-            duv12 = uv[2] - uv[3]
-            dn1 = n1 - n3
-            dn2 = n2 - n3
-            determinant = duv02[1] * duv12[2] - duv02[2] * duv12[1]
-            degenerateUV = abs(determinant) < 1e-8
-            if degenerateUV
-                dn = cross(
-                    Vec3(n3-n1),
-                    Vec3(n2-n1)
-                )
-                if norm(dn)^2 == 0
-                    dndu = dndv = Nml3(0,0,0)
-                else
-                    _, dnu, dnv = orthonormal_basis(dn)
-                    dndu = Nml3(dnu)
-                    dndv = Nml3(dnv)
-                end
+    # Compute $\dndu$ and $\dndv$ for triangle shading geometry
+    if !(tri.mesh.normals isa Nothing)
+        n1, n2, n3 = get_normals(tri)
+        # Compute deltas for triangle partial derivatives of normal
+        duv02 = uv[1] - uv[3]
+        duv12 = uv[2] - uv[3]
+        dn1 = n1 - n3
+        dn2 = n2 - n3
+        determinant = duv02[1] * duv12[2] - duv02[2] * duv12[1]
+        degenerateUV = abs(determinant) < 1e-8
+        if degenerateUV
+            dn = cross(
+                Vec3(n3-n1),
+                Vec3(n2-n1)
+            )
+            if norm(dn)^2 == 0
+                dndu = dndv = Nml3(0,0,0)
             else
-                inv_det = 1 / determinant
-                dndu = (duv12[2] * dn1 - duv02[2] * dn2) * inv_det
-                dndv = (-duv12[1] * dn1 + duv02[1] * dn2) * inv_det
+                _, dnu, dnv = orthonormal_basis(dn)
+                dndu = Nml3(dnu)
+                dndv = Nml3(dnv)
             end
         else
-            dndu = dndv = Nml3(0,0,0)
+            inv_det = 1 / determinant
+            dndu = (duv12[2] * dn1 - duv02[2] * dn2) * inv_det
+            dndv = (-duv12[1] * dn1 + duv02[1] * dn2) * inv_det
         end
-        if tri.core.reverse_orientation
-            ts = -ts
-        end
-        set_shading_geomerty!(interaction, ss, ts, dndu, dndv, true)
-        # print("here \n")
-        # print("ss: ", ss, "\n")
-        # print("ss: ", ts, "\n")
-        # print("cross: ", cross(ss, ts), "\n")
-        # print("n: ", interaction.core.n, "\n")
-        # print("shading n: ", interaction.shading.n, "\n")
-        # asdf
+    else
+        dndu = dndv = Nml3(0,0,0)
     end
+    if tri.core.reverse_orientation
+        ts = -ts
+    end
+    set_shading_geomerty!(interaction, ss, ts, dndu, dndv, true)
+    # print("here \n")
+    # print("ss: ", ss, "\n")
+    # print("ss: ", ts, "\n")
+    # print("cross: ", cross(ss, ts), "\n")
+    # print("n: ", interaction.core.n, "\n")
+    # print("shading n: ", interaction.shading.n, "\n")
+    # asdf
 
     # if abs(dot(interaction.core.n, interaction.shading.n)) == 0
     #     print(interaction.core.n, "\n")
