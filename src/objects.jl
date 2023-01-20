@@ -22,6 +22,14 @@ struct Vec2 <: FieldVector{2, Float64}
     y::Float64
 end
 
+function Vec3(a::Union{Float64, Int64})::Vec3
+    return Vec3(a,a,a)
+end
+
+function Vec2(a::Union{Float64, Int64})::Vec2
+    return Vec2(a,a)
+end
+
 ################################
 #### Points ####################
 ################################
@@ -41,6 +49,52 @@ struct Pnt2 <: FieldVector{2, Float64}
     y::Float64
 end
 
+function Pnt3(a::Union{Float64, Int64})::Pnt3
+    return Pnt3(a,a,a)
+end
+
+function Pnt2(a::Union{Float64, Int64})::Pnt2
+    return Pnt2(a,a)
+end
+
+# An atomic Pnt3, needed for Film. needed for splat_xyz and bdpt
+# PBR 7.9.2
+"""
+Some light transport algorithms (notable bdpt) require the ability to 'splat' contributions to arbitrary pixels
+Rather than compute the final pixel as a weighted average of contributing splats, splats are simply summed. 
+"""
+mutable struct AtomicPnt3 
+    x::Threads.Atomic{Float64}
+    y::Threads.Atomic{Float64}
+    z::Threads.Atomic{Float64}
+end
+function AtomicPnt3(p::Pnt3)
+    return AtomicPnt3(
+        Threads.Atomic{Float64}(p.x),
+        Threads.Atomic{Float64}(p.y),
+        Threads.Atomic{Float64}(p.z),
+    )
+end
+function AtomicPnt3(x::Float64, y::Float64, z::Float64)
+    return AtomicPnt3(
+        Threads.Atomic{Float64}(x),
+        Threads.Atomic{Float64}(y),
+        Threads.Atomic{Float64}(z),
+    )
+end
+
+# AtomicPnt3 --> Pnt3
+function Base.convert(::Type{Pnt3}, a::AtomicPnt3)
+    return Pnt3(a.x[], a.y[], a.z[])
+end
+
+# atomic add
+function Threads.atomic_add!(a::AtomicPnt3, b::Pnt3)
+    Threads.atomic_add!(a.x, b.x)
+    Threads.atomic_add!(a.y, b.y)
+    Threads.atomic_add!(a.z, b.z)
+end
+
 ################################
 #### Normals ####################
 ################################
@@ -48,6 +102,10 @@ struct Nml3 <: FieldVector{3, Float64}
     x::Float64
     y::Float64
     z::Float64
+end
+
+function Nml3(a::Union{Float64, Int64})::Nml3
+    return Nml3(a,a,a)
 end
 
 ################################
@@ -63,7 +121,7 @@ const Mat2 = SMatrix{2, 2, Float64}
 mutable struct Ray <: AbstractRay
     origin::Pnt3
     direction::Vec3
-    time::Float64
+    t::Float64
     tMax::Float64
 end
 
@@ -78,7 +136,7 @@ end
 mutable struct RayDifferential <: AbstractRay
     origin::Pnt3
     direction::Vec3
-    time::Float64
+    t::Float64
     tMax::Float64
 
     has_differentials::Bool
@@ -95,13 +153,13 @@ function RayDifferential(r::Ray)::RayDifferential
     return RayDifferential(
         r.origin,
         r.direction,
-        r.time,
+        r.t,
         r.tMax,
         false,
-        Pnt3(0,0,0),
-        Pnt3(0,0,0),
-        Vec3(0,0,0),
-        Vec3(0,0,0)
+        Pnt3(0),
+        Pnt3(0),
+        Vec3(0),
+        Vec3(0)
     )
 end
 
@@ -130,14 +188,22 @@ struct Bounds2
     pMax::Pnt2
 end
 
-function Bounds2()
-    return Bounds2(Pnt2(Inf64, Inf64, Inf64), Pnt2(-Inf64, -Inf64, -Inf64))
+function Bounds2()::Bounds2
+    return Bounds2(Pnt2(Inf64), Pnt2(-Inf64))
 end
-function Bounds3()
-    return Bounds3(Pnt3(Inf64, Inf64, Inf64), Pnt3(-Inf64, -Inf64, -Inf64))
+function Bounds3()::Bounds3
+    return Bounds3(Pnt3(Inf64), Pnt3(-Inf64))
 end
 
-function inclusive_sides(b::Union{Bounds2, Bounds3})
+function inside_exclusive(p::Pnt3, b::Bounds3)::Bool
+    return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y) && (p.z >= b.pMin.z) && (p.z < b.pMax.z)
+end
+
+function inside_exclusive(p::Pnt2, b::Bounds2)::Bool
+    return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y)
+end
+
+function inclusive_sides(b::Union{Bounds2, Bounds3})::Vector{Float64}
     return [abs(b1 - (b0 - 1f0)) for (b1, b0) in zip(b.pMax, b.pMin)]
 end
 
@@ -330,23 +396,37 @@ struct Spectrum <: FieldVector{3, Float64}
     g::Float64
     b::Float64
 end
-function XYZ_to_RGB(xyz::Pnt3)
-    # return Spectrum(
-    #     0.412453 * xyz.x + 0.357580 * xyz.y + 0.180423 * xyz.z,
-    #     0.212671 * xyz.x + 0.715160 * xyz.y + 0.072169 * xyz.z,
-    #     0.019334 * xyz.x + 0.119193 * xyz.y + 0.950227 * xyz.z,
-    # )
-    return xyz
-end
-function RGB_to_XYZ(rgb::Spectrum)
-    # return Pnt3(
-    #     0.412453 * rgb.r + 0.357580 * rgb.g + 0.180423 * rgb.b,
-    #     0.212671 * rgb.r + 0.715160 * rgb.g + 0.072169 * rgb.b,
-    #     0.019334 * rgb.r + 0.119193 * rgb.g + 0.950227 * rgb.b,
-    # )
-    return rgb
+
+function Spectrum(a::Union{Float64,Int64})::Spectrum
+    return Spectrum(a,a,a)
 end
 
+function XYZ_to_RGB(xyz::Pnt3)::Spectrum
+    return Spectrum(
+        0.412453 * xyz.x + 0.357580 * xyz.y + 0.180423 * xyz.z,
+        0.212671 * xyz.x + 0.715160 * xyz.y + 0.072169 * xyz.z,
+        0.019334 * xyz.x + 0.119193 * xyz.y + 0.950227 * xyz.z,
+    )
+    # return xyz
+end
+function RGB_to_XYZ(rgb::Spectrum)::Pnt3
+    return Pnt3(
+        0.412453 * rgb.r + 0.357580 * rgb.g + 0.180423 * rgb.b,
+        0.212671 * rgb.r + 0.715160 * rgb.g + 0.072169 * rgb.b,
+        0.019334 * rgb.r + 0.119193 * rgb.g + 0.950227 * rgb.b,
+    )
+    # return rgb
+end
+
+# TODO I don't think I should need this??
+function Base.:*(a::Spectrum, b::Spectrum)
+    return Spectrum(a.r*b.r, a.g*b.g, a.b*b.b)
+end
+
+# AtomicPnt3 --> Spectrum
+function Base.convert(::Type{Spectrum}, a::AtomicPnt3)
+    return Spectrum(a.x[], a.y[], a.z[])
+end
 
 ################################
 #### Miscellaneous #############

@@ -18,3 +18,8 @@ function num2str(num::Number; delim=",")
     decimal_point = occursin(decimal_point, str) ? decimal_point : ""
     return left_str * decimal_point * right_str
  end
+
+ function print_ray(r::AbstractRay)
+    print("origin: ", ray.origin, "\n")
+    print("direction: ", ray.direction, "\n")
+ end

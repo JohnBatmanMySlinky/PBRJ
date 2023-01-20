@@ -2,12 +2,22 @@ mutable struct Interaction
     # world coordinates
     p::Pnt3
     # time of intersection
-    time::Float32
+    t::Float64
     # negative of ray direciton
     # direction from intersection to viewer
     wo::Vec3
     # surface normal in world coordinates
     n::Nml3
+end
+
+function Interaction()
+    return Interaction(Pnt3(0), 0.0, Vec3(0), Nml3(0))
+end
+function Interaction(r::AbstractRay)::Interaction
+    return Interaction(r.origin, r.t, -r.direction, Nml3(r.direction))
+end
+function Interaction(r::AbstractRay, n::Nml3)::Interaction
+    return Interaction(r.origin, r.t, -r.direction, n)
 end
 
 mutable struct ShadingInteraction
@@ -28,7 +38,7 @@ mutable struct SurfaceInteraction
     dndu::Nml3
     dndv::Nml3
 
-    shape::Shape
+    shape::Maybe{Shape}
     primitive::Maybe{Primitive}
     bsdf::Maybe{AbstractBSDF}
 
@@ -43,7 +53,7 @@ end
 
 function InstantiateSurfaceInteraction(
     p::Pnt3, 
-    time::Float64,
+    t::Float64,
     wo::Vec3,
     uv::Pnt2,
     dpdu::Vec3,
@@ -54,10 +64,16 @@ function InstantiateSurfaceInteraction(
     primitive::Maybe{Primitive}=nothing,
     bsdf::Maybe{AbstractBSDF}=nothing,
 )::SurfaceInteraction
-    n = normalize(cross(dpdu, dpdv))
+    n = Nml3(normalize(cross(dpdu, dpdv)))
 
-    core = Interaction(p, time, wo, n)
+    core = Interaction(p, t, wo, n)
     shading = ShadingInteraction(n, dpdu, dpdv, dndu, dndv)
+
+    if shape.core.reverse_orientation
+        core.n = core.n * -1
+        shading.n = shading.n * -1
+    end
+
     return SurfaceInteraction(
         core, 
         shading,
@@ -73,8 +89,40 @@ function InstantiateSurfaceInteraction(
         0,
         0,
         0,
-        Vec3(0,0,0),
-        Vec3(0,0,0),
+        Vec3(0),
+        Vec3(0),
+    )
+end
+
+function empty_surface_interation(s::Shape)::SurfaceInteraction
+    return InstantiateSurfaceInteraction(
+        Pnt3(1,1,1), 
+        0.0,
+        Vec3(1,1,1),
+        Pnt2(.5, .5),
+        Vec3(1,0,0),
+        Vec3(0,1,0),
+        Nml3(1,0,0),
+        Nml3(0,1,0),
+        s,
+        nothing,
+        nothing,
+    )
+end
+
+function empty_surface_interation()::SurfaceInteraction
+    return InstantiateSurfaceInteraction(
+        Pnt3(1), 
+        0.0,
+        Vec3(1,1,1),
+        Pnt2(.5, .5),
+        Vec3(1,0,0),
+        Vec3(0,1,0),
+        Nml3(1,0,0),
+        Nml3(0,1,0),
+        s,
+        nothing,
+        nothing,
     )
 end
 
@@ -87,13 +135,19 @@ end
 
 function spawn_ray(interaction::Interaction, direction::Vec3, delta::Float64 = 1e-6)::RayDifferential
     origin = interaction.p .+ delta .* direction
-    return RayDifferential(Ray(origin, direction, interaction.time, typemax(Float64)))
+    return RayDifferential(Ray(origin, direction, interaction.t, typemax(Float64)))
 end
 
 function spawn_ray(p0::Interaction, p1::Interaction, delta::Float64 = 1e-6,)::RayDifferential
     direction = p1.p - p0.p
     origin = p0.p .+ delta .* direction
-    return RayDifferential(Ray(origin, direction, p0.time, typemax(Float64)))
+    return RayDifferential(Ray(origin, direction, p0.t, typemax(Float64)))
+end
+
+function spawn_shadow_ray(p0::Interaction, p1::Interaction, delta::Float64 = 1e-6,)::RayDifferential
+    direction = p1.p - p0.p
+    origin = p0.p .+ delta .* direction
+    return RayDifferential(Ray(origin, direction, 0, p0.t))
 end
 
 
@@ -111,7 +165,7 @@ function compute_scattering!(p::Primitive, si::SurfaceInteraction, allow_multipl
         p.material(si, allow_multiple_lobes, T)
     end
     # TODO WHY FAIL
-    # @assert (dot(si.core.n, si.shading.n)) >= 0
+    @assert (dot(si.core.n, si.shading.n)) >= 0
 end
 
 #########################################
@@ -175,9 +229,6 @@ end
 function set_shading_geomerty!(si::SurfaceInteraction, dpdus::Vec3, dpdvs::Vec3, dndus::Nml3, dndvs::Nml3, orientation_is_authoritative::Bool)
     si.shading.n = normalize(cross(dpdus, dpdvs))
 
-    if !(si.shape isa Nothing) && (si.shape.core.reverse_orientation ⊻ si.shape.core.transform_swaps_handedness)
-        si.shading.n *= -1
-    end
     if orientation_is_authoritative
         si.core.n = face_forward(si.core.n, si.shading.n)
     else
@@ -195,7 +246,7 @@ end
 #########################################
 function le(si::SurfaceInteraction, w::Vec3)::Spectrum
     if si.primitive.area_light isa Nothing
-        return Spectrum(0,0,0)
+        return Spectrum(0)
     else
         return si.primitive.area_light.Lemit
     end

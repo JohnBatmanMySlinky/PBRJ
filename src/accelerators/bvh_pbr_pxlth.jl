@@ -150,7 +150,7 @@ function _build_tree(
             buckets[b].bounds = world_bounds(buckets[b].bounds,primitives_info[i].bounds)
         end
 
-        costs = Vector{Float32}(undef, n_buckets - 1)
+        costs = Vector{Float64}(undef, n_buckets - 1)
         for i in 1:(n_buckets - 1)
             it1, it2 = 1:i, (i + 1):(n_buckets - 1)
             s1, s2 = 0, 0
@@ -221,12 +221,18 @@ function world_bounds(bvh::BVH)::Bounds3
     length(bvh.nodes) > 0 ? bvh.nodes[1].bounds : Bounds3()
 end
 
+function world_radius(bvh::BVH)::Float64
+    bounds = length(bvh.nodes) > 0 ? bvh.nodes[1].bounds : Bounds3()
+    return (maximum(bounds.pMax) - minimum(bounds.pMin))/2
+end
+
 #################################################
 #### Intersect with BVH
 #################################################
 
 function intersect!(bvh::BVH, ray::AbstractRay)
     hit = false
+    final_time = nothing
     interaction::Maybe{SurfaceInteraction} = nothing
     length(bvh.nodes) == 0 && return hit, nothing, interaction
 
@@ -248,7 +254,7 @@ function intersect!(bvh::BVH, ray::AbstractRay)
                     )
                     if tmp_hit
                         hit = tmp_hit
-                        time = tmp_time
+                        final_time = tmp_time
                         interaction = tmp_interaction
                     end
                 end
@@ -271,7 +277,7 @@ function intersect!(bvh::BVH, ray::AbstractRay)
             current_node_i = nodes_to_visit[to_visit_offset]
         end
     end
-    hit, time, interaction
+    hit, final_time, interaction
 end
 
 function intersect_p(bvh::BVH, ray::AbstractRay)

@@ -11,6 +11,14 @@ struct VisibilityTester
 end
 
 function unoccluded(vt::VisibilityTester, scene::BVHAccel)::Bool
-    check = intersect_p(scene, spawn_ray(vt.p0, vt.p1))
+    check = intersect_p(scene, spawn_shadow_ray(vt.p0, vt.p1))
     return !check
+end
+
+function is_delta_light(light::Light)::Bool
+    return (light.flags & LightDeltaDirection) || (light.flags & LightDeltaPosition)
+end
+
+function Base.:&(a::LightFlags, b::LightFlags)::Bool
+    return (UInt8(a) & UInt8(b)) == UInt8(a)
 end

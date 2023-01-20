@@ -12,6 +12,8 @@ struct OrenNayarReflection{S <: Spectrum} <: AbstractBxDF
         new{S}(
             r, 
             sigma,
+            A,
+            B,
             BSDF_DIFFUSE | BSDF_REFLECTION
         )
     end

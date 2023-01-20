@@ -11,5 +11,5 @@ end
 struct CameraSample
     film::Pnt2
     lens::Pnt2
-    time::Float64
+    t::Float64
 end
