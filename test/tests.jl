@@ -135,18 +135,21 @@ end
     @test val_pdf ≈ 0.25
 
     # Case 2: Four point lights NOT equally far away fom p
+    a, b, c, d = 10, 20, 40, 80
     lights = RayTracing.Light[
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 10,0)), RayTracing.Spectrum(10,10,10)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 20,0)), RayTracing.Spectrum(10,10,10)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 40,0)), RayTracing.Spectrum(10,10,10)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 80,0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, a, 0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, b, 0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, c, 0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, d, 0)), RayTracing.Spectrum(10,10,10)),
     ]
     fake_scene = RayTracing.Scene(lights, bvh)
     ld_generator = RayTracing.LightDistribution("centroid_distance", fake_scene)
     ld = RayTracing.lookup(ld_generator, RayTracing.Pnt3(0,0,0))
-    @test ld.cdf ≈ [0.0, 16.0/30.0, 0.8, 28.0/30.0, 1.0]
+
+    norm = 1/a^2 + 1/b^2 + 1/c^2 + 1/d^2
+    @test ld.cdf ≈ [0.0, (1/a^2)/norm, (1/a^2)/norm + (1/b^2)/norm, (1/a^2)/norm + (1/b^2)/norm + (1/c^2)/norm, 1.0]
 
     val, val_pdf, val_offset = RayTracing.sample_discrete(ld, 0.5)
     @test val ≈ 1
-    @test val_pdf ≈ 16.0/30.0
+    @test val_pdf ≈ (1/a^2)/norm
 end
