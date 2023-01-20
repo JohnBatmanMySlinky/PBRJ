@@ -14,13 +14,9 @@ struct TriangleMesh
         n_vertices::Int64, 
         vertices::Vector{Pnt3}, 
         indices::Vector{Int64}, 
-<<<<<<< HEAD
-        normals::Vector{Nml3}
-=======
         normals::Vector{Nml3},
         uvs::Vector{Pnt2},
         alpha_mask::Maybe{Texture},
->>>>>>> main
     )
         vertices = object_to_world.(vertices)
         normals = object_to_world.(normals)
@@ -105,15 +101,9 @@ end
     return t.mesh.normals[t.mesh.indices[t.i]], t.mesh.normals[t.mesh.indices[t.i + 1]], t.mesh.normals[t.mesh.indices[t.i + 2]]
 end
 
-<<<<<<< HEAD
 @inline function get_uvs(t::Triangle)::Tuple{Pnt2, Pnt2, Pnt2}
     # TODO implement UVS
     return Pnt2(0, 0), Pnt2(1,0), Pnt2(1,1)
-=======
-function get_uvs(t::Triangle)
-    # TODO implement ability to NOT have UVs
-    return Pnt2[t.mesh.uvs[t.mesh.indices[t.i + j]] for j in 0:2]
->>>>>>> main
 end
 
 ##################################################
@@ -157,36 +147,17 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     # TODO
 
     ## perform edge & det tests
-<<<<<<< HEAD
     (e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0) && (return false, nothing, nothing)
     det = e0 + e1 + e2
     det == 0 && (return false, nothing, nothing)
-=======
-    if (e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0)
-        return false, 0.0, empty_surface_interation(tri)
-    end
-    det = e0 + e1 + e2
-    if det == 0
-        return false, 0.0, empty_surface_interation(tri)
-    end
->>>>>>> main
 
     ## compute scaled sitance to triangle and test against rayt
     p0t = Vec3(p0t.x, p0t.y, p0t.z * Sz)
     p1t = Vec3(p1t.x, p1t.y, p1t.z * Sz)
     p2t = Vec3(p2t.x, p2t.y, p2t.z * Sz)
     t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z
-<<<<<<< HEAD
     (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax * det)) && (return false, nothing, nothing)
     (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax * det)) && (return false, nothing, nothing)
-=======
-    if (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax * det))
-        return false, 0.0, empty_surface_interation(tri)
-    end
-    if (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax * det))
-        return false, 0.0, empty_surface_interation(tri)
-    end
->>>>>>> main
 
     ## compute barycentric coords and t for intesection
     inv_det = 1 / det
@@ -195,7 +166,6 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     b2 = e2 * inv_det
     t = t_scaled * inv_det
 
-<<<<<<< HEAD
     # compute partials
     uv1, uv2, uv3 = get_uvs(tri)
     duv13 = uv1 - uv3
@@ -210,30 +180,6 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         inv_determinate = 1 / determinate
         dpdu = duv23[2] * dp13 - duv13[2] * dp23 * inv_determinate
         dpdv = -duv23[1] * dp13 + duv13[1] * dp23 * inv_determinate
-=======
-    # Compute triangle partial derivatives
-    uv = get_uvs(tri)
-    duv13 = uv[1] - uv[3]
-    duv23 = uv[2] - uv[3]
-    dp13 = p0 - p2
-    dp23 = p1  - p2
-    determinate = duv13[1] * duv23[2] - duv13[2] * duv23[1]
-    degenerateUV = abs(determinate) < 1e-8
-    if !degenerateUV
-        invdet = 1/determinate
-        dpdu = Vec3(( duv23[2]*dp13 - duv13[2]*dp23) * inv_det)
-        dpdv = Vec3((-duv23[1]*dp13 + duv13[1]*dp23) * inv_det)
-    end
-    if degenerateUV || norm(cross(dpdu, dpdv))^2==0
-        # Handle zero determinant for triangle partial derivative matrix
-        ng = cross(p2 - p0, p1 - p0)
-        if norm(ng)^2 == 0
-            return false, 0.0, empty_surface_interation(tri)
-        end
-        _, dpu, dpv = orthonormal_basis(Vec3(ng))
-        dpdu = Vec3(dpu)
-        dpdv = Vec3(dpv)
->>>>>>> main
     end
 
     # interpolate uv coords and hit point
@@ -263,7 +209,6 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     # Fill in _SurfaceInteraction_ from triangle hit
     interaction = InstantiateSurfaceInteraction(phit, ray.t, -ray.direction, uvhit, dpdu, dpdv, Nml3(0,0,0), Nml3(0,0,0), tri)
 
-<<<<<<< HEAD
     dn13 = n1 - n3
     dn23 = n2 - n3
     if determinate == 0
@@ -290,17 +235,6 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
         interaction.core.n = interaction.shading.n = -interaction.core.n
     end
-=======
-    # Override surface normal in _isect_ for triangle
-    interaction.core.n = interaction.shading.n = Nml3(normalize(cross(dp13, dp23)))
-    if tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
-        interaction.core.n = interaction.shading.n = -interaction.core.n    
-    end
-
-    # TODO making shading tangents real
-    if !(tri.mesh.normals isa Nothing) || !(tri.mesh.shading_tanget isa Nothing)
-        # Initialize _Triangle_ shading geometry
->>>>>>> main
 
         # Compute shading normal _ns_ for triangle
         if !(tri.mesh.normals isa Nothing)
