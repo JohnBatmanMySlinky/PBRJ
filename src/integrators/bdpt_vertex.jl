@@ -34,6 +34,7 @@ mutable struct Vertex
     pdf_rev::Float64
 
     function Vertex(type::VertexType, beta::Spectrum, ei::Maybe{EndpointInteraction}, si::Maybe{SurfaceInteraction})
+        @assert !((ei isa Nothing) & (si isa Nothing))
         return new(
             type, beta, ei, si, false, 0.0, 0.0
         )
@@ -81,7 +82,7 @@ function create_camera_vertex(camera::Camera, it::Interaction, beta::Spectrum)::
         nothing
     )
 end
-# bdpt line 458
+# bdpt.h line 458
 function create_light_vertex(light::Light, ray::AbstractRay, n::Nml3, le::Spectrum, pdf::Float64)::Vertex
     v = Vertex(
         VTLight,
@@ -92,7 +93,7 @@ function create_light_vertex(light::Light, ray::AbstractRay, n::Nml3, le::Spectr
     v.pdf_fwd = pdf
     return v
 end
-# bdpt line 482
+# bdpt.h line 482
 function create_light_vertex(ei::EndpointInteraction, beta::Spectrum, pdf::Float64)::Vertex
     v = Vertex(
         VTLight,
@@ -101,6 +102,17 @@ function create_light_vertex(ei::EndpointInteraction, beta::Spectrum, pdf::Float
         nothing
     )
     v.pdf_fwd = pdf
+    return v
+end
+# bdpt.h line 466
+function create_surface_vertex(si::SurfaceInteraction, beta::Spectrum, pdf_fwd::Float64, prev::Vertex)::Vertex
+    v = Vertex(
+        VTSurface,
+        beta, 
+        nothing,
+        si
+    )
+    v.pdf_fwd = convert_density(prev, pdf_fwd, v)
     return v
 end
 
@@ -158,5 +170,49 @@ function time(v::Vertex)::Float64
         return v.si.core.t
     else
         return v.ei.interaction.t
+    end
+end
+function time(I::Union{EndpointInteraction, SurfaceInteraction})::Float64
+    if I isa SurfaceInteraction
+        return I.core.t
+    elseif I isa EndpointInteraction
+        return I.interaction.t
+    else
+        @assert false, "bad stuff"
+    end
+end
+
+function is_connectible(v::Vertex)::Bool
+    if v.type == VTMedium
+        return true
+    elseif v.type == VTLight
+        return v.ei.light.flags & LightDeltaDirection # JOHN why is there a ==0???
+    elseif v.type == VTCamera
+        return true
+    elseif v.type == VTSurface
+        return num_components(v.si.bsdf, BSDF_DIFFUSE | BSDF_GLOSSY | BSDF_REFLECTION | BSDF_TRANSMISSION) > 0
+    else
+        @assert false, "bad"
+    end
+    return false # NOT REACHED
+end
+
+function get_interaction(v::Vertex)::Union{EndpointInteraction, SurfaceInteraction}
+    if v.type == VTMedium
+        return v.mi
+    elseif v.type == VTSurface
+        return v.si
+    else
+        return v.ei
+    end
+end
+
+function get_interaction(I::Union{EndpointInteraction, SurfaceInteraction})::Interaction
+    if I isa SurfaceInteraction
+        return I.core
+    elseif I isa EndpointInteraction
+        return I.interaction
+    else
+        @assert false, "bad stuff"
     end
 end

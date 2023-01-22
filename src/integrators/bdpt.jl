@@ -8,7 +8,7 @@ end
 function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
     # create light sampling light_distribution
     # JOHN HACK --> hard coding uniform dist
-    light_distr = Distribution1D(ones(length(scene.lights)))
+    light_distr_generator = LightDistribution("uniform", scene)
 
     # partition the image into tiles
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
@@ -40,9 +40,8 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
             start_pixel!(tile_sampler, pixel)
             while has_next_sample(tile_sampler)
                 # Generate a single sample using BDPT
-                # JOHN HACK: dont do this here, do this in get_camera_sample!() in generate_camera_subpath!()
-
-                # JOHN HACK: using light distribution defined earlier.
+                # JOHN HACK. Generating get camera sample in generate_camera_subpath, problem?
+                camera_sample = get_camera_sample!(tile_sampler, pixel)
 
                 # Trace the camera and light subpaths
                 camera_vertices = Vector{Vertex}(undef,i.max_depth + 2)
@@ -53,8 +52,13 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                     tile_sampler, 
                     i.max_depth + 2, 
                     i.camera,
-                    pixel, 
+                    camera_sample, 
                 )
+                # setting up light sampling dist at the start
+                # this isn't a good strategy
+                # default is "uniform" so not a big deal 
+                # would be worse with spatial or distance
+                light_distr = lookup(light_distr_generator, p(camera_vertices[1]))
                 n_light = generate_light_subpath!(
                     light_vertices,
                     scene,
@@ -67,8 +71,8 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                 # execute all BDPT connection strategies
                 # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
                 L = Spectrum(0)
-                for t in 1:length(n_camera)
-                    for s in 0:length(n_light)
+                for t in 1:n_camera
+                    for s in 0:n_light
                         depth = t + s - 2
                         if ((s==1)&&(t==1) || (depth<0) || (depth>i.max_depth))
                             continue
@@ -96,7 +100,7 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                 end
                 
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
-                start_next_sample!(k_sampler)
+                start_next_sample!(tile_sampler)
             end
         end
         merge_film_tile!(i.camera.core.core.film , film_tile)
@@ -123,7 +127,7 @@ function generate_camera_subpath!(
     sampler::AbstractSampler, 
     max_depth::Int64, 
     camera::Camera, 
-    p_film::Pnt2
+    camera_sample::CameraSample
 )::Int64
     (max_depth == 0) && return 0
 
@@ -132,7 +136,6 @@ function generate_camera_subpath!(
     a camera path starts with a camera ray from generate_ray_differential(). 
     as in sample integrator, differentials are scaled so they reflect the actual pixel sampling density
     """
-    camera_sample = get_camera_sample!(sampler, p_film)
     ray, beta = generate_ray_differential(camera, camera_sample)
     beta = Spectrum(beta) # john hack; casting to spectrum
     scale_differentials!(ray, 1.0 / sqrt(sampler.pixel_sampler.sampler.samples_per_pixel))
@@ -192,19 +195,19 @@ function random_walk!(
 )::Int64 where T <: TransportMode
     (max_depth == 0) && return 0
     # decleare variables for forward and reverse probability densities
-    bounces = 1
+    bounces = 0+1
     pdf_fwd = pdf
     pdf_rev = 0.0
     while true
-        print("\n\nWe are inside random walk\n")
-        print("Current path is as follows: ")
-        print_nice(path)
-        print("\n")
+        # print("\n\nWe are inside random walk\n")
+        # print("Current path is as follows: ")
+        # print_nice(path)
+        # print("\n")
 
         # attempt to create the next subpath verte in *path*
         check, _, isect = intersect!(scene.b, ray)
 
-        print("ray intersection test: ", check, "\n")
+        # print("ray intersection test: ", check, "\n")
         
         # JOHN HACK --> no medium no is black so continue
 
@@ -230,7 +233,7 @@ function random_walk!(
         end
         
         # initialize vertex with surface scattering information
-        path[bounces+1] = create_surface_vertex(isect, beta, pdf_fwd, prev)
+        path[bounces+1] = create_surface_vertex(isect, beta, pdf_fwd, path[bounces])
 
         bounces += 1
         if bounces >= max_depth
@@ -242,26 +245,26 @@ function random_walk!(
         wi, f, pdf, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
         (pdf == 0.0) && break
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
-        pdf_rev = pdf(isect.bsdf, wi, wo, BSDF_ALL)
-        if sampled_type & BSDF_SPECULAR
-            vertex.delta = true
-            pdf_rev = 0.0
-            pdf_fwd = 0.0
-        end
+        pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
         beta *= correct_shading_normal(isect, wo, wi, mode)
-        ray = spawn_ray(isect, wi)
+        ray = spawn_ray(isect.core, wi)
     end
-    print("we are exiting random walk with paths: ")
-    print_nice(path)
-    print("\n")
+    # print("we are exiting random walk with paths: ")
+    # print_nice(path)
+    # print("\n")
     # Compute reverse area density at preceding vertex
+    if bounces-1 == 0
+        # print("trouble in random walk, radiance is: ", mode, "\n")
+        # print_nice(path)
+        # print("\nsticking my head in the sand...\n")
+        return bounces
+    end
     path[bounces-1].pdf_rev = convert_density(path[bounces], pdf_rev, path[bounces-1])
     return bounces
 end
 
 
 # 16.3.3 Subpath Connections
-
 function connect_BDPT(
     scene::Scene, 
     light_vertices::Vector{Vertex}, 
@@ -273,22 +276,22 @@ function connect_BDPT(
     sampler::AbstractSampler,
 )::Spectrum
     # ignore invalid connections related to infinite light
-    if (t > 1) && (s != 0) && (camera_vertices[t-1].type == VTLight)
+    if (t > 1) && (s != 0) && (camera_vertices[t-1+1].type == VTLight)
         return Spectrum(0)
     end
 
     # perform connection and write contribution to L
     if s == 0
         # interpret the camera subpath as a complete path
-        pt = camera_vertices[t-1]
+        pt = camera_vertices[t-1+1]
         if is_light(pt)
-            L = le(pt, scene, camera_vertices[t-2]) * pt.beta
+            L = le(pt, scene, camera_vertices[t-2+1]) * pt.beta
         end
     elseif t == 1
         # sample a point on the camera and connect it to the light subpath
-        qs = light_vertices[s-1]
+        qs = light_vertices[s-1+1]
         if is_connectible(qs)
-            sampled_wi, wi, pdf, vis = sample_wi(get_interaction(qs), get_2D!(sampler))
+            sampled_wi, wi, pdf, vis = sample_wi(camera, get_interaction(qs), get_2D!(sampler))
             if pdf > 0
                 # initalize dynamically sampled vertex and L for t=1 case
                 sampled = create_camera_vertex(camera, vis.p1, sampled_wi / pdf)
@@ -300,7 +303,7 @@ function connect_BDPT(
         end
     elseif s == 1
         # sample a point on the light and connect it to the camera subpath
-        pt = camera_vertices[t-1]
+        pt = camera_vertices[t-1+1]
         if is_connectible(pt)
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D(sampler))
             light = scene.lights[light_num]
@@ -317,8 +320,8 @@ function connect_BDPT(
         end
     else
         # handle all other bidirectional connection cases
-        qs = light_vertices[s-1]
-        pt = camera_vertices[t-1]
+        qs = light_vertices[s-1+1]
+        pt = camera_vertices[t-1+1]
         if is_connectible(qs) && is_connectible(pt)
             L = qs.beta * f(qs, pt) * f(pt, qs) * pt.beta
             # JOHN HACK: if not black --> always

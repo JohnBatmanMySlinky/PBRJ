@@ -4,11 +4,11 @@ function sample_f(bxdf::AbstractBxDF, wo::Vec3, u::Pnt2)
     if wo.z < 0 
         wo = Vec3(wo.x, wo.y, wo.z * -1)
     end
-    pdf_val = pdf(bxdf, wo, wi)
+    pdf_val = compute_pdf(bxdf, wo, wi)
     f_val = f(bxdf, wo, wi)
     return wi, pdf_val, f_val, nothing
 end
 
-function pdf(bxdf::AbstractBxDF, wo::Vec3, wi::Vec3)::Float64
+function compute_pdf(bxdf::AbstractBxDF, wo::Vec3, wi::Vec3)::Float64
     return same_hemisphere(wo, wi) ? abs_cos_theta(wi) / pi : 0 
 end

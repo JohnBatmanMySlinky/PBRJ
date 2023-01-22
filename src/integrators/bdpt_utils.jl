@@ -18,3 +18,14 @@ function print_nice(path::Vector{Vertex})
         end
     end
 end
+
+function correct_shading_normal(isect::SurfaceInteraction, wo::Vec3, wi::Vec3, mode::Type{T})::Float64 where T <: TransportMode
+    if mode == Importance
+        num = abs(dot(wo, isect.shading.n)) * abs(dot(wi, isect.core.n))
+        denom = abs(dot(wo, isect.core.n)) * abs(dot(wi, isect.shading.n))
+        (denom == 0.0) && (return 0.0)
+        return num / denom
+    else
+        return 1.0
+    end
+end
