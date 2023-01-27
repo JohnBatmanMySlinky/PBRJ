@@ -334,3 +334,144 @@ function connect_BDPT(
     L *= mis_weight
     return L
 end
+
+function MIS_weight(
+    scene::Scene, 
+    light_vertices::Vector{Vertex}, 
+    camera_vertices::Vector{Vertext},
+    sampled::Vertex,
+    s::Int64,
+    t::Int64,
+    light_distr::Distribution1D
+)::Float64
+    (s + t == 2) && (return 1.0)
+    sum_ri = 0.0
+
+    # Temporarily update vertex properties for current strategy
+
+    # Look up connection vertices and their predecessors
+    # JOHN HACK: these are idx's not vertex's
+    qs = s > 0 ? s-1+1 : 0 # --> LIGHT
+    pt = t > 0 ? t-1+1 : 0 # --> CAMERA
+    qs_minus = s > 1 ? s-2+1 : 0 # --> LIGHT
+    pt_minus = t > 1 ? t-2+1 : 0 # --> CAMERA
+
+    # LOG INITIAL STATE
+    logg = Dict{Tuple{Int64,Int64}, VertexLog}()
+    # logging qs and qs_minus
+    logg[(qs,1)] = VertexLog(
+        light_vertices[qs].delta, 
+        light_vertices[qs].pdf_fwd, 
+        light_vertices[qs].pdf_rev
+    )
+    logg[(qs_minus,1)] = VertexLog(
+        light_vertices[qs_minus].delta, 
+        light_vertices[qs_minus].pdf_fwd, 
+        light_vertices[qs_minus].pdf_rev
+    )
+    # logging pt and pt_minus
+    logg[(pt,2)] = VertexLog(
+        camera_vertices[pt].delta, 
+        camera_vertices[pt].pdf_fwd, 
+        camera_vertices[pt].pdf_rev
+    )
+    logg[(pt_minus,2)] = VertexLog(
+        camera_vertices[pt_minus].delta, 
+        camera_vertices[pt_minus].pdf_fwd, 
+        camera_vertices[pt_minus].pdf_rev
+    )
+    # logging sampled
+    logg[(0,3)] = VertexLog(
+        sampled.delta, 
+        sampled.pdf_fwd, 
+        sampled.pdf_rev
+    )
+
+    # Update sampled vertex for $s=1$ or $t=1$ strategy
+    # a1
+    if s==1
+        if qs > 0
+            backup = copy(light_vertices[qs])
+            light_vertices[qs] = sampled
+        end
+    elseif t==1
+        if pt > 0
+            backup = copy(camera_vertices[pt])
+            camera_vertices[pt] = sampled
+        end
+    end
+
+    # Mark connection vertices as non-degenerate
+    # a2 & a3
+    (pt > 0) && (camera_vertices[pt].delta = false)
+    (qs > 0) && (light_vertices[qs].delta = false)
+
+    # Update reverse density of vertex $\pt{}_{t-1}$
+    # a4
+    if pt > 0 
+        if s > 0
+            light_vertices[pt].pdf_rev = pdf(camera_vertices[qs])
+        else
+            light_vertices[pt].pdf_rev = pdf_light_origin(light_vertices[pt])
+        end
+    end
+
+    # Update reverse density of vertex $\pt{}_{t-2}$
+    # a5
+    if pt_minus > 0
+        if s > 0 
+            camera_vertices[pt_minus].pdf_rev = pdf(light_vertices[pt])
+        else
+            camera_vertices[pt_minus].pdf_rev = pdf_light(light_vertices[pt])
+        end
+    end
+
+    # Update reverse density of vertices $\pq{}_{s-1}$ and $\pq{}_{s-2}$
+    # a6 & a7
+    (qs > 0) && (camera_vertices[qs].pdfRev = pdf(light_vertices[pt]))
+    (qs_minus > 0) && (camera_vertices[qs_minus].pdfRev = pdf(camera_vertices[qs]))
+
+    # Consider hypothetical connection strategies along the camera subpath
+    ri = 1.0
+    for i in reverse(0:(t-1))
+        ri *= remap0(camera_vertices[i+1].pdf_rev) / remap0(camera_vertices[i+1].pdf_fwd)
+        (!camera_vertices[i+1].delta && !camera_vertices[i-1+1]) && (sum_ri += ri)
+    end
+
+    # Consider hypothetical connection strategies along the light subpath
+    ri = 1.0
+    for i in reverse(0:(s-1))
+        ri *= remap0(light_vertices[i+1].pdf_rev) / remap0(light_vertices[i+1].pdf_fwd)
+        delta_light_vertex = i > 0 ? light_vertices[i-1+1].delta : is_delta_light(light_vertices[0+1].light)
+        (!camera_vertices[i+1].delta && !delta_light_vertex) && (sum_ri += ri)
+    end
+
+    # UNROLL a1
+    if s==1
+        if qs > 0
+            light_vertices[qs] = backup
+        end
+    elseif t==1
+        if pt > 0
+            camera_vertices[pt] = backup
+        end
+    end
+
+    # UNROLL a2 & a3
+    (pt > 0) && (camera_vertices[pt].delta = logg[(pt,2)].delta)
+    (qs > 0) && (light_vertices[qs].delta = logg[(qs,1)].delta)
+
+    # UNROLL a4 & a5
+    if pt > 0 
+        light_vertices[pt].pdf_rev = logg[(pt,2)].pdf_rev
+    end
+    if pt_minus > 0
+        camera_vertices[pt_minus].pdf_rev = logg[(pt_minus,2)].pdf_rev
+    end
+
+    # UNROLL a6 & a7
+    (qs > 0) && (camera_vertices[qs].pdf_rev = logg[(qs,1)].pdf_rev)
+    (qs_minus > 0) && (camera_vertices[qs_minus].pdf_rev = logg[(qs_minus,1)].pdf_rev)
+
+    return 1.0/(1.0+sum_ri)
+end

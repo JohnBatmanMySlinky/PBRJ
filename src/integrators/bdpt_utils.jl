@@ -29,3 +29,13 @@ function correct_shading_normal(isect::SurfaceInteraction, wo::Vec3, wi::Vec3, m
         return 1.0
     end
 end
+
+function remap0(f::Float64)::Float64
+    return f == 0.0 ? 1.0 : f
+end
+
+struct VertexLog
+    delta::Bool
+    pdf_fwd::Float64
+    pdf_rev::Float64
+end
