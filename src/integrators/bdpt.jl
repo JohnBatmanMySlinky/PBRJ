@@ -68,6 +68,8 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                     light_distr
                 )
 
+                # CHECK n_light and n_camera match # of vertices
+
                 # execute all BDPT connection strategies
                 # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
                 L = Spectrum(0)
@@ -195,31 +197,24 @@ function random_walk!(
 )::Int64 where T <: TransportMode
     (max_depth == 0) && return 0
     # decleare variables for forward and reverse probability densities
-    bounces = 0+1
+    bounces = 0
     pdf_fwd = pdf
     pdf_rev = 0.0
     while true
-        # print("\n\nWe are inside random walk\n")
-        # print("Current path is as follows: ")
-        # print_nice(path)
-        # print("\n")
-
         # attempt to create the next subpath verte in *path*
         check, _, isect = intersect!(scene.b, ray)
-
-        # print("ray intersection test: ", check, "\n")
         
         # JOHN HACK --> no medium no is black so continue
 
-        # JOHN HACK --> no using addresses
-        # vertex = path[bounces]
-        # prev = path[bounces-1]
+        # JOHN HACK --> using indexes
+        vertex = bounces+1
+        prev = bounces-1+1
 
         # handle surface interaction for path generation
         if !check
             # capture escaped rays when tracing from camera
             if mode == Radiance
-                path[bounces+1] = create_light_vertex(EndpointInteraction(ray), beta, pdf_fwd)
+                path[vertex] = create_light_vertex(EndpointInteraction(ray), beta, pdf_fwd)
                 bounces += 1
             end
             break
@@ -233,7 +228,7 @@ function random_walk!(
         end
         
         # initialize vertex with surface scattering information
-        path[bounces+1] = create_surface_vertex(isect, beta, pdf_fwd, path[bounces])
+        path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
 
         bounces += 1
         if bounces >= max_depth
@@ -246,20 +241,17 @@ function random_walk!(
         (pdf == 0.0) && break
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
+        if sampled_type & BSDF_SPECULAR
+            path[vertex].delta = true
+            pdf_rev = 0.0
+            pdf_fwd = 0.0
+        end
         beta *= correct_shading_normal(isect, wo, wi, mode)
         ray = spawn_ray(isect.core, wi)
+        
+        # Compute reverse area density at preceding vertex
+        path[prev].pdf_rev = convert_density(path[vertex], pdf_rev, path[prev])
     end
-    # print("we are exiting random walk with paths: ")
-    # print_nice(path)
-    # print("\n")
-    # Compute reverse area density at preceding vertex
-    if bounces-1 == 0
-        # print("trouble in random walk, radiance is: ", mode, "\n")
-        # print_nice(path)
-        # print("\nsticking my head in the sand...\n")
-        return bounces
-    end
-    path[bounces-1].pdf_rev = convert_density(path[bounces], pdf_rev, path[bounces-1])
     return bounces
 end
 
@@ -275,11 +267,23 @@ function connect_BDPT(
     camera::Camera,
     sampler::AbstractSampler,
 )::Spectrum
+    L = Spectrum(0.0)
+
+    print("Connection Strategy: (",s, ", ", t, ")\n")
+    print("light length:", length(light_vertices), ": ")
+    print_nice(light_vertices)
+    print("\n")
+    print("camera length:", length(camera_vertices), ": ")
+    print_nice(camera_vertices)
+    print("\n\n")
+
+
     # ignore invalid connections related to infinite light
     if (t > 1) && (s != 0) && (camera_vertices[t-1+1].type == VTLight)
         return Spectrum(0)
     end
 
+    sampled = nothing
     # perform connection and write contribution to L
     if s == 0
         # interpret the camera subpath as a complete path
@@ -338,8 +342,8 @@ end
 function MIS_weight(
     scene::Scene, 
     light_vertices::Vector{Vertex}, 
-    camera_vertices::Vector{Vertext},
-    sampled::Vertex,
+    camera_vertices::Vector{Vertex},
+    sampled::Maybe{Vertex},
     s::Int64,
     t::Int64,
     light_distr::Distribution1D
@@ -351,41 +355,36 @@ function MIS_weight(
 
     # Look up connection vertices and their predecessors
     # JOHN HACK: these are idx's not vertex's
-    qs = s > 0 ? s-1+1 : 0 # --> LIGHT
-    pt = t > 0 ? t-1+1 : 0 # --> CAMERA
-    qs_minus = s > 1 ? s-2+1 : 0 # --> LIGHT
-    pt_minus = t > 1 ? t-2+1 : 0 # --> CAMERA
+    check = (sampled isa Nothing)
+    qs = (s > 0) && (!check) ? s-1+1 : 0 # --> LIGHT
+    pt = (t > 0) && (!check) ? t-1+1 : 0 # --> CAMERA
+    qs_minus = (s > 1) && (!check) ? s-2+1 : 0 # --> LIGHT
+    pt_minus = (t > 1) && (!check) ? t-2+1 : 0 # --> CAMERA
 
     # LOG INITIAL STATE
     logg = Dict{Tuple{Int64,Int64}, VertexLog}()
     # logging qs and qs_minus
-    logg[(qs,1)] = VertexLog(
+    (qs>0) && (logg[(qs,1)] = VertexLog(
         light_vertices[qs].delta, 
         light_vertices[qs].pdf_fwd, 
         light_vertices[qs].pdf_rev
-    )
-    logg[(qs_minus,1)] = VertexLog(
+    ))
+    (qs_minus>0) && (logg[(qs_minus,1)] = VertexLog(
         light_vertices[qs_minus].delta, 
         light_vertices[qs_minus].pdf_fwd, 
         light_vertices[qs_minus].pdf_rev
-    )
+    ))
     # logging pt and pt_minus
-    logg[(pt,2)] = VertexLog(
+    (pt>0) && (logg[(pt,2)] = VertexLog(
         camera_vertices[pt].delta, 
         camera_vertices[pt].pdf_fwd, 
         camera_vertices[pt].pdf_rev
-    )
-    logg[(pt_minus,2)] = VertexLog(
+    ))
+    (pt_minus>0) && (logg[(pt_minus,2)] = VertexLog(
         camera_vertices[pt_minus].delta, 
         camera_vertices[pt_minus].pdf_fwd, 
         camera_vertices[pt_minus].pdf_rev
-    )
-    # logging sampled
-    logg[(0,3)] = VertexLog(
-        sampled.delta, 
-        sampled.pdf_fwd, 
-        sampled.pdf_rev
-    )
+    ))
 
     # Update sampled vertex for $s=1$ or $t=1$ strategy
     # a1
@@ -433,17 +432,17 @@ function MIS_weight(
 
     # Consider hypothetical connection strategies along the camera subpath
     ri = 1.0
-    for i in reverse(0:(t-1))
+    for i in reverse(1:(t-1))
         ri *= remap0(camera_vertices[i+1].pdf_rev) / remap0(camera_vertices[i+1].pdf_fwd)
-        (!camera_vertices[i+1].delta && !camera_vertices[i-1+1]) && (sum_ri += ri)
+        (!camera_vertices[i+1].delta && !camera_vertices[i-1+1].delta) && (sum_ri += ri)
     end
 
     # Consider hypothetical connection strategies along the light subpath
     ri = 1.0
     for i in reverse(0:(s-1))
         ri *= remap0(light_vertices[i+1].pdf_rev) / remap0(light_vertices[i+1].pdf_fwd)
-        delta_light_vertex = i > 0 ? light_vertices[i-1+1].delta : is_delta_light(light_vertices[0+1].light)
-        (!camera_vertices[i+1].delta && !delta_light_vertex) && (sum_ri += ri)
+        delta_light_vertex = i > 0 ? light_vertices[i-1+1].delta : is_delta_light(light_vertices[0+1].ei.light)
+        (light_vertices[i+1].delta && !delta_light_vertex) && (sum_ri += ri)
     end
 
     # UNROLL a1

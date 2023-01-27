@@ -1,18 +1,16 @@
 # PBRJ
 Physically Based Rendering - in Julia
 
-# Sources
-- Based on [Physically Based Rendering: From Theory to Implementation by Matt Pharr, Wenzel Jakob, and Greg Humphreys](https://www.pbr-book.org/).
-- [This implementation of PBRT in Julia](https://github.com/pxl-th/Trace.jl) repo has been an invaluable reference.
-- [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
+A partial implementation of [Physically Based Rendering: From Theory to Implementation 3rd Edition](https://www.pbr-book.org/) in the Julia Language.
 
 # How to use
 - TODO
 
 # General Commentary on this whole experience
-- BVH is (obviously) really important and am forever grateful of pxl-th's implementation
-- Samplers gave (and continue to give) me a migraine
-- BxDFs make sense in practice but their implementation hurts my brain.
+- Julia is wonderful.
+- BVH is (obviously) really important and I am forever grateful of pxl-th's implementation
+- PBRT's sampler implementation gave (and continues to give) me a headache.
+- BxDFs make sense in practice but their implementation is hard for me to wrap my head around.
 
 # TODO
 ## Features
@@ -46,39 +44,15 @@ Physically Based Rendering - in Julia
 
 ## Bugs
 - My world is upside down! Use real pbrt to debug (or pxl-th's)
-- Halton sampler doesn't work for more than 0,0 - 1,1
-- Filtering or sampling has a bug and has alias around the edge.
+- Halton sampler doesn't work for more than (0,1]^2
+- There is some aliasing around the edge of every time, it looks like an off by one error on the edge? Somewhere in the film or sampling...
 - Should I instantiate a list of samplers or stick with deepcopy()?
-
-
-## DONE    
-- ~~Make CLI.~~
-- ~~Distant light~~
-- ~~Improve scene specification interface.~~
-- ~~Texture tiling.~~
-- ~~Stratified sampler edges...~~
-- ~~a notebook to visually test results~~
+- Is using rand() across threads optimal?
 
 # Beyond PBRT
-- Importance sampling
 - Denoiser. Opportunity for ML here?
 
-# Notes
-## Reflectance
-### Material
-#### What they do
-- Instantiate BSDF
-- Add BxDFs to BSDF
-#### Methods
-- (Material)(SurfaceInteraction, Bool, TransportMode)
-- bump!(Material, SurfaceInteraction)
-### AbstractBSDF
-#### What they do
-- Hold collection of AbstractBxDFs
-#### Methods
-- (BSDF)(Vec3, Vec3, Flags)
-- sample_f(BSDF, Vec3, Pnt2, UInt8)
-- compute_pdf(BSDF, Vec3, Vec3, UInt8)
-### AbstractBxDF
-#### What they do
-#### Methods
+# Sources
+- Based on [Physically Based Rendering: From Theory to Implementation by Matt Pharr, Wenzel Jakob, and Greg Humphreys](https://www.pbr-book.org/).
+- [This implementation of PBRT in Julia](https://github.com/pxl-th/Trace.jl) repo has been an invaluable reference.
+- [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
