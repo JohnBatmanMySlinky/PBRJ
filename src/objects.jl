@@ -203,8 +203,12 @@ function inside_exclusive(p::Pnt2, b::Bounds2)::Bool
     return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y)
 end
 
-function inclusive_sides(b::Union{Bounds2, Bounds3})::Vector{Float64}
-    return [abs(b1 - (b0 - 1f0)) for (b1, b0) in zip(b.pMax, b.pMin)]
+function inclusive_sides(b::Bounds3)::Pnt3
+    return abs.(b.pMax - b.pMin .+ 1.0)
+end
+
+function inclusive_sides(b::Bounds2)::Pnt2
+    return abs.(b.pMax - b.pMin .+ 1.0)
 end
 
 function diagonal(b::Union{Bounds2, Bounds3})
@@ -267,26 +271,23 @@ function intersection(b1::Bounds2, b2::Bounds2)::Bounds2
     )
 end
 
-function intersect_p(b::Bounds3, r::AbstractRay)::Bool
-    tmin = 0
-    tmax = r.tMax
-    for a = 1:3
-        t0 = min(
-            (b.pMin[a] - r.origin[a]) / r.direction[a],
-            (b.pMax[a] - r.origin[a]) / r.direction[a]
-        )
-        t1 = max(
-            (b.pMin[a] - r.origin[a]) / r.direction[a],
-            (b.pMax[a] - r.origin[a]) / r.direction[a]
-        )
-        tmin = max(t0, tmin)
-        tmax = min(t1, tmax)
-        if tmax <= tmin
-            return false
-        end
-    end
-    return true
-end
+# should only be using the intersect_p below!!!
+# function intersect_p(b::Bounds3, r::AbstractRay)::Bool
+#     tmin = 0
+#     tmax = r.tMax
+#     for i = 1:3
+#         x = (b.pMin[i] - r.origin[i]) / r.direction[i]
+#         y = (b.pMax[i] - r.origin[i]) / r.direction[i]
+#         t0 = min(x,y)
+#         t1 = max(x,y)
+#         tmin = max(t0, tmin)
+#         tmax = min(t1, tmax)
+#         if tmax <= tmin
+#             return false
+#         end
+#     end
+#     return true
+# end
 
 function is_dir_negative(dir::Vec3)
     return Pnt3(
