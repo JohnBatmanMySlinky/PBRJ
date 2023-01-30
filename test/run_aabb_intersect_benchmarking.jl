@@ -133,6 +133,25 @@ function run_3(B::Vector{RayTracing.Bounds3}, R::Vector{RayTracing.Ray})::Tuple{
     t1 = now()
     return t1-t0, hit
 end
+function run_4(B::Vector{RayTracing.Bounds3}, R::Vector{RayTracing.Ray})::Tuple{Millisecond, Int64}
+    hit = 0
+    t0 = now()
+    for ri in 1:length(R)
+        r = R[ri]
+        for bi in 1:length(B)
+            b = B[bi]
+
+            inv_dir = 1.0 ./ r.direction
+            dir_is_neg = RayTracing.is_dir_negative(r.direction)
+
+
+            check = RayTracing.intersect_p(b, r, inv_dir, dir_is_neg)
+            check && (hit += 1)
+        end
+    end
+    t1 = now()
+    return t1-t0, hit
+end
 
 const NUM_RAYS = 1_000 * 10
 const NUM_BOXES = 1_000 * 10
@@ -159,6 +178,14 @@ print(round((NUM_RAYS * NUM_BOXES) / t.value / 1_000, digits=3), " million inter
 print("\n\n")
 print("baseline+pre-compute\n")
 t, hit = run_3(boxes, rays)
+print("intersection test took: ", t, "\n")
+print("number of intersections tested: ", RayTracing.num2str(NUM_RAYS * NUM_BOXES), "\n")
+print(round(hit / (NUM_RAYS * NUM_BOXES) * 100, digits=3), "% of rays intersected\n")
+print(round((NUM_RAYS * NUM_BOXES) / t.value / 1_000, digits=3), " million intersections per second\n")
+
+print("\n\n")
+print("pxlth\n")
+t, hit = run_4(boxes, rays)
 print("intersection test took: ", t, "\n")
 print("number of intersections tested: ", RayTracing.num2str(NUM_RAYS * NUM_BOXES), "\n")
 print(round(hit / (NUM_RAYS * NUM_BOXES) * 100, digits=3), "% of rays intersected\n")

@@ -271,22 +271,23 @@ function intersection(b1::Bounds2, b2::Bounds2)::Bounds2
     )
 end
 
-function intersect_p(b::Bounds3, r::AbstractRay)::Bool
-    tmin = 0
-    tmax = r.tMax
-    for i = 1:3
-        x = (b.pMin[i] - r.origin[i]) / r.direction[i]
-        y = (b.pMax[i] - r.origin[i]) / r.direction[i]
-        t0 = min(x,y)
-        t1 = max(x,y)
-        tmin = max(t0, tmin)
-        tmax = min(t1, tmax)
-        if tmax <= tmin
-            return false
-        end
-    end
-    return true
-end
+# should only be using the intersect_p below!!!
+# function intersect_p(b::Bounds3, r::AbstractRay)::Bool
+#     tmin = 0
+#     tmax = r.tMax
+#     for i = 1:3
+#         x = (b.pMin[i] - r.origin[i]) / r.direction[i]
+#         y = (b.pMax[i] - r.origin[i]) / r.direction[i]
+#         t0 = min(x,y)
+#         t1 = max(x,y)
+#         tmin = max(t0, tmin)
+#         tmax = min(t1, tmax)
+#         if tmax <= tmin
+#             return false
+#         end
+#     end
+#     return true
+# end
 
 function is_dir_negative(dir::Vec3)
     return Pnt3(
