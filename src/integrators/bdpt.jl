@@ -69,6 +69,29 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                 )
 
                 # CHECK n_light and n_camera match # of vertices
+                # light_vert_check = 0
+                # for i in 1:length(light_vertices)
+                #     isassigned(light_vertices, i) && (light_vert_check += 1)
+                # end
+                # print(light_vert_check,"\n")
+                # print(n_light,"\n")
+                # print_nice(light_vertices)
+                # print()
+                # @assert light_vert_check == n_light
+
+
+                # cam_vert_check = 0
+                # for i in 1:length(camera_vertices)
+                #     isassigned(camera_vertices, i) && (cam_vert_check += 1)
+                # end
+                # print(cam_vert_check,"\n")
+                # print(n_camera,"\n")
+                # print_nice(camera_vertices)
+                # print()
+                # @assert cam_vert_check == n_camera
+                
+
+                
 
                 # execute all BDPT connection strategies
                 # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
@@ -81,7 +104,8 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                         end
 
                         mis_weight = 0.0
-                        L_path, mis_weight, p_film_new = connect_BDPT(
+                        # L_path, mis_weight, p_film_new = connect_BDPT( # JOHN HACK WHAY ABOUT p_fil_new
+                        L_path, mis_weight = connect_BDPT( 
                             scene,
                             light_vertices,
                             camera_vertices,
@@ -145,7 +169,7 @@ function generate_camera_subpath!(
     # generate first vertex on camera subpath and start random walk
     path[1] = create_camera_vertex(camera, ray, beta)
     pdf_pos, pdf_dir = pdf_we(camera, ray)
-    return random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1) + 1
+    return random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1) # JOHN HACK, what if I got rid of the +1?
 end
 
 function generate_light_subpath!(
@@ -182,7 +206,7 @@ function generate_light_subpath!(
         end
         path[0+1].pdf_fwd = infinite_light_density(scene, light_distr, ray.direction)
     end
-    return n_vertices + 1
+    return n_vertices # JOHN HACK, what if I got rid of the +1?
 end
 
 function random_walk!(
@@ -271,21 +295,21 @@ function connect_BDPT(
     light_distr::Distribution1D,
     camera::Camera,
     sampler::AbstractSampler,
-)::Spectrum
+)::Tuple{Spectrum, Float64}
     L = Spectrum(0.0)
 
-    print("Connection Strategy: (",s, ", ", t, ")\n")
-    print("light length:", length(light_vertices), ": ")
-    print_nice(light_vertices)
-    print("\n")
-    print("camera length:", length(camera_vertices), ": ")
-    print_nice(camera_vertices)
-    print("\n\n")
+    # print("Connection Strategy: (",s, ", ", t, ")\n")
+    # print("light length:", length(light_vertices), ": ")
+    # print_nice(light_vertices)
+    # print("\n")
+    # print("camera length:", length(camera_vertices), ": ")
+    # print_nice(camera_vertices)
+    # print("\n\n")
 
 
     # ignore invalid connections related to infinite light
     if (t > 1) && (s != 0) && (camera_vertices[t-1+1].type == VTLight)
-        return Spectrum(0)
+        return Spectrum(0), 1.0
     end
 
     sampled = nothing
@@ -314,12 +338,12 @@ function connect_BDPT(
         # sample a point on the light and connect it to the camera subpath
         pt = camera_vertices[t-1+1]
         if is_connectible(pt)
-            light_num, light_pdf, _ = sample_discrete(light_distr, get_1D(sampler))
+            light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
-            sampled_li, wi, pdf, vis, _, _ = sample_li(light, get_interaction(pt), get_2D!(i.sampler))
+            sampled_li, wi, pdf, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
             if pdf > 0
-                ei = EndpointInteraction(vis.p1)
-                sampled = create_light_vertex(ei, sampled_li/(pdf*light_pdf), 0)
+                ei = EndpointInteraction(vis.p1, light)
+                sampled = create_light_vertex(ei, sampled_li/(pdf*light_pdf), 0.0)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr)
                 L = pt.beta * f(pt, sampled) * tr(vis, scene, sampler) * sampled.beta
                 if is_on_surface(pt)
@@ -341,7 +365,7 @@ function connect_BDPT(
     # compute MIS weight for connection strategy
     mis_weight = MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr)
     L *= mis_weight
-    return L
+    return L, mis_weight
 end
 
 function MIS_weight(

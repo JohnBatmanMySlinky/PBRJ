@@ -61,6 +61,9 @@ end
 function EndpointInteraction(light::Light, ray::AbstractRay, nml::Nml3)::EndpointInteraction
     return EndpointInteraction(Interaction(ray, nml), nothing, light)
 end
+function EndpointInteraction(it::Interaction, light::Light)::EndpointInteraction
+    return EndpointInteraction(it, nothing, light)
+end
 
 
 ############ Vertex constructors
@@ -219,5 +222,28 @@ function get_interaction(I::Union{EndpointInteraction, SurfaceInteraction})::Int
         return I.interaction
     else
         @assert false, "bad stuff"
+    end
+end
+
+
+################################## Sampling
+function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
+    !is_light(v1) && (return Spectrum(0.0))
+    w = p(v2) - p(v1)
+    (norm(2)^2 == 0.0) && (return Spectrum(0.0))
+    w = normalize(w)
+    if is_infinite_light(v1)
+        # return emitted radiance for infinite light sources
+        L = Spectrum(0.0)
+        for light in scene.lights
+            if is_infinite_light(light)
+                L += le(light, Ray(p(v1), -w, 0.0, typemax(Float64)))
+            end
+        end
+        return L
+    else
+        light = v1.si.primitive.area_light
+        # JOHN HACK, ignore nullptr check?
+        return L(light, v1.si.shading.n, w) # JOHN HACK, is it shading normal here?
     end
 end
