@@ -139,6 +139,11 @@ function is_infinite_light(v::Vertex)::Bool
     end
 end
 
+function is_light(v::Vertex)::Bool
+    # either it's a VTLight or it's a VTSurface with an area light
+    return (v.type == VTLight) || ((v.type == VTSurface) && !(v.si.primitive.area_light isa Nothing))
+end
+
 function is_on_surface(v::Vertex)::Bool
     return ng(v) != Nml3(0,0,0)
 end

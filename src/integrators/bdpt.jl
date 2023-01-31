@@ -145,7 +145,7 @@ function generate_camera_subpath!(
     # generate first vertex on camera subpath and start random walk
     path[1] = create_camera_vertex(camera, ray, beta)
     pdf_pos, pdf_dir = pdf_we(camera, ray)
-    return random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path) + 1
+    return random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1) + 1
 end
 
 function generate_light_subpath!(
@@ -169,7 +169,7 @@ function generate_light_subpath!(
     # generate first vertex on light subpath and start random walk
     path[0+1] = create_light_vertex(light, ray, n_light, Le, pdf_pos * light_pdf)
     beta = Le * abs(dot(n_light, ray.direction)) / (light_pdf * pdf_pos * pdf_dir)
-    n_vertices = random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path)
+    n_vertices = random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path, 1)
 
     # correct subpath sampling densities for infinite area lights
     if is_infinite_light(path[1])
@@ -193,13 +193,18 @@ function random_walk!(
     pdf::Float64, 
     max_depth::Int64, 
     mode::Type{T}, 
-    path::Vector{Vertex}
+    path::Vector{Vertex},
+    path_offset::Int64
 )::Int64 where T <: TransportMode
     (max_depth == 0) && return 0
     # decleare variables for forward and reverse probability densities
     bounces = 0
     pdf_fwd = pdf
     pdf_rev = 0.0
+
+    # JOHN HACK
+    bounces += path_offset
+
     while true
         # attempt to create the next subpath verte in *path*
         check, _, isect = intersect!(scene.b, ray)
@@ -231,7 +236,7 @@ function random_walk!(
         path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
 
         bounces += 1
-        if bounces >= max_depth
+        if bounces >= max_depth + path_offset # JOHN HACK
             break
         end
 
@@ -241,7 +246,7 @@ function random_walk!(
         (pdf == 0.0) && break
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
-        if sampled_type & BSDF_SPECULAR
+        if (sampled_type & BSDF_SPECULAR) == sampled_type
             path[vertex].delta = true
             pdf_rev = 0.0
             pdf_fwd = 0.0
