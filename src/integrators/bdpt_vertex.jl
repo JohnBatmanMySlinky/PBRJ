@@ -237,7 +237,7 @@ function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
         L = Spectrum(0.0)
         for light in scene.lights
             if is_infinite_light(light)
-                L += le(light, Ray(p(v1), -w, 0.0, typemax(Float64)))
+                L += le(light, Ray(p(v1), -w, time(v1), typemax(Float64)))
             end
         end
         return L
@@ -245,5 +245,19 @@ function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
         light = v1.si.primitive.area_light
         # JOHN HACK, ignore nullptr check?
         return L(light, v1.si.shading.n, w) # JOHN HACK, is it shading normal here?
+    end
+end
+
+function pdf_light_origin(sampled::Vertex, scene::Scene, v::Vertex, light_distr::Distribution1D, light_num::Int64)::Float64
+    w = p(v) - p(sampled)
+    (norm(w)^2 == 0.0) && (return 0.0)
+    w = normalize(w)
+    if is_infinite_light(sampled)
+        return infinite_light_density(scene, light_distr, w)
+    else
+        light = sampled.type == VTLight ? sampled.ei.light : sampled.si.primitive.area_light
+        pdf_choice = discrete_pdf(light_distr, light_num)
+        pdf_pos, pdf_dir = pdf_le(light, Ray(p(sampled), w, time(sampled), typemax(Float64)), ng(sampled))
+        return pdf_pos * pdf_choice
     end
 end

@@ -344,7 +344,7 @@ function connect_BDPT(
             if pdf > 0
                 ei = EndpointInteraction(vis.p1, light)
                 sampled = create_light_vertex(ei, sampled_li/(pdf*light_pdf), 0.0)
-                sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr)
+                sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled) * tr(vis, scene, sampler) * sampled.beta
                 if is_on_surface(pt)
                     L *= abs(dot(wi, pt.ns))
