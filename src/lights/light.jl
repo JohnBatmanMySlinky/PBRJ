@@ -5,16 +5,6 @@
     LightInfinite   = 0b1000
 end
 
-struct VisibilityTester
-    p0::Interaction
-    p1::Interaction
-end
-
-function unoccluded(vt::VisibilityTester, scene::BVHAccel)::Bool
-    check = intersect_p(scene, spawn_shadow_ray(vt.p0, vt.p1))
-    return !check
-end
-
 function is_delta_light(light::Light)::Bool
     return (light.flags & LightDeltaDirection) || (light.flags & LightDeltaPosition)
 end

@@ -59,7 +59,7 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                 # default is "uniform" so not a big deal 
                 # would be worse with spatial or distance
                 light_distr = lookup(light_distr_generator, p(camera_vertices[1]))
-                n_light = generate_light_subpath!(
+                n_light, light_num = generate_light_subpath!(
                     light_vertices,
                     scene,
                     tile_sampler,
@@ -69,26 +69,26 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                 )
 
                 # CHECK n_light and n_camera match # of vertices
-                # light_vert_check = 0
-                # for i in 1:length(light_vertices)
-                #     isassigned(light_vertices, i) && (light_vert_check += 1)
-                # end
+                light_vert_check = 0
+                for i in 1:length(light_vertices)
+                    isassigned(light_vertices, i) && (light_vert_check += 1)
+                end
                 # print(light_vert_check,"\n")
                 # print(n_light,"\n")
                 # print_nice(light_vertices)
                 # print()
-                # @assert light_vert_check == n_light
+                @assert light_vert_check == n_light
 
 
-                # cam_vert_check = 0
-                # for i in 1:length(camera_vertices)
-                #     isassigned(camera_vertices, i) && (cam_vert_check += 1)
-                # end
+                cam_vert_check = 0
+                for i in 1:length(camera_vertices)
+                    isassigned(camera_vertices, i) && (cam_vert_check += 1)
+                end
                 # print(cam_vert_check,"\n")
                 # print(n_camera,"\n")
                 # print_nice(camera_vertices)
                 # print()
-                # @assert cam_vert_check == n_camera
+                @assert cam_vert_check == n_camera
                 
 
                 
@@ -112,6 +112,7 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
                             s,
                             t,
                             light_distr,
+                            light_num,
                             i.camera,
                             tile_sampler
                         )
@@ -179,7 +180,7 @@ function generate_light_subpath!(
     max_depth::Int64, 
     t::Float64, 
     light_distr::Distribution1D
-)::Int64
+)::Tuple{Int64,Int64}
     (max_depth == 0) && return 0
     
     # sample initial ray for light subpath
@@ -206,7 +207,7 @@ function generate_light_subpath!(
         end
         path[0+1].pdf_fwd = infinite_light_density(scene, light_distr, ray.direction)
     end
-    return n_vertices # JOHN HACK, what if I got rid of the +1?
+    return n_vertices, light_num # JOHN HACK, what if I got rid of the +1?
 end
 
 function random_walk!(
@@ -293,6 +294,7 @@ function connect_BDPT(
     s::Int64,
     t::Int64,
     light_distr::Distribution1D,
+    light_num::Int64,
     camera::Camera,
     sampler::AbstractSampler,
 )::Tuple{Spectrum, Float64}
@@ -345,9 +347,9 @@ function connect_BDPT(
                 ei = EndpointInteraction(vis.p1, light)
                 sampled = create_light_vertex(ei, sampled_li/(pdf*light_pdf), 0.0)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
-                L = pt.beta * f(pt, sampled) * tr(vis, scene, sampler) * sampled.beta
+                L = pt.beta * f(pt, sampled, Radiance) * tr(vis, scene.b, sampler) * sampled.beta
                 if is_on_surface(pt)
-                    L *= abs(dot(wi, pt.ns))
+                    L *= abs(dot(wi, ns(pt)))
                 end
             end
         end
@@ -356,14 +358,14 @@ function connect_BDPT(
         qs = light_vertices[s-1+1]
         pt = camera_vertices[t-1+1]
         if is_connectible(qs) && is_connectible(pt)
-            L = qs.beta * f(qs, pt) * f(pt, qs) * pt.beta
+            L = qs.beta * f(qs, pt, Importance) * f(pt, qs, Radiance) * pt.beta
             # JOHN HACK: if not black --> always
             L *= G(scene, sampler, qs, pt)
         end
     end
 
     # compute MIS weight for connection strategy
-    mis_weight = MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr)
+    mis_weight = MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr, light_num)
     L *= mis_weight
     return L, mis_weight
 end
@@ -375,7 +377,8 @@ function MIS_weight(
     sampled::Maybe{Vertex},
     s::Int64,
     t::Int64,
-    light_distr::Distribution1D
+    light_distr::Distribution1D,
+    light_num::Int64
 )::Float64
     (s + t == 2) && (return 1.0)
     sum_ri = 0.0
@@ -419,12 +422,12 @@ function MIS_weight(
     # a1
     if s==1
         if qs > 0
-            backup = copy(light_vertices[qs])
+            backup = deepcopy(light_vertices[qs])
             light_vertices[qs] = sampled
         end
     elseif t==1
         if pt > 0
-            backup = copy(camera_vertices[pt])
+            backup = deepcopy(camera_vertices[pt])
             camera_vertices[pt] = sampled
         end
     end
@@ -438,9 +441,13 @@ function MIS_weight(
     # a4
     if pt > 0 
         if s > 0
-            light_vertices[pt].pdf_rev = pdf(camera_vertices[qs])
+            if qs_minus == 0
+                camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, nothing, camera_vertices[pt])
+            else
+                camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, light_vertices[qs_minus], camera_vertices[pt])
+            end
         else
-            light_vertices[pt].pdf_rev = pdf_light_origin(light_vertices[pt])
+            camera_vertices[pt].pdf_rev = pdf_light_origin(camera_vertices[pt], scene, light_vertices[qs], light_distr, light_num)
         end
     end
 
@@ -448,16 +455,24 @@ function MIS_weight(
     # a5
     if pt_minus > 0
         if s > 0 
-            camera_vertices[pt_minus].pdf_rev = pdf(light_vertices[pt])
+            camera_vertices[pt_minus].pdf_rev = pdf(camera_vertices[pt], scene, light_vertices[qs], camera_vertices[pt_minus])
         else
-            camera_vertices[pt_minus].pdf_rev = pdf_light(light_vertices[pt])
+            camera_vertices[pt_minus].pdf_rev = pdf_light(camera_vertices[pt], scene, camera_vertices[pt_minus])
         end
     end
 
     # Update reverse density of vertices $\pq{}_{s-1}$ and $\pq{}_{s-2}$
     # a6 & a7
-    (qs > 0) && (camera_vertices[qs].pdfRev = pdf(light_vertices[pt]))
-    (qs_minus > 0) && (camera_vertices[qs_minus].pdfRev = pdf(camera_vertices[qs]))
+    if qs > 0
+        if pt_minus == 0
+            light_vertices[qs].pdf_rev = pdf(camera_vertices[pt], scene, nothing, light_vertices[qs])
+        else
+            light_vertices[qs].pdf_rev = pdf(camera_vertices[pt], scene, camera_vertices[pt_minus], light_vertices[qs])
+        end
+    end
+    if qs_minus > 0
+        light_vertices[qs_minus].pdf_rev = pdf(light_vertices[qs], scene, camera_vertices[pt], light_vertices[qs_minus])
+    end
 
     # Consider hypothetical connection strategies along the camera subpath
     ri = 1.0
@@ -491,15 +506,15 @@ function MIS_weight(
 
     # UNROLL a4 & a5
     if pt > 0 
-        light_vertices[pt].pdf_rev = logg[(pt,2)].pdf_rev
+        camera_vertices[pt].pdf_rev = logg[(pt,2)].pdf_rev
     end
     if pt_minus > 0
         camera_vertices[pt_minus].pdf_rev = logg[(pt_minus,2)].pdf_rev
     end
 
     # UNROLL a6 & a7
-    (qs > 0) && (camera_vertices[qs].pdf_rev = logg[(qs,1)].pdf_rev)
-    (qs_minus > 0) && (camera_vertices[qs_minus].pdf_rev = logg[(qs_minus,1)].pdf_rev)
+    (qs > 0) && (light_vertices[qs].pdf_rev = logg[(qs,1)].pdf_rev)
+    (qs_minus > 0) && (light_vertices[qs_minus].pdf_rev = logg[(qs_minus,1)].pdf_rev)
 
     return 1.0/(1.0+sum_ri)
 end
