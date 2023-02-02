@@ -69,3 +69,10 @@ function sample_le(light::DiffuseAreaLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tup
     ray = spawn_ray(Interaction(p_shape, t, n_light, n_light), W)
     return L(light, Nml3(W), W), ray, n_light, pdf_pos, pdf_dir
 end
+
+function pdf_le(light::DiffuseAreaLight, ray::AbstractRay, n::Nml3)::Tuple{Float64, Float64}
+    it = Interaction(ray.origin, ray.t, Vec3(0), n)
+    pdf_pos = pdf(light.shape) # JOHN HACK, not using interaction , just doing 1/area(shape)
+    pdf_dir = light.two_sided ? (0.5 * cosine_hemisphere_pdf(abs(dot(n, ray.direction)))) : (cosine_hemisphere_pdf(dot(n, ray.direction)))
+    return pdf_pos, pdf_dir
+end
