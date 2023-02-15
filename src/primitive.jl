@@ -9,7 +9,7 @@ end
 #### underlying shape or material ###################
 #####################################################
 
-function intersect!(gp::Primitive, ray::AbstractRay)
+function intersect!(gp::Primitive, ray::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     check, t, interaction = intersect(gp.shape, ray)
     if !check
         return false, nothing, nothing

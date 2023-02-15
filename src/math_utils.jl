@@ -2,11 +2,11 @@ function solve_quadratic(a::Float64, b::Float64, c::Float64)::Tuple{Bool, Float6
     # Find disriminant.
     d = b ^ 2 - 4 * a * c
     if d < 0
-        return false, NaN32, NaN32
+        return false, typemax(Float64), typemax(Float64)
     end
     d = d |> sqrt
     # Compute roots.
-    q = -0.5f0 * (b + (b < 0 ? -d : d))
+    q = -0.5 * (b + (b < 0 ? -d : d))
     t0 = q / a
     t1 = c / q
     if t0 > t1
@@ -34,7 +34,7 @@ function spherical_phi(v::Vec3)::Float64
 end
 
 function spherical_theta(v::Vec3)::Float64
-    return acos(clamp(v.z, -1, 1))
+    return acos(clamp(v.z, -1.0, 1.0))
 end
 
 function spherical_direction(sin_theta::Float64, cos_theta::Float64, phi::Float64, x::Vec3, y::Vec3, z::Vec3)::Float64
@@ -43,15 +43,15 @@ end
 
 function orthonormal_basis(v::Vec3)::Tuple{Vec3, Vec3, Vec3}
     if abs(v.x) > abs(v.y)
-        v2 = Vec3(-v.z, 0, v.x) / sqrt(v.x^2 + v.z^2)
+        v2 = Vec3(-v.z, 0.0, v.x) / sqrt(v.x^2 + v.z^2)
     else
-        v2 = Vec3(0, v.z, -v.y) / sqrt(v.y^2 + v.z^2)
+        v2 = Vec3(0.0, v.z, -v.y) / sqrt(v.y^2 + v.z^2)
     end
     return v, v2, cross(v, v2)
 end
 
 function face_forward(n, v)::Nml3
-    return dot(n, v) < 0 ? -n : n
+    return dot(n, v) < 0.0 ? -n : n
 end
 
 function partition!(x::Vector, range::UnitRange, predicate::Function)
@@ -66,7 +66,7 @@ function partition!(x::Vector, range::UnitRange, predicate::Function)
 end
 
 function same_hemisphere(wo::Vec3, wi::Vec3)::Bool
-    return wo.z * wi.z > 0
+    return wo.z * wi.z > 0.0
 end
 
 function power_heuristic(nf::Float64, fpdf::Float64, ng::Float64, gpdf::Float64)::Float64

@@ -1,16 +1,20 @@
 # PBRJ
 Physically Based Rendering - in Julia
 
-A partial implementation of [Physically Based Rendering: From Theory to Implementation 3rd Edition](https://www.pbr-book.org/) in the Julia Language.
+An implementation of [Physically Based Rendering: From Theory to Implementation 3rd Edition](https://www.pbr-book.org/) in the Julia Language.
 
 # How to use
-- TODO
+How to render the Cornell Box with 100 samples per pixel using 4 threads. 
+```
+julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
+```
 
-# General Commentary on this whole experience
-- Julia is wonderful.
-- BVH is (obviously) really important and I am forever grateful of pxl-th's implementation
-- PBRT's sampler implementation gave (and continues to give) me a headache.
-- BxDFs make sense in practice but their implementation is hard for me to wrap my head around.
+## Notes of Usage
+- I have only implemented a subset of materials specified in the book. 
+- My obj parser is quite anemic.
+- Samplers are limited to Random and Stratified.
+- Scene specification is very verbose and done entirely within `scene_builder.jl`. Only a few things are parameterized thru the CLI.
+- There are lots of partially implemented things (ie BDPT has only been tested with AreaLights, not sure if all the CLI args work anymore, etc. ).
 
 # TODO
 ## Features
@@ -22,6 +26,7 @@ A partial implementation of [Physically Based Rendering: From Theory to Implemen
 - Implement Bidirectional Path Tracing
     - move from book's `uniform_sample_one_light()` to the code's `light_distribution` abstraction 
     - THEN what I implemented a `sample_lights_based_on_distance()` ? That should help the back hallway?
+- Implement Metroplois Light Transport Integrator
 - Implement more materials
     - Add metal material
     - Add fourier material
@@ -31,6 +36,8 @@ A partial implementation of [Physically Based Rendering: From Theory to Implemen
     - Add in more scene geometry (baseboards? stairs? elevator?)
     - Get reflections in back hallway looking nice and in general floor material
     - Wall material
+- Parameterize more stuff (like which integrator you want to use).
+- Move scene specification to a YAML or something. 
 - Make obj_parser less anemic
 - Expand tests
 
@@ -43,9 +50,13 @@ A partial implementation of [Physically Based Rendering: From Theory to Implemen
 - Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc.
 
 ## Bugs
+- XYZ color to RGB, I am doing something wrong...
+- Infinite light sampling is very broken. 
 - My world is upside down! Use real pbrt to debug (or pxl-th's)
 - Halton sampler doesn't work for more than (0,1]^2
 - There is some aliasing around the edge of every time, it looks like an off by one error on the edge? Somewhere in the film or sampling...
+
+## Ideas
 - Should I instantiate a list of samplers or stick with deepcopy()?
 - Is using rand() across threads optimal?
 

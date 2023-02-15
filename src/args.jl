@@ -5,7 +5,7 @@ function parse_commandline()::Dict
         "--scene-number"
             help = "pick a scene"
             arg_type = Int
-            default = 1
+            default = 4
         "--render-simple"
             help = "bool for simple or complex"
             arg_type = Bool

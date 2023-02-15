@@ -40,12 +40,13 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
             start_pixel!(tile_sampler, pixel)
             while has_next_sample(tile_sampler)
                 # Generate a single sample using BDPT
-                # JOHN HACK. Generating get camera sample in generate_camera_subpath, problem?
                 camera_sample = get_camera_sample!(tile_sampler, pixel)
 
+                # instantiate the list of vertices
+                camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
+                light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
+
                 # Trace the camera and light subpaths
-                camera_vertices = Vector{Vertex}(undef,i.max_depth + 2)
-                light_vertices = Vector{Vertex}(undef,i.max_depth + 1)
                 n_camera = generate_camera_subpath!(
                     camera_vertices,
                     scene, 
@@ -95,7 +96,7 @@ function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
 
                 # execute all BDPT connection strategies
                 # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
-                L = Spectrum(0)
+                L = Spectrum(0.0)
                 for t in 1:n_camera
                     for s in 0:n_light
                         depth = t + s - 2
