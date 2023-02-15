@@ -18,6 +18,10 @@ function parse_commandline()::Dict
             help = "samples per pixel"
             arg_type = Int
             default = 5
+        "--light-distribution-strategy"
+            help = "strategy for sampling lights"
+            arg_type = String
+            default = "uniform"
         "--file-name"
             help = "name of file"
             arg_type = String

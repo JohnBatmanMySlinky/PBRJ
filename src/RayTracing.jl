@@ -101,7 +101,7 @@ function render_scene()
 
     I, scene = build_scene(parsed_args)
 
-    render(I, scene, parsed_args["render-simple"])
+    render(I, scene, parsed_args["render-simple"], parsed_args["light-distribution-strategy"])
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

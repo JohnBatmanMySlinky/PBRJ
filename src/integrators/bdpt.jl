@@ -5,10 +5,10 @@ struct BDPTIntegrator <: AbstractIntegrator
     max_depth::Int64
 end
 
-function render(i::BDPTIntegrator, scene::Scene, minimal::Bool=false)
+function render(i::BDPTIntegrator, scene::Scene, light_dist_strat::String="uniform", minimal::Bool=false)
     # create light sampling light_distribution
     # JOHN HACK --> hard coding uniform dist
-    light_distr_generator = LightDistribution("uniform", scene)
+    light_distr_generator = LightDistribution(light_dist_strat, scene)
 
     # partition the image into tiles
     sample_bounds = get_sample_bounds(i.camera.core.core.film)

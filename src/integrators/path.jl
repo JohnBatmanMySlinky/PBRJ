@@ -5,13 +5,12 @@ struct PathIntegrator <: AbstractIntegrator
     max_depth::Int64
 end
 
-function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Spectrum
+function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64, light_dist_strat::String="uniform")::Spectrum
     L = Spectrum(0)
     beta = Spectrum(1) # the throughput weight
     specular_bounce = false
     bounces = 0
-    light_distribution_generator = LightDistribution("centroid_distance", scene)
-    # light_distribution_generator = LightDistribution("uniform", scene)
+    light_distribution_generator = LightDistribution(light_dist_strat, scene)
 
     # TODO instantiate light distribution builder
 
