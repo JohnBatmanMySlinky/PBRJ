@@ -95,13 +95,29 @@ include("handy_prints.jl")
 include("obj_reader.jl")
 include("args.jl")
 include("scene_builder.jl")
+include("denoising/edge_avoiding_a_trous.jl")
+
+const PASSDICT = Dict{UInt8, String}(UInt(0) => "full pass", UInt(1) => "albedo pass", UInt(2) => "depth pass", UInt(3) => "normal pass")
 
 function render_scene()
     parsed_args = parse_commandline()
 
     I, scene = build_scene(parsed_args)
 
-    render(I, scene, parsed_args["render-simple"], parsed_args["light-distribution-strategy"])
+    
+    x,y = I.camera.core.core.film.full_resolution
+    passes = zeros(Int(x), Int(y), 3, 4)
+    for render_pass_flag in [UInt8(0), UInt8(1), UInt8(2), UInt8(3)]
+        current_pass = render(
+            I, 
+            scene, 
+            render_pass_flag,
+            parsed_args["light-distribution-strategy"], 
+        )
+        passes[:, :, :, render_pass_flag+1] = current_pass
+    end
+    image = denoise(passes, 10)
+    FileIO.save("yeehaw_denoise.png", image[end:-1:begin, :, :])
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

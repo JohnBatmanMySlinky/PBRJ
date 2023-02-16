@@ -411,20 +411,20 @@ function Spectrum(a::Union{Float64,Int64})::Spectrum
 end
 
 function XYZ_to_RGB(xyz::Pnt3)::Spectrum
-    return Spectrum(
-        0.412453 * xyz.x + 0.357580 * xyz.y + 0.180423 * xyz.z,
-        0.212671 * xyz.x + 0.715160 * xyz.y + 0.072169 * xyz.z,
-        0.019334 * xyz.x + 0.119193 * xyz.y + 0.950227 * xyz.z,
-    )
-    # return xyz
+    # return Spectrum(
+    #     0.412453 * xyz.x + 0.357580 * xyz.y + 0.180423 * xyz.z,
+    #     0.212671 * xyz.x + 0.715160 * xyz.y + 0.072169 * xyz.z,
+    #     0.019334 * xyz.x + 0.119193 * xyz.y + 0.950227 * xyz.z,
+    # )
+    return xyz
 end
 function RGB_to_XYZ(rgb::Spectrum)::Pnt3
-    return Pnt3(
-        0.412453 * rgb.r + 0.357580 * rgb.g + 0.180423 * rgb.b,
-        0.212671 * rgb.r + 0.715160 * rgb.g + 0.072169 * rgb.b,
-        0.019334 * rgb.r + 0.119193 * rgb.g + 0.950227 * rgb.b,
-    )
-    # return rgb
+    # return Pnt3(
+    #     0.412453 * rgb.r + 0.357580 * rgb.g + 0.180423 * rgb.b,
+    #     0.212671 * rgb.r + 0.715160 * rgb.g + 0.072169 * rgb.b,
+    #     0.019334 * rgb.r + 0.119193 * rgb.g + 0.950227 * rgb.b,
+    # )
+    return rgb
 end
 
 # TODO I don't think I should need this??

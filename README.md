@@ -18,6 +18,7 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 
 # TODO
 ## Features
+- Triangles using UInt16 when small enough??
 - Implement some post-processing (ie, filtering, de-noising, etc)
 - Implement spatial light distribution
 - Implement Metroplois Light Transport Integrator
