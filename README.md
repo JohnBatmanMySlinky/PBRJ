@@ -18,14 +18,8 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 
 # TODO
 ## Features
-- Implement PathIntegrator
-    - document bxdf and bsdf and fresnel and stuff hierarchy!
-    - ~~add better light sampling strategies from github~~ (not doing, will wait for light bvh in v4)
-    - ~~infinite light is broken~~
-    - harmoinze bsdf flags and light flags
-- Implement Bidirectional Path Tracing
-    - move from book's `uniform_sample_one_light()` to the code's `light_distribution` abstraction 
-    - THEN what I implemented a `sample_lights_based_on_distance()` ? That should help the back hallway?
+- Implement some post-processing (ie, filtering, de-noising, etc)
+- Implement spatial light distribution
 - Implement Metroplois Light Transport Integrator
 - Implement more materials
     - Add metal material
