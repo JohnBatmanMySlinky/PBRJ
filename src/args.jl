@@ -5,7 +5,7 @@ function parse_commandline()::Dict
         "--scene-number"
             help = "pick a scene"
             arg_type = Int
-            default = 1
+            default = 4
         "--render-simple"
             help = "bool for simple or complex"
             arg_type = Bool
@@ -18,6 +18,10 @@ function parse_commandline()::Dict
             help = "samples per pixel"
             arg_type = Int
             default = 5
+        "--light-distribution-strategy"
+            help = "strategy for sampling lights"
+            arg_type = String
+            default = "uniform"
         "--file-name"
             help = "name of file"
             arg_type = String

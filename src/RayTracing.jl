@@ -77,6 +77,7 @@ include("textures/procedural.jl")
 include("textures/mix.jl")
 include("textures/noise.jl")
 include("lights/light.jl")
+include("lights/visibility.jl")
 include("lights/area.jl")
 include("lights/point.jl")
 include("lights/infinite.jl")
@@ -100,7 +101,7 @@ function render_scene()
 
     I, scene = build_scene(parsed_args)
 
-    render(I, scene, parsed_args["render-simple"])
+    render(I, scene, parsed_args["render-simple"], parsed_args["light-distribution-strategy"])
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

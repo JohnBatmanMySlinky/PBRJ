@@ -9,4 +9,5 @@
 8) + updated BVH and bump mapping go brrrrrr. 25x25 spp in 1h:15m
 9) Munich Re scene geometry
 10) Munich Re initial scene using the **Whitted**Integartor
-11) Munich Re initial scene using the **Path**Integartor (using 63^2 samples per pixel!!!)
+11) Munich Re initial scene using the **Path** Integartor (using 63^2 samples per pixel!!!)
+12) Munich Re initial scene using the **BDPT** Integartor (using 16^2 samples per pixel!!!) (~2h)

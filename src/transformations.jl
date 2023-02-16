@@ -47,7 +47,7 @@ function Scale(v::Vec3)::Transformation
     return Transformation(m, m_inv)
 end
 
-function RotateX(theta::Float64)
+function RotateX(theta::Float64)::Transformation
     sin_theta = sin(deg2rad(theta))
     cos_theta = cos(deg2rad(theta))
     m = Mat4([
@@ -59,7 +59,7 @@ function RotateX(theta::Float64)
     return Transformation(m, inv(m))
 end
 
-function RotateY(theta::Float64)
+function RotateY(theta::Float64)::Transformation
     sin_theta = sin(deg2rad(theta))
     cos_theta = cos(deg2rad(theta))
     m = Mat4([
@@ -71,7 +71,7 @@ function RotateY(theta::Float64)
     return Transformation(m, inv(m))
 end
 
-function RotateZ(theta::Float64)
+function RotateZ(theta::Float64)::Transformation
     sin_theta = sin(deg2rad(theta))
     cos_theta = cos(deg2rad(theta))
     m = Mat4([
@@ -97,7 +97,7 @@ function Perspective(fov::Float64, near::Float64, far::Float64)::Transformation
     return Scale(Vec3(inv_tan, inv_tan, 1)) * Transformation(p, inv(p))
 end
 
-function LookAt(pos::Pnt3, look::Pnt3, up::Vec3)
+function LookAt(pos::Pnt3, look::Pnt3, up::Vec3)::Transformation
     dir = normalize(look - pos)
     left = normalize(cross(normalize(up), dir))
     new_up = cross(dir, left)
@@ -115,18 +115,18 @@ end
 ########################################
 
 # mutliply two transformations
-function Base.:*(t1::Transformation, t2::Transformation)
+function Base.:*(t1::Transformation, t2::Transformation)::Transformation
     return Transformation(t1.m * t2.m, t2.inv_m * t1.inv_m)
 end
 
 # PBR 2.8.1
 # apply transformations to a POINT
 function (t::Transformation)(p::Pnt3)::Pnt3
-    tmp = Pnt4(p...,1)
+    tmp = Pnt4(p...,1.0)
     ph = Mat4([tmp tmp tmp tmp])
     pt = t.m * ph
-    pr = Pnt3(pt[1:3])
-    if pt[4] == 1 
+    pr = Pnt3(pt[SA[1,2,3]])
+    if pt[4] == 1.0
         return pr
     end
     return pr ./ pt[4]
@@ -135,13 +135,13 @@ end
 # PBR 2.8.2
 # apply transformations to a VECTOR
 function (t::Transformation)(v::Vec3)::Vec3
-    return t.m[1:3, 1:3] * v
+    return t.m[SA[1,2,3], SA[1,2,3]] * v
 end
 
 # PBR 2.8.3
 # apply transformations to a NORMAL
 function (t::Transformation)(n::Nml3)::Nml3
-    return transpose(t.inv_m[1:3, 1:3]) * n
+    return transpose(t.inv_m[SA[1,2,3], SA[1,2,3]]) * n
 end
 
 # PBR 2.8.4

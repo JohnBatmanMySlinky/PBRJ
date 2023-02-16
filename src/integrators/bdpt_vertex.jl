@@ -61,6 +61,9 @@ end
 function EndpointInteraction(light::Light, ray::AbstractRay, nml::Nml3)::EndpointInteraction
     return EndpointInteraction(Interaction(ray, nml), nothing, light)
 end
+function EndpointInteraction(it::Interaction, light::Light)::EndpointInteraction
+    return EndpointInteraction(it, nothing, light)
+end
 
 
 ############ Vertex constructors
@@ -139,6 +142,11 @@ function is_infinite_light(v::Vertex)::Bool
     end
 end
 
+function is_light(v::Vertex)::Bool
+    # either it's a VTLight or it's a VTSurface with an area light
+    return (v.type == VTLight) || ((v.type == VTSurface) && !(v.si.primitive.area_light isa Nothing))
+end
+
 function is_on_surface(v::Vertex)::Bool
     return ng(v) != Nml3(0,0,0)
 end
@@ -215,4 +223,108 @@ function get_interaction(I::Union{EndpointInteraction, SurfaceInteraction})::Int
     else
         @assert false, "bad stuff"
     end
+end
+
+
+################################## Sampling
+function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
+    !is_light(v1) && (return Spectrum(0.0))
+    w = p(v2) - p(v1)
+    (norm(2)^2 == 0.0) && (return Spectrum(0.0))
+    w = Vec3(normalize(w))
+    if is_infinite_light(v1)
+        # return emitted radiance for infinite light sources
+        LL = Spectrum(0.0)
+        for light in scene.lights
+            if is_infinite_light(light)
+                LL += le(light, Ray(p(v1), -w, time(v1), typemax(Float64)))
+            end
+        end
+        return LL
+    else
+        light = v1.si.primitive.area_light
+        # JOHN HACK, ignore nullptr check?
+        return L(light, v1.si.shading.n, w) # JOHN HACK, is it shading normal here?
+    end
+end
+
+function pdf_light_origin(sampled::Vertex, scene::Scene, v::Vertex, light_distr::Distribution1D, light_num::Int64)::Float64
+    w = p(v) - p(sampled)
+    (norm(w)^2 == 0.0) && (return 0.0)
+    w = normalize(w)
+    if is_infinite_light(sampled)
+        return infinite_light_density(scene, light_distr, w)
+    else
+        light = sampled.type == VTLight ? sampled.ei.light : sampled.si.primitive.area_light
+        pdf_choice = discrete_pdf(light_distr, light_num)
+        pdf_pos, pdf_dir = pdf_le(light, Ray(p(sampled), w, time(sampled), typemax(Float64)), ng(sampled))
+        return pdf_pos * pdf_choice
+    end
+end
+
+function pdf_light(v0::Vertex, scene::Scene, v1::Vertex)::Float64
+    w = Vec3(p(v1) - p(v0))
+    invdist2 = 1/(norm(w)^2)
+    w *= sqrt(invdist2)
+    if is_infinite_light(v0)
+        @assert false # not IMPLEMENTED
+    else
+        light = v0.type == VTLight ? v0.ei.light : v1.si.primitive.area_light
+        pdf_pos, pdf_dir = pdf_le(light, Ray(p(v0), w, time(v0), typemax(Float64)), ng(v0))
+        pdf_val = pdf_dir * invdist2
+    end
+    if is_on_surface(v1)
+        pdf_val *= abs(dot(ng(v1), w))
+    end
+    return pdf_val
+end
+
+function pdf(v0::Vertex, scene::Scene, prev::Maybe{Vertex}, next::Vertex)::Float64
+    (v0.type == VTLight) && (return pdf_light(v0, scene, next))
+    wn = p(next) - p(v0)
+    (norm(wn)^2 == 0.0) && (return 0.0)
+    wn = Vec3(normalize(wn))
+    if !(prev isa Nothing)
+        wp = p(prev) - p(v0)
+        (norm(wp)^2 == 0.0) && (return 0.0)
+        wp = Vec3(normalize(wp))
+    end
+
+
+    if v0.type == VTCamera
+        _, pdf_val = pdf_we(v0.ei.camera, spawn_ray(v0.ei.interaction, wn))
+    elseif v0.type == VTSurface
+        pdf_val = compute_pdf(v0.si.bsdf, wp, wn, BSDF_ALL) # JOHN HACK do we need BSDF all?
+    elseif v0.type == VTMedium
+        @assert false # un-implemented
+    else
+        @assert false
+    end
+    return convert_density(v0, pdf_val, next)
+end
+
+function f(v1::Vertex, v2::Vertex, mode::Type{T})::Spectrum where T <: TransportMode
+    wi = p(v2) - p(v1)
+    (norm(wi)^2 == 0.0) && (return Spectrum(0.0))
+    wi = Vec3(normalize(wi))
+    if v1.type == VTSurface
+        return v1.si.bsdf(v1.si.core.wo, wi) * correct_shading_normal(v1.si, v1.si.core.wo, wi, mode)
+    elseif v1.type == VTMedium
+        @assert false # NOT IMPLEMENTED
+    else
+        return Spectrum(0.0)
+    end
+end
+
+function G(scene::Scene, sampler::AbstractSampler, v0::Vertex, v1::Vertex)::Spectrum
+    d = Vec3(p(v0)-p(v1))
+    g = 1.0 / norm(d)^2
+    d *= sqrt(g)
+    is_on_surface(v0) && (g *= abs(dot(ns(v0), d)))
+    is_on_surface(v1) && (g *= abs(dot(ns(v1), d)))
+    vis = VisibilityTester(
+        get_interaction(get_interaction(v0)),
+        get_interaction(get_interaction(v1)),
+    )
+    return g * tr(vis, scene.b, sampler)
 end
