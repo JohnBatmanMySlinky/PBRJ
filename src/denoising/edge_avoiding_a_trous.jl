@@ -9,8 +9,10 @@ function denoise(img::Array{Float64}, filter_size::Int64)::Array{Float64}
 
     for step_width_tmp in 0:loop_range
         step_width = 2^step_width_tmp 
+        FileIO.save("yeehaw_UGH$(step_width_tmp).png", color_buffer)
         color_buffer = denoise_kernel(color_buffer, depth_buffer, normal_buffer, step_width)
     end
+    FileIO.save("yeehaw_UGH_end.png", color_buffer)
     return color_buffer
 end
 
@@ -28,9 +30,9 @@ function denoise_kernel(
 
     # define constants
     kernel = Float64[0.375, 0.25, 0.0625]
-    c_phi = 0.5
-    d_phi = 0.25
-    n_phi = 0.25
+    c_phi = 0.85
+    d_phi = 0.15
+    n_phi = 0.45
 
 
     # pixel loop
@@ -70,9 +72,9 @@ function denoise_kernel(
                 end
             end
             fin = total / cum_w
-            out_buffer[X,Y, 1] = fin.x
-            out_buffer[X,Y, 2] = fin.y
-            out_buffer[X,Y, 3] = fin.z
+            out_buffer[X, Y, 1] += fin.x
+            out_buffer[X, Y, 2] += fin.y
+            out_buffer[X, Y, 3] += fin.z
         end
     end
     return out_buffer
