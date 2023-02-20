@@ -104,20 +104,18 @@ function render_scene()
 
     I, scene = build_scene(parsed_args)
 
-    
-    x,y = I.camera.core.core.film.full_resolution
-    passes = zeros(Int(x), Int(y), 3, 4)
-    for render_pass_flag in [UInt8(0), UInt8(1), UInt8(2), UInt8(3)]
+    passes = Vector{Array{Float64}}(undef, 4)
+    for (i,render_pass_flag) in enumerate([UInt8(0), UInt8(1), UInt8(2), UInt8(3)])
         current_pass = render(
             I, 
             scene, 
             render_pass_flag,
             parsed_args["light-distribution-strategy"], 
         )
-        passes[:, :, :, render_pass_flag+1] = current_pass
+        passes[i] = current_pass
     end
-    image = denoise(passes, 10)
-    FileIO.save("yeehaw_denoise.png", image[end:-1:begin, :, :])
+    image = denoise(passes, 2)
+    FileIO.save("yeehaw_denoise.png", image)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
