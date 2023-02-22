@@ -196,15 +196,15 @@ function save(film::Film, render_pass_flag::UInt8, splat_scale::Float64 = 1.0)::
             image[y, x, :] .*= film.scale
         end
     end
-    # normalize depth pass to be [0,1]
+    # normalize depth and position pass to be [0,1]
     # also need make sure 0-1 not 1-0
-    if render_pass_flag == 2
+    # if (render_pass_flag == 2) || (render_pass_flag == 4) 
+    if (render_pass_flag == 2) || (render_pass_flag == 4)
         max_depth = maximum(image)
         min_depth = minimum(image)
         image .-= max_depth
         image ./= (min_depth - max_depth)
     end
     clamp!(image, 0.0, 1.0)
-    FileIO.save(film.filename, image[end:-1:begin, :, :])
     return image[end:-1:begin, :, :]
 end

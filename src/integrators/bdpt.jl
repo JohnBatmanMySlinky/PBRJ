@@ -11,12 +11,13 @@ function render(
     render_pass_flag::UInt8,
     light_dist_strat::String="uniform", 
 )::Array{Float64}
-    @assert render_pass_flag <= 3
+    @assert render_pass_flag <= 4
     """
     0 = full 
     1 = albedo
     2 = depth
     3 = normal
+    4 = position
     """
 
     # create light sampling light_distribution
@@ -123,12 +124,18 @@ function render(
                     if !check
                         L = Spectrum(0.0)
                     else
-                        if render_pass_flag == UInt(1) #albedo   
+                        if render_pass_flag == UInt(1) # albedo   
                             L = Spectrum(interaction.primitive.material.Kd(interaction))
-                        elseif render_pass_flag == UInt8(2) #depth
+                        elseif render_pass_flag == UInt8(2) # depth
                             L = Spectrum(t)
-                        elseif render_pass_flag == UInt8(3) #normal
+                        elseif render_pass_flag == UInt8(3) # normal
                             L = Spectrum(interaction.shading.n)
+                        elseif render_pass_flag == UInt8(4) # depth
+                            if any(isnan.(interaction.core.p))
+                                L = Spectrum(0.0)
+                            else
+                                L = Spectrum(interaction.core.p)
+                            end
                         else
                             @assert false
                         end
@@ -145,7 +152,7 @@ function render(
         update!(prog, jj[])
         Threads.unlock(l)
     end
-    @time got_film = i.camera.core.core.film
+    got_film = i.camera.core.core.film
     img = save(got_film, render_pass_flag)
     return img
 end

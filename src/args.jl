@@ -22,6 +22,14 @@ function parse_commandline()::Dict
             help = "strategy for sampling lights"
             arg_type = String
             default = "uniform"
+        "--denoise"
+            help = "apply edge_avoiding_a_trous or nah"
+            arg_type = Bool
+            default = false
+        "--denoise-steps"
+            help = "number of denoising steps"
+            arg_type = Int64
+            default = 1
         "--file-name"
             help = "name of file"
             arg_type = String
