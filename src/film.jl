@@ -169,10 +169,9 @@ function merge_film_tile!(f::Film, ft::FilmTile)
 end
 
 function add_splat!(f::Film, p::Pnt2, v::Spectrum)
-    pixel = get_pixel(f, p)
-    if !inside_exclusive(p, f.cropped_pixel_bounds)
-        Threads.atomic_add!(pixel.splat_xyz, AtomicPnt3(0.0, 0.0, 0.0))
-    else
+    pp = trunc.(p)
+    pixel = get_pixel(f, pp)
+    if inside_exclusive(pp, f.cropped_pixel_bounds)
         Threads.atomic_add!(pixel.splat_xyz, RGB_to_XYZ(v))
     end
 end

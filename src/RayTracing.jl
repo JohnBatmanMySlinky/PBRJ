@@ -8,6 +8,7 @@ using Statistics
 using ProgressMeter
 using Random
 using ArgParse
+using ProfileView
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -119,11 +120,12 @@ function render_scene()
                 parsed_args["light-distribution-strategy"], 
             )
             passes[i] = current_pass
+            # FileIO.save("debug_$(i).png", clamp01nan.(current_pass))
         end
         image = denoise(passes, parsed_args["denoise-steps"])
     elseif parsed_args["denoise"] == false
         I, scene = build_scene(parsed_args) # TODO get this outside the loop!
-        image = render(
+        @profview image = render(
             I, 
             scene, 
             UInt8(0),

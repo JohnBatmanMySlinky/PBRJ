@@ -21,7 +21,7 @@ function parse_commandline()::Dict
         "--light-distribution-strategy"
             help = "strategy for sampling lights"
             arg_type = String
-            default = "uniform"
+            default = "uniform" # or centroid_distance
         "--denoise"
             help = "apply edge_avoiding_a_trous or nah"
             arg_type = Bool

@@ -14,7 +14,7 @@ end
 function print_nice(path::Vector{Vertex})
     for i in 1:length(path)
         if isassigned(path,i)
-            print(path[i].type, " ")
+            print("  $(i): $(path[i].type) at $(p(path[i]))\n")
         end
     end
 end

@@ -9,7 +9,6 @@ function denoise(img::Vector{Array{Float64}}, filter_steps::Int64)::Array{Float6
     position_buffer = img[5] # position
 
     for step in 0:(filter_steps-1)
-        FileIO.save("debug_$(step).png", color_buffer)
         step_width = 2^step
         color_buffer = denoise_kernel(color_buffer, position_buffer, normal_buffer, step_width)
     end
