@@ -27,6 +27,7 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
         - the scene is lit through connecting camera rays to the light sources (aka basically direct lighting)
     - deepcopy is the devil
     - i thin the problem is when you go from light --> surface. light too bright? something in MISweight?
+    - to be continued on this branch
 - Triangles using UInt16 when small enough?
     - seems like I get a very small pay off when I did a quick test.
 - Implement light BVH (or spatial light distribution)
