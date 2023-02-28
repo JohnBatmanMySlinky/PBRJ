@@ -114,7 +114,10 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             )
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_concrete, nothing))
+            push!(primitives, Primitive(tri, mat_white, nothing))
+        end
+        for tri in floor
+            push!(primitives2, Primitive(tri, mat_red, nothing))
         end
 
         ################# CEILING
@@ -234,7 +237,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(disk, mat_white, nothing))
 
         ################# Pillar Area Lights
-        MULT = 5_000
+        MULT = 5_00
         yellow = Spectrum(1.0, 1.0, 0.0)
         white = Spectrum(1.0, 1.0, 1.0)
         blue = Spectrum(0.0, 0.0, 1.0)
@@ -268,7 +271,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ]
 
         t = Translate(Pnt3(0,0,0))
-        for (pmin, pmax, k, axis, brightness, flip) in pillar_area_light_spec
+        for (i, (pmin, pmax, k, axis, brightness, flip)) in enumerate(pillar_area_light_spec)
             tmp_rec = Rectangle(
                 pmin, 
                 pmax, 
@@ -291,6 +294,17 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 )
                 push!(lights, alight)
                 push!(primitives, Primitive(tri, mat_tmp, alight))
+            end
+            if (i == 6) || (i == 7) || (i == 8) || (i == 9) || (i == 10)
+                for tri in tmp_rec
+                    alight = DiffuseAreaLight(
+                        brightness*MULT,
+                        tri,
+                        false
+                    )
+                    push!(lights2, alight)
+                    push!(primitives2, Primitive(tri, mat_tmp, alight))
+                end
             end
         end
 
@@ -413,8 +427,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
         
         # instantiate accelerator
-        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
-        @time bvh = BVH(primitives)
+        print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives2)
         print("Done building BVH\n")
 
         # instantiate an env light
@@ -462,11 +476,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
-        print("There are " * num2str(length(lights)) * " lights in the scene\n")
-        scene = Scene(lights, bvh)
+        print("There are " * num2str(length(lights2)) * " lights in the scene\n")
+        scene = Scene(lights2, bvh)
         
         # Instantiate an Integrator
-        I = PathIntegrator(C, S, 25)
+        I = BDPTIntegrator(C, S, 10)
 
         return I, scene
     elseif parsed_args["scene-number"] == 2
@@ -513,7 +527,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_concrete, nothing))
+            push!(primitives, Primitive(tri, mat_gray, nothing))
         end
 
         # instantiate accelerator
@@ -650,7 +664,9 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return I, scene
     elseif parsed_args["scene-number"] == 4
         primitives = Primitive[]
+        primitives2 = Primitive[]
         lights = Light[]
+        lights2 = Light[]
 
         # MATERIALS
         mat_gray = Matte(
@@ -761,14 +777,14 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             554.0,
             2, 
             identity_shape_core,
-            false,
+            true,
             nothing
         )
         for tri in ceiling_light
             alight = DiffuseAreaLight(
-                Spectrum(500000.0,500000.0,500000.0),
+                Spectrum(500000.0, 500000.0, 500000.0),
                 tri,
-                true
+                false # NOT two sided
             )
             push!(lights,alight)
             push!(primitives, Primitive(tri, mat_white, alight))
@@ -852,7 +868,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = BDPTIntegrator(C, S, 5)
+        I = BDPTIntegrator(C, S, 3)
 
         return I, scene
     else

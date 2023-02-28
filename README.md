@@ -14,18 +14,22 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 - My obj parser is quite anemic.
 - Samplers are limited to Random and Stratified.
 - Scene specification is very verbose and done entirely within `scene_builder.jl`. Only a few things are parameterized thru the CLI.
-- There are lots of partially implemented things (ie BDPT has only been tested with AreaLights, not sure if all the CLI args work anymore, etc. ).
+- There are lots of partially implemented things: BDPT has only been tested with AreaLights, not sure if all the CLI args work anymore, some scenes might need to be updated etc.
 
 # TODO
 ## Features
-- Implement PathIntegrator
-    - document bxdf and bsdf and fresnel and stuff hierarchy!
-    - ~~add better light sampling strategies from github~~ (not doing, will wait for light bvh in v4)
-    - ~~infinite light is broken~~
-    - harmoinze bsdf flags and light flags
-- Implement Bidirectional Path Tracing
-    - move from book's `uniform_sample_one_light()` to the code's `light_distribution` abstraction 
-    - THEN what I implemented a `sample_lights_based_on_distance()` ? That should help the back hallway?
+- BDPT is buggy and don't really work
+    - s >= 2 is causing all of the fireflies.
+    - but also that's why the fucking roof is black!!!! bounces aren't working!!! the only thint bdpt is doing is like direct lighting?
+    - but that doesn't explain why the fucking munich re scene just dont be working
+    - OK so I think I have it figured out
+        - the DAL in cornell box is shooting rays up because my normals are fucked up.
+        - the scene is lit through connecting camera rays to the light sources (aka basically direct lighting)
+    - deepcopy is the devil
+    - i thin the problem is when you go from light --> surface. light too bright? something in MISweight?
+- Triangles using UInt16 when small enough?
+    - seems like I get a very small pay off when I did a quick test.
+- Implement light BVH (or spatial light distribution)
 - Implement Metroplois Light Transport Integrator
 - Implement more materials
     - Add metal material
@@ -42,6 +46,8 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 - Expand tests
 
 ## Debt
+- Implement passes with more dimensions of our film. Current method is hardcody and requires us to re-instantiate the scene every time!
+- What are my ray differentials actually being used for ?
 - Is my BSDF sampling right? I should create some tests here
 - Code
     - Static & dynamic code analysis
@@ -54,7 +60,7 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 - Infinite light sampling is very broken. 
 - My world is upside down! Use real pbrt to debug (or pxl-th's)
 - Halton sampler doesn't work for more than (0,1]^2
-- There is some aliasing around the edge of every time, it looks like an off by one error on the edge? Somewhere in the film or sampling...
+- There is some aliasing around the edge of every time, it looks like an off by one error on the edge? Somewhere in the film / film-tile or sampling...
 
 ## Ideas
 - Should I instantiate a list of samplers or stick with deepcopy()?

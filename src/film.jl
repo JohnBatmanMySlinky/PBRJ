@@ -169,15 +169,14 @@ function merge_film_tile!(f::Film, ft::FilmTile)
 end
 
 function add_splat!(f::Film, p::Pnt2, v::Spectrum)
-    pixel = get_pixel(f, p)
-    if !inside_exclusive(p, f.cropped_pixel_bounds)
-        Threads.atomic_add!(pixel.splat_xyz, AtomicPnt3(0.0, 0.0, 0.0))
-    else
+    pp = trunc.(p)
+    pixel = get_pixel(f, pp)
+    if inside_exclusive(pp, f.cropped_pixel_bounds)
         Threads.atomic_add!(pixel.splat_xyz, RGB_to_XYZ(v))
     end
 end
 
-function save(film::Film, splat_scale::Float64 = 1.0)
+function save(film::Film, render_pass_flag::UInt8, splat_scale::Float64 = 1.0)::Array{Float64}
     X, Y = size(film.pixels)
     image = Array{Float64}(undef, X, Y, 3)
     for y in 1:Y
@@ -196,6 +195,15 @@ function save(film::Film, splat_scale::Float64 = 1.0)
             image[y, x, :] .*= film.scale
         end
     end
+    # normalize depth and position pass to be [0,1]
+    # also need make sure 0-1 not 1-0
+    # if (render_pass_flag == 2) || (render_pass_flag == 4) 
+    if (render_pass_flag == 2) || (render_pass_flag == 4)
+        max_depth = maximum(image)
+        min_depth = minimum(image)
+        image .-= max_depth
+        image ./= (min_depth - max_depth)
+    end
     clamp!(image, 0.0, 1.0)
-    FileIO.save(film.filename, image[end:-1:begin, :, :])
+    return image[end:-1:begin, :, :]
 end

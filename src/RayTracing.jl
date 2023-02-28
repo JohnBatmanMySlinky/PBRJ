@@ -8,6 +8,7 @@ using Statistics
 using ProgressMeter
 using Random
 using ArgParse
+using ProfileView
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -95,13 +96,46 @@ include("handy_prints.jl")
 include("obj_reader.jl")
 include("args.jl")
 include("scene_builder.jl")
+include("denoising/edge_avoiding_a_trous.jl")
+
+const PASSDICT = Dict{UInt8, String}(
+    UInt(0) => "full pass",
+    UInt(1) => "albedo pass",
+    UInt(2) => "depth pass",
+    UInt(3) => "normal pass",
+    UInt(4) => "position pass",
+)
 
 function render_scene()
     parsed_args = parse_commandline()
 
-    I, scene = build_scene(parsed_args)
-
-    render(I, scene, parsed_args["render-simple"], parsed_args["light-distribution-strategy"])
+    if parsed_args["denoise"] == true
+        passes = Vector{Array{Float64}}(undef, 5)
+        for (i,render_pass_flag) in enumerate([UInt8(0), UInt8(1), UInt8(2), UInt8(3), UInt8(4)])
+            I, scene = build_scene(parsed_args) # TODO get this outside the loop!
+            current_pass = render(
+                I, 
+                scene, 
+                render_pass_flag,
+                parsed_args["light-distribution-strategy"], 
+            )
+            passes[i] = current_pass
+            # FileIO.save("debug_$(i).png", clamp01nan.(current_pass))
+        end
+        image = denoise(passes, parsed_args["denoise-steps"])
+    elseif parsed_args["denoise"] == false
+        I, scene = build_scene(parsed_args) # TODO get this outside the loop!
+        @profview image = render(
+            I, 
+            scene, 
+            UInt8(0),
+            parsed_args["light-distribution-strategy"], 
+        )
+    else
+        @assert false
+    end
+    image = clamp01nan.(image)
+    FileIO.save(I.camera.core.core.film.filename, image)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

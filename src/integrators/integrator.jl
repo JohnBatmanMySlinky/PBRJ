@@ -1,4 +1,4 @@
-function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, minimal::Bool=false)
+function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, render_pass_flag::UInt8, ::String)
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
     sample_extent = diagonal(sample_bounds)
     tile_size = 16
@@ -29,7 +29,7 @@ function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, minim
                 scale_differentials!(ray, 1.0 / sqrt(k_sampler.pixel_sampler.sampler.samples_per_pixel))
                 L = Spectrum(0)
 
-                if minimal
+                if render_pass_flag == 1
                     check, t, interaction, = intersect!(scene.b, ray)
                     if check
                         L = Spectrum(interaction.primitive.material.Kd(interaction))
@@ -59,7 +59,7 @@ function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, minim
         Threads.unlock(l)
     end
     @time got_film = i.camera.core.core.film
-    save(got_film)
+    save(got_film, render_pass_flag)
 end
 
 function uniform_sample_one_light(
