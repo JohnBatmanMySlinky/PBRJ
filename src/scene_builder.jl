@@ -740,7 +740,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             555.0,
             3, 
             identity_shape_core,
-            false,
+            true,
             nothing
         )
         for tri in backwall
@@ -764,7 +764,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             555.0,
             1, 
             identity_shape_core,
-            false,
+            true,
             nothing
         )
         for tri in rightwall
@@ -868,7 +868,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = BDPTIntegrator(C, S, 3)
+        I = BDPTIntegrator(C, S, 10)
 
         return I, scene
     else
