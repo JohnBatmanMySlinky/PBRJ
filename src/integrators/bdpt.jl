@@ -45,17 +45,17 @@ function render(
         # Render a single tile using BDPT
         x, y = k % width, k ÷ width
         tile = Pnt2(x, y)
-        tile_sampler = deepcopy(i.sampler)
+        sampler = deepcopy(i.sampler)
 
         tb_min = sample_bounds.pMin .+ tile .* tile_size
         tb_max = min.(tb_min .+ (tile_size - 1), sample_bounds.pMax)
         tile_bounds = Bounds2(tb_min, tb_max)
         film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
-            start_pixel!(tile_sampler, pixel)
-            while has_next_sample(tile_sampler)
+            start_pixel!(sampler, pixel)
+            while has_next_sample(sampler)
                 # Generate a single sample using BDPT
-                camera_sample = get_camera_sample!(tile_sampler, pixel)
+                camera_sample = get_camera_sample!(sampler, pixel)
 
                 if render_pass_flag == UInt8(0) # full pass
                     # instantiate the list of vertices
@@ -66,7 +66,7 @@ function render(
                     n_camera = generate_camera_subpath!(
                         camera_vertices,
                         scene, 
-                        tile_sampler, 
+                        sampler, 
                         i.max_depth + 2, 
                         i.camera,
                         camera_sample, 
@@ -79,7 +79,7 @@ function render(
                     n_light, light_num = generate_light_subpath!(
                         light_vertices,
                         scene,
-                        tile_sampler,
+                        sampler,
                         i.max_depth + 1,
                         time(camera_vertices[1]),
                         light_distr
@@ -87,6 +87,7 @@ function render(
 
                     # if k == total_tiles ÷ 2
                     #     print("\ntile number: $(k)\n")
+                    #     print("\nPixel: $(pixel)\n")
                     #     print("max depth: $(i.max_depth), nlight: $(n_light), ncamera: $(n_camera)\n")
                     #     print("Camera Vertices:\n")
                     #     print_nice(camera_vertices)
@@ -115,7 +116,7 @@ function render(
                                 light_distr,
                                 light_num,
                                 i.camera,
-                                tile_sampler,
+                                sampler,
                                 camera_sample.film
                             )
 
@@ -128,7 +129,7 @@ function render(
                     end
                 else
                     ray, _ = generate_ray_differential(i.camera, camera_sample)
-                    scale_differentials!(ray, 1.0 / sqrt(tile_sampler.pixel_sampler.sampler.samples_per_pixel))
+                    scale_differentials!(ray, 1.0 / sqrt(sampler.pixel_sampler.sampler.samples_per_pixel))
                     check, t, interaction, = intersect!(scene.b, ray)
 
                     if !check
@@ -152,7 +153,7 @@ function render(
                     end
                 end
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
-                start_next_sample!(tile_sampler)
+                start_next_sample!(sampler)
             end
         end
         merge_film_tile!(i.camera.core.core.film , film_tile)
@@ -206,14 +207,14 @@ function generate_light_subpath!(
     t::Float64, 
     light_distr::Distribution1D
 )::Tuple{Int64,Int64}
-    (max_depth == 0) && return 0
+    (max_depth == 0) && return 0, 0
     
     # sample initial ray for light subpath
-    light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
+    light_num, light_pdf, _ = sample_discrete(light_distr, rand())
     light = scene.lights[light_num]
-    Le, ray, n_light, pdf_pos, pdf_dir = sample_le(light, get_2D!(sampler), get_2D!(sampler), t)
+    Le, ray, n_light, pdf_pos, pdf_dir = sample_le(light, Pnt2(rand(), rand()), Pnt2(rand(), rand()), t)
     if (pdf_pos == 0.0) || (pdf_dir == 0.0)
-        return 0
+        return 0, 0
     end
 
     # generate first vertex on light subpath and start random walk
@@ -286,13 +287,15 @@ function random_walk!(
         path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
 
         bounces += 1
+        print("\nray interesected scene, surface added to idx $(vertex), bounces=$(bounces), max_depth=$(max_depth+path_offset)\n")
         if bounces >= max_depth + path_offset # JOHN HACK
             break
         end
 
         # sample BSDF at current vertex and compute reverse probability
         wo = isect.core.wo
-        wi, f, pdf, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
+        u = Pnt2(rand(), rand())
+        wi, f, pdf, sampled_type = sample_f(isect.bsdf, wo, u, BSDF_ALL)
         (pdf == 0.0) && break
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
