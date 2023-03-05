@@ -133,7 +133,47 @@ end
     print("\nLight Vertices:\n")
     RayTracing.print_nice(light_vertices)
 
+    # AIGHT NOW LETS CONNECT STUFF
+    print("\nConnecting Stuff\n")
+    L = RayTracing.Spectrum(0.0)
+    LL = RayTracing.Spectrum(0.0)
+    for t in 1:n_camera
+        for s in 0:n_light
+            depth = t + s - 2
+            print("\n  s: $(s), t: $(t), depth: $(depth)\n")
+            if ((s==1)&&(t==1) || (depth<0) || (depth>I.max_depth))
+                print("    early exit\n")
+                continue
+            end
+
+            mis_weight = 0.0
+            L_path, mis_weight, p_film_new = RayTracing.connect_BDPT(
+                scene,
+                light_vertices,
+                camera_vertices,
+                s,
+                t,
+                light_distr,
+                light_num,
+                I.camera,
+                I.sampler,
+                camera_sample.film
+            )
+            if t != 1
+                L += L_path
+            else
+                LL += L_path
+            end
+            print("    L: $(L)\n")
+            print("    LL: $(LL)\n")
+            print("    L_path: $(L_path)\n")
+            print("    mis_weight: $(mis_weight)\n")
+        end
+    end
+
     # why camera path so short?
         # first draw is [0,0]???
-    # why light path go to the ceiling first?
+    # figure out add splat, how to log that?
+    # why are there so many L_path = 0?
+    # why light path SOMETIMES go to the ceiling first?
 end
