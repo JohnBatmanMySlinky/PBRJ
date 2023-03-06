@@ -19,6 +19,10 @@ function print_nice(path::Vector{Vertex})
     end
 end
 
+function print_nice(v::Vertex)
+    print("    $(v.type) at $(p(v))\n")
+end
+
 function correct_shading_normal(isect::SurfaceInteraction, wo::Vec3, wi::Vec3, mode::Type{T})::Float64 where T <: TransportMode
     if mode == Importance
         num = abs(dot(wo, isect.shading.n)) * abs(dot(wi, isect.core.n))

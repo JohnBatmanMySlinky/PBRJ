@@ -342,6 +342,10 @@ function connect_BDPT(
         if is_light(pt)
             L = le(pt, scene, camera_vertices[t-2+1]) * pt.beta
         end
+        print("    Strategy: s==0\n")
+        print("    L: $(L)\n")
+        print_nice(pt)
+        print_nice(camera_vertices[t-2+1])
     elseif t == 1
         # sample a point on the camera and connect it to the light subpath
         qs = light_vertices[s-1+1]
