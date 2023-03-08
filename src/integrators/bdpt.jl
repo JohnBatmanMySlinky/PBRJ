@@ -338,6 +338,12 @@ function connect_BDPT(
     # perform connection and write contribution to L
     if s == 0
         # interpret the camera subpath as a complete path
+        """
+        The first case s==0 applies when no vertices on the light subpath are used 
+        and can only succeed when the camera subpath p0,p1,...,pt-1  is already a complete path—that is, 
+        when vertex pt-1 can be interpreted as a light source. 
+        In this case, L is set to the product of the path throughput weight and the emission at 
+        """
         pt = camera_vertices[t-1+1]
         if is_light(pt)
             L = le(pt, scene, camera_vertices[t-2+1]) * pt.beta
@@ -346,35 +352,59 @@ function connect_BDPT(
         print("    L: $(L)\n")
         print_nice(pt)
         print_nice(camera_vertices[t-2+1])
+        # --> for this seed, these should all be zero
+        @assert L == Spectrum(0.0)
     elseif t == 1
         # sample a point on the camera and connect it to the light subpath
+        """
+        The second case applies when t==1 that is,  when a prefix of the light subpath is directly connected to the camera. 
+        To permit optimized importance sampling strategies analogous to direct illumination routines for light sources, 
+        we will ignore the actual camera vertex p0 and sample a new one using Camera::Sample_Wi()—
+        this optimization corresponds to the second bullet listed at the beginning of Section 16.3. 
+        This type of connection can only succeed if the light subpath vertex qs-1 supports sampled connections; 
+        otherwise the BSDF at qs-1 will certainly return 0 and there’s no reason to attempt a connection.
+        """
+        print("    Strategy: t==1\n")
         qs = light_vertices[s-1+1]
+        print_nice(qs)
         if is_connectible(qs)
-            sampled_wi, wi, pdf, vis, pfilm = sample_wi(camera, get_interaction(qs), get_2D!(sampler))
-            if pdf > 0
+            sampled_wi, wi, pdf_val, vis, pfilm = sample_wi(camera, get_interaction(qs), get_2D!(sampler))
+            if pdf_val > 0
                 # initalize dynamically sampled vertex and L for t=1 case
-                sampled = create_camera_vertex(camera, vis.p1, sampled_wi / pdf)
+                sampled = create_camera_vertex(camera, vis.p1, sampled_wi / pdf_val)
+                print_nice(sampled)
                 L = qs.beta * f(qs, sampled, Importance) * tr(vis, scene.b, sampler) * sampled.beta
                 if is_on_surface(qs)
                     L *= abs(dot(wi, ns(qs)))
                 end
+                print("    L: $(L)\n")
+                print("    Splatted to $(pfilm)\n")
             end
         end
     elseif s == 1
         # sample a point on the light and connect it to the camera subpath
+        """
+        We omit the next case, s==1 , here. It corresponds to performing a direct lighting calculation at the last vertex of the camera subpath. 
+        Its implementation is similar to the t==1 case—the main differences are that roles of lights and cameras are exchanged 
+        and that a light source must be chosen using lightDistr before a light sample can be generated.
+        """
+        print("    Strategy: s==1\n")
         pt = camera_vertices[t-1+1]
+        print_nice(pt)
         if is_connectible(pt)
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
-            sampled_li, wi, pdf, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
-            if pdf > 0
+            sampled_li, wi, pdf_val, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
+            if pdf_val > 0
                 ei = EndpointInteraction(vis.p1, light)
-                sampled = create_light_vertex(ei, sampled_li/(pdf*light_pdf), 0.0)
+                sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
+                print_nice(sampled)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled, Radiance) * tr(vis, scene.b, sampler) * sampled.beta
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))
                 end
+                print("    L: $(L)\n")
             end
         end
     else

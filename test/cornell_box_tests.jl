@@ -159,11 +159,15 @@ end
                 camera_sample.film
             )
 
+            print("    mis_weight: $(mis_weight)\n")
             if t != 1
                 L += L_path
+                print("    Final L: $(L)\n")
+            else
+                RayTracing.add_splat!(I.camera.core.core.film, p_film_new, L_path)
+                print("    Splatted L: $(L_path)")
             end
-            print("    L_path: $(L_path)\n")
-            print("    mis_weight: $(mis_weight)\n")
+            print("\n")
         end
     end
 
