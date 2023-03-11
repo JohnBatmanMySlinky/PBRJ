@@ -71,7 +71,7 @@ end
 function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, UInt8}
     # Choose which BxDF to sample.
     matching_components = num_components(b, type)
-    print("  Sampling BSDF: matching components $(matching_components)\n")
+    (DEBUG == true) && print("  Sampling BSDF: matching components $(matching_components)\n")
     matching_components == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)
     component = min(
         max(1, Int64(ceil(u[1] * matching_components))),
@@ -96,9 +96,9 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
         min(u.x * matching_components - component, 1), u.y,
     )
     # Sample chosen BxDF.
-    print("  Sampling BSDF: global wo $(wo_world)\n")
+    (DEBUG == true) && print("  Sampling BSDF: global wo $(wo_world)\n")
     wo = world_to_local(b, wo_world)
-    print("  Sampling BSDF: local wo $(wo)\n")
+    (DEBUG == true) && print("  Sampling BSDF: local wo $(wo)\n")
     wo.z == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)   
 
     # TODO when to update sampled type
@@ -108,11 +108,11 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
         sampled_type = sampled_type_tmp
     end
 
-    print("  Sampling BSDF: u $(u)\n")
-    print("  Sampling BSDF: u_remapped $(u_remapped)\n")
-    print("  Sampling BSDF: wi $(wi)\n")
-    print("  Sampling BSDF: pdf $(pdf)\n")
-    print("  Sampling BSDF: f_val $(f_val)\n")
+    (DEBUG == true) && print("  Sampling BSDF: u $(u)\n")
+    (DEBUG == true) && print("  Sampling BSDF: u_remapped $(u_remapped)\n")
+    (DEBUG == true) && print("  Sampling BSDF: wi $(wi)\n")
+    (DEBUG == true) && print("  Sampling BSDF: pdf $(pdf)\n")
+    (DEBUG == true) && print("  Sampling BSDF: f_val $(f_val)\n")
 
     pdf == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)
 

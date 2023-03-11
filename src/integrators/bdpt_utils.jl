@@ -20,7 +20,7 @@ function print_nice(path::Vector{Vertex})
 end
 
 function print_nice(v::Vertex)
-    print("    $(v.type) at $(p(v))\n")
+    print("    $(v.type) at $(p(v)) beta $(v.beta)\n")
 end
 
 function correct_shading_normal(isect::SurfaceInteraction, wo::Vec3, wi::Vec3, mode::Type{T})::Float64 where T <: TransportMode

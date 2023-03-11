@@ -9,6 +9,7 @@ function render(
     i::BDPTIntegrator, 
     scene::Scene, 
     render_pass_flag::UInt8,
+    bdpt_pass::Tuple{Int64, Int64}=(-1,-1),
     light_dist_strat::String="uniform", 
 )::Array{Float64}
     @assert render_pass_flag <= 4
@@ -57,6 +58,7 @@ function render(
                 # Generate a single sample using BDPT
                 camera_sample = get_camera_sample!(sampler, pixel)
 
+                L = Spectrum(0.0)
                 if render_pass_flag == UInt8(0) # full pass
                     # instantiate the list of vertices
                     camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
@@ -85,45 +87,35 @@ function render(
                         light_distr
                     )
 
-                    # if k == total_tiles ÷ 2
-                    #     print("\ntile number: $(k)\n")
-                    #     print("\nPixel: $(pixel)\n")
-                    #     print("max depth: $(i.max_depth), nlight: $(n_light), ncamera: $(n_camera)\n")
-                    #     print("Camera Vertices:\n")
-                    #     print_nice(camera_vertices)
-                    #     print("\nLight Vertices:\n")
-                    #     print_nice(light_vertices)
-                    #     @assert false
-                    # end
-
                     # execute all BDPT connection strategies
                     # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
-                    L = Spectrum(0.0)
                     for t in 1:n_camera
                         for s in 0:n_light
-                            depth = t + s - 2
-                            if ((s==1)&&(t==1) || (depth<0) || (depth>i.max_depth))
-                                continue
-                            end
+                            if ((s,t) == bdpt_pass) || (bdpt_pass == (-1,-1))
+                                depth = t + s - 2
+                                if ((s==1)&&(t==1) || (depth<0) || (depth>i.max_depth))
+                                    continue
+                                end
 
-                            mis_weight = 0.0
-                            L_path, mis_weight, p_film_new = connect_BDPT(
-                                scene,
-                                light_vertices,
-                                camera_vertices,
-                                s,
-                                t,
-                                light_distr,
-                                light_num,
-                                i.camera,
-                                sampler,
-                                camera_sample.film
-                            )
+                                mis_weight = 0.0
+                                L_path, mis_weight, p_film_new = connect_BDPT(
+                                    scene,
+                                    light_vertices,
+                                    camera_vertices,
+                                    s,
+                                    t,
+                                    light_distr,
+                                    light_num,
+                                    i.camera,
+                                    sampler,
+                                    camera_sample.film
+                                )
 
-                            if t != 1
-                                L += L_path
-                            else
-                                add_splat!(i.camera.core.core.film, p_film_new, L)
+                                if t != 1
+                                    L += L_path
+                                else
+                                    add_splat!(i.camera.core.core.film, p_film_new, L_path)
+                                end
                             end
                         end
                     end
@@ -287,7 +279,7 @@ function random_walk!(
         path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
 
         bounces += 1
-        print("\nray interesected scene, surface added to idx $(vertex), bounces=$(bounces), max_depth=$(max_depth+path_offset)\n")
+        (DEBUG == true) && print("\nray interesected scene, surface added to idx $(vertex), bounces=$(bounces), max_depth=$(max_depth+path_offset)\n")
         if bounces >= max_depth + path_offset # JOHN HACK
             break
         end
@@ -348,12 +340,12 @@ function connect_BDPT(
         if is_light(pt)
             L = le(pt, scene, camera_vertices[t-2+1]) * pt.beta
         end
-        print("    Strategy: s==0\n")
-        print("    L: $(L)\n")
-        print_nice(pt)
-        print_nice(camera_vertices[t-2+1])
+        (DEBUG == true) && print("    Strategy: s==0\n")
+        (DEBUG == true) && print("    L: $(L)\n")
+        (DEBUG == true) && print_nice(pt)
+        (DEBUG == true) && print_nice(camera_vertices[t-2+1])
         # --> for this seed, these should all be zero
-        @assert L == Spectrum(0.0)
+        (DEBUG == true) && @assert L == Spectrum(0.0)
     elseif t == 1
         # sample a point on the camera and connect it to the light subpath
         """
@@ -364,21 +356,21 @@ function connect_BDPT(
         This type of connection can only succeed if the light subpath vertex qs-1 supports sampled connections; 
         otherwise the BSDF at qs-1 will certainly return 0 and there’s no reason to attempt a connection.
         """
-        print("    Strategy: t==1\n")
+        (DEBUG == true) && print("    Strategy: t==1\n")
         qs = light_vertices[s-1+1]
-        print_nice(qs)
+        (DEBUG == true) && print_nice(qs)
         if is_connectible(qs)
             sampled_wi, wi, pdf_val, vis, pfilm = sample_wi(camera, get_interaction(qs), get_2D!(sampler))
             if pdf_val > 0
                 # initalize dynamically sampled vertex and L for t=1 case
                 sampled = create_camera_vertex(camera, vis.p1, sampled_wi / pdf_val)
-                print_nice(sampled)
+                (DEBUG == true) && print_nice(sampled)
                 L = qs.beta * f(qs, sampled, Importance) * tr(vis, scene.b, sampler) * sampled.beta
                 if is_on_surface(qs)
                     L *= abs(dot(wi, ns(qs)))
                 end
-                print("    L: $(L)\n")
-                print("    Splatted to $(pfilm)\n")
+                (DEBUG == true) && print("    L: $(L)\n")
+                (DEBUG == true) && print("    Splatted to $(pfilm)\n")
             end
         end
     elseif s == 1
@@ -388,9 +380,9 @@ function connect_BDPT(
         Its implementation is similar to the t==1 case—the main differences are that roles of lights and cameras are exchanged 
         and that a light source must be chosen using lightDistr before a light sample can be generated.
         """
-        print("    Strategy: s==1\n")
+        (DEBUG == true) && print("    Strategy: s==1\n")
         pt = camera_vertices[t-1+1]
-        print_nice(pt)
+        (DEBUG == true) && print_nice(pt)
         if is_connectible(pt)
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
@@ -398,29 +390,36 @@ function connect_BDPT(
             if pdf_val > 0
                 ei = EndpointInteraction(vis.p1, light)
                 sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
-                print_nice(sampled)
+                (DEBUG == true) && print_nice(sampled)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled, Radiance) * tr(vis, scene.b, sampler) * sampled.beta
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))
                 end
-                print("    L: $(L)\n")
+                (DEBUG == true) && print("    L: $(L)\n")
             end
         end
     else
         # handle all other bidirectional connection cases
         qs = light_vertices[s-1+1]
         pt = camera_vertices[t-1+1]
+        (DEBUG == true) && print("    Strategy: s==1\n")
+        (DEBUG == true) && print_nice(pt)
+        (DEBUG == true) && print_nice(qs)
         if is_connectible(qs) && is_connectible(pt)
+            (DEBUG == true) && print("    f radiance: $(f(pt, qs, Radiance))\n")
+            (DEBUG == true) && print("    f importance: $(f(qs, pt, Importance))\n")
             L = qs.beta * f(qs, pt, Importance) * f(pt, qs, Radiance) * pt.beta
+            (DEBUG == true) && print("    L pre G: $(L)\n")
             # JOHN HACK: if not black --> always
             L *= G(scene, sampler, qs, pt)
         end
+        (DEBUG == true) && print("    L: $(L)\n")
     end
 
     # compute MIS weight for connection strategy
     mis_weight = MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr, light_num)
-    L *= mis_weight
+    (DO_MIS_WEIGHT) && (L *= mis_weight)
     return L, mis_weight, pfilm
 end
 

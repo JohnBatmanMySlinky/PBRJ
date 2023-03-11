@@ -680,17 +680,17 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         mat_red = Matte(
-            ConstantTexture(Vec3(1, 0, 0)),
+            ConstantTexture(Vec3(.9, 0.05, 0.05)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
         mat_blue = Matte(
-            ConstantTexture(Vec3(0, 0, 1)),
+            ConstantTexture(Vec3(0.05, 0.05, .9)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
         mat_green = Matte(
-            ConstantTexture(Vec3(0, 1, 0)),
+            ConstantTexture(Vec3(0.05, 0.9, 0.05)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
