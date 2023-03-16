@@ -314,19 +314,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
             ts = -ts
         end
         set_shading_geomerty!(interaction, ss, ts, dndu, dndv, true)
-        # print("here \n")
-        # print("ss: ", ss, "\n")
-        # print("ss: ", ts, "\n")
-        # print("cross: ", cross(ss, ts), "\n")
-        # print("n: ", interaction.core.n, "\n")
-        # print("shading n: ", interaction.shading.n, "\n")
-        # asdf
     end
-
-    # if abs(dot(interaction.core.n, interaction.shading.n)) == 0
-    #     print(interaction.core.n, "\n")
-    #     print(interaction.shading.n, "\n")
-    # end
     return true, t, interaction 
 end
 

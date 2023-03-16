@@ -106,7 +106,7 @@ const PASSDICT = Dict{UInt8, String}(
 )
 
 # only use this with test/cornell_box.jl, it prints lots of stuff
-const DEBUG = false
+const DEBUG = true
 
 # do MIS_weight or nah
 const DO_MIS_WEIGHT = false
@@ -115,9 +115,9 @@ const DO_MIS_WEIGHT = false
 # (-1,-1) should result in a normal full render
 const BDPT_STAGES = [
     (-1,-1),
-    # (0,3),
-    # (1,2),
-    # (2,1),
+    (0,3),
+    (1,2),
+    (2,1),
     # (0,4),
     # (1,3),
     # (2,2),

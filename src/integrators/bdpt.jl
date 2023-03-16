@@ -250,7 +250,7 @@ function random_walk!(
 
     while true
         # attempt to create the next subpath verte in *path*
-        check, _, isect = intersect!(scene.b, ray)
+        check, t, isect = intersect!(scene.b, ray)
         
         # JOHN HACK --> no medium no is black so continue
 
@@ -279,7 +279,7 @@ function random_walk!(
         path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
 
         bounces += 1
-        (DEBUG == true) && print("\nray interesected scene, surface added to idx $(vertex), bounces=$(bounces), max_depth=$(max_depth+path_offset)\n")
+        (DEBUG == true) && print("\nray interesected scene (t=$(t)), surface added to idx $(vertex), bounces=$(bounces), max_depth=$(max_depth+path_offset)\n")
         if bounces >= max_depth + path_offset # JOHN HACK
             break
         end
@@ -287,6 +287,7 @@ function random_walk!(
         # sample BSDF at current vertex and compute reverse probability
         wo = isect.core.wo
         u = Pnt2(rand(), rand())
+        (DEBUG == true) && print("  Sampling BSDF: from p: $(isect.core.p), n: $(isect.core.n), t: $(isect.core.t)\n")
         wi, f, pdf, sampled_type = sample_f(isect.bsdf, wo, u, BSDF_ALL)
         (pdf == 0.0) && break
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd

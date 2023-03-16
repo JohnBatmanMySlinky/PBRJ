@@ -92,6 +92,23 @@ I, scene = RayTracing.build_scene(parsed_args)
     @test sampled_li ≈ [0.0, 0.0, 0.0]
     @test wi ≈ RayTracing.normalize(pshape - intersection.core.p)
     @test nshape ≈ [0.0, -1.0, 0.0]
+
+    # CEILING LIGHT TESTING
+    target_pnt = RayTracing.Pnt3(278, 554, 278)
+    test_ray = RayTracing.Ray(
+        camera_pnt,
+        target_pnt-camera_pnt,
+        0,
+        typemax(Float64)
+    )
+    check, t, intersection = RayTracing.intersect!(scene.b, test_ray)
+    @test intersection.core.p ≈ target_pnt
+    @test intersection.core.n ≈ [0.0, -1.0, 0.0]
+    @test intersection.shading.n ≈ [0.0, -1.0, 0.0]
+
+    pshape, nshape = RayTracing.sample(intersection.shape, RayTracing.Pnt2(.5, .5))
+    @assert pshape.y ≈ 554.0
+    @test nshape ≈ [0.0, -1.0, 0.0]
 end
 
 @testset "BDPT Integrator Testing" begin
@@ -99,7 +116,7 @@ end
     I, scene = RayTracing.build_scene(parsed_args)
 
     # setup
-    RayTracing.Random.seed!(5) # 4 was good
+    RayTracing.Random.seed!(7) # 4 was good
     light_distr_generator = RayTracing.LightDistribution("uniform", scene)
     pixel = RayTracing.Pnt2(241, 113)
     camera_sample = RayTracing.get_camera_sample!(I.sampler, pixel)
