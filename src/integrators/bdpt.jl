@@ -87,6 +87,14 @@ function render(
                         light_distr
                     )
 
+                    # no s[2] should be on the ceiling!
+                    # if isassigned(light_vertices, 2)
+                    #     if abs(p(light_vertices[2]).y - 550.0) < .2
+                    #         print_nice(light_vertices)
+                    #         @assert false
+                    #     end
+                    # end
+
                     # execute all BDPT connection strategies
                     # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
                     for t in 1:n_camera
@@ -155,7 +163,7 @@ function render(
         Threads.unlock(l)
     end
     got_film = i.camera.core.core.film
-    img = save(got_film, render_pass_flag)
+    img = save(got_film, render_pass_flag, 1.0/i.sampler.pixel_sampler.sampler.samples_per_pixel)
     return img
 end
 
@@ -248,7 +256,10 @@ function random_walk!(
     # JOHN HACK
     bounces += path_offset
 
+    COUNTER = 0
+
     while true
+        COUNTER += 1
         # attempt to create the next subpath verte in *path*
         check, t, isect = intersect!(scene.b, ray)
         
@@ -278,6 +289,14 @@ function random_walk!(
         # initialize vertex with surface scattering information
         path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
 
+        # need to go earlier to understand how we get here
+        # if (vertex==2) && (abs(p(path[vertex]).y - 555.0) < .5) && (mode == Importance)
+        #     print("COUNTER: $(COUNTER)\n")
+        #     print_nice(path)
+        #     print("\nray: o: $(ray.origin), d: $(ray.direction)\n")
+        #     @assert false
+        # end
+
         bounces += 1
         (DEBUG == true) && print("\nray interesected scene (t=$(t)), surface added to idx $(vertex), bounces=$(bounces), max_depth=$(max_depth+path_offset)\n")
         if bounces >= max_depth + path_offset # JOHN HACK
@@ -288,7 +307,7 @@ function random_walk!(
         wo = isect.core.wo
         u = Pnt2(rand(), rand())
         (DEBUG == true) && print("  Sampling BSDF: from p: $(isect.core.p), n: $(isect.core.n), t: $(isect.core.t)\n")
-        wi, f, pdf, sampled_type = sample_f(isect.bsdf, wo, u, BSDF_ALL)
+        wi, f, pdf, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
         (pdf == 0.0) && break
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
@@ -298,6 +317,13 @@ function random_walk!(
             pdf_fwd = 0.0
         end
         beta *= correct_shading_normal(isect, wo, wi, mode)
+
+        # need to go earlier to understand how we get here
+        # if (vertex==1) && (wi.y > 0) && (mode == Importance)
+        #     print_nice(path)
+        #     @assert false
+        # end
+
         ray = spawn_ray(isect.core, wi)
         
         # Compute reverse area density at preceding vertex
@@ -362,11 +388,20 @@ function connect_BDPT(
         (DEBUG == true) && print_nice(qs)
         if is_connectible(qs)
             sampled_wi, wi, pdf_val, vis, pfilm = sample_wi(camera, get_interaction(qs), get_2D!(sampler))
+            (DEBUG == true) && print("    sampled_wi: $(sampled_wi)\n")
+            (DEBUG == true) && print("    wi: $(wi)\n")
+            (DEBUG == true) && print("    pdf_val: $(pdf_val)\n")
             if pdf_val > 0
                 # initalize dynamically sampled vertex and L for t=1 case
                 sampled = create_camera_vertex(camera, vis.p1, sampled_wi / pdf_val)
                 (DEBUG == true) && print_nice(sampled)
-                L = qs.beta * f(qs, sampled, Importance) * tr(vis, scene.b, sampler) * sampled.beta
+                (DEBUG == true) && print("    unoccluded: $(unoccluded(vis, scene.b))\n")
+                ff = f(qs, sampled, Importance)
+                trtr = tr(vis, scene.b, sampler)
+                (DEBUG == true) && print("    f: $(ff)\n")
+                (DEBUG == true) && print("    tr: $(trtr)\n")
+                (DEBUG == true) && print("    unoccluded: $(unoccluded(vis, scene.b))\n")
+                L = qs.beta * ff * trtr * sampled.beta
                 if is_on_surface(qs)
                     L *= abs(dot(wi, ns(qs)))
                 end

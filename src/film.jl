@@ -170,10 +170,9 @@ end
 
 function add_splat!(f::Film, p::Pnt2, v::Spectrum)
     pp = trunc.(p)
+    (!inside_exclusive(pp, f.cropped_pixel_bounds)) && (return )
     pixel = get_pixel(f, pp)
-    if inside_exclusive(pp, f.cropped_pixel_bounds)
-        Threads.atomic_add!(pixel.splat_xyz, RGB_to_XYZ(v))
-    end
+    Threads.atomic_add!(pixel.splat_xyz, RGB_to_XYZ(v))
 end
 
 function save(film::Film, render_pass_flag::UInt8, splat_scale::Float64 = 1.0)::Array{Float64}

@@ -147,7 +147,7 @@ end
 function spawn_shadow_ray(p0::Interaction, p1::Interaction, delta::Float64 = 1e-6,)::RayDifferential
     direction = p1.p - p0.p
     origin = p0.p .+ delta .* direction
-    return RayDifferential(Ray(origin, direction, 0, p0.t))
+    return RayDifferential(Ray(origin, direction, p0.t, typemax(Float64)))
 end
 
 

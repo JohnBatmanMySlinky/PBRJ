@@ -109,6 +109,30 @@ I, scene = RayTracing.build_scene(parsed_args)
     pshape, nshape = RayTracing.sample(intersection.shape, RayTracing.Pnt2(.5, .5))
     @assert pshape.y ≈ 554.0
     @test nshape ≈ [0.0, -1.0, 0.0]
+
+    for (camera_pnt, target_pnt) in [
+        # SEED #7 BELOW TEST CAMERA SUBPATH
+        (RayTracing.Pnt3(278.0, 278.0, -800.0),RayTracing.Pnt3(0.0, 249.24137931034483, 23.0589683280011)),
+        (RayTracing.Pnt3(0.0, 249.24137931034483, 23.0589683280011), RayTracing.Pnt3(180.38923368317072, 164.99999999999997, 90.06130879336669)),
+        (RayTracing.Pnt3(180.38923368317072, 164.99999999999997, 90.06130879336669), RayTracing.Pnt3(0.0, 411.8509731775406, 13.66910744192591)), # FAIL
+
+        # SEED #7 BELOW TEST LIGHT SUBPATH
+        (RayTracing.Pnt3(332.49571282420624, 553.9999987867491, 288.5478611916255), RayTracing.Pnt3(117.66209544061475, 0.0, 316.16990624694336)),
+        (RayTracing.Pnt3(117.66209544061475, 0.0, 316.16990624694336), RayTracing.Pnt3(148.6744461856998, 74.99447612195571, 244.55896238128943)),
+        (RayTracing.Pnt3(148.6744461856998, 74.99447612195571, 244.55896238128943), RayTracing.Pnt3(232.98878517040146, 0.0, 114.12326887170006)),
+        (RayTracing.Pnt3(232.98878517040146, 0.0, 114.12326887170006), RayTracing.Pnt3(250.6827710219146, 10.262655033072324, 104.21220930098588)),
+    ]
+        direction = RayTracing.normalize(target_pnt-camera_pnt)
+        origin = camera_pnt .+ 1e-6 .* direction
+        test_ray = RayTracing.Ray(
+            origin,
+            direction,
+            0,
+            typemax(Float64)
+        )
+        check, t, intersection = RayTracing.intersect!(scene.b, test_ray)
+        @test intersection.core.p ≈ target_pnt
+    end
 end
 
 @testset "BDPT Integrator Testing" begin
@@ -116,7 +140,7 @@ end
     I, scene = RayTracing.build_scene(parsed_args)
 
     # setup
-    RayTracing.Random.seed!(7) # 4 was good
+    RayTracing.Random.seed!(10) # 4 was good
     light_distr_generator = RayTracing.LightDistribution("uniform", scene)
     pixel = RayTracing.Pnt2(241, 113)
     camera_sample = RayTracing.get_camera_sample!(I.sampler, pixel)
