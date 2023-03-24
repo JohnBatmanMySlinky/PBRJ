@@ -87,14 +87,6 @@ function render(
                         light_distr
                     )
 
-                    # no s[2] should be on the ceiling!
-                    # if isassigned(light_vertices, 2)
-                    #     if abs(p(light_vertices[2]).y - 550.0) < .2
-                    #         print_nice(light_vertices)
-                    #         @assert false
-                    #     end
-                    # end
-
                     # execute all BDPT connection strategies
                     # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
                     for t in 1:n_camera
@@ -210,9 +202,9 @@ function generate_light_subpath!(
     (max_depth == 0) && return 0, 0
     
     # sample initial ray for light subpath
-    light_num, light_pdf, _ = sample_discrete(light_distr, rand())
+    light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
     light = scene.lights[light_num]
-    Le, ray, n_light, pdf_pos, pdf_dir = sample_le(light, Pnt2(rand(), rand()), Pnt2(rand(), rand()), t)
+    Le, ray, n_light, pdf_pos, pdf_dir = sample_le(light, get_2D!(sampler), get_2D!(sampler), t)
     if (pdf_pos == 0.0) || (pdf_dir == 0.0)
         return 0, 0
     end
@@ -288,15 +280,6 @@ function random_walk!(
         
         # initialize vertex with surface scattering information
         path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
-
-        # need to go earlier to understand how we get here
-        # if (vertex==2) && (abs(p(path[vertex]).y - 555.0) < .5) && (mode == Importance)
-        #     print("COUNTER: $(COUNTER)\n")
-        #     print_nice(path)
-        #     print("\nray: o: $(ray.origin), d: $(ray.direction)\n")
-        #     @assert false
-        # end
-
         bounces += 1
         (DEBUG == true) && print("\nray interesected scene (t=$(t)), surface added to idx $(vertex), bounces=$(bounces), max_depth=$(max_depth+path_offset)\n")
         if bounces >= max_depth + path_offset # JOHN HACK
@@ -305,7 +288,6 @@ function random_walk!(
 
         # sample BSDF at current vertex and compute reverse probability
         wo = isect.core.wo
-        u = Pnt2(rand(), rand())
         (DEBUG == true) && print("  Sampling BSDF: from p: $(isect.core.p), n: $(isect.core.n), t: $(isect.core.t)\n")
         wi, f, pdf, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
         (pdf == 0.0) && break
@@ -317,13 +299,6 @@ function random_walk!(
             pdf_fwd = 0.0
         end
         beta *= correct_shading_normal(isect, wo, wi, mode)
-
-        # need to go earlier to understand how we get here
-        # if (vertex==1) && (wi.y > 0) && (mode == Importance)
-        #     print_nice(path)
-        #     @assert false
-        # end
-
         ray = spawn_ray(isect.core, wi)
         
         # Compute reverse area density at preceding vertex
@@ -371,8 +346,6 @@ function connect_BDPT(
         (DEBUG == true) && print("    L: $(L)\n")
         (DEBUG == true) && print_nice(pt)
         (DEBUG == true) && print_nice(camera_vertices[t-2+1])
-        # --> for this seed, these should all be zero
-        (DEBUG == true) && @assert L == Spectrum(0.0)
     elseif t == 1
         # sample a point on the camera and connect it to the light subpath
         """

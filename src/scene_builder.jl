@@ -127,8 +127,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt2(foyer_dim/2, foyer_dim/2), 
             ceiling_height,
             2, 
-            ShapeCore(ceiling_transform, Inv(ceiling_transform), false, false),
-            true,
+            ShapeCore(ceiling_transform, Inv(ceiling_transform), true, false),
+            false,
             MixAddTexture(
                 CircleProceduralTexture(
                     Pnt2(.5, .5),
@@ -219,7 +219,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ceiling_height-ceiling_circle_offset,
             ceiling_circle_height,
             360.0,
-            false,
+            true,
             false
         )
         disk_t = RotateX(-90.0)
@@ -229,7 +229,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ceiling_whole_size+ceiling_circle_thickness/2,
             ceiling_whole_size-ceiling_circle_thickness/2,
             360.0,
-            false,
+            true,
             false
         )
         push!(primitives, Primitive(outer_cyl, mat_white, nothing))
@@ -237,7 +237,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(disk, mat_white, nothing))
 
         ################# Pillar Area Lights
-        MULT = 5_00
+        MULT = 50
         yellow = Spectrum(1.0, 1.0, 0.0)
         white = Spectrum(1.0, 1.0, 1.0)
         blue = Spectrum(0.0, 0.0, 1.0)
@@ -384,8 +384,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt2(hallway_total_length/2, hallway_width/2), 
             ceiling_height,
             2, 
-            ShapeCore(cewall_transform, Inv(cewall_transform), false, false),
-            true,
+            ShapeCore(cewall_transform, Inv(cewall_transform), true, false),
+            false,
             nothing
         )
         for tri in cewall
@@ -427,8 +427,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
         
         # instantiate accelerator
-        print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
-        @time bvh = BVH(primitives2)
+        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
         # instantiate an env light
@@ -476,11 +476,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
-        print("There are " * num2str(length(lights2)) * " lights in the scene\n")
-        scene = Scene(lights2, bvh)
+        print("There are " * num2str(length(lights)) * " lights in the scene\n")
+        scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = BDPTIntegrator(C, S, 10)
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
 
         return I, scene
     elseif parsed_args["scene-number"] == 2
@@ -499,6 +499,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         mat_blue = Matte(
             ConstantTexture(Vec3(0, .4, .8)),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
+        )
+        mat_gray = Matte(
+            ConstantTexture(Vec3(.4, .4, .4)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
@@ -574,7 +579,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = PathIntegrator(C, S, 25)
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
 
         return I, scene
     elseif parsed_args["scene-number"] == 3
@@ -659,8 +664,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = PathIntegrator(C, S, 25)
-
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
         return I, scene
     elseif parsed_args["scene-number"] == 4
         primitives = Primitive[]
@@ -868,7 +872,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = BDPTIntegrator(C, S, 4)
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
 
         return I, scene
     else

@@ -18,18 +18,9 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 
 # TODO
 ## Features
-- BDPT is buggy and don't really work
-    - s >= 2 is causing all of the fireflies.
-    - but also that's why the fucking roof is black!!!! bounces aren't working!!! the only thint bdpt is doing is like direct lighting?
-    - but that doesn't explain why the fucking munich re scene just dont be working
-    - OK so I think I have it figured out
-        - the DAL in cornell box is shooting rays up because my normals are fucked up.
-        - the scene is lit through connecting camera rays to the light sources (aka basically direct lighting)
-    - deepcopy is the devil
-    - i thin the problem is when you go from light --> surface. light too bright? something in MISweight?
-    - to be continued on this branch
-    - I think MIS weight dont work either
-    - MAKE SURE TO SPLAT LPATH NOT L!
+- BDPT is much less buggy now!
+    - implement spectrum is black checks
+    - move to exr?
 - Triangles using UInt16 when small enough?
     - seems like I get a very small pay off when I did a quick test.
 - Implement light BVH (or spatial light distribution)

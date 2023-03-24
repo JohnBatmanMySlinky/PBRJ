@@ -115,26 +115,26 @@ const DO_MIS_WEIGHT = true
 # (-1,-1) should result in a normal full render
 const BDPT_STAGES = [
     (-1,-1),
-    (0,3),
-    (0,2),
-    (1,2),
-    (2,1),
-    (3,1),
-    (0,4),
-    (1,3),
-    (2,2),
-    (3,1),
-    (0,5),
-    (1,4),
-    (2,3),
-    (3,2),
-    (4,1),
-    (0,6),
-    (1,5),
-    (2,4),
-    (3,3),
-    (4,2),
-    (5,1)
+    # (0,3),
+    # (0,2),
+    # (1,2),
+    # (2,1),
+    # (3,1),
+    # (0,4),
+    # (1,3),
+    # (2,2),
+    # (3,1),
+    # (0,5),
+    # (1,4),
+    # (2,3),
+    # (3,2),
+    # (4,1),
+    # (0,6),
+    # (1,5),
+    # (2,4),
+    # (3,3),
+    # (4,2),
+    # (5,1)
 ]
 
 function render_scene()
@@ -163,7 +163,7 @@ function render_scene()
             image = render(
                 I, 
                 scene, 
-                UInt8(0),
+                UInt8(0), # full pass
                 bdpt_pass,
                 parsed_args["light-distribution-strategy"], 
             )

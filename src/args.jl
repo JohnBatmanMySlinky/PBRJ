@@ -18,6 +18,10 @@ function parse_commandline()::Dict
             help = "samples per pixel"
             arg_type = Int
             default = 5
+        "--max-depth"
+            help = "max # of bounces"
+            arg_type = Int
+            default = 4
         "--light-distribution-strategy"
             help = "strategy for sampling lights"
             arg_type = String
