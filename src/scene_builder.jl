@@ -786,7 +786,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in ceiling_light
             alight = DiffuseAreaLight(
-                Spectrum(500000.0, 500000.0, 500000.0),
+                Spectrum(200.0, 200.0, 200.0),
                 tri,
                 false # NOT two sided
             )
@@ -826,7 +826,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ),
             50.0
         )
-        push!(primitives, Primitive(sphere, mat_ball, nothing))
+        push!(primitives, Primitive(sphere, mat_blue, nothing))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

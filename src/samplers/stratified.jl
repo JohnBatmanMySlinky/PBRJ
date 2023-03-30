@@ -69,7 +69,7 @@ function get_1D!(ss::StratifiedSampler)
         p = ss.pixel_sampler.sampels1D[ss.pixel_sampler.current1DDimension, ss.current_pixel]
     end    
     ss.pixel_sampler.current1DDimension += 1
-    return p
+    return rand()
 end
 
 function get_2D!(ss::StratifiedSampler)
@@ -79,7 +79,7 @@ function get_2D!(ss::StratifiedSampler)
         p = ss.pixel_sampler.sampels2D[ss.pixel_sampler.current2DDimension, ss.current_pixel]
     end    
     ss.pixel_sampler.current2DDimension += 1
-    return p
+    return Pnt2(rand(), rand())
 end
 
 

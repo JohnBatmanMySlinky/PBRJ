@@ -19,6 +19,12 @@ end
 function Interaction(r::AbstractRay, n::Nml3)::Interaction
     return Interaction(r.origin, r.t, -r.direction, n)
 end
+# PBRT 2.10 
+# for other types of interacion points where the notation of an outgoing direction doesnt apply
+# ie those found by randomly sampling points on a surface of a shape wo has the value Vec3(0)
+function Interaction(p::Pnt3, t::Float64, n::Nml3)::Interaction
+    return Interaction(p, t, Vec3(0.0), n)
+end
 
 mutable struct ShadingInteraction
     n::Nml3

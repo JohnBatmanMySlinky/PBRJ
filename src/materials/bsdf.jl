@@ -53,12 +53,19 @@ function (b::BSDF)(woW::Vec3, wiW::Vec3, flags::UInt8=BSDF_ALL)::Spectrum
     wo.z == 0 && return Spectrum(0)
     wi = world_to_local(b, wiW)
     
-    reflect = (dot(wiW, b.ng) * dot(woW, b.ng)) > 0 
+    reflect = (dot(wiW, b.ng) * dot(woW, b.ng)) > 0.0 
+    (DEBUG == true) && print("         local wo: $(wo)\n")
+    (DEBUG == true) && print("         local wi: $(wi)\n")
+    (DEBUG == true) && print("         reflect: $(reflect)\n")
 
     output = Spectrum(0)
     for i in 1:b.n_bxdfs
         bxdf = b.bxdfs[i]
+        (DEBUG == true) && print("         bxdf & flags: $(bxdf&flags)\n")
+        (DEBUG == true) && print("         OR p1: $((reflect && (bxdf.type & BSDF_REFLECTION != 0)))\n")
+        (DEBUG == true) && print("         OR p2: $((!reflect && (bxdf.type & BSDF_TRANSMISSION != 0)))\n")
         if (bxdf & flags) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0)))
+            (DEBUG == true) && print("           f(bxdf, wo, wi): $(f(bxdf, wo, wi))\n")
             output += f(bxdf, wo, wi)
         end
     end

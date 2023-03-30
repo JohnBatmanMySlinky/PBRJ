@@ -396,6 +396,9 @@ function connect_BDPT(
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
             sampled_li, wi, pdf_val, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
+            (DEBUG == true) && print("   sampled_li: $(sampled_li)\n")
+            (DEBUG == true) && print("   wi: $(wi)\n")
+            (DEBUG == true) && print("   pdf_val: $(pdf_val)\n")
             if pdf_val > 0.0
                 ei = EndpointInteraction(vis.p1, light)
                 sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)

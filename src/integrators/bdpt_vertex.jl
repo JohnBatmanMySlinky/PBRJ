@@ -308,6 +308,11 @@ function f(v1::Vertex, v2::Vertex, mode::Type{T})::Spectrum where T <: Transport
     (norm(wi)^2 == 0.0) && (return Spectrum(0.0))
     wi = Vec3(normalize(wi))
     if v1.type == VTSurface
+        # (DEBUG == true) && print("      bsdf: $(v1.si.bsdf)\n")
+        (DEBUG == true) && print("      wo: $(v1.si.core.wo))\n")
+        (DEBUG == true) && print("      wi: $(wi))\n")
+        (DEBUG == true) && print("      bsdf eval: $(v1.si.bsdf(v1.si.core.wo, wi))\n")
+        (DEBUG == true) && print("      correct_shading_normal: $(correct_shading_normal(v1.si, v1.si.core.wo, wi, mode))\n")
         return v1.si.bsdf(v1.si.core.wo, wi) * correct_shading_normal(v1.si, v1.si.core.wo, wi, mode)
     elseif v1.type == VTMedium
         @assert false # NOT IMPLEMENTED
