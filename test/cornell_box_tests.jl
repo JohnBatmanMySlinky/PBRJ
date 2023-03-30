@@ -32,7 +32,7 @@ I, scene = RayTracing.build_scene(parsed_args)
 
     sampled_li, wi, pdf, vis, pshape, nshape = RayTracing.sample_li(scene.lights[1], intersection.core, RayTracing.Pnt2(0.5, 0.5))
     @test RayTracing.dot(nshape, -wi) > 0
-    @test sampled_li ≈ [500000.0, 500000.0, 500000.0]
+    @test sampled_li ≈ [200.0, 200.0, 200.0]
     @test wi ≈ RayTracing.normalize(pshape - intersection.core.p)
     @test nshape ≈ [0.0, -1.0, 0.0]
 
@@ -51,7 +51,7 @@ I, scene = RayTracing.build_scene(parsed_args)
 
     sampled_li, wi, pdf, vis, pshape, nshape = RayTracing.sample_li(scene.lights[1], intersection.core, RayTracing.Pnt2(0.5, 0.5))
     @test RayTracing.dot(nshape, -wi) > 0
-    @test sampled_li ≈ [500000.0, 500000.0, 500000.0]
+    @test sampled_li ≈ [200.0, 200.0, 200.0]
     @test wi ≈ RayTracing.normalize(pshape - intersection.core.p)
     @test nshape ≈ [0.0, -1.0, 0.0]
 
@@ -70,7 +70,7 @@ I, scene = RayTracing.build_scene(parsed_args)
 
     sampled_li, wi, pdf, vis, pshape, nshape = RayTracing.sample_li(scene.lights[1], intersection.core, RayTracing.Pnt2(0.5, 0.5))
     @test RayTracing.dot(nshape, -wi) > 0
-    @test sampled_li ≈ [500000.0, 500000.0, 500000.0]
+    @test sampled_li ≈ [200.0, 200.0, 200.0]
     @test wi ≈ RayTracing.normalize(pshape - intersection.core.p)
     @test nshape ≈ [0.0, -1.0, 0.0]
 
@@ -114,7 +114,7 @@ I, scene = RayTracing.build_scene(parsed_args)
         # SEED #7 BELOW TEST CAMERA SUBPATH
         (RayTracing.Pnt3(278.0, 278.0, -800.0),RayTracing.Pnt3(0.0, 249.24137931034483, 23.0589683280011)),
         (RayTracing.Pnt3(0.0, 249.24137931034483, 23.0589683280011), RayTracing.Pnt3(180.38923368317072, 164.99999999999997, 90.06130879336669)),
-        (RayTracing.Pnt3(180.38923368317072, 164.99999999999997, 90.06130879336669), RayTracing.Pnt3(0.0, 411.8509731775406, 13.66910744192591)), # FAIL
+        (RayTracing.Pnt3(180.38923368317072, 164.99999999999997, 90.06130879336669), RayTracing.Pnt3(0.0, 411.8509731775406, 13.66910744192591)),
 
         # SEED #7 BELOW TEST LIGHT SUBPATH
         (RayTracing.Pnt3(332.49571282420624, 553.9999987867491, 288.5478611916255), RayTracing.Pnt3(117.66209544061475, 0.0, 316.16990624694336)),

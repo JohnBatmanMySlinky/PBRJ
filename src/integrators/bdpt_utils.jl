@@ -3,7 +3,8 @@ function convert_density(curr::Vertex, pdf::Float64, nxt::Vertex)::Float64
     is_infinite_light(nxt) && return pdf
     
     w = p(nxt) - p(curr)
-    inv_dist2 = 1 / (norm(w)^2)
+    (dot(w,w) == 0.0) && (return 0.0)
+    inv_dist2 = 1 / dot(w,w)
     if is_on_surface(nxt)
         return pdf * abs(dot(ng(nxt), w*sqrt(inv_dist2))) * inv_dist2
     else

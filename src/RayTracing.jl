@@ -106,7 +106,7 @@ const PASSDICT = Dict{UInt8, String}(
 )
 
 # only use this with test/cornell_box.jl, it prints lots of stuff
-const DEBUG = false
+const DEBUG = true
 
 # do MIS_weight or nah
 const DO_MIS_WEIGHT = false

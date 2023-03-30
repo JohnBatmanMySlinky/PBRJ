@@ -6,7 +6,7 @@ function sample_wi(camera::PerspectiveCamera, ei::Union{EndpointInteraction, Sur
     plens = camera.core.lens_radius * random_in_concentric_disk(u)
     plensworld = camera.core.core.camera_to_world(Pnt3(plens.x, plens.y, 0))
     lens_norm = Nml3(camera.core.core.camera_to_world(Vec3(0,0,1)))
-    lens_intr = Interaction(plensworld, time(ei), Vec3(0,0,0), lens_norm) # JOHN HACK: Vec3(0,0,0) going to break shit?
+    lens_intr = Interaction(plensworld, time(ei), lens_norm)
 
     base_inter = get_interaction(ei)
     # populate and precompute the importance value

@@ -253,7 +253,9 @@ function random_walk!(
     while true
         COUNTER += 1
         # attempt to create the next subpath verte in *path*
+        (DEBUG == true) && print("   RW: $(ray)\n")
         check, t, isect = intersect!(scene.b, ray)
+        
         
         # JOHN HACK --> no medium no is black so continue
 
@@ -287,10 +289,11 @@ function random_walk!(
         end
 
         # sample BSDF at current vertex and compute reverse probability
-        wo = isect.core.wo
+        wi = wo = isect.core.wo
         (DEBUG == true) && print("  Sampling BSDF: from p: $(isect.core.p), n: $(isect.core.n), t: $(isect.core.t)\n")
-        wi, f, pdf, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
-        (pdf == 0.0) && break
+        wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
+        (pdf_fwd == 0.0) && break
+        (DEBUG == true) && print("     RANDOM WALK: beta: $(beta), f: $(f), absdot: $(abs(dot(wi, isect.shading.n))), pdf_fwd: $(pdf_fwd)\n")
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
         if (sampled_type & BSDF_SPECULAR) == sampled_type
@@ -299,6 +302,7 @@ function random_walk!(
             pdf_fwd = 0.0
         end
         beta *= correct_shading_normal(isect, wo, wi, mode)
+        (DEBUG == true) && print("     RANDOM WALK: beta: $(beta)\n")
         ray = spawn_ray(isect.core, wi)
         
         # Compute reverse area density at preceding vertex

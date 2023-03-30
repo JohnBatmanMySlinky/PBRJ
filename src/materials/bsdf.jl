@@ -135,7 +135,12 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
     matching_components > 1 && (pdf /= matching_components)
     # Compute value of BSDF for sampled direction.
     if !(bxdf.type & BSDF_SPECULAR != 0)
-        reflect = ((wi_world ⋅ b.ng) * (wo_world ⋅ b.ng)) > 0
+        reflect = (dot(wi_world, b.ng) * dot(wo_world, b.ng)) > 0
+        (DEBUG == true) && print("  Sampling BSDF: wi_world $(wi_world)\n")
+        (DEBUG == true) && print("  Sampling BSDF: wo_world $(wo_world)\n")
+        (DEBUG == true) && print("  Sampling BSDF: b.ng $(b.ng)\n")
+        (DEBUG == true) && print("  Sampling BSDF: dot(wi_world, b.ng) $(dot(wi_world, b.ng))\n")
+        (DEBUG == true) && print("  Sampling BSDF: dot(wo_world, b.ng) $(dot(wo_world, b.ng))\n")
         f_val = Spectrum(0)
         for i in 1:b.n_bxdfs
             bxdf = b.bxdfs[i]
@@ -144,7 +149,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
             end
         end
     end
-
+    (DEBUG == true) && print("  Sampling BSDF: f_val $(f_val)\n")
     return wi_world, f_val, pdf, sampled_type
 end
 
