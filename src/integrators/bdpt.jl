@@ -396,11 +396,15 @@ function connect_BDPT(
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
             sampled_li, wi, pdf_val, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
-            if pdf_val > 0
+            if pdf_val > 0.0
                 ei = EndpointInteraction(vis.p1, light)
                 sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
                 (DEBUG == true) && print_nice(sampled)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
+                (DEBUG == true) && print("   f: $(f(pt, sampled, Radiance))\n")
+                (DEBUG == true) && print("   tr: $(tr(vis, scene.b, sampler))\n")
+                (DEBUG == true) && print("   un-occluded: $(unoccluded(vis, scene.b))\n")
+                (DEBUG == true) && print("   is on surface?: $(is_on_surface(pt)) --> absdot factor = $(abs(dot(wi, ns(pt))))\n")
                 L = pt.beta * f(pt, sampled, Radiance) * tr(vis, scene.b, sampler) * sampled.beta
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))

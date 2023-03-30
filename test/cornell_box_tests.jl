@@ -121,6 +121,9 @@ I, scene = RayTracing.build_scene(parsed_args)
         (RayTracing.Pnt3(117.66209544061475, 0.0, 316.16990624694336), RayTracing.Pnt3(148.6744461856998, 74.99447612195571, 244.55896238128943)),
         (RayTracing.Pnt3(148.6744461856998, 74.99447612195571, 244.55896238128943), RayTracing.Pnt3(232.98878517040146, 0.0, 114.12326887170006)),
         (RayTracing.Pnt3(232.98878517040146, 0.0, 114.12326887170006), RayTracing.Pnt3(250.6827710219146, 10.262655033072324, 104.21220930098588)),
+
+        # SEED #5 S==1 Testing
+        (RayTracing.Pnt3(0.0, 249.24137931034483, 23.0589683280011), RayTracing.Pnt3(260.37517020275277, 554.0, 278.6044087310817)),
     ]
         direction = RayTracing.normalize(target_pnt-camera_pnt)
         origin = camera_pnt .+ 1e-6 .* direction
@@ -140,7 +143,7 @@ end
     I, scene = RayTracing.build_scene(parsed_args)
 
     # setup
-    RayTracing.Random.seed!(10) # 4 was good
+    RayTracing.Random.seed!(5) # 4 was good
     light_distr_generator = RayTracing.LightDistribution("uniform", scene)
     pixel = RayTracing.Pnt2(241, 113)
     camera_sample = RayTracing.get_camera_sample!(I.sampler, pixel)

@@ -109,16 +109,16 @@ const PASSDICT = Dict{UInt8, String}(
 const DEBUG = false
 
 # do MIS_weight or nah
-const DO_MIS_WEIGHT = true
+const DO_MIS_WEIGHT = false
 
 # specify (s,t) combinations to save off intermediate stages. 
 # (-1,-1) should result in a normal full render
 const BDPT_STAGES = [
     (-1,-1),
-    # (0,3),
+    (0,3),
     # (0,2),
-    # (1,2),
-    # (2,1),
+    (1,2),
+    (2,1),
     # (3,1),
     # (0,4),
     # (1,3),

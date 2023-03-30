@@ -9,22 +9,20 @@ How to render the Cornell Box with 100 samples per pixel using 4 threads.
 julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 ```
 
-## Notes of Usage
-- I have only implemented a subset of materials specified in the book. 
-- My obj parser is quite anemic.
-- Samplers are limited to Random and Stratified.
-- Scene specification is very verbose and done entirely within `scene_builder.jl`. Only a few things are parameterized thru the CLI.
-- There are lots of partially implemented things: BDPT has only been tested with AreaLights, not sure if all the CLI args work anymore, some scenes might need to be updated etc.
-
 # TODO
 ## Features
 - BDPT is much less buggy now!
-    - implement spectrum is black checks
-    - move to exr?
+    - implement spectrum is black checks and measure preformance improvement
+    - s==1 strategy doesn't seem to be working?
+    - implement the rest of the lights
+    - create more sample scenes
+    - caustics
+- Implement Metroplois Light Transport Integrator
+- Move to exr?
+- Make obj_parser less anemic
 - Triangles using UInt16 when small enough?
     - seems like I get a very small pay off when I did a quick test.
 - Implement light BVH (or spatial light distribution)
-- Implement Metroplois Light Transport Integrator
 - Implement more materials
     - Add metal material
     - Add fourier material
@@ -36,7 +34,6 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
     - Wall material
 - Parameterize more stuff (like which integrator you want to use).
 - Move scene specification to a YAML or something. 
-- Make obj_parser less anemic
 - Expand tests
 
 ## Debt
