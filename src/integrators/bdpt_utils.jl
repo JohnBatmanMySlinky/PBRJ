@@ -15,13 +15,13 @@ end
 function print_nice(path::Vector{Vertex})
     for i in 1:length(path)
         if isassigned(path,i)
-            print("  $(i): $(path[i].type) p: $(p(path[i])), beta: $(path[i].beta)\n")
+            print("  $(i): $(path[i].type)\n    p: $(p(path[i]))\n    beta: $(path[i].beta)\n")
         end
     end
 end
 
 function print_nice(v::Vertex)
-    print("    $(v.type) at $(p(v)) beta $(v.beta) t $(time(v))\n")
+    print("    $(v.type)\n      p: $(p(v))\n      beta: $(v.beta)\n")
 end
 
 function correct_shading_normal(isect::SurfaceInteraction, wo::Vec3, wi::Vec3, mode::Type{T})::Float64 where T <: TransportMode

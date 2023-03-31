@@ -106,10 +106,10 @@ const PASSDICT = Dict{UInt8, String}(
 )
 
 # only use this with test/cornell_box.jl, it prints lots of stuff
-const DEBUG = true
+const DEBUG = false
 
 # do MIS_weight or nah
-const DO_MIS_WEIGHT = false
+const DO_MIS_WEIGHT = true
 
 # specify (s,t) combinations to save off intermediate stages. 
 # (-1,-1) should result in a normal full render

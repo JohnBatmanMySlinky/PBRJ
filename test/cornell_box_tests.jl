@@ -32,7 +32,7 @@ I, scene = RayTracing.build_scene(parsed_args)
 
     sampled_li, wi, pdf, vis, pshape, nshape = RayTracing.sample_li(scene.lights[1], intersection.core, RayTracing.Pnt2(0.5, 0.5))
     @test RayTracing.dot(nshape, -wi) > 0
-    @test sampled_li ≈ [200.0, 200.0, 200.0]
+    @test sampled_li ≈ scene.lights[1].Lemit
     @test wi ≈ RayTracing.normalize(pshape - intersection.core.p)
     @test nshape ≈ [0.0, -1.0, 0.0]
 
@@ -51,7 +51,7 @@ I, scene = RayTracing.build_scene(parsed_args)
 
     sampled_li, wi, pdf, vis, pshape, nshape = RayTracing.sample_li(scene.lights[1], intersection.core, RayTracing.Pnt2(0.5, 0.5))
     @test RayTracing.dot(nshape, -wi) > 0
-    @test sampled_li ≈ [200.0, 200.0, 200.0]
+    @test sampled_li ≈ scene.lights[1].Lemit
     @test wi ≈ RayTracing.normalize(pshape - intersection.core.p)
     @test nshape ≈ [0.0, -1.0, 0.0]
 
@@ -70,7 +70,7 @@ I, scene = RayTracing.build_scene(parsed_args)
 
     sampled_li, wi, pdf, vis, pshape, nshape = RayTracing.sample_li(scene.lights[1], intersection.core, RayTracing.Pnt2(0.5, 0.5))
     @test RayTracing.dot(nshape, -wi) > 0
-    @test sampled_li ≈ [200.0, 200.0, 200.0]
+    @test sampled_li ≈ scene.lights[1].Lemit
     @test wi ≈ RayTracing.normalize(pshape - intersection.core.p)
     @test nshape ≈ [0.0, -1.0, 0.0]
 
