@@ -52,20 +52,11 @@ function (b::BSDF)(woW::Vec3, wiW::Vec3, flags::UInt8=BSDF_ALL)::Spectrum
     wo = world_to_local(b, woW)
     wo.z == 0 && return Spectrum(0)
     wi = world_to_local(b, wiW)
-    
     reflect = (dot(wiW, b.ng) * dot(woW, b.ng)) > 0.0 
-    # (DEBUG == true) && print("         local wo: $(wo)\n")
-    # (DEBUG == true) && print("         local wi: $(wi)\n")
-    # (DEBUG == true) && print("         reflect: $(reflect)\n")
-
     output = Spectrum(0)
     for i in 1:b.n_bxdfs
         bxdf = b.bxdfs[i]
-        # (DEBUG == true) && print("         bxdf & flags: $(bxdf&flags)\n")
-        # (DEBUG == true) && print("         OR p1: $((reflect && (bxdf.type & BSDF_REFLECTION != 0)))\n")
-        # (DEBUG == true) && print("         OR p2: $((!reflect && (bxdf.type & BSDF_TRANSMISSION != 0)))\n")
         if (bxdf & flags) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0)))
-            # (DEBUG == true) && print("           f(bxdf, wo, wi): $(f(bxdf, wo, wi))\n")
             output += f(bxdf, wo, wi)
         end
     end
@@ -78,7 +69,6 @@ end
 function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, UInt8}
     # Choose which BxDF to sample.
     matching_components = num_components(b, type)
-    (DEBUG == true) && print("  Sampling BSDF: matching components $(matching_components)\n")
     matching_components == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)
     component = min(
         max(1, Int64(ceil(u[1] * matching_components))),
@@ -97,15 +87,14 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
             count -= 1
         end
     end
-    @assert bxdf ≢ nothing "n bxdfs $(b.n_bxdfs), component $component, count $count"
+    @info "BSDF::Sample_f chose comp: $(component) / matching: $(matching_components), bxdf: $(bxdf)"
+
     # Remap BxDF sample u to [0, 1)^2.
     u_remapped = Pnt2(
         min(u.x * matching_components - component, 1), u.y,
     )
     # Sample chosen BxDF.
-    (DEBUG == true) && print("  Sampling BSDF: global wo $(wo_world)\n")
     wo = world_to_local(b, wo_world)
-    (DEBUG == true) && print("  Sampling BSDF: local wo $(wo)\n")
     wo.z == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)   
 
     # TODO when to update sampled type
@@ -114,12 +103,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
     if sampled_type_tmp ≢ nothing
         sampled_type = sampled_type_tmp
     end
-
-    (DEBUG == true) && print("  Sampling BSDF: u $(u)\n")
-    (DEBUG == true) && print("  Sampling BSDF: u_remapped $(u_remapped)\n")
-    (DEBUG == true) && print("  Sampling BSDF: wi $(wi)\n")
-    (DEBUG == true) && print("  Sampling BSDF: pdf $(pdf)\n")
-    (DEBUG == true) && print("  Sampling BSDF: f_val $(f_val)\n")
+    @info "For wo: $(wo), sampled f: $(f_val), pdf: $(pdf), ratio = $((pdf > 0.0) ? (f_val / pdf) : Spectrum(0.0)), wi: $(wi)"
 
     pdf == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)
 
@@ -136,11 +120,6 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
     # Compute value of BSDF for sampled direction.
     if !(bxdf.type & BSDF_SPECULAR != 0)
         reflect = (dot(wi_world, b.ng) * dot(wo_world, b.ng)) > 0
-        (DEBUG == true) && print("  Sampling BSDF: wi_world $(wi_world)\n")
-        (DEBUG == true) && print("  Sampling BSDF: wo_world $(wo_world)\n")
-        (DEBUG == true) && print("  Sampling BSDF: b.ng $(b.ng)\n")
-        (DEBUG == true) && print("  Sampling BSDF: dot(wi_world, b.ng) $(dot(wi_world, b.ng))\n")
-        (DEBUG == true) && print("  Sampling BSDF: dot(wo_world, b.ng) $(dot(wo_world, b.ng))\n")
         f_val = Spectrum(0)
         for i in 1:b.n_bxdfs
             bxdf = b.bxdfs[i]
@@ -149,7 +128,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
             end
         end
     end
-    (DEBUG == true) && print("  Sampling BSDF: f_val $(f_val)\n")
+    @info "Overall f: $(f_val), pdf: $(pdf), ratio: $((pdf > 0.0) ? (f_val / pdf) : Spectrum(0.0))"
     return wi_world, f_val, pdf, sampled_type
 end
 

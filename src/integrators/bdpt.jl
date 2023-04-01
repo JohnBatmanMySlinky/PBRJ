@@ -188,6 +188,7 @@ function generate_camera_subpath!(
     # generate first vertex on camera subpath and start random walk
     path[1] = create_camera_vertex(camera, ray, beta)
     pdf_pos, pdf_dir = pdf_we(camera, ray)
+    @info "Starting camera subpath. Ray: o: $(ray.origin) d: $(ray.direction) t: $(ray.t) tMax: $(ray.tMax), beta: $(beta), pdfPos: $(pdf_pos), pdfDir: $(pdf_dir) "
     return random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1)
 end
 
@@ -212,6 +213,7 @@ function generate_light_subpath!(
     # generate first vertex on light subpath and start random walk
     path[0+1] = create_light_vertex(light, ray, n_light, Le, pdf_pos * light_pdf)
     beta = Le * abs(dot(n_light, ray.direction)) / (light_pdf * pdf_pos * pdf_dir)
+    @info "Starting light subpath. Ray: o $(ray.origin), d $(ray.direction) t $(ray.t) tMax: $(ray.tMax) , Le: $(Le), beta: $(beta), pdfPos: $(pdf_pos), pdfDir: $(pdf_dir)"
     n_vertices = random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path, 1)
 
     # correct subpath sampling densities for infinite area lights
@@ -251,11 +253,11 @@ function random_walk!(
     COUNTER = 0
 
     while true
+        @info "Random walk. Bounces: $(bounces), beta: $(beta), pdfFwd: $(pdf_fwd), pdfRev: $(pdf_rev) "
+
         COUNTER += 1
         # attempt to create the next subpath verte in *path*
-        (DEBUG == true) && print("   RW: $(ray)\n")
         check, t, isect = intersect!(scene.b, ray)
-        
         
         # JOHN HACK --> no medium no is black so continue
 
@@ -283,18 +285,17 @@ function random_walk!(
         # initialize vertex with surface scattering information
         path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
         bounces += 1
-        (DEBUG == true) && print("\nray interesected scene (t=$(t)), surface added to idx $(vertex), bounces=$(bounces), max_depth=$(max_depth+path_offset)\n")
         if bounces >= max_depth + path_offset # JOHN HACK
             break
         end
 
         # sample BSDF at current vertex and compute reverse probability
         wi = wo = isect.core.wo
-        (DEBUG == true) && print("  Sampling BSDF: from p: $(isect.core.p), n: $(isect.core.n), t: $(isect.core.t)\n")
         wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
+        @info "Random walk sampled dir: $(wi) f: $(f), pdfFwd: $(pdf_fwd)"
         (pdf_fwd == 0.0) && break
-        (DEBUG == true) && print("     RANDOM WALK: beta: $(beta), f: $(f), absdot: $(abs(dot(wi, isect.shading.n))), pdf_fwd: $(pdf_fwd)\n")
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
+        @info "Random walk beta now $(beta)"
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
         if (sampled_type & BSDF_SPECULAR) == sampled_type
             path[vertex].delta = true
@@ -302,7 +303,7 @@ function random_walk!(
             pdf_fwd = 0.0
         end
         beta *= correct_shading_normal(isect, wo, wi, mode)
-        (DEBUG == true) && print("     RANDOM WALK: beta: $(beta)\n")
+        @info "Random walk beta after normal correction $(beta)"
         ray = spawn_ray(isect.core, wi)
         
         # Compute reverse area density at preceding vertex
@@ -346,10 +347,6 @@ function connect_BDPT(
         if is_light(pt)
             L = le(pt, scene, camera_vertices[t-2+1]) * pt.beta
         end
-        (DEBUG == true) && print("    Strategy: s==0\n")
-        (DEBUG == true) && print("    L: $(L)\n")
-        (DEBUG == true) && print_nice(pt)
-        (DEBUG == true) && print_nice(camera_vertices[t-2+1])
     elseif t == 1
         # sample a point on the camera and connect it to the light subpath
         """
@@ -360,30 +357,16 @@ function connect_BDPT(
         This type of connection can only succeed if the light subpath vertex qs-1 supports sampled connections; 
         otherwise the BSDF at qs-1 will certainly return 0 and there’s no reason to attempt a connection.
         """
-        (DEBUG == true) && print("    Strategy: t==1\n")
         qs = light_vertices[s-1+1]
-        (DEBUG == true) && print_nice(qs)
         if is_connectible(qs)
             sampled_wi, wi, pdf_val, vis, pfilm = sample_wi(camera, get_interaction(qs), get_2D!(sampler))
-            (DEBUG == true) && print("    sampled_wi: $(sampled_wi)\n")
-            (DEBUG == true) && print("    wi: $(wi)\n")
-            (DEBUG == true) && print("    pdf_val: $(pdf_val)\n")
             if pdf_val > 0
                 # initalize dynamically sampled vertex and L for t=1 case
                 sampled = create_camera_vertex(camera, vis.p1, sampled_wi / pdf_val)
-                (DEBUG == true) && print_nice(sampled)
-                (DEBUG == true) && print("    unoccluded: $(unoccluded(vis, scene.b))\n")
-                ff = f(qs, sampled, Importance)
-                trtr = tr(vis, scene.b, sampler)
-                (DEBUG == true) && print("    f: $(ff)\n")
-                (DEBUG == true) && print("    tr: $(trtr)\n")
-                (DEBUG == true) && print("    unoccluded: $(unoccluded(vis, scene.b))\n")
-                L = qs.beta * ff * trtr * sampled.beta
+                L = qs.beta * f(qs, sampled, Importance) * tr(vis, scene.b, sampler) * sampled.beta
                 if is_on_surface(qs)
                     L *= abs(dot(wi, ns(qs)))
                 end
-                (DEBUG == true) && print("    L: $(L)\n")
-                (DEBUG == true) && print("    Splatted to $(pfilm)\n")
             end
         end
     elseif s == 1
@@ -393,48 +376,30 @@ function connect_BDPT(
         Its implementation is similar to the t==1 case—the main differences are that roles of lights and cameras are exchanged 
         and that a light source must be chosen using lightDistr before a light sample can be generated.
         """
-        (DEBUG == true) && print("    Strategy: s==1\n")
         pt = camera_vertices[t-1+1]
-        (DEBUG == true) && print_nice(pt)
         if is_connectible(pt)
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
             sampled_li, wi, pdf_val, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
-            (DEBUG == true) && print("   sampled_li: $(sampled_li)\n")
-            (DEBUG == true) && print("   wi: $(wi)\n")
-            (DEBUG == true) && print("   pdf_val: $(pdf_val)\n")
             if pdf_val > 0.0
                 ei = EndpointInteraction(vis.p1, light)
                 sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
-                (DEBUG == true) && print_nice(sampled)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
-                (DEBUG == true) && print("   f: $(f(pt, sampled, Radiance))\n")
-                (DEBUG == true) && print("   tr: $(tr(vis, scene.b, sampler))\n")
-                (DEBUG == true) && print("   un-occluded: $(unoccluded(vis, scene.b))\n")
-                (DEBUG == true) && print("   is on surface?: $(is_on_surface(pt)) --> absdot factor = $(abs(dot(wi, ns(pt))))\n")
                 L = pt.beta * f(pt, sampled, Radiance) * tr(vis, scene.b, sampler) * sampled.beta
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))
                 end
-                (DEBUG == true) && print("    L: $(L)\n")
             end
         end
     else
         # handle all other bidirectional connection cases
         qs = light_vertices[s-1+1]
         pt = camera_vertices[t-1+1]
-        (DEBUG == true) && print("    Strategy: s==1\n")
-        (DEBUG == true) && print_nice(pt)
-        (DEBUG == true) && print_nice(qs)
         if is_connectible(qs) && is_connectible(pt)
-            (DEBUG == true) && print("    f radiance: $(f(pt, qs, Radiance))\n")
-            (DEBUG == true) && print("    f importance: $(f(qs, pt, Importance))\n")
             L = qs.beta * f(qs, pt, Importance) * f(pt, qs, Radiance) * pt.beta
-            (DEBUG == true) && print("    L pre G: $(L)\n")
             # JOHN HACK: if not black --> always
             L *= G(scene, sampler, qs, pt)
         end
-        (DEBUG == true) && print("    L: $(L)\n")
     end
 
     # compute MIS weight for connection strategy

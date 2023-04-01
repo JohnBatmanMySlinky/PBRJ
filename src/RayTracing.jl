@@ -8,6 +8,8 @@ using Statistics
 using ProgressMeter
 using Random
 using ArgParse
+using Logging
+using Dates
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -105,9 +107,6 @@ const PASSDICT = Dict{UInt8, String}(
     UInt(4) => "position pass",
 )
 
-# only use this with test/cornell_box.jl, it prints lots of stuff
-const DEBUG = false
-
 # do MIS_weight or nah
 const DO_MIS_WEIGHT = true
 
@@ -139,6 +138,11 @@ const BDPT_STAGES = [
     (4,2),
     (5,1)
 ]
+
+# set up logging
+io = open("log_$(now()).txt", "w+")
+logger = SimpleLogger(io, Logging.Info)
+global_logger(logger)
 
 function render_scene()
     parsed_args = parse_commandline()
