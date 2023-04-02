@@ -66,7 +66,7 @@ function InstantiateSurfaceInteraction(
     dpdv::Vec3,
     dndu::Nml3,
     dndv::Nml3,
-    shape::Shape,
+    shape::Maybe{Shape}=nothing,
     primitive::Maybe{Primitive}=nothing,
     bsdf::Maybe{AbstractBSDF}=nothing,
 )::SurfaceInteraction
@@ -75,9 +75,11 @@ function InstantiateSurfaceInteraction(
     core = Interaction(p, t, wo, n)
     shading = ShadingInteraction(n, dpdu, dpdv, dndu, dndv)
 
-    if shape.core.reverse_orientation
-        core.n = core.n * -1
-        shading.n = shading.n * -1
+    if !(shape isa Nothing)
+        if shape.core.reverse_orientation
+            core.n = core.n * -1
+            shading.n = shading.n * -1
+        end
     end
 
     return SurfaceInteraction(
@@ -89,8 +91,8 @@ function InstantiateSurfaceInteraction(
         dndu,
         dndv,
         shape,
-        nothing,
-        nothing,
+        primitive,
+        bsdf,
         0,
         0,
         0,
@@ -126,7 +128,7 @@ function empty_surface_interation()::SurfaceInteraction
         Vec3(0,1,0),
         Nml3(1,0,0),
         Nml3(0,1,0),
-        s,
+        nothing,
         nothing,
         nothing,
     )

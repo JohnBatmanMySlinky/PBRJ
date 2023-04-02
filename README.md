@@ -37,6 +37,7 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 - Expand tests
 
 ## Debt
+- clean up surface interaction instantiation (esp. when empty)
 - Implement passes with more dimensions of our film. Current method is hardcody and requires us to re-instantiate the scene every time!
 - What are my ray differentials actually being used for ?
 - Is my BSDF sampling right? I should create some tests here

@@ -125,6 +125,10 @@ mutable struct Ray <: AbstractRay
     tMax::Float64
 end
 
+function Ray()::Ray
+    return Ray(Pnt3(0), Vec3(0), 0.0, typemax(Float64))
+end
+
 function at(r::AbstractRay, t::Float64)::Pnt3
     return r.origin .+ t .* r.direction
 end

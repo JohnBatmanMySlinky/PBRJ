@@ -544,7 +544,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         env_light = InfinteLight(
             world_bounds(bvh), 
             Translate(Vec3(0,0,0)), 
-            Spectrum(1, 1, 1), 
+            Spectrum(2.5, 2.5, 2.5), 
             "../ref/parking_lot.jpg"
         )
         push!(lights, env_light)
@@ -563,8 +563,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(150, 120, 400)
-        look_at = Pnt3(0, 100, 0)
+        look_from = Pnt3(125, 200, 175)
+        look_at = Pnt3(0, 75, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
@@ -589,6 +589,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # MATERIALS
         mat_gray = Matte(
             ConstantTexture(Vec3(.4, .4, .4)),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
+        )
+
+        mat_white = Matte(
+            ConstantTexture(Vec3(1, 1, 1)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
@@ -620,19 +626,39 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(tri, mat_gray, nothing))
         end
 
+        alight_transform = Translate(Pnt3(0,-40,0))
+        alight = Rectangle(
+            Pnt2(-100, -100), 
+            Pnt2(-100, 100), 
+            150.0,
+            2, 
+            ShapeCore(alight_transform, Inv(alight_transform), false, false),
+            true,
+            nothing
+        )
+        for tri in alight
+            tmp = DiffuseAreaLight(
+                Spectrum(5.0, 5.0, 5.0),
+                tri,
+                false # NOT two sided
+            )
+            push!(lights,tmp)
+            push!(primitives, Primitive(tri, mat_white, tmp))
+        end
+
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
         # instantiate an env light
-        env_light = InfinteLight(
-            world_bounds(bvh), 
-            Translate(Vec3(0,0,0)), 
-            Spectrum(1, 1, 1), 
-            "../ref/parking_lot.jpg"
-        )
-        push!(lights, env_light)
+        # env_light = InfinteLight(
+        #     world_bounds(bvh), 
+        #     Translate(Vec3(0,0,0)), 
+        #     Spectrum(3.0), 
+        #     "../ref/parking_lot.jpg"
+        # )
+        # push!(lights, env_light)
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
@@ -657,7 +683,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Sampler
         spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
         S = StratifiedSampler(spp, spp, 4, true)
-        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+        print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
         print("There are " * num2str(length(lights)) * " lights in the scene\n")

@@ -217,15 +217,15 @@ function generate_light_subpath!(
     n_vertices = random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path, 1)
 
     # correct subpath sampling densities for infinite area lights
-    if is_infinite_light(path[1])
+    if is_infinite_light(path[0+1])
         # set spatial density of path[2] for infinite area light
-        if n_vertices > 0
+        if n_vertices > 0+1
             path[1+1].pdf_fwd = pdf_pos
             if is_on_surface(path[1+1])
-                path[1+1].pdf_fwd *= abs(dot(ray.direction, path[1+1].ng))
+                path[1+1].pdf_fwd *= abs(dot(ray.direction, ng(path[1+1])))
             end
         end
-        path[0+1].pdf_fwd = infinite_light_density(scene, light_distr, ray.direction)
+        path[0+1].pdf_fwd = infinite_light_density(scene.lights, light_distr, ray.direction)
     end
     return n_vertices, light_num # JOHN HACK, what if I got rid of the +1?
 end
