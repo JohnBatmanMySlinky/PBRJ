@@ -237,7 +237,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(disk, mat_white, nothing))
 
         ################# Pillar Area Lights
-        MULT = 50
+        MULT = 3
         yellow = Spectrum(1.0, 1.0, 0.0)
         white = Spectrum(1.0, 1.0, 1.0)
         blue = Spectrum(0.0, 0.0, 1.0)
@@ -418,7 +418,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in hallway_light
             alight = DiffuseAreaLight(
-                Spectrum(10000, 10000, 10000),
+                Spectrum(5, 5, 5),
                 tri,
                 false
             )
@@ -864,7 +864,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # Instantiate a Sampler
         spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
-        S = StratifiedSampler(spp, spp, 4, false)
+        S = StratifiedSampler(spp, spp, 4, true)
         print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
