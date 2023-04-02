@@ -786,7 +786,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in ceiling_light
             alight = DiffuseAreaLight(
-                Spectrum(200.0, 200.0, 200.0),
+                Spectrum(20.0, 20.0, 20.0),
                 tri,
                 false # NOT two sided
             )

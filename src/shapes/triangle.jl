@@ -383,7 +383,7 @@ end
 function area(tri::Triangle)::Float64
     p0, p1, p2 = tri.core.world_to_object.(get_vertices(tri))
     c = cross(p1 - p0, p2 - p0)
-    return 0.5 * dot(c,c)
+    return 0.5 * sqrt(dot(c, c))
 end
 
 function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3}
