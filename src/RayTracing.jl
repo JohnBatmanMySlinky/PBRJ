@@ -8,7 +8,8 @@ using Statistics
 using ProgressMeter
 using Random
 using ArgParse
-using ProfileView
+using Logging
+using Dates
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -106,6 +107,43 @@ const PASSDICT = Dict{UInt8, String}(
     UInt(4) => "position pass",
 )
 
+# do MIS_weight or nah
+const DO_MIS_WEIGHT = true
+
+# specify (s,t) combinations to save off intermediate stages. 
+# (-1,-1) should result in a normal full render
+const BDPT_STAGES = [
+    (-1,-1),
+    # (0,2),
+
+    # (0,3),
+    # (1,2),
+    # (2,1),
+
+    # (0,4),
+    # (1,3),
+    # (2,2),
+    # (3,1),
+    
+    # (0,5),
+    # (1,4),
+    # (2,3),
+    # (3,2),
+    # (4,1),
+
+    # (0,6),
+    # (1,5),
+    # (2,4),
+    # (3,3),
+    # (4,2),
+    # (5,1)
+]
+
+# set up logging
+io = open("log_$(now()).txt", "w+")
+logger = SimpleLogger(io, Logging.Error)
+global_logger(logger)
+
 function render_scene()
     parsed_args = parse_commandline()
 
@@ -123,19 +161,29 @@ function render_scene()
             # FileIO.save("debug_$(i).png", clamp01nan.(current_pass))
         end
         image = denoise(passes, parsed_args["denoise-steps"])
+        image = clamp01nan.(image)
+        FileIO.save(I.camera.core.core.film.filename, image)
     elseif parsed_args["denoise"] == false
-        I, scene = build_scene(parsed_args) # TODO get this outside the loop!
-        @profview image = render(
-            I, 
-            scene, 
-            UInt8(0),
-            parsed_args["light-distribution-strategy"], 
-        )
+        for bdpt_pass in BDPT_STAGES
+            (bdpt_pass != (-1,-1)) && (print("working on bdpt pass s=$(bdpt_pass[1]), t=$(bdpt_pass[2])\n"))
+            I, scene = build_scene(parsed_args) # TODO get this outside the loop!
+            image = render(
+                I, 
+                scene, 
+                UInt8(0), # full pass
+                bdpt_pass,
+                parsed_args["light-distribution-strategy"], 
+            )
+            image = clamp01nan.(image)
+            if bdpt_pass == (-1,-1)
+                FileIO.save(I.camera.core.core.film.filename, image)
+            else
+                FileIO.save(replace(I.camera.core.core.film.filename, ".png"=>"")*"_s_"*string(bdpt_pass[1])*"_t_"*string(bdpt_pass[2])*".png", image)
+            end
+        end
     else
         @assert false
     end
-    image = clamp01nan.(image)
-    FileIO.save(I.camera.core.core.film.filename, image)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__

@@ -127,8 +127,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt2(foyer_dim/2, foyer_dim/2), 
             ceiling_height,
             2, 
-            ShapeCore(ceiling_transform, Inv(ceiling_transform), false, false),
-            true,
+            ShapeCore(ceiling_transform, Inv(ceiling_transform), true, false),
+            false,
             MixAddTexture(
                 CircleProceduralTexture(
                     Pnt2(.5, .5),
@@ -219,7 +219,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ceiling_height-ceiling_circle_offset,
             ceiling_circle_height,
             360.0,
-            false,
+            true,
             false
         )
         disk_t = RotateX(-90.0)
@@ -229,7 +229,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ceiling_whole_size+ceiling_circle_thickness/2,
             ceiling_whole_size-ceiling_circle_thickness/2,
             360.0,
-            false,
+            true,
             false
         )
         push!(primitives, Primitive(outer_cyl, mat_white, nothing))
@@ -237,7 +237,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(disk, mat_white, nothing))
 
         ################# Pillar Area Lights
-        MULT = 5_00
+        MULT = 3
         yellow = Spectrum(1.0, 1.0, 0.0)
         white = Spectrum(1.0, 1.0, 1.0)
         blue = Spectrum(0.0, 0.0, 1.0)
@@ -384,8 +384,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt2(hallway_total_length/2, hallway_width/2), 
             ceiling_height,
             2, 
-            ShapeCore(cewall_transform, Inv(cewall_transform), false, false),
-            true,
+            ShapeCore(cewall_transform, Inv(cewall_transform), true, false),
+            false,
             nothing
         )
         for tri in cewall
@@ -418,7 +418,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in hallway_light
             alight = DiffuseAreaLight(
-                Spectrum(10000, 10000, 10000),
+                Spectrum(5, 5, 5),
                 tri,
                 false
             )
@@ -427,8 +427,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
         
         # instantiate accelerator
-        print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
-        @time bvh = BVH(primitives2)
+        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
         # instantiate an env light
@@ -476,11 +476,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
-        print("There are " * num2str(length(lights2)) * " lights in the scene\n")
-        scene = Scene(lights2, bvh)
+        print("There are " * num2str(length(lights)) * " lights in the scene\n")
+        scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = BDPTIntegrator(C, S, 10)
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
 
         return I, scene
     elseif parsed_args["scene-number"] == 2
@@ -499,6 +499,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         mat_blue = Matte(
             ConstantTexture(Vec3(0, .4, .8)),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
+        )
+        mat_gray = Matte(
+            ConstantTexture(Vec3(.4, .4, .4)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
@@ -539,7 +544,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         env_light = InfinteLight(
             world_bounds(bvh), 
             Translate(Vec3(0,0,0)), 
-            Spectrum(1, 1, 1), 
+            Spectrum(2.5, 2.5, 2.5), 
             "../ref/parking_lot.jpg"
         )
         push!(lights, env_light)
@@ -558,8 +563,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(150, 120, 400)
-        look_at = Pnt3(0, 100, 0)
+        look_from = Pnt3(125, 200, 175)
+        look_at = Pnt3(0, 75, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
@@ -574,7 +579,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = PathIntegrator(C, S, 25)
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
 
         return I, scene
     elseif parsed_args["scene-number"] == 3
@@ -584,6 +589,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # MATERIALS
         mat_gray = Matte(
             ConstantTexture(Vec3(.4, .4, .4)),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
+        )
+
+        mat_white = Matte(
+            ConstantTexture(Vec3(1, 1, 1)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
@@ -615,19 +626,39 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(tri, mat_gray, nothing))
         end
 
+        alight_transform = Translate(Pnt3(0,-40,0))
+        alight = Rectangle(
+            Pnt2(-100, -100), 
+            Pnt2(-100, 100), 
+            150.0,
+            2, 
+            ShapeCore(alight_transform, Inv(alight_transform), false, false),
+            true,
+            nothing
+        )
+        for tri in alight
+            tmp = DiffuseAreaLight(
+                Spectrum(5.0, 5.0, 5.0),
+                tri,
+                false # NOT two sided
+            )
+            push!(lights,tmp)
+            push!(primitives, Primitive(tri, mat_white, tmp))
+        end
+
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
         # instantiate an env light
-        env_light = InfinteLight(
-            world_bounds(bvh), 
-            Translate(Vec3(0,0,0)), 
-            Spectrum(1, 1, 1), 
-            "../ref/parking_lot.jpg"
-        )
-        push!(lights, env_light)
+        # env_light = InfinteLight(
+        #     world_bounds(bvh), 
+        #     Translate(Vec3(0,0,0)), 
+        #     Spectrum(3.0), 
+        #     "../ref/parking_lot.jpg"
+        # )
+        # push!(lights, env_light)
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
@@ -652,15 +683,14 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Sampler
         spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
         S = StratifiedSampler(spp, spp, 4, true)
-        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+        print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
         print("There are " * num2str(length(lights)) * " lights in the scene\n")
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = PathIntegrator(C, S, 25)
-
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
         return I, scene
     elseif parsed_args["scene-number"] == 4
         primitives = Primitive[]
@@ -680,17 +710,17 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         mat_red = Matte(
-            ConstantTexture(Vec3(1, 0, 0)),
+            ConstantTexture(Vec3(.9, 0.05, 0.05)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
         mat_blue = Matte(
-            ConstantTexture(Vec3(0, 0, 1)),
+            ConstantTexture(Vec3(0.05, 0.05, .9)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
         mat_green = Matte(
-            ConstantTexture(Vec3(0, 1, 0)),
+            ConstantTexture(Vec3(0.05, 0.9, 0.05)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
@@ -740,7 +770,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             555.0,
             3, 
             identity_shape_core,
-            false,
+            true,
             nothing
         )
         for tri in backwall
@@ -764,7 +794,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             555.0,
             1, 
             identity_shape_core,
-            false,
+            true,
             nothing
         )
         for tri in rightwall
@@ -782,7 +812,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in ceiling_light
             alight = DiffuseAreaLight(
-                Spectrum(500000.0, 500000.0, 500000.0),
+                Spectrum(20.0, 20.0, 20.0),
                 tri,
                 false # NOT two sided
             )
@@ -822,7 +852,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ),
             50.0
         )
-        push!(primitives, Primitive(sphere, mat_ball, nothing))
+        push!(primitives, Primitive(sphere, mat_blue, nothing))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -868,7 +898,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = BDPTIntegrator(C, S, 3)
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
 
         return I, scene
     else

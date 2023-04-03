@@ -3,7 +3,8 @@ function convert_density(curr::Vertex, pdf::Float64, nxt::Vertex)::Float64
     is_infinite_light(nxt) && return pdf
     
     w = p(nxt) - p(curr)
-    inv_dist2 = 1 / (norm(w)^2)
+    (dot(w,w) == 0.0) && (return 0.0)
+    inv_dist2 = 1 / dot(w,w)
     if is_on_surface(nxt)
         return pdf * abs(dot(ng(nxt), w*sqrt(inv_dist2))) * inv_dist2
     else
@@ -11,12 +12,28 @@ function convert_density(curr::Vertex, pdf::Float64, nxt::Vertex)::Float64
     end
 end
 
+function infinite_light_density(lights::Vector{Light}, light_distr::Distribution1D, w::Vec3)::Float64
+    pdf = 0.0
+    @assert length(lights) == length(light_distr.func)
+    for i in 1:(length(lights)-1)
+        light = lights[i]
+        if is_infinite_light(light)
+            pdf += pdf_li(light, empty_surface_interation(), -w) * light_distr.func[i]
+        end
+    end
+    return pdf / (light_distr.func_int * length(light_distr.func))
+end
+
 function print_nice(path::Vector{Vertex})
     for i in 1:length(path)
         if isassigned(path,i)
-            print("  $(i): $(path[i].type) at $(p(path[i]))\n")
+            print("  $(i): $(path[i].type)\n    p: $(p(path[i]))\n    beta: $(path[i].beta)\n")
         end
     end
+end
+
+function print_nice(v::Vertex)
+    print("    $(v.type)\n      p: $(p(v))\n      beta: $(v.beta)\n")
 end
 
 function correct_shading_normal(isect::SurfaceInteraction, wo::Vec3, wi::Vec3, mode::Type{T})::Float64 where T <: TransportMode

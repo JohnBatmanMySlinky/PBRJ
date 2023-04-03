@@ -314,19 +314,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
             ts = -ts
         end
         set_shading_geomerty!(interaction, ss, ts, dndu, dndv, true)
-        # print("here \n")
-        # print("ss: ", ss, "\n")
-        # print("ss: ", ts, "\n")
-        # print("cross: ", cross(ss, ts), "\n")
-        # print("n: ", interaction.core.n, "\n")
-        # print("shading n: ", interaction.shading.n, "\n")
-        # asdf
     end
-
-    # if abs(dot(interaction.core.n, interaction.shading.n)) == 0
-    #     print(interaction.core.n, "\n")
-    #     print(interaction.shading.n, "\n")
-    # end
     return true, t, interaction 
 end
 
@@ -394,7 +382,8 @@ end
 
 function area(tri::Triangle)::Float64
     p0, p1, p2 = tri.core.world_to_object.(get_vertices(tri))
-    return 0.5 * length(cross(p1-p0, p2-p0))
+    c = cross(p1 - p0, p2 - p0)
+    return 0.5 * sqrt(dot(c, c))
 end
 
 function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3}

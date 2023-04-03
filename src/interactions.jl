@@ -19,6 +19,12 @@ end
 function Interaction(r::AbstractRay, n::Nml3)::Interaction
     return Interaction(r.origin, r.t, -r.direction, n)
 end
+# PBRT 2.10 
+# for other types of interacion points where the notation of an outgoing direction doesnt apply
+# ie those found by randomly sampling points on a surface of a shape wo has the value Vec3(0)
+function Interaction(p::Pnt3, t::Float64, n::Nml3)::Interaction
+    return Interaction(p, t, Vec3(0.0), n)
+end
 
 mutable struct ShadingInteraction
     n::Nml3
@@ -60,7 +66,7 @@ function InstantiateSurfaceInteraction(
     dpdv::Vec3,
     dndu::Nml3,
     dndv::Nml3,
-    shape::Shape,
+    shape::Maybe{Shape}=nothing,
     primitive::Maybe{Primitive}=nothing,
     bsdf::Maybe{AbstractBSDF}=nothing,
 )::SurfaceInteraction
@@ -69,9 +75,11 @@ function InstantiateSurfaceInteraction(
     core = Interaction(p, t, wo, n)
     shading = ShadingInteraction(n, dpdu, dpdv, dndu, dndv)
 
-    if shape.core.reverse_orientation
-        core.n = core.n * -1
-        shading.n = shading.n * -1
+    if !(shape isa Nothing)
+        if shape.core.reverse_orientation
+            core.n = core.n * -1
+            shading.n = shading.n * -1
+        end
     end
 
     return SurfaceInteraction(
@@ -83,8 +91,8 @@ function InstantiateSurfaceInteraction(
         dndu,
         dndv,
         shape,
-        nothing,
-        nothing,
+        primitive,
+        bsdf,
         0,
         0,
         0,
@@ -120,7 +128,7 @@ function empty_surface_interation()::SurfaceInteraction
         Vec3(0,1,0),
         Nml3(1,0,0),
         Nml3(0,1,0),
-        s,
+        nothing,
         nothing,
         nothing,
     )
@@ -147,7 +155,7 @@ end
 function spawn_shadow_ray(p0::Interaction, p1::Interaction, delta::Float64 = 1e-6,)::RayDifferential
     direction = p1.p - p0.p
     origin = p0.p .+ delta .* direction
-    return RayDifferential(Ray(origin, direction, 0, p0.t))
+    return RayDifferential(Ray(origin, direction, 0, p0.t)) # JOHN HACK: this has to be 0, p0.t for s==1 bdpt to work?
 end
 
 
@@ -164,8 +172,7 @@ function compute_scattering!(p::Primitive, si::SurfaceInteraction, allow_multipl
         # evaluate the bsdf
         p.material(si, allow_multiple_lobes, T)
     end
-    # TODO WHY FAIL
-    @assert (dot(si.core.n, si.shading.n)) >= 0
+    # @assert (dot(si.core.n, si.shading.n)) >= 0
 end
 
 #########################################

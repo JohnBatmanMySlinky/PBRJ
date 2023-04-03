@@ -30,7 +30,7 @@ end
 
 function power(il::InfinteLight)::Float64
     u, v = size(il.map)
-    return pi .* il.world_radius .* il.world_radius .* Spectrum(il.map[u ÷ 2, v ÷ 2])
+    return pi .* il.world_radius .* il.world_radius .* Spectrum(il.map[u ÷ 2, v ÷ 2]) .* il.I
 end
 
 function le(il::InfinteLight, ray::AbstractRay)::Spectrum
@@ -39,7 +39,7 @@ function le(il::InfinteLight, ray::AbstractRay)::Spectrum
     s = Int(trunc(spherical_phi(w) / (2pi) * x) + 1)
     t = Int(trunc(spherical_theta(w) / pi * y) + 1)
     l = il.map[s,t]
-    return Spectrum(l.r, l.g, l.b)
+    return Spectrum(l.r, l.g, l.b) * il.I
 end
 
 function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
@@ -66,7 +66,7 @@ function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple
     u = Int(trunc(uv.x * x))+1
     v = Int(trunc(uv.y * y))+1
     color = il.map[u,v]
-    radiance = Spectrum(color.r, color.g, color.b)
+    radiance = Spectrum(color.r, color.g, color.b) * il.I
 
     # visibility
     visibility = VisibilityTester(
@@ -87,7 +87,7 @@ function pdf_li(il::InfinteLight, isect::SurfaceInteraction, wi::Vec3)::Float64
     u_idx = phi / 2pi
     v_idx = theta / pi
 
-    pdf_val = pdf(il.pdf, Pnt2(u_idx, v_idx))
+    pdf_val = pdf(il.pdf, Pnt2(v_idx, u_idx))
 
     return pdf_val / (2 * pi * pi * sin_theta)
 end
@@ -98,6 +98,32 @@ end
 
 function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
     # compute direction for infinite light sample ray
+    u = u1
+    # find uv coordinates in infinite light texture
+    uv, map_pdf = sample_continuous(light.pdf, u)
+    uv = Int.(trunc.(uv) .+ 1)
+    (map_pdf == 0.0) && return Spectrum(0.0), Ray(), Nml3(0), 0.0, 0.0
+
+    theta = uv[2] * pi
+    phi = uv[1] * 2.0 * pi
+    cos_theta = cos(theta)
+    sin_theta = sin(theta)
+    sin_phi = sin(phi)
+    cos_phi = cos(phi)
+    d = -light.light_to_world(Vec3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta))
+    n_light = Nml3(d)
+    
     # compute origin for infinite light sample ray
+    _, v1, v2 = orthonormal_basis(-d)
+    cd = random_in_concentric_disk(u2)
+    pdisk = Pnt3(0) + light.world_radius * (cd.x * v1 + cd.y * v2)
+    ray = RayDifferential(Ray(pdisk + light.world_radius * -d, d, t, typemax(Float64)))
+    
     # compute infinite area light ray pdfs
+    pdf_dir = sin_theta == 0.0 ? 0.0 : map_pdf / (2.0 * pi * pi * sin_theta)
+    pdf_pos = 1 / (pi * light.world_radius * light.world_radius)
+
+    # JOHN convert map to spectrum
+    l = light.map[uv.x, uv.y]
+    return Spectrum(l.r, l.g, l.b) * light.I, ray, n_light, pdf_pos, pdf_dir
 end

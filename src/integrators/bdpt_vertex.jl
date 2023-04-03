@@ -230,7 +230,7 @@ end
 function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
     !is_light(v1) && (return Spectrum(0.0))
     w = p(v2) - p(v1)
-    (norm(2)^2 == 0.0) && (return Spectrum(0.0))
+    (dot(w,w) == 0.0) && (return Spectrum(0.0))
     w = Vec3(normalize(w))
     if is_infinite_light(v1)
         # return emitted radiance for infinite light sources
@@ -250,10 +250,10 @@ end
 
 function pdf_light_origin(sampled::Vertex, scene::Scene, v::Vertex, light_distr::Distribution1D, light_num::Int64)::Float64
     w = p(v) - p(sampled)
-    (norm(w)^2 == 0.0) && (return 0.0)
-    w = normalize(w)
+    (dot(w,w) == 0.0) && (return 0.0)
+    w = Vec3(normalize(w))
     if is_infinite_light(sampled)
-        return infinite_light_density(scene, light_distr, w)
+        return infinite_light_density(scene.lights, light_distr, w)
     else
         light = sampled.type == VTLight ? sampled.ei.light : sampled.si.primitive.area_light
         pdf_choice = discrete_pdf(light_distr, light_num)
@@ -264,10 +264,12 @@ end
 
 function pdf_light(v0::Vertex, scene::Scene, v1::Vertex)::Float64
     w = Vec3(p(v1) - p(v0))
-    invdist2 = 1/(norm(w)^2)
+    invdist2 = 1/dot(w,w)
     w *= sqrt(invdist2)
     if is_infinite_light(v0)
-        @assert false # not IMPLEMENTED
+        # Compute planar sampling density for infinite light sources
+        worldradius = world_radius(scene.b)
+        pdf_val = 1 / (pi * worldradius * worldradius)
     else
         light = v0.type == VTLight ? v0.ei.light : v1.si.primitive.area_light
         pdf_pos, pdf_dir = pdf_le(light, Ray(p(v0), w, time(v0), typemax(Float64)), ng(v0))

@@ -64,7 +64,7 @@ end
 
 function get_1D!(ss::StratifiedSampler)
     if ss.pixel_sampler.current1DDimension > size(ss.pixel_sampler.sampels1D)[1]
-        p = rand()
+        p = ss.jitter ? rand() : 0.5
     else
         p = ss.pixel_sampler.sampels1D[ss.pixel_sampler.current1DDimension, ss.current_pixel]
     end    
@@ -74,7 +74,7 @@ end
 
 function get_2D!(ss::StratifiedSampler)
     if ss.pixel_sampler.current2DDimension > size(ss.pixel_sampler.sampels2D)[1]
-        p = Pnt2(rand(), rand())
+        p = ss.jitter ? Pnt2(rand(), rand()) : Pnt2(0.5, 0.5)
     else
         p = ss.pixel_sampler.sampels2D[ss.pixel_sampler.current2DDimension, ss.current_pixel]
     end    
