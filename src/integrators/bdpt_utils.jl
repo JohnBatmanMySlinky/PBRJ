@@ -12,29 +12,6 @@ function convert_density(curr::Vertex, pdf::Float64, nxt::Vertex)::Float64
     end
 end
 
-# inline Float InfiniteLightDensity(
-#     const Scene &scene, const Distribution1D &lightDistr,
-#     const std::unordered_map<const Light *, size_t> &lightToDistrIndex,
-#     const Vector3f &w) {
-#     Float pdf = 0;
-#     for (const auto &light : scene.infiniteLights) {
-#         CHECK(lightToDistrIndex.find(light.get()) != lightToDistrIndex.end());
-#         size_t index = lightToDistrIndex.find(light.get())->second;
-#         pdf += light->Pdf_Li(Interaction(), -w) * lightDistr.func[index];
-#     }
-#     return pdf / (lightDistr.funcInt * lightDistr.Count());
-# }
-
-# inline Float InfiniteLightDensity(const Scene &scene,
-#         const Distribution1D &lightDistr, const Vector3f &w) {
-#     Float pdf = 0;
-#     for (size_t i = 0; i < scene.lights.size(); ++i) 
-#         if (scene.lights[i]->flags & (int)LightFlags::Infinite)
-#             pdf += scene.lights[i]->Pdf_Li(Interaction(), -w) *
-#                    lightDistr.func[i];
-#     return pdf / (lightDistr.funcInt * lightDistr.Count());
-# }
-
 function infinite_light_density(lights::Vector{Light}, light_distr::Distribution1D, w::Vec3)::Float64
     pdf = 0.0
     @assert length(lights) == length(light_distr.func)
