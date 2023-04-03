@@ -84,6 +84,7 @@ end
 function sample_continuous(d::Distribution2D, uv::Pnt2)::Tuple{Pnt2, Float64}
     d1, pdf_val1, offset1 = sample_continuous(d.marginal, uv.y)
     d0, pdf_val0, _ = sample_continuous(d.conditional[offset1], uv.x)
+    @assert (d0 < 1) && (d1 < 1)
     return Pnt2(d0, d1), pdf_val0 * pdf_val1
 end
 

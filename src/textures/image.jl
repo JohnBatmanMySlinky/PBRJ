@@ -5,7 +5,13 @@ struct ImageTexture <: Texture
     tile::Pnt2
 
     function ImageTexture(path::String, tile::Pnt2=Pnt2(1,1))
-        raw = load(path)
+        if lowercase(path[end-3:end]) == ".exr"
+            raw = OpenEXR.load(path)
+        elseif lowercase(path[end-3:end]) == ".png"
+            raw = load(path)
+        else
+            @assert "it aint implemented yet"
+        end
         L, W = size(raw)
         dat = zeros(Pnt3, L, W)
         for l in 1:L

@@ -10,6 +10,7 @@ using Random
 using ArgParse
 using Logging
 using Dates
+using OpenEXR
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -158,10 +159,9 @@ function render_scene()
                 parsed_args["light-distribution-strategy"], 
             )
             passes[i] = current_pass
-            # FileIO.save("debug_$(i).png", clamp01nan.(current_pass))
+            # FileIO.save("debug_$(i).png", clamp01nan.(current_pass)
         end
         image = denoise(passes, parsed_args["denoise-steps"])
-        image = clamp01nan.(image)
         FileIO.save(I.camera.core.core.film.filename, image)
     elseif parsed_args["denoise"] == false
         for bdpt_pass in BDPT_STAGES

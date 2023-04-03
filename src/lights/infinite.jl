@@ -10,7 +10,17 @@ struct InfinteLight <: Light
 
     function InfinteLight(bounds::Bounds3, light_to_world::Transformation, I::Spectrum, map_url::String)
         dat = load(map_url)
-        pdf = Distribution2D(dat)      
+        width, height = size(dat)
+        im = zeros(width, height)
+        for v in 1:height
+            sin_theta = sin(pi * (v + 0.5)) / height
+            for u in 1:width
+                im[u,v] = (dat[u,v].r + dat[u,v].g + dat[u,v].b) / 3.0 * 1.01
+                im[u,v] *= sin_theta                            
+            end
+        end
+
+        pdf = Distribution2D(im)      
 
         pMin = abs.(bounds.pMin)
         pMax = abs.(bounds.pMax)
@@ -45,7 +55,7 @@ end
 function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     # Find $(u,v)$ sample coordinates in infinite light texture
     uv, map_pdf = sample_continuous(il.pdf, uvu)
-    (map_pdf == 0) && return Spectrum(0,0,0)
+    (map_pdf == 0) && return Spectrum(0), Vec3(0), 0.0, VisibilityTester(Interaction(), Interaction()), Pnt3(0), Nml3(0)
 
     # Convert infinite light sample point to direction
     theta = uv.y * pi
@@ -102,7 +112,7 @@ function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
     # find uv coordinates in infinite light texture
     uv, map_pdf = sample_continuous(light.pdf, u)
     uv = Int.(trunc.(uv) .+ 1)
-    (map_pdf == 0.0) && return Spectrum(0.0), Ray(), Nml3(0), 0.0, 0.0
+    (map_pdf == 0.0) && return Spectrum(0.0), RayDifferential(Ray()), Nml3(0), 0.0, 0.0
 
     theta = uv[2] * pi
     phi = uv[1] * 2.0 * pi
