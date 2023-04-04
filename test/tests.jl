@@ -100,7 +100,6 @@ end
     @test val_pdf ≈ 0.75
 end
 
-
 @testset "LightDistribution --> centroid_distance distribution" begin
     # Case 1: Four point lights equally far away fom p
     mat1 = RayTracing.Matte(
@@ -152,4 +151,27 @@ end
     val, val_pdf, val_offset = RayTracing.sample_discrete(ld, 0.5)
     @test val ≈ 1
     @test val_pdf ≈ (1/a^2)/norm
+end
+
+@testset "Distributions2 --> discrete sampling" begin
+    # tests stolein from PBRT :)
+    x = reshape([
+        [4.0, 5.0, 4.0, 3.0, 3.0, 4.0, 1.0]
+        [3.0, 1.0, 7.0, 6.0, 3.0, 5.0, 2.0]
+        [1.0, 7.0, 7.0, 7.0, 4.0, 7.0, 1.0]
+        [0.0, 8.0, 9.0, 13.0, 9.0, 7.0, 1.0]
+        [5.0, 7.0, 10.0, 13.0, 9.0, 5.0, 0.0]
+        [0.0, 5.0, 12.0, 15.0, 15.0, 9.0, 1.0]
+        [1.0, 7.0, 12.0, 15.0, 11.0, 4.0, 2.0]
+        [1.0, 4.0, 7.0, 9.0, 6.0, 7.0, 4.0]
+        [0.0, 5.0, 5.0, 11.0, 8.0, 5.0, 1.0]
+        [4.0, 2.0, 6.0, 4.0, 2.0, 5.0, 4.0]
+        [4.0, 3.0, 5.0, 3.0, 3.0, 0.0, 5.0]
+    ], 7, 11)
+    d = RayTracing.Distribution2D(x)
+    uv, pdf_val = RayTracing.sample_discrete(d, RayTracing.Pnt2(0.5, 0.5))
+    @test uv == RayTracing.Pnt2(6.0, 4.0)
+    @test pdf_val ≈ 15.0 / 99.0 * 99.0 / 413.0
+
+    uv, pdf_val = RayTracing.sample_continuous(d, RayTracing.Pnt2(0.5, 0.5))
 end

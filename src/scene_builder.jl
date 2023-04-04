@@ -488,15 +488,15 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         lights = Light[]
 
         # MATERIALS
-        mat_concrete = Substrate(
-            ImageTexture("../ref/tiling_24_basecolor-1K.png", Pnt2(2,2)), # kd
-            ConstantTexture(Pnt3(.05, .05, .05)), # ks
-            ConstantTexture(Pnt3(.003, .003, .003)), # u
-            ConstantTexture(Pnt3(.003, .003, .003)), # v
-            true, # remap
-            # ImageTexture("../ref/Substance_Graph_Height.jpg", Pnt2(1,1)), # kd
-            nothing
-        )
+        # mat_concrete = Substrate(
+        #     ImageTexture("../ref/tiling_24_basecolor-1K.png", Pnt2(2,2)), # kd
+        #     ConstantTexture(Pnt3(.05, .05, .05)), # ks
+        #     ConstantTexture(Pnt3(.003, .003, .003)), # u
+        #     ConstantTexture(Pnt3(.003, .003, .003)), # v
+        #     true, # remap
+        #     # ImageTexture("../ref/Substance_Graph_Height.jpg", Pnt2(1,1)), # kd
+        #     nothing
+        # )
         mat_blue = Matte(
             ConstantTexture(Vec3(0, .4, .8)),
             ConstantTexture(Vec3(0, 0, 0)),
@@ -544,7 +544,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         env_light = InfinteLight(
             world_bounds(bvh), 
             Translate(Vec3(0,0,0)), 
-            Spectrum(2.5, 2.5, 2.5), 
+            Spectrum(1.0), 
             "../ref/parking_lot.jpg"
         )
         push!(lights, env_light)

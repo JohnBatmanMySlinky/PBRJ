@@ -13,7 +13,7 @@ struct InfinteLight <: Light
         width, height = size(dat)
         im = zeros(width, height)
         for v in 1:height
-            sin_theta = sin(pi * (v + 0.5)) / height
+            sin_theta = sin(pi * (v + 0.5) / height)
             for u in 1:width
                 im[u,v] = (dat[u,v].r + dat[u,v].g + dat[u,v].b) / 3.0 * 1.01
                 im[u,v] *= sin_theta                            
@@ -71,11 +71,8 @@ function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple
     (sin_theta == 0) && (map_pdf = 0.0)
 
     # Return radiance value for infinite light direction
-    # John convert float to ints for the radiance lookup
-    x,y = size(il.map)
-    u = Int(trunc(uv.x * x))+1
-    v = Int(trunc(uv.y * y))+1
-    color = il.map[u,v]
+    x, y = size(il.map)
+    color = il.map[Int(trunc(uv.x * x)+1), Int(trunc(uv.y * y)+1)]
     radiance = Spectrum(color.r, color.g, color.b) * il.I
 
     # visibility
@@ -111,11 +108,10 @@ function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
     u = u1
     # find uv coordinates in infinite light texture
     uv, map_pdf = sample_continuous(light.pdf, u)
-    uv = Int.(trunc.(uv) .+ 1)
     (map_pdf == 0.0) && return Spectrum(0.0), RayDifferential(Ray()), Nml3(0), 0.0, 0.0
 
-    theta = uv[2] * pi
-    phi = uv[1] * 2.0 * pi
+    theta = uv.y * pi
+    phi = uv.x * 2.0 * pi
     cos_theta = cos(theta)
     sin_theta = sin(theta)
     sin_phi = sin(phi)
@@ -134,6 +130,7 @@ function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
     pdf_pos = 1 / (pi * light.world_radius * light.world_radius)
 
     # JOHN convert map to spectrum
-    l = light.map[uv.x, uv.y]
+    x,y = size(light.map)
+    l = light.map[Int(trunc(uv.x * x)+1), Int(trunc(uv.y * y)+1)]
     return Spectrum(l.r, l.g, l.b) * light.I, ray, n_light, pdf_pos, pdf_dir
 end
