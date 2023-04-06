@@ -14,6 +14,7 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 - Bi-Directional Path Tracing (BDPT)
     - implement spectrum is black checks and measure preformance improvement
     - implement the rest of the lights
+    - mirror material + env light isn't working
     - add caustics
 - Implement Metroplois Light Transport Integrator
 - Move to EXR for environment maps and final images.
