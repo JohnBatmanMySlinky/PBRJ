@@ -509,6 +509,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # GEOMETRY
+        # blue sphere
         sphere_transform = Translate(Pnt3(0,50,0))
         sphere = Sphere(
             ShapeCore(
@@ -521,6 +522,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         push!(primitives, Primitive(sphere, mat_blue, nothing))
 
+        # floor
         floor_transform = Translate(Pnt3(0,0,0))
         floor = Rectangle(
             Pnt2(-300, -300), 
@@ -543,14 +545,14 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # instantiate an env light
         env_light = InfinteLight(
             world_bounds(bvh), 
-            Translate(Vec3(0,0,0)), 
-            Spectrum(1.0), 
-            "../ref/parking_lot.jpg"
+            RotateX(0.0), 
+            Spectrum(1.5), 
+            "../ref/sky.exr"
         )
         push!(lights, env_light)
 
         # Instantiate a Filter
-        filter = BoxFilter(Pnt2(.5, .5))
+        filter = BoxFilter(Pnt2(1, 1))
 
         # Instantiate a Film
         film = Film(
@@ -563,11 +565,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(125, 200, 175)
+        look_from = Pnt3(300, 200, 300)
         look_at = Pnt3(0, 75, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 
         # Instantiate a Sampler
         spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))

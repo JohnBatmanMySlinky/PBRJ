@@ -72,19 +72,13 @@ struct Distribution2D
         marginal_func = Float64[]
         for i = 1:nv
             push!(conditional, Distribution1D(bw[i,:]))
-            push!(marginal_func, sum(bw[i,:]))
+            push!(marginal_func, conditional[i].func_int)
         end
         return new(
             conditional,
             Distribution1D(marginal_func)
         )
     end
-end
-
-function sample_discrete(d::Distribution2D, uv::Pnt2)::Tuple{Pnt2, Float64}
-    offset_y, pdf_val1, _ = sample_discrete(d.marginal, uv.y)
-    offset_x, pdf_val0, _ = sample_discrete(d.conditional[offset_y], uv.x)
-    return Pnt2(offset_x, offset_y), pdf_val0 * pdf_val1
 end
 
 function sample_continuous(d::Distribution2D, uv::Pnt2)::Tuple{Pnt2, Float64}
@@ -95,7 +89,7 @@ function sample_continuous(d::Distribution2D, uv::Pnt2)::Tuple{Pnt2, Float64}
 
 end
 
-function pdf(d::Distribution2D, p::Pnt2)::Float64
+function pdf(d::Distribution2D, p::Pnt2)::Float64   
     iu = max(1, Int(floor(p.x * length(d.conditional[1].func)))+1) # as opposed to PBRT's clamp
     iv = max(1, Int(floor(p.y * length(d.marginal.func)))+1) # as opposed to PBRT's clamp
     return d.conditional[iv].func[iu] / d.marginal.func_int

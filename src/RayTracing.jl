@@ -141,9 +141,9 @@ const BDPT_STAGES = [
 ]
 
 # set up logging
-# io = open("log_$(now()).txt", "w+")
-# logger = SimpleLogger(io, Logging.Error)
-logger = NullLogger()
+io = open("log_$(now()).txt", "w+")
+logger = SimpleLogger(io, Logging.Error) # Error, Warn, Info, Debug
+logger = NullLogger()   
 global_logger(logger)
 
 function render_scene()

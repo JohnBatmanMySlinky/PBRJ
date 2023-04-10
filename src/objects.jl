@@ -203,6 +203,10 @@ function inside_exclusive(p::Pnt3, b::Bounds3)::Bool
     return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y) && (p.z >= b.pMin.z) && (p.z < b.pMax.z)
 end
 
+function inside(p::Pnt3, b::Bounds3)::Bool
+    return (p.x >= b.pMin.x) && (p.x <= b.pMax.x) && (p.y >= b.pMin.y) && (p.y <= b.pMax.y) && (p.z >= b.pMin.z) && (p.z <= b.pMax.z)
+end
+
 function inside_exclusive(p::Pnt2, b::Bounds2)::Bool
     return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y)
 end
@@ -273,6 +277,12 @@ function intersection(b1::Bounds2, b2::Bounds2)::Bounds2
         max.(b1.pMin, b2.pMin),
         min.(b1.pMax, b2.pMax)
     )
+end
+
+function bounding_sphere(b::Bounds3)::Tuple{Pnt3, Float64}
+    center = (b.pMax + b.pMin) / 2.0
+    radius = inside(center, b) ? norm(center - b.pMax) : 0.0
+    return center, radius
 end
 
 # should only be using the intersect_p below!!!

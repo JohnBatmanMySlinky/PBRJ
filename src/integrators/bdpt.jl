@@ -291,7 +291,9 @@ function random_walk!(
 
         # sample BSDF at current vertex and compute reverse probability
         wi = wo = isect.core.wo
-        wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
+        tmp_u = sampler.jitter ? Pnt2(rand(), rand()) : Pnt2(0.5, 0.5)
+        @assert tmp_u != Pnt2(0.0)
+        wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, tmp_u, BSDF_ALL)
         @info "Random walk sampled dir: $(wi) f: $(f), pdfFwd: $(pdf_fwd)"
         (pdf_fwd == 0.0) && break
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd

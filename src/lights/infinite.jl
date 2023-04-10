@@ -5,26 +5,31 @@ struct InfinteLight <: Light
     world_to_light::Transformation
     I::Spectrum
     pdf::Distribution2D
-    map::Matrix
+    map::Matrix{RGBA{Float16}}
+    world_center::Pnt3
     world_radius::Float64
-
+    
     function InfinteLight(bounds::Bounds3, light_to_world::Transformation, I::Spectrum, map_url::String)
-        dat = load(map_url)
+        ident = map_url[end-3:end]
+        if ident == ".exr"
+            dat = OpenEXR.load(map_url)
+        else
+            @assert false # NOT IMPLEMENTED
+        end
+        
+        # create im for pdf creation
         width, height = size(dat)
         im = zeros(width, height)
         for v in 1:height
             sin_theta = sin(pi * (v + 0.5) / height)
             for u in 1:width
-                im[u,v] = (dat[u,v].r + dat[u,v].g + dat[u,v].b) / 3.0 * 1.01
-                im[u,v] *= sin_theta                            
+                im[u,v] = Gray(dat[u,v]) * sin_theta
             end
         end
-
         pdf = Distribution2D(im)      
 
-        pMin = abs.(bounds.pMin)
-        pMax = abs.(bounds.pMax)
-        world_radius = max(pMin.x, pMin.y, pMin.z, pMax.x, pMax.y, pMax.z) * 1.01
+        # get world radius and world center
+        world_center, world_radius = bounding_sphere(bounds)
 
         return new(
             LightInfinite,
@@ -33,22 +38,27 @@ struct InfinteLight <: Light
             I,
             pdf,
             dat,
+            world_center,
             world_radius
         )
     end
 end
 
 function power(il::InfinteLight)::Float64
-    u, v = size(il.map)
-    return pi .* il.world_radius .* il.world_radius .* Spectrum(il.map[u ÷ 2, v ÷ 2]) .* il.I
+    x, y = size(il.map)
+    u = _uv_map(0.5, x)
+    v = _uv_map(0.5, y)
+    return pi .* il.world_radius .* il.world_radius .* Spectrum(il.map[u, v]) .* il.I
 end
 
 function le(il::InfinteLight, ray::AbstractRay)::Spectrum
     x, y = size(il.map)
     w = normalize(il.world_to_light(ray.direction))
-    s = Int(trunc(spherical_phi(w) / (2pi) * x) + 1)
-    t = Int(trunc(spherical_theta(w) / pi * y) + 1)
-    l = il.map[s,t]
+    s = spherical_phi(w) / (2pi)
+    t = spherical_theta(w) / pi
+    new_s = _uv_map(t, x)
+    new_t = _uv_map(s, y)
+    l = il.map[new_s, new_t]
     return Spectrum(l.r, l.g, l.b) * il.I
 end
 
@@ -72,13 +82,15 @@ function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple
 
     # Return radiance value for infinite light direction
     x, y = size(il.map)
-    color = il.map[Int(trunc(uv.x * x)+1), Int(trunc(uv.y * y)+1)]
+    new_u = _uv_map(uv.y, x)
+    new_v = _uv_map(uv.x, y)
+    color = il.map[new_u, new_v]
     radiance = Spectrum(color.r, color.g, color.b) * il.I
 
     # visibility
     visibility = VisibilityTester(
         interaction,
-        Interaction(interaction.p + wi .* 2 * il.world_radius, interaction.t, Vec3(0, 0, 0), Nml3(0, 0, 0))
+        Interaction(interaction.p + wi .* 2 * il.world_radius, interaction.t, Nml3(0, 0, 0))
     )
 
     return radiance, wi, map_pdf, visibility, Pnt3(0,0,0), Nml3(0,0,0)
@@ -94,7 +106,7 @@ function pdf_li(il::InfinteLight, isect::SurfaceInteraction, wi::Vec3)::Float64
     u_idx = phi / 2pi
     v_idx = theta / pi
 
-    pdf_val = pdf(il.pdf, Pnt2(v_idx, u_idx))
+    pdf_val = pdf(il.pdf, Pnt2(u_idx, v_idx))
 
     return pdf_val / (2 * pi * pi * sin_theta)
 end
@@ -122,7 +134,7 @@ function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
     # compute origin for infinite light sample ray
     _, v1, v2 = orthonormal_basis(-d)
     cd = random_in_concentric_disk(u2)
-    pdisk = Pnt3(0) + light.world_radius * (cd.x * v1 + cd.y * v2)
+    pdisk = light.world_center + light.world_radius * (cd.x * v1 + cd.y * v2)
     ray = RayDifferential(Ray(pdisk + light.world_radius * -d, d, t, typemax(Float64)))
     
     # compute infinite area light ray pdfs
@@ -131,6 +143,18 @@ function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
 
     # JOHN convert map to spectrum
     x,y = size(light.map)
-    l = light.map[Int(trunc(uv.x * x)+1), Int(trunc(uv.y * y)+1)]
+    new_u = _uv_map(uv.y, x)
+    new_v = _uv_map(uv.x, y)
+    l = light.map[new_u, new_v]
     return Spectrum(l.r, l.g, l.b) * light.I, ray, n_light, pdf_pos, pdf_dir
+end
+
+# JOHN HACK
+"""
+why do I need this? I am 100% certain I do need this but WHY???? 
+trunc(a*b) gives me the right answer mapping the continuous coords uv to a discrete pixel
+but then need to toss in the clamp to avoid 0 indexing!!!
+"""
+function _uv_map(a::Float64, b::Int64)::Int64
+    return clamp(1, Int(trunc(a * b)), b)
 end
