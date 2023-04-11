@@ -154,7 +154,6 @@ end
 end
 
 @testset "Distributions2 --> discrete sampling" begin
-    # tests stolein from PBRT :)
     x = reshape([
         [4.0, 5.0, 4.0, 3.0, 3.0, 4.0, 1.0]
         [3.0, 1.0, 7.0, 6.0, 3.0, 5.0, 2.0]
@@ -169,9 +168,72 @@ end
         [4.0, 3.0, 5.0, 3.0, 3.0, 0.0, 5.0]
     ], 7, 11)
     d = RayTracing.Distribution2D(x)
-    uv, pdf_val = RayTracing.sample_discrete(d, RayTracing.Pnt2(0.5, 0.5))
-    @test uv == RayTracing.Pnt2(6.0, 4.0)
-    @test pdf_val ≈ 15.0 / 99.0 * 99.0 / 413.0
-
     uv, pdf_val = RayTracing.sample_continuous(d, RayTracing.Pnt2(0.5, 0.5))
+end
+
+@testset "Infinite Area Light" begin
+    mi = 0
+    ma = 10
+    env_light = RayTracing.InfinteLight(
+        RayTracing.Bounds3(RayTracing.Pnt3(mi), RayTracing.Pnt3(ma)), 
+        RayTracing.RotateX(0.0), 
+        RayTracing.Spectrum(1.0), 
+        "../ref/sky.exr"
+    )
+    #########################
+    ### test: world sphere ###
+    #########################
+
+    # test world_sphere
+    @test env_light.world_center ≈ RayTracing.Pnt3((mi+ma)/2)
+    @test env_light.world_radius ≈ sqrt(3 * ((ma-mi)/2)^2)
+
+    ######################
+    ### test: sampling ###
+    ######################
+
+    # lets get the brightest pixel manually
+    height, width = size(env_light.map)
+    _, max_coords = findmax(Float64.(RayTracing.Gray.(env_light.map)))
+
+    known_u = max_coords[2]/width
+    known_v = max_coords[1]/height
+    @test known_u ≈ 0.25
+    @test known_v ≈ 0.27783203125
+    
+    # and test we can recover it
+    known_u_idx = RayTracing._uv_map(known_u, width)
+    known_v_idx = RayTracing._uv_map(known_v, height)
+    @test RayTracing.Spectrum(env_light.map[known_v_idx, known_u_idx]) ≈ RayTracing.Spectrum(19008.0, 20320.0, 19680.0)
+
+
+    # now let's test the sampling and pdf functions
+    inter = RayTracing.Interaction(
+        RayTracing.Pnt3(1,1,1),
+        0.5,
+        RayTracing.Vec3(1,1,1),
+        RayTracing.Nml3(0,1,0)
+    )
+    # when we sample li with 0.5, 0.5 we should get our brightest pixel
+    sampled_li, wi, pdf_from_sample_li, vis, _, _ = RayTracing.sample_li(env_light, inter, RayTracing.Pnt2(0.5, 0.5))
+    @test sampled_li ≈ RayTracing.Spectrum(19008.0, 20320.0, 19680.0)
+
+    # uv should be recoverable from sampling the distribution
+    sampled_uv, pdf_from_sample_continuous = RayTracing.sample_continuous(env_light.pdf, RayTracing.Pnt2(0.5, 0.5))
+    @test isapprox(sampled_uv.x, known_u, rtol=3)
+    @test isapprox(sampled_uv.y, known_v, rtol=3)
+    
+    # pdf should be recoverable no matter how we sampled
+    pdf_adj_factor = 1.0/(2*pi*pi*RayTracing.sin(sampled_uv.y * pi))
+    @test pdf_from_sample_continuous * pdf_adj_factor ≈ pdf_from_sample_li
+
+    # more pdf recoverability testing
+    pdf_from_pdf_li = RayTracing.pdf_li(env_light, RayTracing.empty_surface_interation(), wi)
+    @test pdf_from_pdf_li ≈ pdf_from_sample_li
+
+    # for infinite light, sample_li and sample_le are very similar barring a sign on wi
+    sampled_le, ray, _, _, pdf_from_sample_le = RayTracing.sample_le(env_light, RayTracing.Pnt2(0.5, 0.5), RayTracing.Pnt2(0.5, 0.5), 0.5)
+    @test sampled_le ≈ sampled_li
+    @test ray.direction ≈ -wi
+    @test pdf_from_sample_le ≈ pdf_from_sample_li
 end

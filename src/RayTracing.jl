@@ -140,12 +140,6 @@ const BDPT_STAGES = [
     # (5,1)
 ]
 
-# set up logging
-io = open("log_$(now()).txt", "w+")
-logger = SimpleLogger(io, Logging.Error) # Error, Warn, Info, Debug
-logger = NullLogger()   
-global_logger(logger)
-
 function render_scene()
     parsed_args = parse_commandline()
 
@@ -188,6 +182,15 @@ function render_scene()
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
+    # set up logging
+    if Sys.iswindows()
+        logger = NullLogger()   # TODO how to log to file on Windows?
+    else
+        io = open("log_$(now()).txt", "w+")
+        logger = SimpleLogger(io, Logging.Error) # Error, Warn, Info, Debug
+    end
+    global_logger(logger)
+
     @time render_scene()
 end
 

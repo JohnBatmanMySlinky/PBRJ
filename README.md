@@ -34,6 +34,10 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 - Expand tests
 
 ## Debt
+- check type stability
+- tuple of lights?
+- can I make rays immutable and re-instantiate when mutation is needed?
+- allocation tracking of infinite lights and film
 - clean up surface interaction instantiation (esp. when empty)
 - clean up logging
 - Get crop window working to render a single pixel

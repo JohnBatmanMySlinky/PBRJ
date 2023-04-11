@@ -424,6 +424,10 @@ function Spectrum(a::Union{Float64,Int64})::Spectrum
     return Spectrum(a,a,a)
 end
 
+function Spectrum(a::ColorTypes.RGBA{Float16})::Spectrum
+    return Spectrum(a.r, a.g, a.b)
+end
+
 function XYZ_to_RGB(xyz::Pnt3)::Spectrum
     # return Spectrum(
     #     0.412453 * xyz.x + 0.357580 * xyz.y + 0.180423 * xyz.z,

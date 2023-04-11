@@ -45,21 +45,21 @@ struct InfinteLight <: Light
 end
 
 function power(il::InfinteLight)::Float64
-    x, y = size(il.map)
+    y, x = size(il.map)
     u = _uv_map(0.5, x)
     v = _uv_map(0.5, y)
-    return pi .* il.world_radius .* il.world_radius .* Spectrum(il.map[u, v]) .* il.I
+    return pi .* il.world_radius .* il.world_radius .* Spectrum(il.map[v, u]) .* il.I
 end
 
 function le(il::InfinteLight, ray::AbstractRay)::Spectrum
-    x, y = size(il.map)
+    y, x = size(il.map)
     w = normalize(il.world_to_light(ray.direction))
     s = spherical_phi(w) / (2pi)
     t = spherical_theta(w) / pi
     new_s = _uv_map(t, x)
     new_t = _uv_map(s, y)
-    l = il.map[new_s, new_t]
-    return Spectrum(l.r, l.g, l.b) * il.I
+    l = Spectrum(il.map[new_t, new_s])
+    return l * il.I
 end
 
 function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
@@ -81,11 +81,10 @@ function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple
     (sin_theta == 0) && (map_pdf = 0.0)
 
     # Return radiance value for infinite light direction
-    x, y = size(il.map)
-    new_u = _uv_map(uv.y, x)
-    new_v = _uv_map(uv.x, y)
-    color = il.map[new_u, new_v]
-    radiance = Spectrum(color.r, color.g, color.b) * il.I
+    y, x = size(il.map)
+    new_u = _uv_map(uv.x, x)
+    new_v = _uv_map(uv.y, y)
+    radiance = Spectrum(il.map[new_v, new_u]) * il.I
 
     # visibility
     visibility = VisibilityTester(
@@ -103,10 +102,10 @@ function pdf_li(il::InfinteLight, isect::SurfaceInteraction, wi::Vec3)::Float64
     sin_theta = sin(theta)
     (sin_theta == 0.0) && return 0.0
 
-    u_idx = phi / 2pi
-    v_idx = theta / pi
+    v_idx = phi / 2pi
+    u_idx = theta / pi
 
-    pdf_val = pdf(il.pdf, Pnt2(u_idx, v_idx))
+    pdf_val = pdf(il.pdf, Pnt2(v_idx, u_idx))
 
     return pdf_val / (2 * pi * pi * sin_theta)
 end
@@ -117,9 +116,8 @@ end
 
 function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
     # compute direction for infinite light sample ray
-    u = u1
     # find uv coordinates in infinite light texture
-    uv, map_pdf = sample_continuous(light.pdf, u)
+    uv, map_pdf = sample_continuous(light.pdf, u1)
     (map_pdf == 0.0) && return Spectrum(0.0), RayDifferential(Ray()), Nml3(0), 0.0, 0.0
 
     theta = uv.y * pi
@@ -142,11 +140,11 @@ function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
     pdf_pos = 1 / (pi * light.world_radius * light.world_radius)
 
     # JOHN convert map to spectrum
-    x,y = size(light.map)
-    new_u = _uv_map(uv.y, x)
-    new_v = _uv_map(uv.x, y)
-    l = light.map[new_u, new_v]
-    return Spectrum(l.r, l.g, l.b) * light.I, ray, n_light, pdf_pos, pdf_dir
+    y, x = size(light.map)
+    new_u = _uv_map(uv.x, x)
+    new_v = _uv_map(uv.y, y)
+    l = Spectrum(light.map[new_v, new_u])
+    return l * light.I, ray, n_light, pdf_pos, pdf_dir
 end
 
 # JOHN HACK
