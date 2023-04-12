@@ -1,6 +1,6 @@
 """
 scene 1: munich re
-scene 2: ball on plane
+scene 2: plastic ball on plane
 scene 3: dragon
 scene 4: cornell box
 """
@@ -35,14 +35,19 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
-        mat_concrete = Substrate(
-            ImageTexture("../ref/Substance_Graph_BaseColor.jpg"), # kd
-            ConstantTexture(Pnt3(.15, .15, .15)), # ks
-            ConstantTexture(Pnt3(.003, .003, .003)), # u
-            ConstantTexture(Pnt3(.003, .003, .003)), # v
-            true, # remap
-            ImageTexture("../ref/Substance_Graph_Height.jpg"), # kd
+        mat_gray = Matte(
+            ConstantTexture(Vec3(1, 1, 0)),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
         )
+        # mat_concrete = Substrate(
+        #     ImageTexture("../ref/Substance_Graph_BaseColor.jpg"), # kd
+        #     ConstantTexture(Pnt3(.15, .15, .15)), # ks
+        #     ConstantTexture(Pnt3(.003, .003, .003)), # u
+        #     ConstantTexture(Pnt3(.003, .003, .003)), # v
+        #     true, # remap
+        #     ImageTexture("../ref/Substance_Graph_Height.jpg"), # kd
+        # )
 
 
         ###################################
@@ -402,7 +407,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in flwall
-            push!(primitives, Primitive(tri, mat_concrete, nothing))
+            push!(primitives, Primitive(tri, mat_white, nothing))
         end
 
         # hallway floor area light
@@ -430,25 +435,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
-
-        # instantiate an env light
-        # env_light = InfinteLight(
-        #     world_bounds(bvh), 
-        #     Translate(Vec3(0,0,0)), 
-        #     Spectrum(1, 1, 1), 
-        #     "../ref/parking_lot.jpg"
-        # )
-        # push!(lights, env_light)
-
-        # # instantiate a distant light
-        # distant_light = DistantLight(
-        #     Spectrum(.5, .5, .5),
-        #     Vec3(1,0,1),
-        #     Pnt3(0,0,0),
-        #     world_radius(bvh),
-        #     Translate(Pnt3(0,0,0))
-        # )
-        # push!(lights, distant_light)
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
@@ -497,15 +483,21 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         #     # ImageTexture("../ref/Substance_Graph_Height.jpg", Pnt2(1,1)), # kd
         #     nothing
         # )
-        mat_blue = Matte(
-            ConstantTexture(Vec3(0, .4, .8)),
-            ConstantTexture(Vec3(0, 0, 0)),
-            nothing
+        mat_ball = Substrate(
+            ConstantTexture(Spectrum(0.0, .5, .6)), # kd
+            ConstantTexture(Pnt3(.15, .15, .15)), # ks
+            ConstantTexture(Pnt3(.003, .003, .003)), # u
+            ConstantTexture(Pnt3(.003, .003, .003)), # v
+            true, # remap
+            nothing,
         )
         mat_gray = Matte(
             ConstantTexture(Vec3(.4, .4, .4)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
+        )
+        mat_mirror = Mirror(
+            ConstantTexture(Vec3(0.75, 0.75, 0.75))
         )
 
         # GEOMETRY
@@ -520,7 +512,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ),
             50.0
         )
-        push!(primitives, Primitive(sphere, mat_blue, nothing))
+        push!(primitives, Primitive(sphere, mat_ball, nothing))
 
         # floor
         floor_transform = Translate(Pnt3(0,0,0))
@@ -545,8 +537,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # instantiate an env light
         env_light = InfinteLight(
             world_bounds(bvh), 
-            RotateX(0.0), 
-            Spectrum(1.5), 
+            RotateX(25.0), 
+            Spectrum(1.0), 
             "../ref/sky.exr"
         )
         push!(lights, env_light)

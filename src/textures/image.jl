@@ -10,7 +10,7 @@ struct ImageTexture <: Texture
         elseif lowercase(path[end-3:end]) == ".png"
             raw = load(path)
         else
-            @assert "it aint implemented yet"
+            @assert false "it aint implemented yet"
         end
         L, W = size(raw)
         dat = zeros(Pnt3, L, W)
