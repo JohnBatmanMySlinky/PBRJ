@@ -46,6 +46,7 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 - Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc.
 
 ## Bugs
+- FIX SAMPLER RETURNING Pnt2(0,0) !!!
 - XYZ color to RGB, I am doing something wrong...
 - My world is upside down! Use real pbrt to debug (or pxl-th's)
 - Halton sampler doesn't work for more than (0,1]^2
