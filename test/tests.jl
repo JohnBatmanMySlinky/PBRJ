@@ -237,3 +237,13 @@ end
     @test ray.direction ≈ -wi
     @test pdf_from_sample_le ≈ pdf_from_sample_li
 end
+
+
+@testset "samplers v2" begin
+    @test stratum = RayTracing.permutation_element(UInt32(0), UInt32(36), 400) == 26
+    @test stratum = RayTracing.permutation_element(UInt32(0), UInt32(36), 4032212079371261838) == 15
+    @test stratum = RayTracing.permutation_element(UInt32(5), UInt32(36), 4032212079371261838) == 10
+    @test stratum = RayTracing.permutation_element(UInt32(50), UInt32(99), 0xf8d73f61d81b95bb) == 98
+    @test stratum = RayTracing.permutation_element(UInt32(5000), UInt32(990000), 0xcfc42f87b1d87f0e) == 221513
+    @test stratum = RayTracing.permutation_element(UInt32(3), UInt32(990000), 400) == 245588
+end

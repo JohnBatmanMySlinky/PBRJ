@@ -53,8 +53,9 @@ function render(
         tile_bounds = Bounds2(tb_min, tb_max)
         film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
-            start_pixel!(sampler, pixel)
-            while has_next_sample(sampler)
+            for sample_index in 1:sampler.samples_per_pixel
+                start_pixel_sample!(sampler, pixel, sample_index)
+
                 # Generate a single sample using BDPT
                 camera_sample = get_camera_sample!(sampler, pixel)
 
@@ -121,7 +122,7 @@ function render(
                     end
                 else
                     ray, _ = generate_ray_differential(i.camera, camera_sample)
-                    scale_differentials!(ray, 1.0 / sqrt(sampler.pixel_sampler.sampler.samples_per_pixel))
+                    scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
                     check, t, interaction, = intersect!(scene.b, ray)
 
                     if !check
@@ -145,7 +146,6 @@ function render(
                     end
                 end
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
-                start_next_sample!(sampler)
             end
         end
         merge_film_tile!(i.camera.core.core.film , film_tile)
@@ -155,7 +155,7 @@ function render(
         Threads.unlock(l)
     end
     got_film = i.camera.core.core.film
-    img = save(got_film, render_pass_flag, 1.0/i.sampler.pixel_sampler.sampler.samples_per_pixel)
+    img = save(got_film, render_pass_flag, 1.0/i.sampler.samples_per_pixel)
     return img
 end
 
@@ -183,7 +183,7 @@ function generate_camera_subpath!(
     """
     ray, beta = generate_ray_differential(camera, camera_sample)
     beta = Spectrum(beta) # john hack; casting to spectrum
-    scale_differentials!(ray, 1.0 / sqrt(sampler.pixel_sampler.sampler.samples_per_pixel))
+    scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
 
     # generate first vertex on camera subpath and start random walk
     path[1] = create_camera_vertex(camera, ray, beta)
