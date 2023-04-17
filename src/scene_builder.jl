@@ -40,15 +40,14 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
-        # mat_concrete = Substrate(
-        #     ImageTexture("../ref/Substance_Graph_BaseColor.jpg"), # kd
-        #     ConstantTexture(Pnt3(.15, .15, .15)), # ks
-        #     ConstantTexture(Pnt3(.003, .003, .003)), # u
-        #     ConstantTexture(Pnt3(.003, .003, .003)), # v
-        #     true, # remap
-        #     ImageTexture("../ref/Substance_Graph_Height.jpg"), # kd
-        # )
-
+        mat_concrete = Substrate(
+            ImageTexture("../ref/Substance_Graph_BaseColor.jpg"), # kd
+            ConstantTexture(Pnt3(.15, .15, .15)), # ks
+            ConstantTexture(Pnt3(.003, .003, .003)), # u
+            ConstantTexture(Pnt3(.003, .003, .003)), # v
+            true, # remap
+            ImageTexture("../ref/Substance_Graph_Height.jpg"), # kd
+        )
 
         ###################################
         ###### GEOMETRICAL CONSTANTS ######
@@ -119,7 +118,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             )
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_white, nothing))
+            push!(primitives, Primitive(tri, mat_concrete, nothing))
         end
         for tri in floor
             push!(primitives2, Primitive(tri, mat_red, nothing))
@@ -407,7 +406,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in flwall
-            push!(primitives, Primitive(tri, mat_white, nothing))
+            push!(primitives, Primitive(tri, mat_concrete, nothing))
         end
 
         # hallway floor area light

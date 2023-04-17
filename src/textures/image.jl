@@ -7,7 +7,7 @@ struct ImageTexture <: Texture
     function ImageTexture(path::String, tile::Pnt2=Pnt2(1,1))
         if lowercase(path[end-3:end]) == ".exr"
             raw = OpenEXR.load(path)
-        elseif lowercase(path[end-3:end]) == ".png"
+        elseif lowercase(path[end-3:end]) in [".png", ".jpg"]
             raw = load(path)
         else
             @assert false "it aint implemented yet"
