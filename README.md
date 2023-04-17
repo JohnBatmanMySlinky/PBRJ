@@ -12,7 +12,6 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 # TODO
 ## Features
 - Bi-Directional Path Tracing (BDPT)
-    - implement spectrum is black checks and measure preformance improvement
     - implement the rest of the lights
     - mirror material + env light isn't working
     - add caustics
@@ -22,6 +21,7 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 - Triangles using UInt16 when small enough?
     - seems like I get a very small pay off when I did a quick test.
 - Implement more materials
+    - Add glass material
     - Add metal material
     - Add fourier material
 - Improve munich re scene 
@@ -34,6 +34,9 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 - Expand tests
 
 ## Debt
+- stop kludging this and implement two versions: Texture<Spectrum> vs Texture<Float>
+    - really good opportunity for parameterized types!!?
+- implement spectrum is black checks and measure preformance improvement
 - check type stability
 - tuple of lights?
 - can I make rays immutable and re-instantiate when mutation is needed?
