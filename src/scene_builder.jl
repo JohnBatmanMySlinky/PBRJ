@@ -535,7 +535,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # instantiate an env light
         env_light = InfinteLight(
             world_bounds(bvh), 
-            RotateX(25.0), 
+            RotateY(125.0), 
             Spectrum(1.0), 
             "../ref/sky.exr"
         )
