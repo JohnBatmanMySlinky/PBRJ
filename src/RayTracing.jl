@@ -10,6 +10,7 @@ using Random
 using ArgParse
 using Logging
 using Dates
+using OpenEXR
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -54,11 +55,7 @@ include("film.jl")
 include("distributions.jl")
 include("cameras/camera.jl")
 include("cameras/projective.jl")
-include("samplers/sampler.jl")
-include("samplers/random.jl")
-include("samplers/stratified.jl")
-include("samplers/halton.jl")
-include("samplers/primes.jl")
+include("samplers2/stratified.jl")
 include("reflection/flags.jl")
 include("reflection/math.jl")
 include("reflection/fresnel.jl")
@@ -139,11 +136,6 @@ const BDPT_STAGES = [
     # (5,1)
 ]
 
-# set up logging
-io = open("log_$(now()).txt", "w+")
-logger = SimpleLogger(io, Logging.Error)
-global_logger(logger)
-
 function render_scene()
     parsed_args = parse_commandline()
 
@@ -158,10 +150,9 @@ function render_scene()
                 parsed_args["light-distribution-strategy"], 
             )
             passes[i] = current_pass
-            # FileIO.save("debug_$(i).png", clamp01nan.(current_pass))
+            # FileIO.save("debug_$(i).png", clamp01nan.(current_pass)
         end
         image = denoise(passes, parsed_args["denoise-steps"])
-        image = clamp01nan.(image)
         FileIO.save(I.camera.core.core.film.filename, image)
     elseif parsed_args["denoise"] == false
         for bdpt_pass in BDPT_STAGES
@@ -187,6 +178,15 @@ function render_scene()
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
+    # set up logging
+    if Sys.iswindows()
+        logger = NullLogger()   # TODO how to log to file on Windows?
+    else
+        io = open("log_$(now()).txt", "w+")
+        logger = SimpleLogger(io, Logging.Error) # Error, Warn, Info, Debug
+    end
+    global_logger(logger)
+
     @time render_scene()
 end
 

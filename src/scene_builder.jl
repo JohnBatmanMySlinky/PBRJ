@@ -1,6 +1,6 @@
 """
 scene 1: munich re
-scene 2: ball on plane
+scene 2: plastic ball on plane
 scene 3: dragon
 scene 4: cornell box
 """
@@ -35,6 +35,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
+        mat_gray = Matte(
+            ConstantTexture(Vec3(1, 1, 0)),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
+        )
         mat_concrete = Substrate(
             ImageTexture("../ref/Substance_Graph_BaseColor.jpg"), # kd
             ConstantTexture(Pnt3(.15, .15, .15)), # ks
@@ -43,7 +48,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             true, # remap
             ImageTexture("../ref/Substance_Graph_Height.jpg"), # kd
         )
-
 
         ###################################
         ###### GEOMETRICAL CONSTANTS ######
@@ -114,7 +118,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             )
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_white, nothing))
+            push!(primitives, Primitive(tri, mat_concrete, nothing))
         end
         for tri in floor
             push!(primitives2, Primitive(tri, mat_red, nothing))
@@ -431,25 +435,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
-        # instantiate an env light
-        # env_light = InfinteLight(
-        #     world_bounds(bvh), 
-        #     Translate(Vec3(0,0,0)), 
-        #     Spectrum(1, 1, 1), 
-        #     "../ref/parking_lot.jpg"
-        # )
-        # push!(lights, env_light)
-
-        # # instantiate a distant light
-        # distant_light = DistantLight(
-        #     Spectrum(.5, .5, .5),
-        #     Vec3(1,0,1),
-        #     Pnt3(0,0,0),
-        #     world_radius(bvh),
-        #     Translate(Pnt3(0,0,0))
-        # )
-        # push!(lights, distant_light)
-
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
 
@@ -471,9 +456,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
         # Instantiate a Sampler
-        spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
-        S = StratifiedSampler(spp, spp, 8, true)
-        print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], true)
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
         print("There are " * num2str(length(lights)) * " lights in the scene\n")
@@ -488,27 +472,34 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         lights = Light[]
 
         # MATERIALS
-        mat_concrete = Substrate(
-            ImageTexture("../ref/tiling_24_basecolor-1K.png", Pnt2(2,2)), # kd
-            ConstantTexture(Pnt3(.05, .05, .05)), # ks
+        # mat_concrete = Substrate(
+        #     ImageTexture("../ref/tiling_24_basecolor-1K.png", Pnt2(2,2)), # kd
+        #     ConstantTexture(Pnt3(.05, .05, .05)), # ks
+        #     ConstantTexture(Pnt3(.003, .003, .003)), # u
+        #     ConstantTexture(Pnt3(.003, .003, .003)), # v
+        #     true, # remap
+        #     # ImageTexture("../ref/Substance_Graph_Height.jpg", Pnt2(1,1)), # kd
+        #     nothing
+        # )
+        mat_ball = Substrate(
+            ConstantTexture(Spectrum(0.0, .5, .6)), # kd
+            ConstantTexture(Pnt3(.15, .15, .15)), # ks
             ConstantTexture(Pnt3(.003, .003, .003)), # u
             ConstantTexture(Pnt3(.003, .003, .003)), # v
             true, # remap
-            # ImageTexture("../ref/Substance_Graph_Height.jpg", Pnt2(1,1)), # kd
-            nothing
-        )
-        mat_blue = Matte(
-            ConstantTexture(Vec3(0, .4, .8)),
-            ConstantTexture(Vec3(0, 0, 0)),
-            nothing
+            nothing,
         )
         mat_gray = Matte(
             ConstantTexture(Vec3(.4, .4, .4)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
+        mat_mirror = Mirror(
+            ConstantTexture(Vec3(0.75, 0.75, 0.75))
+        )
 
         # GEOMETRY
+        # blue sphere
         sphere_transform = Translate(Pnt3(0,50,0))
         sphere = Sphere(
             ShapeCore(
@@ -519,8 +510,9 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ),
             50.0
         )
-        push!(primitives, Primitive(sphere, mat_blue, nothing))
+        push!(primitives, Primitive(sphere, mat_ball, nothing))
 
+        # floor
         floor_transform = Translate(Pnt3(0,0,0))
         floor = Rectangle(
             Pnt2(-300, -300), 
@@ -543,14 +535,14 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # instantiate an env light
         env_light = InfinteLight(
             world_bounds(bvh), 
-            Translate(Vec3(0,0,0)), 
-            Spectrum(2.5, 2.5, 2.5), 
-            "../ref/parking_lot.jpg"
+            RotateY(125.0), 
+            Spectrum(1.0), 
+            "../ref/sky.exr"
         )
         push!(lights, env_light)
 
         # Instantiate a Filter
-        filter = BoxFilter(Pnt2(.5, .5))
+        filter = BoxFilter(Pnt2(1, 1))
 
         # Instantiate a Film
         film = Film(
@@ -563,16 +555,15 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(125, 200, 175)
+        look_from = Pnt3(300, 200, 300)
         look_at = Pnt3(0, 75, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 
         # Instantiate a Sampler
-        spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
-        S = StratifiedSampler(spp, spp, 4, true)
-        print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], true)
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
         print("There are " * num2str(length(lights)) * " lights in the scene\n")
@@ -681,9 +672,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
         # Instantiate a Sampler
-        spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
-        S = StratifiedSampler(spp, spp, 4, true)
-        print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], true)
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
         print("There are " * num2str(length(lights)) * " lights in the scene\n")
@@ -889,9 +879,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 
         # Instantiate a Sampler
-        spp = Int(trunc(sqrt(parsed_args["samples-per-pixel"])))
-        S = StratifiedSampler(spp, spp, 4, true)
-        print("Using " * num2str(S.pixel_sampler.sampler.samples_per_pixel) * " samples per pixel\n")
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], true)
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
         print("There are " * num2str(length(lights)) * " lights in the scene\n")

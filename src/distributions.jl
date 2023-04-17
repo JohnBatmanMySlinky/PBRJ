@@ -58,12 +58,12 @@ struct Distribution2D
         else
             bw = ones(Float64, size(dat))
             nv, nu = size(bw)
-            for col = 1:nv
-                for row = 1:nu
-                    r = convert(Float64, dat[col,row].r)
-                    g = convert(Float64, dat[col,row].g)
-                    b = convert(Float64, dat[col,row].b)
-                    bw[col,row] = max(mean([r,g,b]), .01)
+            for row = 1:nv
+                for col = 1:nu
+                    r = convert(Float64, dat[row,col].r)
+                    g = convert(Float64, dat[row,col].g)
+                    b = convert(Float64, dat[row,col].b)
+                    bw[row,col] = max(mean([r,g,b]), .01)
                 end
             end
         end
@@ -84,10 +84,12 @@ end
 function sample_continuous(d::Distribution2D, uv::Pnt2)::Tuple{Pnt2, Float64}
     d1, pdf_val1, offset1 = sample_continuous(d.marginal, uv.y)
     d0, pdf_val0, _ = sample_continuous(d.conditional[offset1], uv.x)
+    @assert (d0 < 1) && (d1 < 1)
     return Pnt2(d0, d1), pdf_val0 * pdf_val1
+
 end
 
-function pdf(d::Distribution2D, p::Pnt2)::Float64
+function pdf(d::Distribution2D, p::Pnt2)::Float64   
     iu = max(1, Int(floor(p.x * length(d.conditional[1].func)))+1) # as opposed to PBRT's clamp
     iv = max(1, Int(floor(p.y * length(d.marginal.func)))+1) # as opposed to PBRT's clamp
     return d.conditional[iv].func[iu] / d.marginal.func_int
