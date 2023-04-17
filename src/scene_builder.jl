@@ -497,6 +497,15 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         mat_mirror = Mirror(
             ConstantTexture(Vec3(0.75, 0.75, 0.75))
         )
+        mat_glass = Glass(
+            ConstantTexture(Pnt3(1.0)),
+            ConstantTexture(Pnt3(1.0)),
+            ConstantTexture(Pnt3(0.0)),
+            ConstantTexture(Pnt3(0.0)),
+            ConstantTexture(Pnt3(1.5)),
+            nothing,
+            true
+        )
 
         # GEOMETRY
         # blue sphere
@@ -510,7 +519,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ),
             50.0
         )
-        push!(primitives, Primitive(sphere, mat_ball, nothing))
+        push!(primitives, Primitive(sphere, mat_glass, nothing))
 
         # floor
         floor_transform = Translate(Pnt3(0,0,0))

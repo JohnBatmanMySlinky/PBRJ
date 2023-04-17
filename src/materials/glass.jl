@@ -8,13 +8,13 @@ struct Glass <: Material
     remap_roughness::Bool
 
     function Glass(
-        Kr::Spectrum=ConstantTexture(Pnt3(1.0)),
-        Kt::Spectrum=ConstantTexture(Pnt3(1.0)),
-        u_roughness::Spectrum=ConstantTexture(Pnt3(0.0)),
-        v_roughness::Spectrum=ConstantTexture(Pnt3(0.0)),
-        eta::Spectrum=ConstantTexture(Pnt3(1.5)),
-        bump_map::{MaybeTexture}=Nothing,
-        remap_roughness::Bool=True
+        Kr::Texture=ConstantTexture(Pnt3(1.0)),
+        Kt::Texture=ConstantTexture(Pnt3(1.0)),
+        u_roughness::Texture=ConstantTexture(Pnt3(0.0)),
+        v_roughness::Texture=ConstantTexture(Pnt3(0.0)),
+        eta::Texture=ConstantTexture(Pnt3(1.5)),
+        bump_map::Maybe{Texture}=nothing,
+        remap_roughness::Bool=true
     )::Glass
         return new(Kr, Kt, u_roughness, v_roughness, eta, bump_map, remap_roughness)
     end
@@ -23,15 +23,15 @@ end
 # Equivalent to PBR's ComputeScatteringFunction
 function (g::Glass)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Type{T}) where T <: TransportMode
     # if bump map, update si
-    if !(p.bump_map isa Nothing)
+    if !(g.bump_map isa Nothing)
         bump!(p, si)
     end
     
     eta::Float64 = mean(g.idx(si))
     urough::Float64 = mean(g.u_roughness(si))
     vrough::Float64 = mean(g.v_roughness(si))
-    KR::Spectrum = clamp!.(g.Kr(si), 0.0, 1.0)
-    KT::Spectrum = clamp!.(g.Kt(si), 0.0, 1.0)
+    KR::Spectrum = g.Kr(si)
+    KT::Spectrum = g.Kt(si)
 
     # initialize _bsdf_ for smooth or rough dielectric
     si.bsdf = BSDF(si, eta)

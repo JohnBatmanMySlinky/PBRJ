@@ -110,3 +110,23 @@ function f(f::FresnelBlend, wo::Vec3, wi::Vec3)
     specular = Spectrum(D(f.distrib, wh) / (4 * abs(dot(wi,wh)) * max(abs_cos_theta(wo), abs_cos_theta(wi))) * SchlickFresnel(f.Rs, dot(wi, wh)))
     return diffuse + specular
 end
+
+############################################################
+###################### Fresnel Specular ####################
+############################################################
+struct FresnelSpecular <: AbstractBxDF
+    R::Spectrum
+    TT::Spectrum
+    etaA::Float64
+    etaB::Float64
+    fresnel::FresnelDielectric
+    mode::Type{T} where T <: TransportMode
+    type::UInt8
+    function FresnelSpecular(R::Spectrum, TT::Spectrum, etaA::Float64, etaB::Float64, mode::Type{T}) where T <: TransportMode
+        return new(R, TT, etaA, etaB, FresnelDielectric(etaA, etaB), mode, BSDF_REFLECTION | BSDF_TRANSMISSION | BSDF_SPECULAR)
+    end
+end
+
+function f(s::FresnelSpecular, wo::Vec3, wi::Vec3)::Spectrum
+    return Spectrum(0.0)
+end
