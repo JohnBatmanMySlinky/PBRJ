@@ -130,3 +130,51 @@ end
 function f(s::FresnelSpecular, wo::Vec3, wi::Vec3)::Spectrum
     return Spectrum(0.0)
 end
+
+function sample_f(s::FresnelSpecular, wo::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, UInt8}
+    F = fresnel_dielectric(cos_theta(wo), s.etaA, s.etaB)
+    if u.x < F
+        # compute specular reflection direction
+        wi = Vec3(-wo.x, -wo.y, wo.z)
+        sampled_type = BSDF_SPECULAR | BSDF_REFLECTION
+        pdf_val = F
+        return wi, F * s.R / abs(cos_theta(wi)), pdf_val, sampled_type
+    else
+        # compute specular transmission for fresnel specular
+
+        # figure otu which eta is incident and which is transmitted
+        entering = cos_theta(wo) > 0
+        etaI = entering ? s.etaA : s.etaB
+        etaT = entering ? s.etaB : s.etaA
+
+        # compute ray direction for specular transmission
+        check, wi = refact(wo, face_forward(Nml3(0,0,1), wo), etaI / etaT)
+        if !check
+            return Vec3(0.0), Spectrum(0.0), 0.0, type
+        end
+        ft = s.TT * (1-F)
+
+        # account for non-symmetry for specular transmission to different medium
+        if s.mode == Radiance
+            ft *= (etaI * etaI) / (etaT * etaT)
+        end
+        sampled_type = BSDF_SPECULAR | BSDF_TRANSMISSION
+        pdf_val = 1-F
+        return wi, ft / abs(cos_theta(wi)), pdf_val, sampled_type
+    end
+end
+
+function refact(wi::Vec3, n::Nml3, eta::Float64)::Tuple{Bool, Vec3}
+    # comute cos theta t using snells law
+    cos_theta_I = dot(n,wi)
+    sin_2_theta_I = max(0.0, 1-cos_theta_I^2)
+    sin_2_theta_T = eta * eta * sin_2_theta_I
+
+    # handle total internal reflection for transmission
+    if sin_2_theta_T >= 1
+        return false, Vec3(0)
+    end
+    cos_theta_T = sqrt(1-sin_2_theta_T)
+    wt = eta * -wi + (eta * cos_theta_I - cos_theta_T) * Vec3(n)
+    return true, wt
+end

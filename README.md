@@ -22,6 +22,8 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
     - seems like I get a very small pay off when I did a quick test.
 - Implement more materials
     - Add glass material
+        - HOW / WHEN TO UPDATE SAMPLED TYPE
+        - DOCUMENT & CLEAN UP REFLECTION stuff
     - Add metal material
     - Add fourier material
 - Improve munich re scene 

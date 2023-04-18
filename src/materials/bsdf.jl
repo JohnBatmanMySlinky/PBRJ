@@ -99,7 +99,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
 
     # TODO when to update sampled type
     sampled_type = bxdf.type
-    wi, pdf, f_val, sampled_type_tmp = sample_f(bxdf, wo, u_remapped)
+    wi, f_val, pdf, sampled_type_tmp = sample_f(bxdf, wo, u_remapped)
     if sampled_type_tmp ≢ nothing
         sampled_type = sampled_type_tmp
     end
