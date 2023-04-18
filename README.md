@@ -24,6 +24,8 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
     - Add glass material
         - HOW / WHEN TO UPDATE SAMPLED TYPE
         - DOCUMENT & CLEAN UP REFLECTION stuff
+        - within FresnelSpecular there are like 4 different paths. make sure they all work...
+        - implement checker texture to get some better proof of refraction going
     - Add metal material
     - Add fourier material
 - Improve munich re scene 
