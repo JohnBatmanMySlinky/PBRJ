@@ -494,6 +494,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
+        mat_checker = Matte(
+            Checker3DTexture(Spectrum(0.0), Spectrum(1.0), Pnt3(10.0/100.0)),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
+        )
         mat_mirror = Mirror(
             ConstantTexture(Vec3(0.75, 0.75, 0.75))
         )
@@ -502,7 +507,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(Pnt3(1.0)),
             ConstantTexture(Pnt3(0.0)),
             ConstantTexture(Pnt3(0.0)),
-            ConstantTexture(Pnt3(1.5)),
+            ConstantTexture(Pnt3(1.25)),
             nothing,
             true
         )
@@ -533,7 +538,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_gray, nothing))
+            push!(primitives, Primitive(tri, mat_checker, nothing))
         end
 
         # instantiate accelerator
@@ -545,7 +550,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         env_light = InfinteLight(
             world_bounds(bvh), 
             RotateY(125.0), 
-            Spectrum(3.0), 
+            Spectrum(1.5), 
             "../ref/sky.exr"
         )
         push!(lights, env_light)
