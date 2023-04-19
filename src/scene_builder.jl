@@ -538,7 +538,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_checker, nothing))
+            push!(primitives, Primitive(tri, mat_gray, nothing))
         end
 
         # instantiate accelerator
@@ -550,7 +550,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         env_light = InfinteLight(
             world_bounds(bvh), 
             RotateY(125.0), 
-            Spectrum(1.5), 
+            Spectrum(1.0), 
             "../ref/sky.exr"
         )
         push!(lights, env_light)
@@ -576,7 +576,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 
         # Instantiate a Sampler
-        S = StratifiedSampler(parsed_args["samples-per-pixel"], true)
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], false)
         print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene

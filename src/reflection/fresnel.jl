@@ -14,27 +14,27 @@ function(f::FresnelConductor)(cos_theta_i::Float64)
     return fresnel_conductor(cos_theta_i, f.eta_i, f.eta_t, f.k)
 end
 
-function fresnel_conductor(cos_theta_i::Float64, eta_i::S, eta_t::S, k::S) where S <: Spectrum
+function fresnel_conductor(cos_theta_i::Float64, eta_i::Spectrum, eta_t::Spectrum, k::Spectrum)::Spectrum
     cos_theta_i = clamp(cos_theta_i, -1, 1)
-    eta = eta_t / eta_i
-    eta_k = k / eta_i
+    eta::Spectrum = eta_t ./ eta_i
+    eta_k::Spectrum = k ./ eta_i
 
-    cos_theta_i_2 = cos_theta_i^2 
-    sin_theta_i_2 = 1 - cos_theta_i_2
-    eta_2 = eta^2
-    eta_k_2 = eta_k^2
+    cos_theta_i_2::Float64 = cos_theta_i ^ 2 
+    sin_theta_i_2::Float64 = 1.0 - cos_theta_i_2
+    eta_2::Spectrum = eta .^ 2
+    eta_k_2::Spectrum = eta_k .^ 2
 
-    t0 = eta_2 - eta_k_2 - sin_theta_i_2
-    a2_plus_b2 = sqrt(t0^2 + 4 * eta_2 * eta_k_2)
-    t1 = a2_plus_b2 + cos_theta_i_2
-    a = sqrt(0.5 * (a2_plus_b2 + t0))
-    t2 = 2 * cos_theta_i * a
-    r_perp = (t1-t2)/(t1+t2)
+    t0::Spectrum = eta_2 .- eta_k_2 .- sin_theta_i_2
+    a2_plus_b2::Spectrum = sqrt.(t0 .^ 2 .+ 4.0 .* eta_2 .* eta_k_2)
+    t1::Spectrum = a2_plus_b2 .+ cos_theta_i_2
+    a::Spectrum = sqrt.(0.5 .* (a2_plus_b2 .+ t0))
+    t2::Spectrum = 2.0 .* cos_theta_i .* a
+    r_perp::Spectrum = (t1 .- t2) ./ (t1 .+ t2)
 
-    t3 = cos_theta_i_2 * a2_plus_b2 + sin_theta_i_2 * sin_theta_i_2
-    t4 = t2 * sin_theta_i_2
-    r_par = r_perp * (t3-t4) / (t3-t4)
-    return (r_par + r_perp) / 2
+    t3::Spectrum = cos_theta_i_2 .* a2_plus_b2 .+ sin_theta_i_2 .* sin_theta_i_2
+    t4::Spectrum = t2 .* sin_theta_i_2
+    r_par::Spectrum = r_perp .* (t3 .- t4) ./ (t3 .- t4)
+    return (r_par .+ r_perp) ./ 2.0
 end
 
 ############################################################

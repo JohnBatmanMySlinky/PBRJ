@@ -14,7 +14,7 @@ end
 function f(mr::MicrofacetReflection, wo::Vec3, wi::Vec3)
     cos_theta_o = abs(cos_theta(wo))
     cos_theta_i = abs(cos_theta(wi))
-    wh = Vec3(wo + wi)
+    wh = wo + wi
     if cos_theta_i == 0 || cos_theta_o == 0
         return Spectrum(0)
     end
@@ -22,6 +22,6 @@ function f(mr::MicrofacetReflection, wo::Vec3, wi::Vec3)
         return Spectrum(0)
     end
     wh = normalize(wh)
-    F = mr.fresnel(dot(wi, wh))
-    return mr.R * D(mr.distrib, wh) * G(mr.distrib, wo, wi) * F / (4 * cos_theta_i * cos_theta_o)
+    F = mr.fresnel(dot(wi, face_forward(wh, Vec3(0,0,1))))
+    return mr.R * D(mr.distrib, wh) * G(mr.distrib, wo, wi) * F / (4.0 * cos_theta_i * cos_theta_o)
 end
