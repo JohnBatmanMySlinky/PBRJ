@@ -53,6 +53,7 @@ function render(
         tile_bounds = Bounds2(tb_min, tb_max)
         film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
+            @info "########################\nWorking on Pixel: $(pixel)\n########################\n\n\n"
             for sample_index in 1:sampler.samples_per_pixel
                 start_pixel_sample!(sampler, pixel, sample_index)
 

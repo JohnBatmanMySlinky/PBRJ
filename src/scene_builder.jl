@@ -561,7 +561,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Film
         film = Film(
             Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
-            Bounds2(Pnt2(0,0), Pnt2(1,1)),
+            Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
             filter,
             1.0,
             1.0,
@@ -576,7 +576,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 
         # Instantiate a Sampler
-        S = StratifiedSampler(parsed_args["samples-per-pixel"], false)
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
         print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene

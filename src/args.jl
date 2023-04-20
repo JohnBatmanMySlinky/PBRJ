@@ -18,6 +18,15 @@ function parse_commandline()::Dict
             help = "samples per pixel"
             arg_type = Int
             default = 5
+        "--jitter"
+            help = "for stratified sampler: do jitter"
+            arg_type = Bool
+            default = true
+        "--crop-window"
+            nargs = 4
+            help = "crow window from (0,0) - (1,1)"
+            arg_type = Float64
+            default = [0.0, 0.0, 1.0, 1.0]
         "--max-depth"
             help = "max # of bounces"
             arg_type = Int
