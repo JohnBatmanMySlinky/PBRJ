@@ -131,7 +131,7 @@ function f(s::FresnelSpecular, wo::Vec3, wi::Vec3)::Spectrum
     return Spectrum(0.0)
 end
 
-function sample_f(s::FresnelSpecular, wo::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, UInt8}
+function sample_f(s::FresnelSpecular, wo::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
     F = fresnel_dielectric(cos_theta(wo), s.etaA, s.etaB)
     if u.x < F
         # compute specular reflection direction
@@ -150,7 +150,7 @@ function sample_f(s::FresnelSpecular, wo::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec
         # compute ray direction for specular transmission
         check, wi = refact(wo, face_forward(Nml3(0,0,1), wo), etaI / etaT)
         if !check
-            return Vec3(0.0), Spectrum(0.0), 0.0, type
+            return Vec3(0.0), Spectrum(0.0), 0.0, nothing
         end
         ft = s.TT * (1-F)
 
