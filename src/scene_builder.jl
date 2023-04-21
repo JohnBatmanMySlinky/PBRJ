@@ -507,7 +507,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(Pnt3(1.0)),
             ConstantTexture(Pnt3(0.0)),
             ConstantTexture(Pnt3(0.0)),
-            ConstantTexture(Pnt3(1.25)),
+            ConstantTexture(Pnt3(1.5)),
             nothing,
             true
         )
