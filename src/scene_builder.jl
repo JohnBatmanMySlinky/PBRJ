@@ -538,7 +538,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_gray, nothing))
+            push!(primitives, Primitive(tri, mat_checker, nothing))
         end
 
         # instantiate accelerator
@@ -550,7 +550,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         env_light = InfinteLight(
             world_bounds(bvh), 
             RotateY(125.0), 
-            Spectrum(1.0), 
+            Spectrum(1.5), 
             "../ref/sky.exr"
         )
         push!(lights, env_light)
