@@ -298,7 +298,7 @@ function random_walk!(
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
         @info "Random walk beta now $(beta)"
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
-        if (sampled_type & BSDF_SPECULAR) == sampled_type
+        if (sampled_type & BSDF_SPECULAR) > 0
             path[vertex].delta = true
             pdf_rev = 0.0
             pdf_fwd = 0.0

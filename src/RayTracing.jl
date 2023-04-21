@@ -182,7 +182,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # set up logging
     if Sys.iswindows()
         logger = NullLogger()   # TODO how to log to file on Windows?
-        logger = SimpleLogger()
+        # logger = SimpleLogger()
     else
         # logger = NullLogger()
         io = open("log_$(now()).txt", "w+")
