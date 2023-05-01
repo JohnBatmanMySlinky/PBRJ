@@ -69,7 +69,7 @@ end
 function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, UInt8}
     # Choose which BxDF to sample.
     matching_components = num_components(b, type)
-    matching_components == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)
+    matching_components == 0 && return (Vec3(0), Spectrum(0), 0.0, BSDF_NONE)
     component = min(
         max(1, Int64(ceil(u[1] * matching_components))),
         matching_components,
@@ -99,11 +99,11 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
 
     # TODO when to update sampled type
     sampled_type = bxdf.type
-    wi, pdf, f_val, sampled_type_tmp = sample_f(bxdf, wo, u_remapped)
-    if sampled_type_tmp ≢ nothing
+    wi, f_val, pdf, sampled_type_tmp = sample_f(bxdf, wo, u_remapped)
+    if !(sampled_type_tmp isa Nothing)
         sampled_type = sampled_type_tmp
     end
-    @info "For wo: $(wo), sampled f: $(f_val), pdf: $(pdf), ratio = $((pdf > 0.0) ? (f_val / pdf) : Spectrum(0.0)), wi: $(wi)"
+    @info "For wo: $(wo), sampled f: $(f_val), pdf: $(pdf), ratio = $((pdf > 0.0) ? (f_val / pdf) : Spectrum(0.0)), wi: $(wi), sampled_type: $(bitstring(sampled_type))"
 
     pdf == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)
 

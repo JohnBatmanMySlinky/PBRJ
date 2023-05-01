@@ -247,3 +247,73 @@ end
     @test stratum = RayTracing.permutation_element(UInt32(5000), UInt32(990000), 0xcfc42f87b1d87f0e) == 221513
     @test stratum = RayTracing.permutation_element(UInt32(3), UInt32(990000), 400) == 245588
 end
+
+
+@testset "Fresnel Dielectric" begin
+    # Vacuum gives no reflectance.
+    @test isapprox(RayTracing.fresnel_dielectric(1.0, 1.0, 1.0), 0.0, rtol=4)
+    @test isapprox(RayTracing.fresnel_dielectric(0.5, 1.0, 1.0), 0.0, rtol=4)
+end
+
+@testset "Fresnel Conductor" begin
+    s = RayTracing.Spectrum(1.0)
+    @test RayTracing.fresnel_conductor(0.0, s, s, s) == s
+    @test all(RayTracing.fresnel_conductor(cos(π / 4.0), s, s, s) .> 0.0)
+    @test all(RayTracing.fresnel_conductor(1.0, s, s, s) .> 0.0)
+end
+
+@testset "SpecularReflection" begin
+    sr = RayTracing.SpecularReflection(RayTracing.Spectrum(1.0), RayTracing.FresnelNoOp())
+    @test sr & (RayTracing.BSDF_SPECULAR | RayTracing.BSDF_REFLECTION)
+end
+
+# @testset "SpecularTransmission" begin
+#     st = RayTracing.SpecularTransmission(
+#         RayTracing.Spectrum(1.0), 1.0, 1.0,
+#         RayTracing.Radiance,
+#     )
+#     @test st & (RayTracing.BSDF_SPECULAR | RayTracing.BSDF_TRANSMISSION)
+# end
+
+@testset "FresnelSpecular" begin
+    f = RayTracing.FresnelSpecular(
+        RayTracing.Spectrum(1.0), RayTracing.Spectrum(1.0),
+        1.0, 1.0, RayTracing.Radiance,
+    )
+    @test f & (RayTracing.BSDF_SPECULAR | RayTracing.BSDF_REFLECTION | RayTracing.BSDF_TRANSMISSION)
+
+    wo = RayTracing.Vec3(0, 0, 1)
+    u = RayTracing.Pnt2(0, 0)
+    wi, bxdf_value, pdf,  sampled_type = RayTracing.sample_f(f, wo, u)
+    @test wi ≈ -wo
+    @test pdf ≈ 1.0
+    @test sampled_type == RayTracing.BSDF_SPECULAR | RayTracing.BSDF_TRANSMISSION
+end
+
+@testset "MicrofacetReflection" begin
+    m = RayTracing.MicrofacetReflection(
+        RayTracing.Spectrum(1.0),
+        RayTracing.TrowbridgeReitzDistribution(1.0, 1.0),
+        RayTracing.FresnelNoOp(),
+        # RayTracing.Radiance,
+    )
+    @test m & (RayTracing.BSDF_REFLECTION | RayTracing.BSDF_GLOSSY)
+    wo = RayTracing.Vec3(0, 0, 1)
+    u = RayTracing.Pnt2(0, 0)
+    wi, pdf, bxdf_value, sampled_type = RayTracing.sample_f(m, wo, u)
+    @test wi ≈ RayTracing.Vec3(0, 0, 1)
+end
+
+@testset "MicrofacetTransmission" begin
+    m = RayTracing.MicrofacetTransmission(
+        RayTracing.Spectrum(1.0),
+        RayTracing.TrowbridgeReitzDistribution(1.0, 1.0),
+        1.0, 2.0,
+        RayTracing.Radiance,
+    )
+    @test m & (RayTracing.BSDF_TRANSMISSION | RayTracing.BSDF_GLOSSY)
+    wo = RayTracing.Vec3(0, 0, 1)
+    u = RayTracing.Pnt2(0, 0)
+    wi, pdf, bxdf_value, sampled_type = RayTracing.sample_f(m, wo, u)
+    @test wi ≈ RayTracing.Vec3(0, 0, -1)
+end

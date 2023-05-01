@@ -12,16 +12,17 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 # TODO
 ## Features
 - Bi-Directional Path Tracing (BDPT)
-    - implement spectrum is black checks and measure preformance improvement
     - implement the rest of the lights
-    - mirror material + env light isn't working
-    - add caustics
 - Implement Metroplois Light Transport Integrator
-- Move to EXR for environment maps and final images.
+- Move to EXR
+    - ~~for env lights~~
+    - for final image
+- Move the pbrt-v4's sampler structure
 - Make obj_parser less anemic.
-- Triangles using UInt16 when small enough?
-    - seems like I get a very small pay off when I did a quick test.
 - Implement more materials
+    - Add glass material
+        - make sure all paths of Glass's compute scattering function work
+        - pass all pxl-th's tests
     - Add metal material
     - Add fourier material
 - Improve munich re scene 
@@ -29,37 +30,33 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
     - Add in more scene geometry (baseboards? stairs? elevator?)
     - Get reflections in back hallway looking nice and in general floor material
     - Wall material
-- Parameterize more stuff (like which integrator you want to use).
+- Parameterize more stuff
+    - integrator
+    - logging
 - Move scene specification to a YAML or something. 
-- Expand tests
+- Expand test coverage
 
 ## Debt
+- stop kludging this and implement two versions: Texture<Spectrum> vs Texture<Float>
+    - really good opportunity for parameterized types!!?
+- implement spectrum is black checks and measure preformance improvement
 - check type stability
-- tuple of lights?
+- tuple of lights instead of vector?
 - can I make rays immutable and re-instantiate when mutation is needed?
-- allocation tracking of infinite lights and film
 - clean up surface interaction instantiation (esp. when empty)
-- clean up logging
-- Get crop window working to render a single pixel
 - Implement passes with more dimensions of our film. Current method is hardcody and requires us to re-instantiate the scene every time!
-- What are my ray differentials actually being used for ?
+- Implement texture sampling and use those ray differentials
 - Code
     - Static & dynamic code analysis
-- Improve sampling
-    - remove unnecessary sampling dims
-    - Should I pass around a sampler explicitly
 - Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc.
 
 ## Bugs
-- FIX SAMPLER RETURNING Pnt2(0,0) !!!
 - XYZ color to RGB, I am doing something wrong...
 - My world is upside down! Use real pbrt to debug (or pxl-th's)
-- Halton sampler doesn't work for more than (0,1]^2
-- There is some aliasing around the edge of every time, it looks like an off by one error on the edge? Somewhere in the film / film-tile or sampling...
 
 ## Ideas
-- Should I instantiate a list of samplers or stick with deepcopy()?
-- Is using rand() across threads optimal?
+- Triangles using UInt16 when small enough?
+    - seems like I get a very small pay off when I did a quick test.⌈
 
 # Beyond PBRT
 - Denoiser. Opportunity for ML here?

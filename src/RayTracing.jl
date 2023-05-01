@@ -70,6 +70,7 @@ include("materials/matte.jl")
 include("materials/plastic.jl")
 include("materials/mirror.jl")
 include("materials/substrate.jl")
+include("materials/glass.jl")
 include("textures/constant.jl")
 include("textures/image.jl")
 include("textures/procedural.jl")
@@ -181,9 +182,11 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # set up logging
     if Sys.iswindows()
         logger = NullLogger()   # TODO how to log to file on Windows?
+        # logger = SimpleLogger()
     else
+        # logger = NullLogger()
         io = open("log_$(now()).txt", "w+")
-        logger = SimpleLogger(io, Logging.Error) # Error, Warn, Info, Debug
+        logger = SimpleLogger(io, Logging.Error) # Error, Warn, Info, Debug        
     end
     global_logger(logger)
 

@@ -53,6 +53,7 @@ function render(
         tile_bounds = Bounds2(tb_min, tb_max)
         film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
+            @info "########################\nWorking on Pixel: $(pixel)\n########################\n\n\n"
             for sample_index in 1:sampler.samples_per_pixel
                 start_pixel_sample!(sampler, pixel, sample_index)
 
@@ -290,16 +291,14 @@ function random_walk!(
         end
 
         # sample BSDF at current vertex and compute reverse probability
-        wi = wo = isect.core.wo
-        tmp_u = sampler.jitter ? Pnt2(rand(), rand()) : Pnt2(0.5, 0.5)
-        @assert tmp_u != Pnt2(0.0)
-        wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, tmp_u, BSDF_ALL)
-        @info "Random walk sampled dir: $(wi) f: $(f), pdfFwd: $(pdf_fwd)"
+        wo = isect.core.wo
+        wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
+        @info "Random walk sampled dir: $(wi) f: $(f), pdfFwd: $(pdf_fwd), sampled_type $(bitstring(UInt8(sampled_type)))"
         (pdf_fwd == 0.0) && break
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
         @info "Random walk beta now $(beta)"
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
-        if (sampled_type & BSDF_SPECULAR) == sampled_type
+        if (sampled_type & BSDF_SPECULAR) > 0
             path[vertex].delta = true
             pdf_rev = 0.0
             pdf_fwd = 0.0

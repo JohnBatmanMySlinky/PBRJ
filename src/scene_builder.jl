@@ -494,8 +494,22 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
+        mat_checker = Matte(
+            Checker3DTexture(Spectrum(0.0), Spectrum(1.0), Pnt3(10.0/100.0)),
+            ConstantTexture(Vec3(0, 0, 0)),
+            nothing
+        )
         mat_mirror = Mirror(
             ConstantTexture(Vec3(0.75, 0.75, 0.75))
+        )
+        mat_glass = Glass(
+            ConstantTexture(Pnt3(1.0)),
+            ConstantTexture(Pnt3(1.0)),
+            ConstantTexture(Pnt3(0.0)),
+            ConstantTexture(Pnt3(0.0)),
+            ConstantTexture(Pnt3(1.5)),
+            nothing,
+            true
         )
 
         # GEOMETRY
@@ -510,7 +524,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ),
             50.0
         )
-        push!(primitives, Primitive(sphere, mat_ball, nothing))
+        push!(primitives, Primitive(sphere, mat_glass, nothing))
 
         # floor
         floor_transform = Translate(Pnt3(0,0,0))
@@ -524,7 +538,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_gray, nothing))
+            push!(primitives, Primitive(tri, mat_checker, nothing))
         end
 
         # instantiate accelerator
@@ -536,7 +550,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         env_light = InfinteLight(
             world_bounds(bvh), 
             RotateY(125.0), 
-            Spectrum(1.0), 
+            Spectrum(1.5), 
             "../ref/sky.exr"
         )
         push!(lights, env_light)
@@ -547,7 +561,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Film
         film = Film(
             Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
-            Bounds2(Pnt2(0,0), Pnt2(1,1)),
+            Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
             filter,
             1.0,
             1.0,
@@ -562,7 +576,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 
         # Instantiate a Sampler
-        S = StratifiedSampler(parsed_args["samples-per-pixel"], true)
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
         print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene

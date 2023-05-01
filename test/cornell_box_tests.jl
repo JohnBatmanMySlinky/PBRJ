@@ -1,6 +1,18 @@
 include("../src/RayTracing.jl")
 
 using Test
+using Dates
+using Logging
+
+# set up logging
+if Sys.iswindows()
+    logger = NullLogger()   # TODO how to log to file on Windows?
+else
+    # logger = NullLogger()
+    io = open("log_$(now()).txt", "w+")
+    logger = SimpleLogger(io, Logging.Debug) # Error, Warn, Info, Debug        
+end
+global_logger(logger)
 
 # parse command line args
 parsed_args = RayTracing.parse_commandline()
