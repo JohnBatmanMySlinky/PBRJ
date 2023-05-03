@@ -42,7 +42,7 @@ function li(cos_sample::Bool, ray::AbstractRay, scene::Scene, depth::Int64, samp
     )
 
     if !intersect_p(scene.b, spawn_ray(isect.core, wi))
-        L = L .+ dot(wi, n) / (pdf_val)
+        L = L .+ dot(wi, n) / (pdf_val * pi) # bug in PBRT-v3? missing the π? thankful for v4's implementation...
     end
 
     return L
