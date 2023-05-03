@@ -604,18 +604,29 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
 
-        orb_translate = RotateZ(-135.0)
-        orb =  parse_obj(
-            "../ref/dragon1.obj",
-            orb_translate,
-            false,
-            false,
-            nothing
-        )
+        # orb_translate = RotateZ(-135.0)
+        # orb =  parse_obj(
+        #     "../ref/dragon1.obj",
+        #     orb_translate,
+        #     false,
+        #     false,
+        #     nothing
+        # )
 
-        for tri in orb
-            push!(primitives, Primitive(tri, mat_gray, nothing))
-        end
+        # for tri in orb
+        #     push!(primitives, Primitive(tri, mat_gray, nothing))
+        # end
+        sphere_transform = Translate(Pnt3(0,-25,0))
+        sphere = Sphere(
+            ShapeCore(
+                sphere_transform,
+                Inv(sphere_transform),
+                false,
+                false
+            ),
+            50.0
+        )
+        push!(primitives, Primitive(sphere, mat_white, nothing))
 
         floor_transform = Translate(Pnt3(0,-40,0))
         floor = Rectangle(
@@ -656,15 +667,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
-        # instantiate an env light
-        # env_light = InfinteLight(
-        #     world_bounds(bvh), 
-        #     Translate(Vec3(0,0,0)), 
-        #     Spectrum(3.0), 
-        #     "../ref/parking_lot.jpg"
-        # )
-        # push!(lights, env_light)
-
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
 
@@ -694,7 +696,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+        I = AOIntegrator(C, S, true)
         return I, scene
     elseif parsed_args["scene-number"] == 4
         primitives = Primitive[]
