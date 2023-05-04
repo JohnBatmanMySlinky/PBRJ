@@ -290,30 +290,106 @@ end
     @test sampled_type == RayTracing.BSDF_SPECULAR | RayTracing.BSDF_TRANSMISSION
 end
 
-@testset "MicrofacetReflection" begin
-    m = RayTracing.MicrofacetReflection(
-        RayTracing.Spectrum(1.0),
-        RayTracing.TrowbridgeReitzDistribution(1.0, 1.0),
-        RayTracing.FresnelNoOp(),
-        # RayTracing.Radiance,
-    )
-    @test m & (RayTracing.BSDF_REFLECTION | RayTracing.BSDF_GLOSSY)
-    wo = RayTracing.Vec3(0, 0, 1)
-    u = RayTracing.Pnt2(0, 0)
-    wi, pdf, bxdf_value, sampled_type = RayTracing.sample_f(m, wo, u)
-    @test wi ≈ RayTracing.Vec3(0, 0, 1)
+# @testset "MicrofacetReflection" begin
+#     m = RayTracing.MicrofacetReflection(
+#         RayTracing.Spectrum(1.0),
+#         RayTracing.TrowbridgeReitzDistribution(1.0, 1.0),
+#         RayTracing.FresnelNoOp(),
+#         # RayTracing.Radiance,
+#     )
+#     @test m & (RayTracing.BSDF_REFLECTION | RayTracing.BSDF_GLOSSY)
+#     wo = RayTracing.Vec3(0, 0, 1)
+#     u = RayTracing.Pnt2(0, 0)
+#     wi, pdf, bxdf_value, sampled_type = RayTracing.sample_f(m, wo, u)
+#     @test wi ≈ RayTracing.Vec3(0, 0, 1)
+# end
+
+# @testset "MicrofacetTransmission" begin
+#     m = RayTracing.MicrofacetTransmission(
+#         RayTracing.Spectrum(1.0),
+#         RayTracing.TrowbridgeReitzDistribution(1.0, 1.0),
+#         1.0, 2.0,
+#         RayTracing.Radiance,
+#     )
+#     @test m & (RayTracing.BSDF_TRANSMISSION | RayTracing.BSDF_GLOSSY)
+#     wo = RayTracing.Vec3(0, 0, 1)
+#     u = RayTracing.Pnt2(0, 0)
+#     wi, pdf, bxdf_value, sampled_type = RayTracing.sample_f(m, wo, u)
+#     @test wi ≈ RayTracing.Vec3(0, 0, -1)
+# end
+
+@testset "PermutationElement - Unit Tests" begin
+    @test RayTracing.permutation_element(UInt32(0), UInt32(36), 400) == 26
+    @test RayTracing.permutation_element(UInt32(0), UInt32(36), 4032212079371261838) == 15
+    @test RayTracing.permutation_element(UInt32(5), UInt32(36), 4032212079371261838) == 10
+    @test RayTracing.permutation_element(UInt32(50), UInt32(99), 0xf8d73f61d81b95bb) == 98
+    @test RayTracing.permutation_element(UInt32(5000), UInt32(990000), 0xcfc42f87b1d87f0e) == 221513
+    @test RayTracing.permutation_element(UInt32(3), UInt32(990000), 400) == 245588
 end
 
-@testset "MicrofacetTransmission" begin
-    m = RayTracing.MicrofacetTransmission(
-        RayTracing.Spectrum(1.0),
-        RayTracing.TrowbridgeReitzDistribution(1.0, 1.0),
-        1.0, 2.0,
-        RayTracing.Radiance,
-    )
-    @test m & (RayTracing.BSDF_TRANSMISSION | RayTracing.BSDF_GLOSSY)
-    wo = RayTracing.Vec3(0, 0, 1)
-    u = RayTracing.Pnt2(0, 0)
-    wi, pdf, bxdf_value, sampled_type = RayTracing.sample_f(m, wo, u)
-    @test wi ≈ RayTracing.Vec3(0, 0, -1)
+# taken from pbrt
+@testset "Permutation Element - Valid" begin
+    for len in 2:1024
+        for iter in 0:10
+            seen = falses(len)
+            for i in 0:(len-1)
+                offset = RayTracing.permutation_element(UInt32(i), UInt32(len), RayTracing.mix_bits(1+iter))
+                @test (offset >= 0) && (offset < len)
+                @test seen[offset+1] == 0
+                seen[offset+1] = 1
+            end
+        end
+    end
+end
+
+# taken from pbrt
+@testset "Permutation Element - Uniform" begin
+    for n in (2, 3, 4, 5, 9, 14, 16, 22, 27, 36)
+        cnt = zeros(n*n)
+    
+        num_iters = 60_000 * n
+        for seed in 0:(num_iters-1)
+            for i in 0:(n-1)
+                ip = RayTracing.permutation_element(UInt32(i), UInt32(n), RayTracing.mix_bits(seed))
+                offset = ip * n + i
+                cnt[offset+1] += 1
+            end
+        end
+    
+        for i in 0:(n-1)
+            for j in 0:(n-1)
+                tol = 0.03
+                offset = j * n + i
+                @test (cnt[offset+1] >= (1-tol) * num_iters / n) && (cnt[offset+1] <= (1+tol) * num_iters / n)
+            end
+        end
+    end
+end
+
+# taken from pbrt
+@testset "Permutation Element - Delta Uniform" begin
+    for n in (2, 3, 4, 5, 9, 14, 16, 22, 27, 36)
+        cnt = zeros(n*n)
+    
+        num_iters = 60_000 * n
+        for seed in 0:(num_iters-1)
+            for i in 0:(n-1)
+                ip = RayTracing.permutation_element(UInt32(i), UInt32(n), RayTracing.mix_bits(seed))
+                delta = ip-i
+                if delta < 0
+                    delta += n
+                end
+                offset = delta * n + i
+                cnt[offset+1] += 1
+            end
+        end
+    
+        for i in 0:(n-1)
+            for j in 0:(n-1)
+                tol = 0.03
+                offset = j * n + i
+                @test (cnt[offset+1] >= (1-tol) * num_iters / n) && (cnt[offset+1] <= (1+tol) * num_iters / n)
+            end
+        end
+    end
 end

@@ -23,7 +23,7 @@ function render(i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator}, scene
         film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
             for sample_index in 1:sampler.samples_per_pixel
-                start_pixel_sample!(sampler, pixel, sample_index)
+                start_pixel_sample!(sampler, pixel, sample_index-1)
 
                 camera_sample = get_camera_sample!(sampler, pixel)
                 ray, w = generate_ray_differential(i.camera, camera_sample)

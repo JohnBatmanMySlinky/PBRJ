@@ -55,7 +55,7 @@ function render(
         for pixel in tile_bounds # adding iterator method is cool
             @info "########################\nWorking on Pixel: $(pixel)\n########################\n\n\n"
             for sample_index in 1:sampler.samples_per_pixel
-                start_pixel_sample!(sampler, pixel, sample_index)
+                start_pixel_sample!(sampler, pixel, sample_index-1)
 
                 # Generate a single sample using BDPT
                 camera_sample = get_camera_sample!(sampler, pixel)
