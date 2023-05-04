@@ -604,29 +604,18 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
 
-        # orb_translate = RotateZ(-135.0)
-        # orb =  parse_obj(
-        #     "../ref/dragon1.obj",
-        #     orb_translate,
-        #     false,
-        #     false,
-        #     nothing
-        # )
-
-        # for tri in orb
-        #     push!(primitives, Primitive(tri, mat_gray, nothing))
-        # end
-        sphere_transform = Translate(Pnt3(0,-25,0))
-        sphere = Sphere(
-            ShapeCore(
-                sphere_transform,
-                Inv(sphere_transform),
-                false,
-                false
-            ),
-            50.0
+        orb_translate = RotateZ(-0.0)
+        orb =  parse_obj(
+            "../ref/teapot.obj",
+            orb_translate,
+            false,
+            false,
+            nothing
         )
-        push!(primitives, Primitive(sphere, mat_white, nothing))
+
+        for tri in orb
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
 
         floor_transform = Translate(Pnt3(0,-40,0))
         floor = Rectangle(
