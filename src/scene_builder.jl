@@ -604,9 +604,9 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
 
-        orb_translate = RotateZ(-0.0)
+        orb_translate = RotateZ(-135.0)
         orb =  parse_obj(
-            "../ref/teapot.obj",
+            "../ref/dragon1.obj",
             orb_translate,
             false,
             false,
@@ -657,7 +657,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         print("Done building BVH\n")
 
         # Instantiate a Filter
-        filter = BoxFilter(Pnt2(.5, .5))
+        filter = BoxFilter(Pnt2(.25, .25))
 
         # Instantiate a Film
         film = Film(
