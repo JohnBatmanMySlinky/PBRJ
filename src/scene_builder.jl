@@ -471,36 +471,15 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         primitives = Primitive[]
         lights = Light[]
 
-        # MATERIALS
-        # mat_concrete = Substrate(
-        #     ImageTexture("../ref/tiling_24_basecolor-1K.png", Pnt2(2,2)), # kd
-        #     ConstantTexture(Pnt3(.05, .05, .05)), # ks
-        #     ConstantTexture(Pnt3(.003, .003, .003)), # u
-        #     ConstantTexture(Pnt3(.003, .003, .003)), # v
-        #     true, # remap
-        #     # ImageTexture("../ref/Substance_Graph_Height.jpg", Pnt2(1,1)), # kd
-        #     nothing
-        # )
-        mat_ball = Substrate(
-            ConstantTexture(Spectrum(0.0, .5, .6)), # kd
-            ConstantTexture(Pnt3(.15, .15, .15)), # ks
-            ConstantTexture(Pnt3(.003, .003, .003)), # u
-            ConstantTexture(Pnt3(.003, .003, .003)), # v
-            true, # remap
-            nothing,
-        )
         mat_gray = Matte(
             ConstantTexture(Vec3(.4, .4, .4)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
-        mat_checker = Matte(
-            Checker3DTexture(Spectrum(0.0), Spectrum(1.0), Pnt3(10.0/100.0)),
+        mat_white = Matte(
+            ConstantTexture(Vec3(1.0, 1.0, 1.0)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
-        )
-        mat_mirror = Mirror(
-            ConstantTexture(Vec3(0.75, 0.75, 0.75))
         )
         mat_glass = Glass(
             ConstantTexture(Pnt3(1.0)),
@@ -514,17 +493,18 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # GEOMETRY
         # blue sphere
-        sphere_transform = Translate(Pnt3(0,50,0))
-        sphere = Sphere(
-            ShapeCore(
-                sphere_transform,
-                Inv(sphere_transform),
-                false,
-                false
-            ),
-            50.0
+        glass_translate = Translate(Pnt3(200, -50, -100)) * Scale(Vec3(40.0, 40.0, 40.0)) 
+        glass =  parse_obj(
+            "../ref/caustic-glass/caustic_glass.obj",
+            glass_translate,
+            false,
+            false,
+            nothing
         )
-        push!(primitives, Primitive(sphere, mat_glass, nothing))
+
+        for tri in glass
+            push!(primitives, Primitive(tri, mat_glass, nothing))
+        end
 
         # floor
         floor_transform = Translate(Pnt3(0,0,0))
@@ -538,7 +518,28 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_checker, nothing))
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
+
+        # the light
+        light_transform = Translate(Pnt3(0, 0, -50)) 
+        light = Rectangle(
+            Pnt2(25, 25), 
+            Pnt2(75, 75), 
+            0.0,
+            3, 
+            ShapeCore(light_transform, Inv(light_transform), false, false),
+            false,
+            nothing
+        )
+        for tri in light
+            alight = DiffuseAreaLight(
+                Spectrum(5.0, 5.0, 5.0),
+                tri,
+                false
+            )
+            push!(lights, alight)
+            push!(primitives, Primitive(tri, mat_white, alight))
         end
 
         # instantiate accelerator
@@ -547,13 +548,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         print("Done building BVH\n")
 
         # instantiate an env light
-        env_light = InfinteLight(
-            world_bounds(bvh), 
-            RotateY(125.0), 
-            Spectrum(1.5), 
-            "../ref/sky.exr"
-        )
-        push!(lights, env_light)
+        # env_light = InfinteLight(
+        #     world_bounds(bvh), 
+        #     RotateY(125.0), 
+        #     Spectrum(1.5), 
+        #     "../ref/sky.exr"
+        # )
+        # push!(lights, env_light)
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(1, 1))
