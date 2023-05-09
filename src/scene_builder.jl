@@ -503,7 +503,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         for tri in glass
-            push!(primitives, Primitive(tri, mat_gray, nothing))
+            push!(primitives, Primitive(tri, mat_glass, nothing))
         end
 
         # floor
@@ -523,8 +523,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # spot light
         spot_light = SpotLight(
-            LookAt(Pnt3(0,5,9), Pnt3(-5, 2.75, 0), Vec3(0,1,0)), 
-            Spectrum(139.8113403320, 118.6366500854, 105.3887557983 ), 
+            LookAt(Pnt3(0,5,9), Pnt3(-5, 2.75, 0), Vec3(0,-1,0)), 
+            Spectrum(1390.8113403320, 1180.6366500854, 1050.3887557983 ), 
             30.0, 
             5.0
         )
@@ -536,13 +536,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         print("Done building BVH\n")
 
         # instantiate an env light
-        env_light = InfinteLight(
-            world_bounds(bvh), 
-            RotateY(125.0), 
-            Spectrum(1.5), 
-            "../ref/sky.exr"
-        )
-        push!(lights, env_light)
+        # env_light = InfinteLight(
+        #     world_bounds(bvh), 
+        #     RotateY(125.0), 
+        #     Spectrum(1.5), 
+        #     "../ref/sky.exr"
+        # )
+        # push!(lights, env_light)
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.25, .25))
@@ -558,8 +558,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(-4.75, 2.25, 0)
-        look_at = Pnt3(-5.5, 7, -5.5)
+        look_from = Pnt3(-5.5, 7, -5.5)
+        look_at = Pnt3(-4.75, 2.25, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 30.0, film)

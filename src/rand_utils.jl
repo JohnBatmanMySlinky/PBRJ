@@ -34,6 +34,13 @@ function cosine_sample_hemisphere(u::Pnt2)::Vec3
     return Vec3(d.x, d.y, z)
 end
 
+function uniform_sample_cone(u1::Pnt2, cos_theta_max::Float64)::Vec3
+    cos_theta = 1.0 - u1.x + u1.x * cos_theta_max
+    sin_theta = sqrt(1.0-cos_theta^2)
+    phi = u1.y * 2 * pi
+    return Vec3(cos(phi)*sin_theta, sin(phi)*sin_theta, cos_theta)
+end
+
 function shuffle!(samp::Vector, cnt::Int64, n_dimensions::Int64)
     for i = 1:cnt
         other = i + rand(0:(cnt-i))
@@ -49,4 +56,8 @@ end
 
 function cosine_hemisphere_pdf(cos_theta::Float64)::Float64
     return cos_theta / pi
+end
+
+function uniform_cone_pdf(cos_theta_max::Float64)::Float64
+    return 1.0 / (2 * pi * (1-cos_theta_max))
 end
