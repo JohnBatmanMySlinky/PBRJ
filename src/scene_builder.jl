@@ -482,36 +482,36 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         mat_glass = Glass(
-            ConstantTexture(Pnt3(1.0)),
-            ConstantTexture(Pnt3(1.0)),
+            ConstantTexture(Pnt3(.85, .85, 1.0)),
+            ConstantTexture(Pnt3(.85, .85, 1.0)),
             ConstantTexture(Pnt3(0.0)),
             ConstantTexture(Pnt3(0.0)),
-            ConstantTexture(Pnt3(1.5)),
+            ConstantTexture(Pnt3(1.25)),
             nothing,
             true
         )
 
         # GEOMETRY
         # blue sphere
-        glass_translate = Translate(Pnt3(200, -50, -100)) * Scale(Vec3(40.0, 40.0, 40.0)) 
+        glass_translate = Translate(Pnt3(0,0,0)) 
         glass =  parse_obj(
             "../ref/caustic-glass/caustic_glass.obj",
             glass_translate,
-            false,
+            true,
             false,
             nothing
         )
 
         for tri in glass
-            push!(primitives, Primitive(tri, mat_glass, nothing))
+            push!(primitives, Primitive(tri, mat_gray, nothing))
         end
 
         # floor
         floor_transform = Translate(Pnt3(0,0,0))
         floor = Rectangle(
-            Pnt2(-300, -300), 
-            Pnt2(300, 300), 
-            0.0,
+            Pnt2(-15, -15), 
+            Pnt2(15, 15), 
+            1.456639051,
             2, 
             ShapeCore(floor_transform, Inv(floor_transform), false, false),
             false,
@@ -521,43 +521,31 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(tri, mat_gray, nothing))
         end
 
-        # the light
-        light_transform = Translate(Pnt3(0, 0, -50)) 
-        light = Rectangle(
-            Pnt2(25, 25), 
-            Pnt2(75, 75), 
-            0.0,
-            3, 
-            ShapeCore(light_transform, Inv(light_transform), false, false),
-            false,
-            nothing
+        # spot light
+        spot_light = SpotLight(
+            LookAt(Pnt3(0,5,9), Pnt3(-5, 2.75, 0), Vec3(0,1,0)), 
+            Spectrum(139.8113403320, 118.6366500854, 105.3887557983 ), 
+            30.0, 
+            5.0
         )
-        for tri in light
-            alight = DiffuseAreaLight(
-                Spectrum(5.0, 5.0, 5.0),
-                tri,
-                false
-            )
-            push!(lights, alight)
-            push!(primitives, Primitive(tri, mat_white, alight))
-        end
-
+        push!(lights, spot_light)
+      
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
         # instantiate an env light
-        # env_light = InfinteLight(
-        #     world_bounds(bvh), 
-        #     RotateY(125.0), 
-        #     Spectrum(1.5), 
-        #     "../ref/sky.exr"
-        # )
-        # push!(lights, env_light)
+        env_light = InfinteLight(
+            world_bounds(bvh), 
+            RotateY(125.0), 
+            Spectrum(1.5), 
+            "../ref/sky.exr"
+        )
+        push!(lights, env_light)
 
         # Instantiate a Filter
-        filter = BoxFilter(Pnt2(1, 1))
+        filter = BoxFilter(Pnt2(.25, .25))
 
         # Instantiate a Film
         film = Film(
@@ -570,11 +558,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(300, 200, 300)
-        look_at = Pnt3(0, 75, 0)
+        look_from = Pnt3(-4.75, 2.25, 0)
+        look_at = Pnt3(-5.5, 7, -5.5)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 30.0, film)
 
         # Instantiate a Sampler
         S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
