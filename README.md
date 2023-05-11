@@ -9,17 +9,33 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
     - see `src/args.jl` for a full specification of command line options
 - Scenes are specified within `src/scene_builder.jl`
     1. Munich Re scene. Interior scene. many (relative) diffuse area lights. specular floor. 
+        <details>
+            <summary>Click to show image</summary>
+            
+            ![caustic_glass](renders/caustic-glass.png)
+        </details>
+
     2. Caustic glass
+        <details>
+            <summary>Click to show image</summary>
+            
+            ![caustic_glass](renders/caustic-glass.png)
+        </details>
+
     3. Dragon on a plane with Ambient Occlusion integrator
-    4. Cornell Box. 
+        <details>
+            <summary>Click to show image</summary>
+            
+            ![caustic_glass](renders/caustic-glass.png)
+        </details>
+    4. Cornell Box
+        <details>
+            <summary>Click to show image</summary>
+            
+            ![caustic_glass](renders/caustic-glass.png)
+        </details>
 
 ## Features
-- Caustic glass scene
-    - Recreate exact BDPT scene
-    - Use gray material for all
-    - find pixel on glass
-    - validate it works on diffuse material
-    - move to glass and debug
 - Bi-Directional Path Tracing (BDPT)
     - implement the rest of the lights
 - Implement Metroplois Light Transport Integrator

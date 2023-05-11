@@ -241,7 +241,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(disk, mat_white, nothing))
 
         ################# Pillar Area Lights
-        MULT = 3
+        MULT = 5
         yellow = Spectrum(1.0, 1.0, 0.0)
         white = Spectrum(1.0, 1.0, 1.0)
         blue = Spectrum(0.0, 0.0, 1.0)
