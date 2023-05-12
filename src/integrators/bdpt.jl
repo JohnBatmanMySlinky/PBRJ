@@ -207,7 +207,7 @@ function generate_light_subpath!(
     light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
     light = scene.lights[light_num]
     Le, ray, n_light, pdf_pos, pdf_dir = sample_le(light, get_2D!(sampler), get_2D!(sampler), t)
-    if (pdf_pos == 0.0) || (pdf_dir == 0.0)
+    if (pdf_pos == 0.0) || (pdf_dir == 0.0) || is_black(Le)
         return 0, 0
     end
 
@@ -294,7 +294,7 @@ function random_walk!(
         wo = isect.core.wo
         wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
         @info "Random walk sampled dir: $(wi) f: $(f), pdfFwd: $(pdf_fwd), sampled_type $(bitstring(UInt8(sampled_type)))"
-        (pdf_fwd == 0.0) && break
+        ((pdf_fwd == 0.0) || is_black(f)) && break
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
         @info "Random walk beta now $(beta)"
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
@@ -361,12 +361,15 @@ function connect_BDPT(
         qs = light_vertices[s-1+1]
         if is_connectible(qs)
             sampled_wi, wi, pdf_val, vis, pfilm = sample_wi(camera, get_interaction(qs), get_2D!(sampler))
-            if pdf_val > 0
+            if (pdf_val > 0) && !is_black(sampled_wi)
                 # initalize dynamically sampled vertex and L for t=1 case
                 sampled = create_camera_vertex(camera, vis.p1, sampled_wi / pdf_val)
-                L = qs.beta * f(qs, sampled, Importance) * tr(vis, scene.b, sampler) * sampled.beta
+                L = qs.beta * f(qs, sampled, Importance) * sampled.beta
                 if is_on_surface(qs)
                     L *= abs(dot(wi, ns(qs)))
+                end
+                if !(is_black(L))
+                    L *= tr(vis, scene.b, sampler)
                 end
             end
         end
@@ -382,13 +385,16 @@ function connect_BDPT(
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
             sampled_li, wi, pdf_val, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
-            if pdf_val > 0.0
+            if pdf_val > 0.0 && !(is_black(sampled_li))
                 ei = EndpointInteraction(vis.p1, light)
                 sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
-                L = pt.beta * f(pt, sampled, Radiance) * tr(vis, scene.b, sampler) * sampled.beta
+                L = pt.beta * f(pt, sampled, Radiance) * sampled.beta
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))
+                end
+                if !is_black(L)
+                    L *= tr(vis, scene.b, sampler)
                 end
             end
         end
@@ -398,13 +404,14 @@ function connect_BDPT(
         pt = camera_vertices[t-1+1]
         if is_connectible(qs) && is_connectible(pt)
             L = qs.beta * f(qs, pt, Importance) * f(pt, qs, Radiance) * pt.beta
-            # JOHN HACK: if not black --> always
-            L *= G(scene, sampler, qs, pt)
+            if !is_black(L)
+                L *= G(scene, sampler, qs, pt)
+            end
         end
     end
 
     # compute MIS weight for connection strategy
-    mis_weight = MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr, light_num)
+    mis_weight = is_black(L) ? 0.0 : MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr, light_num)
     (DO_MIS_WEIGHT) && (L *= mis_weight)
     return L, mis_weight, pfilm
 end

@@ -27,6 +27,16 @@ struct ImageTexture <: Texture
             tile::Pnt2
         )
     end
+
+    function ImageTexture(val::Pnt3, xdim::Int64, ydim::Int64)
+        dat = zeroes(Pnt3, ydim, xdim)
+        for x in 1:xdim
+            for y in 1:ydim
+                dat[y,x] = val
+            end
+        end
+        return new(dat, y, x, Pnt2(1,1))
+    end
 end
 
 function (it::ImageTexture)(si::SurfaceInteraction)
