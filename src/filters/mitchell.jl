@@ -10,9 +10,10 @@ function (m::MitchellFilter)(p::Pnt2)::Float64
 end
 
 function mithcell1d(m::MitchellFilter, x::Float64)::Float64
-    x = abs(2x)
-    if x > 1
-        return ((-m.B - 6*m.C) * x^3 + (6*m.B + 30*m.C) * x^2 + (-12*m.B - 48*m.C) * x + (8*m.b + 24*m.C)) / 6.0
+    x = abs(2.0 * x)
+    if x > 1.0
+        return ((-m.B - 6.0 * m.C) * x^3 + (6.0 * m.B + 30.0 * m.C) * x^2 + (-12.0 * m.B - 48.0 * m.C) * x + (8.0 * m.b + 24.0 * m.C)) / 6.0
     else
-        return ((12 - 9*m.B - 6*m.C) * x^3 + (-18 + 12*m.B + 6*m.C) * x^2 + (6-2*m.B)) . 6/0
+        return ((12.0 - 9.0 * m.B - 6.0 * m.C) * x^3 + (-18.0 + 12.0 * m.B + 6.0 * m.C) * x^2 + (6.0 - 2.0 *m.B)) * (1.0 / 6.0)
+    end
 end
