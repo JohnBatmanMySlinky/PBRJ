@@ -1,4 +1,4 @@
-function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, render_pass_flag::UInt8, ::String)
+function render(i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator}, scene::Scene, render_pass_flag::UInt8, ::Tuple{Int64,Int64}, ::String)
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
     sample_extent = diagonal(sample_bounds)
     tile_size = 16
@@ -15,31 +15,23 @@ function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, rende
     Threads.@threads for k in 0:total_tiles
         x, y = k % width, k ÷ width
         tile = Pnt2(x, y)
-        k_sampler = deepcopy(i.sampler)
+        sampler = deepcopy(i.sampler)
 
         tb_min = sample_bounds.pMin .+ tile .* tile_size
         tb_max = min.(tb_min .+ (tile_size - 1), sample_bounds.pMax)
         tile_bounds = Bounds2(tb_min, tb_max)
         film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
-            start_pixel!(k_sampler, pixel)
-            while has_next_sample(k_sampler)
-                camera_sample = get_camera_sample!(k_sampler, pixel)
+            for sample_index in 1:sampler.samples_per_pixel
+                start_pixel_sample!(sampler, pixel, sample_index-1)
+
+                camera_sample = get_camera_sample!(sampler, pixel)
                 ray, w = generate_ray_differential(i.camera, camera_sample)
-                scale_differentials!(ray, 1.0 / sqrt(k_sampler.pixel_sampler.sampler.samples_per_pixel))
+                scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
                 L = Spectrum(0)
 
-                if render_pass_flag == 1
-                    check, t, interaction, = intersect!(scene.b, ray)
-                    if check
-                        L = Spectrum(interaction.primitive.material.Kd(interaction))
-                    else
-                        L = Spectrum(0)
-                    end
-                else
-                    if w > 0
-                        L = li(i, ray, scene, 0)
-                    end
+                if w > 0
+                    L = li(i.cos_sample, ray, scene, 0, sampler)
                 end
 
                 if any(isnan.(L))
@@ -47,8 +39,6 @@ function render(i::Union{WhittedIntegrator, PathIntegrator}, scene::Scene, rende
                 end
 
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
-
-                start_next_sample!(k_sampler)
             end
         end
         merge_film_tile!(i.camera.core.core.film , film_tile)

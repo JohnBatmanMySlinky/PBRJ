@@ -61,5 +61,11 @@ function sample_le(light::SpotLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spec
     n_light = Nml3(ray.direction)
     pdf_pos = 1.0
     pdf_dir = uniform_cone_pdf(light.cos_total_width)
-    return light.I * falloff(light, ray.direction), ray, n_light, pdf_pos, pdf_dir
+    return light.I * falloff(light, ray.direction), RayDifferential(ray), n_light, pdf_pos, pdf_dir
+end
+
+function pdf_le(light::SpotLight, ray::AbstractRay, n::Nml3)::Tuple{Float64, Float64}
+    pdf_pos = 0.0
+    pdf_dir = cos_theta(light.world_to_light(ray.direction)) >= light.cos_total_width ? uniform_cone_pdf(light.cos_total_width) : 0.0
+    return pdf_pos, pdf_dir
 end

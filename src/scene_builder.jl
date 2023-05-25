@@ -241,7 +241,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(disk, mat_white, nothing))
 
         ################# Pillar Area Lights
-        MULT = 3
+        MULT = 5
         yellow = Spectrum(1.0, 1.0, 0.0)
         white = Spectrum(1.0, 1.0, 1.0)
         blue = Spectrum(0.0, 0.0, 1.0)
@@ -471,92 +471,81 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         primitives = Primitive[]
         lights = Light[]
 
-        # MATERIALS
-        # mat_concrete = Substrate(
-        #     ImageTexture("../ref/tiling_24_basecolor-1K.png", Pnt2(2,2)), # kd
-        #     ConstantTexture(Pnt3(.05, .05, .05)), # ks
-        #     ConstantTexture(Pnt3(.003, .003, .003)), # u
-        #     ConstantTexture(Pnt3(.003, .003, .003)), # v
-        #     true, # remap
-        #     # ImageTexture("../ref/Substance_Graph_Height.jpg", Pnt2(1,1)), # kd
-        #     nothing
-        # )
-        mat_ball = Substrate(
-            ConstantTexture(Spectrum(0.0, .5, .6)), # kd
-            ConstantTexture(Pnt3(.15, .15, .15)), # ks
-            ConstantTexture(Pnt3(.003, .003, .003)), # u
-            ConstantTexture(Pnt3(.003, .003, .003)), # v
-            true, # remap
-            nothing,
-        )
         mat_gray = Matte(
             ConstantTexture(Vec3(.4, .4, .4)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
-        mat_checker = Matte(
-            Checker3DTexture(Spectrum(0.0), Spectrum(1.0), Pnt3(10.0/100.0)),
+        mat_white = Matte(
+            ConstantTexture(Vec3(1.0, 1.0, 1.0)),
             ConstantTexture(Vec3(0, 0, 0)),
             nothing
         )
-        mat_mirror = Mirror(
-            ConstantTexture(Vec3(0.75, 0.75, 0.75))
-        )
         mat_glass = Glass(
-            ConstantTexture(Pnt3(1.0)),
-            ConstantTexture(Pnt3(1.0)),
+            ConstantTexture(Pnt3(.85, .85, 1.0)),
+            ConstantTexture(Pnt3(.85, .85, 1.0)),
             ConstantTexture(Pnt3(0.0)),
             ConstantTexture(Pnt3(0.0)),
-            ConstantTexture(Pnt3(1.5)),
+            ConstantTexture(Pnt3(1.25)),
             nothing,
             true
         )
 
         # GEOMETRY
         # blue sphere
-        sphere_transform = Translate(Pnt3(0,50,0))
-        sphere = Sphere(
-            ShapeCore(
-                sphere_transform,
-                Inv(sphere_transform),
-                false,
-                false
-            ),
-            50.0
+        glass_translate = Translate(Pnt3(0,0,0)) 
+        glass =  parse_obj(
+            "../ref/caustic-glass/caustic_glass.obj",
+            glass_translate,
+            true,
+            false,
+            nothing
         )
-        push!(primitives, Primitive(sphere, mat_glass, nothing))
+
+        for tri in glass
+            push!(primitives, Primitive(tri, mat_glass, nothing))
+        end
 
         # floor
         floor_transform = Translate(Pnt3(0,0,0))
         floor = Rectangle(
-            Pnt2(-300, -300), 
-            Pnt2(300, 300), 
-            0.0,
+            Pnt2(-15, -15), 
+            Pnt2(15, 15), 
+            1.456639051,
             2, 
             ShapeCore(floor_transform, Inv(floor_transform), false, false),
             false,
             nothing
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_checker, nothing))
+            push!(primitives, Primitive(tri, mat_gray, nothing))
         end
 
+        # spot light
+        spot_light = SpotLight(
+            LookAt(Pnt3(0,5,9), Pnt3(-5, 2.75, 0), Vec3(0,-1,0)), 
+            Spectrum(1390.8113403320, 1180.6366500854, 1050.3887557983 ), 
+            30.0, 
+            5.0
+        )
+        push!(lights, spot_light)
+      
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
         # instantiate an env light
-        env_light = InfinteLight(
-            world_bounds(bvh), 
-            RotateY(125.0), 
-            Spectrum(1.5), 
-            "../ref/sky.exr"
-        )
-        push!(lights, env_light)
+        # env_light = InfinteLight(
+        #     world_bounds(bvh), 
+        #     RotateY(125.0), 
+        #     Spectrum(1.5), 
+        #     "../ref/sky.exr"
+        # )
+        # push!(lights, env_light)
 
         # Instantiate a Filter
-        filter = BoxFilter(Pnt2(1, 1))
+        filter = BoxFilter(Pnt2(.25, .25))
 
         # Instantiate a Film
         film = Film(
@@ -569,11 +558,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(300, 200, 300)
-        look_at = Pnt3(0, 75, 0)
+        look_from = Pnt3(-5.5, 7, -5.5)
+        look_at = Pnt3(-4.75, 2.25, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 30.0, film)
 
         # Instantiate a Sampler
         S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
@@ -656,17 +645,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
-        # instantiate an env light
-        # env_light = InfinteLight(
-        #     world_bounds(bvh), 
-        #     Translate(Vec3(0,0,0)), 
-        #     Spectrum(3.0), 
-        #     "../ref/parking_lot.jpg"
-        # )
-        # push!(lights, env_light)
-
         # Instantiate a Filter
-        filter = BoxFilter(Pnt2(.5, .5))
+        filter = BoxFilter(Pnt2(.25, .25))
 
         # Instantiate a Film
         film = Film(
@@ -694,7 +674,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+        I = AOIntegrator(C, S, true)
         return I, scene
     elseif parsed_args["scene-number"] == 4
         primitives = Primitive[]
@@ -878,7 +858,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Film
         film = Film(
             Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
-            Bounds2(Pnt2(0,0), Pnt2(1,1)),
+            Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
             filter,
             1.0,
             1.0,

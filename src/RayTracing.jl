@@ -82,10 +82,12 @@ include("lights/area.jl")
 include("lights/point.jl")
 include("lights/infinite.jl")
 include("lights/distant.jl")
+include("lights/spot.jl")
 include("scene.jl")
 include("light_distributions.jl")
 include("integrators/whitted.jl")
 include("integrators/path.jl")
+include("integrators/ao.jl")
 include("integrators/integrator.jl")
 include("integrators/bdpt_vertex.jl")
 include("cameras/projective_sampling.jl")
@@ -184,9 +186,9 @@ if abspath(PROGRAM_FILE) == @__FILE__
         logger = NullLogger()   # TODO how to log to file on Windows?
         # logger = SimpleLogger()
     else
-        # logger = NullLogger()
-        io = open("log_$(now()).txt", "w+")
-        logger = SimpleLogger(io, Logging.Error) # Error, Warn, Info, Debug        
+        logger = NullLogger()
+        # io = open("log_$(now()).txt", "w+")
+        # logger = SimpleLogger(io, Logging.Error) # Error, Warn, Info, Debug        
     end
     global_logger(logger)
 

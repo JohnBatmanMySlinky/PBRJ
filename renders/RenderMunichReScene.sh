@@ -1,1 +1,0 @@
-julia -t 16 ../src/RayTracing.jl --render-simple true --image-dim 500 --samples-per-pixel 2 --file-name "wow.png"

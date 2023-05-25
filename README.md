@@ -1,15 +1,23 @@
 # PBRJ
 Physically Based Rendering - in Julia
 
-An implementation of [Physically Based Rendering: From Theory to Implementation 3rd Edition](https://www.pbr-book.org/) in the Julia programming language.
+An implementation of [Physically Based Rendering: From Theory to Implementation](https://www.pbr-book.org/) in the Julia programming language.
 
-# How to use
-How to render the Cornell Box with 100 samples per pixel using 4 threads. 
-```
-julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
-```
+# Usage
+- Example command line usage
+    - `julia -t 4 RayTracing.jl --scene-number 2 --samples-per-pixel 16 --image-dim 250 --file-name "test.png"`
+    - see `src/args.jl` for a full specification of command line options
+- Scenes are specified within `src/scene_builder.jl`
+    1. Office scene. Interior scene. many (relative) diffuse area lights. specular floor. 
 
-# TODO
+        ![office_scene](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/munich-scene.png?raw=true)
+
+    2. Caustic glass
+
+        ![caustic_glass](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/caustic-glass.png?raw=true)
+        
+    3. Dragon on a plane with Ambient Occlusion integrator
+    4. Cornell Box
 ## Features
 - Bi-Directional Path Tracing (BDPT)
     - implement the rest of the lights
@@ -18,6 +26,7 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
     - ~~for env lights~~
     - for final image
 - Move the pbrt-v4's sampler structure
+    - Implement more samplers beyond just stratified sampler
 - Make obj_parser less anemic.
 - Implement more materials
     - Add glass material
@@ -40,23 +49,22 @@ julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 100
 - stop kludging this and implement two versions: Texture<Spectrum> vs Texture<Float>
     - really good opportunity for parameterized types!!?
 - implement spectrum is black checks and measure preformance improvement
-- check type stability
-- tuple of lights instead of vector?
-- can I make rays immutable and re-instantiate when mutation is needed?
 - clean up surface interaction instantiation (esp. when empty)
 - Implement passes with more dimensions of our film. Current method is hardcody and requires us to re-instantiate the scene every time!
 - Implement texture sampling and use those ray differentials
-- Code
-    - Static & dynamic code analysis
+- Static & dynamic code analysis
 - Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc.
 
 ## Bugs
 - XYZ color to RGB, I am doing something wrong...
 - My world is upside down! Use real pbrt to debug (or pxl-th's)
+- Sometimes objects are see through (ie when they have a really bright light behind them)
 
 ## Ideas
 - Triangles using UInt16 when small enough?
-    - seems like I get a very small pay off when I did a quick test.⌈
+    - seems like I get a very small pay off when I did a quick test.
+- tuple of lights instead of vector?
+- can I make rays immutable and re-instantiate when mutation is needed?
 
 # Beyond PBRT
 - Denoiser. Opportunity for ML here?

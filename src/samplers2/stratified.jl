@@ -20,6 +20,8 @@ mutable struct StratifiedSampler <: AbstractSampler
 end
 
 function start_pixel_sample!(ss::StratifiedSampler, pixel::Pnt2, sample_index::Int64)
+    # avoiding blowing my foot off here... sometimes this results in an infinite while loop in permutation_element
+    @assert sample_index != ss.samples_per_pixel
     ss.pixel = pixel
     ss.sample_index = sample_index
     ss.dimension = 0
@@ -93,4 +95,13 @@ function permutation_element(i::UInt32, l::UInt32, p::Union{UInt, Int})::Int64
         i = __inner_loop(i, p, w)
     end
     return (i + p) % l
+end
+
+function mix_bits(v::Union{Int, UInt})::Union{Int, UInt}
+    v ⊻= (v >> 31)
+    v *= 0x7fb5d329728ea185
+    v ⊻= (v >> 27)
+    v *= 0x81dadef4bc2dd44d
+    v ⊻= (v >> 33)
+    return v
 end
