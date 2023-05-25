@@ -12,14 +12,14 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
         <details>
             <summary>Click to show image</summary>
             
-            ![caustic_glass](renders/caustic-glass.png)
+            ![caustic_glass](renders/caustic-glass.jpg)
         </details>
 
     2. Caustic glass
         <details>
             <summary>Click to show image</summary>
             
-            ![caustic_glass](renders/caustic-glass.png)
+            ![caustic_glass](renders/caustic-glass.jpg)
         </details>
 
     3. Dragon on a plane with Ambient Occlusion integrator
