@@ -10,6 +10,7 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 - Scenes are specified within `src/scene_builder.jl`
     1. Munich Re scene. Interior scene. many (relative) diffuse area lights. specular floor. 
         ![munich_scene](https://github.com/JohnBatmanMySlinky/PBRJ/blob/ao2/renders/munich-scene.png?raw=true)
+        
     2. Caustic glass
         ![caustic_glass](https://github.com/JohnBatmanMySlinky/PBRJ/blob/ao2/renders/caustic-glass.png?raw=true)
     3. Dragon on a plane with Ambient Occlusion integrator
