@@ -12,27 +12,25 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
         <details>
             <summary>Click to show image</summary>
             
-            ![caustic_glass](renders/caustic-glass.jpg)
+            ![munich_scene](https://github.com/JohnBatmanMySlinky/PBRJ/blob/ao2/renders/munich-scene.png?raw=true)
         </details>
 
     2. Caustic glass
         <details>
             <summary>Click to show image</summary>
             
-            ![caustic_glass](renders/caustic-glass.jpg)
+            ![caustic_glass](https://github.com/JohnBatmanMySlinky/PBRJ/blob/ao2/renders/caustic-glass.png?raw=true)
         </details>
 
     3. Dragon on a plane with Ambient Occlusion integrator
         <details>
             <summary>Click to show image</summary>
             
-            ![caustic_glass](renders/caustic-glass.png)
         </details>
     4. Cornell Box
         <details>
             <summary>Click to show image</summary>
             
-            ![caustic_glass](renders/caustic-glass.png)
         </details>
 
 ## Features
