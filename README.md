@@ -9,30 +9,11 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
     - see `src/args.jl` for a full specification of command line options
 - Scenes are specified within `src/scene_builder.jl`
     1. Munich Re scene. Interior scene. many (relative) diffuse area lights. specular floor. 
-        <details>
-            <summary>Click to show image</summary>
-            
-            ![munich_scene](https://github.com/JohnBatmanMySlinky/PBRJ/blob/ao2/renders/munich-scene.png?raw=true)
-        </details>
-
+        ![munich_scene](https://github.com/JohnBatmanMySlinky/PBRJ/blob/ao2/renders/munich-scene.png?raw=true)
     2. Caustic glass
-        <details>
-            <summary>Click to show image</summary>
-            
-            ![caustic_glass](https://github.com/JohnBatmanMySlinky/PBRJ/blob/ao2/renders/caustic-glass.png?raw=true)
-        </details>
-
+        ![caustic_glass](https://github.com/JohnBatmanMySlinky/PBRJ/blob/ao2/renders/caustic-glass.png?raw=true)
     3. Dragon on a plane with Ambient Occlusion integrator
-        <details>
-            <summary>Click to show image</summary>
-            
-        </details>
     4. Cornell Box
-        <details>
-            <summary>Click to show image</summary>
-            
-        </details>
-
 ## Features
 - Bi-Directional Path Tracing (BDPT)
     - implement the rest of the lights
