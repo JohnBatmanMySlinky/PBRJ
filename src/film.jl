@@ -1,7 +1,7 @@
 mutable struct Pixel
-    xyz::Pnt3
+    xyz::XYZPBRT
     filter_weight_sum::Float64
-    splat_xyz::AtomicPnt3
+    splat_xyz::AtomicXYZPBRT
 end
 
 # PBR 7.9.1
@@ -47,7 +47,7 @@ struct Film
 
         # allocate film image storage
         pixels = Pixel[
-            Pixel(Pnt3(0), 0, AtomicPnt3(0.0, 0.0, 0.0)) for y in 1:cropped_resolution[end], x in 1:cropped_resolution[begin]
+            Pixel(Pnt3(0), 0, AtomicXYZPBRT(0.0, 0.0, 0.0)) for y in 1:cropped_resolution[end], x in 1:cropped_resolution[begin]
         ]
 
         # precompute filter weight table
@@ -106,7 +106,7 @@ struct FilmTile
         p1 = floor.(sample_bounds.pMax .- 0.5 .+ f.filter.radius) .+ 1.0
         pixel_bounds = intersection(Bounds2(p0, p1), f.cropped_pixel_bounds)
         tile_res = Pnt2(inclusive_sides(pixel_bounds))
-        pixels = [FilmTilePixel(Spectrum(0, 0, 0), 0) for _ in 1:tile_res.y, __ in 1:tile_res.x]
+        pixels = [FilmTilePixel(spectrum_from_float(0.0, 0.0, 0.0), 0) for _ in 1:tile_res.y, __ in 1:tile_res.x]
 
         new(
             pixel_bounds, 
@@ -171,6 +171,7 @@ end
 function add_splat!(f::Film, p::Pnt2, v::Spectrum)
     pp = trunc.(p)
     (!inside_exclusive(pp, f.cropped_pixel_bounds)) && (return )
+    # JOHN HACK LUMINANCE CHECK
     pixel = get_pixel(f, pp)
     Threads.atomic_add!(pixel.splat_xyz, RGB_to_XYZ(v))
 end
@@ -189,7 +190,7 @@ function save(film::Film, render_pass_flag::UInt8, splat_scale::Float64 = 1.0)::
                 image[y, x, :] .= max.(0, image[y, x, :] .* inv_weight)
             end
             # Add splat value at pixel & scale.
-            splat_rgb = XYZ_to_RGB(convert(Pnt3, pixel.splat_xyz))
+            splat_rgb = XYZ_to_RGB(convert(XYZPBRT, pixel.splat_xyz))
             image[y, x, :] .+= splat_scale .* splat_rgb
             image[y, x, :] .*= film.scale
         end

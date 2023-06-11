@@ -684,35 +684,35 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # MATERIALS
         mat_gray = Matte(
-            ConstantTexture(Vec3(.4, .4, .4)),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(spectrum_from_float(.4, .4, .4)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_white = Matte(
-            ConstantTexture(Vec3(1, 1, 1)),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_red = Matte(
-            ConstantTexture(Vec3(.9, 0.05, 0.05)),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(spectrum_from_float(.9, 0.05, 0.05)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_blue = Matte(
-            ConstantTexture(Vec3(0.05, 0.05, .9)),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(spectrum_from_float(0.05, 0.05, .9)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_green = Matte(
-            ConstantTexture(Vec3(0.05, 0.9, 0.05)),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(spectrum_from_float(0.05, 0.9, 0.05)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_ball = Substrate(
-            ConstantTexture(Spectrum(0.0, .5, .6)), # kd
-            ConstantTexture(Pnt3(.15, .15, .15)), # ks
-            ConstantTexture(Pnt3(.003, .003, .003)), # u
-            ConstantTexture(Pnt3(.003, .003, .003)), # v
+            ConstantTexture(spectrum_from_float(0.0, .5, .6)), # kd
+            ConstantTexture(spectrum_from_float(.15, .15, .15)), # ks
+            ConstantTexture(spectrum_from_float(.003, .003, .003)), # u
+            ConstantTexture(spectrum_from_float(.003, .003, .003)), # v
             true, # remap
             nothing,
         )
@@ -796,7 +796,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in ceiling_light
             alight = DiffuseAreaLight(
-                Spectrum(20.0, 20.0, 20.0),
+                spectrum_from_float(20.0, 20.0, 20.0),
                 tri,
                 false # NOT two sided
             )

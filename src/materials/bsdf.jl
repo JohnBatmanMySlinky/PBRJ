@@ -50,10 +50,10 @@ end
 # Equivalent to PBR's f()
 function (b::BSDF)(woW::Vec3, wiW::Vec3, flags::UInt8=BSDF_ALL)::Spectrum
     wo = world_to_local(b, woW)
-    wo.z == 0 && return Spectrum(0)
+    wo.z == 0 && return spectrum_from_float(0.0)
     wi = world_to_local(b, wiW)
     reflect = (dot(wiW, b.ng) * dot(woW, b.ng)) > 0.0 
-    output = Spectrum(0)
+    output = spectrum_from_float(0.0)
     for i in 1:b.n_bxdfs
         bxdf = b.bxdfs[i]
         if (bxdf & flags) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0)))
@@ -120,7 +120,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
     # Compute value of BSDF for sampled direction.
     if !(bxdf.type & BSDF_SPECULAR != 0)
         reflect = (dot(wi_world, b.ng) * dot(wo_world, b.ng)) > 0
-        f_val = Spectrum(0)
+        f_val = spectrum_from_float(0.0)
         for i in 1:b.n_bxdfs
             bxdf = b.bxdfs[i]
             if ((bxdf & type) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0))))

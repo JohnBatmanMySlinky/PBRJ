@@ -228,13 +228,13 @@ end
 
 ################################## Sampling
 function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
-    !is_light(v1) && (return Spectrum(0.0))
+    !is_light(v1) && (return spectrum_from_float(0.0))
     w = p(v2) - p(v1)
-    (dot(w,w) == 0.0) && (return Spectrum(0.0))
+    (dot(w,w) == 0.0) && (return spectrum_from_float(0.0))
     w = Vec3(normalize(w))
     if is_infinite_light(v1)
         # return emitted radiance for infinite light sources
-        LL = Spectrum(0.0)
+        LL = spectrum_from_float(0.0)
         for light in scene.lights
             if is_infinite_light(light)
                 LL += le(light, Ray(p(v1), -w, time(v1), typemax(Float64)))

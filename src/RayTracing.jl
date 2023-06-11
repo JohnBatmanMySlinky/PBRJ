@@ -35,6 +35,25 @@ const Importance = Val{:Importance}
 const TransportMode = Union{Radiance, Importance}
 
 include("objects.jl")
+
+########################
+### SPECTRUM HACKING ###
+########################
+include("spectrum_constants.jl")   # constants for spectral <-> RGB <-> XYZ
+include("spectrum_macro.jl")       # the file to create the macro
+include("spectrum.jl")             # all of the 'constructors'
+const nSpectralSamples = 4         # if it's 3 --> RGB if it's >3 --> spectral
+const sampledLambdaStart = 400
+const sampledLambdaEnd = 700
+const nCIESamples = 471
+const CIE_Y_integral = 106.856895
+const nRGB2SpectSamples = 32
+@make_spectrum nSpectralSamples    # define the Spectrum struct
+include("spectrum_utils.jl")       # things that reference the Spectrum struct
+
+# instantiate these at global level to be used for spectral 
+const XXX, YYY, ZZZ, rgbRefl2SpectWhite, rgbRefl2SpectCyan, rgbRefl2SpectMagenta, rgbRefl2SpectYellow, rgbRefl2SpectRed, rgbRefl2SpectGreen, rgbRefl2SpectBlue, rgbIllum2SpectWhite, rgbIllum2SpectCyan, rgbIllum2SpectMagenta, rgbIllum2SpectYellow, rgbIllum2SpectRed, rgbIllum2SpectGreen, rgbIllum2SpectBlue = make_spectral_constants()
+
 include("primitive.jl")
 include("interactions.jl")
 include("transformations.jl")

@@ -60,7 +60,7 @@ function render(
                 # Generate a single sample using BDPT
                 camera_sample = get_camera_sample!(sampler, pixel)
 
-                L = Spectrum(0.0)
+                L = spectrum_from_float(0.0)
                 if render_pass_flag == UInt8(0) # full pass
                     # instantiate the list of vertices
                     camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
@@ -183,7 +183,7 @@ function generate_camera_subpath!(
     as in sample integrator, differentials are scaled so they reflect the actual pixel sampling density
     """
     ray, beta = generate_ray_differential(camera, camera_sample)
-    beta = Spectrum(beta) # john hack; casting to spectrum
+    beta = spectrum_from_float(beta) # john hack; casting to spectrum
     scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
 
     # generate first vertex on camera subpath and start random walk
@@ -327,11 +327,11 @@ function connect_BDPT(
     sampler::AbstractSampler,
     pfilm::Pnt2,
 )::Tuple{Spectrum, Float64, Pnt2}
-    L = Spectrum(0.0)
+    L = spectrum_from_float(0.0)
 
     # ignore invalid connections related to infinite light
     if (t > 1) && (s != 0) && (camera_vertices[t-1+1].type == VTLight)
-        return Spectrum(0), 1.0, pfilm
+        return spectrum_from_float(0.0), 1.0, pfilm
     end
 
     sampled = nothing

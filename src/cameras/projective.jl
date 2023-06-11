@@ -183,7 +183,7 @@ function we(camera::PerspectiveCamera, ray::AbstractRay)::Tuple{Spectrum, Pnt2}
     lens_area = camera.core.lens_radius != 0 ? (pi * camera.core.lens_radius ^ 2) : 1.0
 
     # return importance for point on image plane
-    return Spectrum(1/(camera.A * lens_area * cos_theta ^ 4)), p_raster2
+    return spectrum_from_float(1.0/(camera.A * lens_area * cos_theta ^ 4)), p_raster2
 end
 
 function pdf_we(camera::PerspectiveCamera, ray::AbstractRay)::Tuple{Float64, Float64}
