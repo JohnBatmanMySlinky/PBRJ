@@ -21,7 +21,7 @@ function average_spectrum_samples(
 )::Float64
     # Handle cases with out-of-bounds range or single sample only
     (lambda_end <= lambda[0+1]) && (return vals[0+1])
-    (lambda_start >= lambda[n - 1]) && (return vals[n - 1])
+    (lambda_start >= lambda[n-1+1]) && (return vals[n-1+1])
     (n == 1) && (return vals[0+1])
 
     tot = 0.0
@@ -29,8 +29,8 @@ function average_spectrum_samples(
     if (lambda_start < lambda[0+1]) 
         tot += vals[0+1] * (lambda[0+1] - lambda_start)
     end
-    if (lambda_end > lambda[n - 1])
-        tot += vals[n - 1] * (lambda_end - lambda[n - 1])
+    if (lambda_end > lambda[n-1+1])
+        tot += vals[n-1+1] * (lambda_end - lambda[n-1+1])
     end
 
     # Advance to first relevant wavelength segment
@@ -41,8 +41,7 @@ function average_spectrum_samples(
     @assert i + 1 <= n
 
     # Loop over wavelength sample segments and add contributions
-    while (i+1<n) && (lambda_end >= lambda[i])
-        i += 1
+    while (i+1<=n) && (lambda_end >= lambda[i])
         seg_lambda_start = max(lambda_start, lambda[i])
         seg_lambda_end = min(lambda_end, lambda[i+1])
         a = lerp(
@@ -56,6 +55,7 @@ function average_spectrum_samples(
             vals[i+1]
         )
         tot += 0.5*(a+b)*(seg_lambda_end-seg_lambda_start)
+        i += 1
     end
     return tot / (lambda_end-lambda_start)
 end
@@ -119,8 +119,8 @@ function make_spectral_constants()::Tuple{Spectrum, Spectrum, Spectrum, Spectrum
     tmp_rgbIllum2SpectGreen = zeros(nSpectralSamples)
     tmp_rgbIllum2SpectBlue = zeros(nSpectralSamples)
     for i in 1:nSpectralSamples
-        wl0 = lerp(i / nSpectralSamples, Float64(sampledLambdaStart), Float64(sampledLambdaEnd))
-        wl1 = lerp((i + 1) / nSpectralSamples, Float64(sampledLambdaStart), Float64(sampledLambdaEnd))
+        wl0 = lerp((i-1) / nSpectralSamples, Float64(sampledLambdaStart), Float64(sampledLambdaEnd))
+        wl1 = lerp(i / nSpectralSamples, Float64(sampledLambdaStart), Float64(sampledLambdaEnd))
         tmp_X[i] = average_spectrum_samples(CIE_lambda, CIE_X, nCIESamples, wl0, wl1)
         tmp_Y[i] = average_spectrum_samples(CIE_lambda, CIE_Y, nCIESamples, wl0, wl1)
         tmp_Z[i] = average_spectrum_samples(CIE_lambda, CIE_Z, nCIESamples, wl0, wl1)
