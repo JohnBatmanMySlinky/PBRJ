@@ -27,14 +27,14 @@ function average_spectrum_samples(
     tot = 0.0
     # Add contributions of constant segments before/after samples
     if (lambda_start < lambda[0+1]) 
-        tot += vals[0+1] * (lambda[0] - lambda_start)
+        tot += vals[0+1] * (lambda[0+1] - lambda_start)
     end
     if (lambda_end > lambda[n - 1])
         tot += vals[n - 1] * (lambda_end - lambda[n - 1])
     end
 
     # Advance to first relevant wavelength segment
-    i = 0
+    i = 0+1
     while (lambda_start > lambda[i + 1])
         i += 1
     end
@@ -97,7 +97,7 @@ function to_XYZ(s::Spectrum)::XYZPBRT
     x *= scale
     y *= scale
     z *= scale
-    return XYZ(x, y, z)
+    return XYZPBRT(x, y, z)
 end
 
 function make_spectral_constants()::Tuple{Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum}
@@ -125,20 +125,20 @@ function make_spectral_constants()::Tuple{Spectrum, Spectrum, Spectrum, Spectrum
         tmp_Y[i] = average_spectrum_samples(CIE_lambda, CIE_Y, nCIESamples, wl0, wl1)
         tmp_Z[i] = average_spectrum_samples(CIE_lambda, CIE_Z, nCIESamples, wl0, wl1)
 
-        tmp_rgbRefl2SpectWhite[i] =    average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbRefl2SpectCyan[i] =     average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbRefl2SpectMagenta[i] =  average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbRefl2SpectYellow[i] =   average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbRefl2SpectRed[i] =      average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbRefl2SpectGreen[i] =    average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbRefl2SpectBlue[i] =     average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbIllum2SpectWhite[i] =   average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbIllum2SpectCyan[i] =    average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbIllum2SpectMagenta[i] = average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbIllum2SpectYellow[i] =  average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbIllum2SpectRed[i] =     average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbIllum2SpectGreen[i] =   average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
-        tmp_rgbIllum2SpectBlue[i] =    average_spectrum_samples(CIE_lambda, CIE_Z, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbRefl2SpectWhite[i] =    average_spectrum_samples(RGB2SpectLambda, RGBRefl2SpectWhite, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbRefl2SpectCyan[i] =     average_spectrum_samples(RGB2SpectLambda, RGBRefl2SpectCyan, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbRefl2SpectMagenta[i] =  average_spectrum_samples(RGB2SpectLambda, RGBRefl2SpectMagenta, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbRefl2SpectYellow[i] =   average_spectrum_samples(RGB2SpectLambda, RGBRefl2SpectYellow, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbRefl2SpectRed[i] =      average_spectrum_samples(RGB2SpectLambda, RGBRefl2SpectRed, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbRefl2SpectGreen[i] =    average_spectrum_samples(RGB2SpectLambda, RGBRefl2SpectGreen, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbRefl2SpectBlue[i] =     average_spectrum_samples(RGB2SpectLambda, RGBRefl2SpectBlue, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbIllum2SpectWhite[i] =   average_spectrum_samples(RGB2SpectLambda, RGBIllum2SpectWhite, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbIllum2SpectCyan[i] =    average_spectrum_samples(RGB2SpectLambda, RGBIllum2SpectCyan, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbIllum2SpectMagenta[i] = average_spectrum_samples(RGB2SpectLambda, RGBIllum2SpectMagenta, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbIllum2SpectYellow[i] =  average_spectrum_samples(RGB2SpectLambda, RGBIllum2SpectYellow, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbIllum2SpectRed[i] =     average_spectrum_samples(RGB2SpectLambda, RGBIllum2SpectRed, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbIllum2SpectGreen[i] =   average_spectrum_samples(RGB2SpectLambda, RGBIllum2SpectGreen, nRGB2SpectSamples, wl0, wl1)
+        tmp_rgbIllum2SpectBlue[i] =    average_spectrum_samples(RGB2SpectLambda, RGBIllum2SpectBlue, nRGB2SpectSamples, wl0, wl1)
     end
     return Spectrum(tmp_X), Spectrum(tmp_Y), Spectrum(tmp_Z), Spectrum(tmp_rgbRefl2SpectWhite), Spectrum(tmp_rgbRefl2SpectCyan), Spectrum(tmp_rgbRefl2SpectMagenta), Spectrum(tmp_rgbRefl2SpectYellow), Spectrum(tmp_rgbRefl2SpectRed), Spectrum(tmp_rgbRefl2SpectGreen), Spectrum(tmp_rgbRefl2SpectBlue), Spectrum(tmp_rgbIllum2SpectWhite), Spectrum(tmp_rgbIllum2SpectCyan), Spectrum(tmp_rgbIllum2SpectMagenta), Spectrum(tmp_rgbIllum2SpectYellow), Spectrum(tmp_rgbIllum2SpectRed), Spectrum(tmp_rgbIllum2SpectGreen), Spectrum(tmp_rgbIllum2SpectBlue)
 end

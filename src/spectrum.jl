@@ -90,7 +90,7 @@ end
 
 # THE ENTRY POINT
 function spectrum_from_float(r::Float64, g::Float64, b::Float64)::Spectrum
-    if length(nSpectralSamples) == 3
+    if nSpectralSamples == 3
         return Spectrum(r,g,b)
     else
         return spectrum_from_RGB(r, g, b)
