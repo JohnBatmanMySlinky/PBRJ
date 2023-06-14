@@ -307,14 +307,14 @@ end
 
 function f(v1::Vertex, v2::Vertex, mode::Type{T})::Spectrum where T <: TransportMode
     wi = p(v2) - p(v1)
-    (norm(wi)^2 == 0.0) && (return Spectrum(0.0))
+    (norm(wi)^2 == 0.0) && (return spectrum_from_float(0.0))
     wi = Vec3(normalize(wi))
     if v1.type == VTSurface
         return v1.si.bsdf(v1.si.core.wo, wi) * correct_shading_normal(v1.si, v1.si.core.wo, wi, mode)
     elseif v1.type == VTMedium
         @assert false # NOT IMPLEMENTED
     else
-        return Spectrum(0.0)
+        return spectrum_from_float(0.0)
     end
 end
 

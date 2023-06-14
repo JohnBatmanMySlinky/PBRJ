@@ -22,13 +22,13 @@ using Test
 end
 
 @testset "Spectral Conversions" begin
-    # print("input: (0, 0, 1)\n")
-    # a::RayTracing.Spectrum = RayTracing.spectrum_from_float(0.0, 0.0, 1.0)
-    # print("spectral: $(a)\n")
-    # b = RayTracing.to_XYZ(a)
-    # print("xyz: $(b)\n")
-    # c = RayTracing.XYZ_to_RGB(b)
-    # print("rgb: $(c)\n")
+    print("input: (0, 0, 1)\n")
+    a::RayTracing.Spectrum = RayTracing.spectrum_from_float(0.0, 0.0, 1.0)
+    print("spectral: $(a)\n")
+    b = RayTracing.to_XYZ(a)
+    print("xyz: $(b)\n")
+    c = RayTracing.XYZ_to_RGB(b)
+    print("rgb: $(c)\n")
 end
 
 CopperSamples = 56

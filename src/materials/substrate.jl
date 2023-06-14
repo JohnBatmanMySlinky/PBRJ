@@ -15,8 +15,8 @@ function (m::Substrate)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tr
     end
     
     si.bsdf = BSDF(si)
-    d = Spectrum(clamp.(m.Kd(si),0,1)...)
-    s = Spectrum(clamp.(m.Ks(si),0,1)...)
+    d = spectrum_from_float(clamp.(m.Kd(si),0,1)...)
+    s = spectrum_from_float(clamp.(m.Ks(si),0,1)...)
     roughu = mean(clamp.(m.uroughness(si),0,1))
     roughv = mean(clamp.(m.vroughness(si),0,1))
     # TODO implement black body check

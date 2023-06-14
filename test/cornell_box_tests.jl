@@ -185,7 +185,7 @@ I, scene = RayTracing.build_scene(parsed_args)
     )
 
     # AIGHT NOW LETS CONNECT STUFF
-    L = RayTracing.Spectrum(0.0)
+    L = RayTracing.spectrum_from_float(0.0)
     for t in 1:n_camera
         for s in 0:n_light
             depth = t + s - 2

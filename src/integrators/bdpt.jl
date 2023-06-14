@@ -127,19 +127,19 @@ function render(
                     check, t, interaction, = intersect!(scene.b, ray)
 
                     if !check
-                        L = Spectrum(0.0)
+                        L = spectrum_from_float(0.0)
                     else
                         if render_pass_flag == UInt(1) # albedo   
-                            L = Spectrum(interaction.primitive.material.Kd(interaction))
+                            L = spectrum_from_float(interaction.primitive.material.Kd(interaction))
                         elseif render_pass_flag == UInt8(2) # depth
-                            L = Spectrum(t)
+                            L = spectrum_from_float(t)
                         elseif render_pass_flag == UInt8(3) # normal
-                            L = Spectrum(interaction.shading.n)
+                            L = spectrum_from_float(interaction.shading.n)
                         elseif render_pass_flag == UInt8(4) # depth
                             if any(isnan.(interaction.core.p))
-                                L = Spectrum(0.0)
+                                L = spectrum_from_float(0.0)
                             else
-                                L = Spectrum(interaction.core.p)
+                                L = spectrum_from_float(interaction.core.p)
                             end
                         else
                             @assert false

@@ -13,7 +13,7 @@ function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     end
     
     si.bsdf = BSDF(si)
-    r = Spectrum(clamp.(m.Kd(si),0,1)...)
+    r = clamp.(m.Kd(si),0.0,1.0)
 
     # TODO implement black body check
     sigma = mean(clamp.(m.sigma(si), 0, 90))

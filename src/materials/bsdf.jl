@@ -69,7 +69,7 @@ end
 function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, UInt8}
     # Choose which BxDF to sample.
     matching_components = num_components(b, type)
-    matching_components == 0 && return (Vec3(0), Spectrum(0), 0.0, BSDF_NONE)
+    matching_components == 0 && return (Vec3(0), spectrum_from_float(0.0), 0.0, BSDF_NONE)
     component = min(
         max(1, Int64(ceil(u[1] * matching_components))),
         matching_components,
@@ -95,7 +95,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
     )
     # Sample chosen BxDF.
     wo = world_to_local(b, wo_world)
-    wo.z == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)   
+    wo.z == 0 && return (Vec3(0), spectrum_from_float(0.0), 0, BSDF_NONE)   
 
     # TODO when to update sampled type
     sampled_type = bxdf.type
@@ -103,9 +103,9 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
     if !(sampled_type_tmp isa Nothing)
         sampled_type = sampled_type_tmp
     end
-    @info "For wo: $(wo), sampled f: $(f_val), pdf: $(pdf), ratio = $((pdf > 0.0) ? (f_val / pdf) : Spectrum(0.0)), wi: $(wi), sampled_type: $(bitstring(sampled_type))"
+    @info "For wo: $(wo), sampled f: $(f_val), pdf: $(pdf), ratio = $((pdf > 0.0) ? (f_val / pdf) : spectrum_from_float(0.0)), wi: $(wi), sampled_type: $(bitstring(sampled_type))"
 
-    pdf == 0 && return (Vec3(0), Spectrum(0), 0, BSDF_NONE)
+    pdf == 0 && return (Vec3(0), spectrum_from_float(0.0), 0, BSDF_NONE)
 
     wi_world = local_to_world(b, wi)
     # Compute overall PDF with all matching BxDFs.
@@ -128,7 +128,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
             end
         end
     end
-    @info "Overall f: $(f_val), pdf: $(pdf), ratio: $((pdf > 0.0) ? (f_val / pdf) : Spectrum(0.0))"
+    @info "Overall f: $(f_val), pdf: $(pdf), ratio: $((pdf > 0.0) ? (f_val / pdf) : spectrum_from_float(0.0))"
     return wi_world, f_val, pdf, sampled_type
 end
 

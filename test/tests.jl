@@ -115,10 +115,10 @@ end
         RayTracing.Primitive(ball1, mat1, nothing),
     ])
     lights = RayTracing.Light[
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 10,0)), RayTracing.Spectrum(10,10,10)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(10, 0,0)), RayTracing.Spectrum(10,10,10)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(-10, 0,0)), RayTracing.Spectrum(10,10,10)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, -10,0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 10,0)), RayTracing.spectrum_from_float(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(10, 0,0)), RayTracing.spectrum_from_float(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(-10, 0,0)), RayTracing.spectrum_from_float(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, -10,0)), RayTracing.spectrum_from_float(10,10,10)),
     ]
     fake_scene = RayTracing.Scene(lights, bvh)
     ld_generator = RayTracing.LightDistribution("centroid_distance", fake_scene)
@@ -136,10 +136,10 @@ end
     # Case 2: Four point lights NOT equally far away fom p
     a, b, c, d = 10, 20, 40, 80
     lights = RayTracing.Light[
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, a, 0)), RayTracing.Spectrum(10,10,10)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, b, 0)), RayTracing.Spectrum(10,10,10)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, c, 0)), RayTracing.Spectrum(10,10,10)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, d, 0)), RayTracing.Spectrum(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, a, 0)), RayTracing.spectrum_from_float(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, b, 0)), RayTracing.spectrum_from_float(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, c, 0)), RayTracing.spectrum_from_float(10,10,10)),
+        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, d, 0)), RayTracing.spectrum_from_float(10,10,10)),
     ]
     fake_scene = RayTracing.Scene(lights, bvh)
     ld_generator = RayTracing.LightDistribution("centroid_distance", fake_scene)
@@ -177,7 +177,7 @@ end
     env_light = RayTracing.InfinteLight(
         RayTracing.Bounds3(RayTracing.Pnt3(mi), RayTracing.Pnt3(ma)), 
         RayTracing.RotateX(0.0), 
-        RayTracing.Spectrum(1.0), 
+        RayTracing.spectrum_from_float(1.0), 
         "../ref/sky.exr"
     )
     #########################
@@ -204,7 +204,7 @@ end
     # and test we can recover it
     known_u_idx = RayTracing._uv_map(known_u, width)
     known_v_idx = RayTracing._uv_map(known_v, height)
-    @test RayTracing.Spectrum(env_light.map[known_v_idx, known_u_idx]) ≈ RayTracing.Spectrum(19008.0, 20320.0, 19680.0)
+    @test RayTracing.spectrum_from_float(env_light.map[known_v_idx, known_u_idx]) ≈ RayTracing.spectrum_from_float(19008.0, 20320.0, 19680.0)
 
 
     # now let's test the sampling and pdf functions
@@ -216,7 +216,7 @@ end
     )
     # when we sample li with 0.5, 0.5 we should get our brightest pixel
     sampled_li, wi, pdf_from_sample_li, vis, _, _ = RayTracing.sample_li(env_light, inter, RayTracing.Pnt2(0.5, 0.5))
-    @test sampled_li ≈ RayTracing.Spectrum(19008.0, 20320.0, 19680.0)
+    @test sampled_li ≈ RayTracing.spectrum_from_float(19008.0, 20320.0, 19680.0)
 
     # uv should be recoverable from sampling the distribution
     sampled_uv, pdf_from_sample_continuous = RayTracing.sample_continuous(env_light.pdf, RayTracing.Pnt2(0.5, 0.5))
@@ -256,20 +256,20 @@ end
 end
 
 @testset "Fresnel Conductor" begin
-    s = RayTracing.Spectrum(1.0)
+    s = RayTracing.spectrum_from_float(1.0)
     @test RayTracing.fresnel_conductor(0.0, s, s, s) == s
     @test all(RayTracing.fresnel_conductor(cos(π / 4.0), s, s, s) .> 0.0)
     @test all(RayTracing.fresnel_conductor(1.0, s, s, s) .> 0.0)
 end
 
 @testset "SpecularReflection" begin
-    sr = RayTracing.SpecularReflection(RayTracing.Spectrum(1.0), RayTracing.FresnelNoOp())
+    sr = RayTracing.SpecularReflection(RayTracing.spectrum_from_float(1.0), RayTracing.FresnelNoOp())
     @test sr & (RayTracing.BSDF_SPECULAR | RayTracing.BSDF_REFLECTION)
 end
 
 # @testset "SpecularTransmission" begin
 #     st = RayTracing.SpecularTransmission(
-#         RayTracing.Spectrum(1.0), 1.0, 1.0,
+#         RayTracing.spectrum_from_float(1.0), 1.0, 1.0,
 #         RayTracing.Radiance,
 #     )
 #     @test st & (RayTracing.BSDF_SPECULAR | RayTracing.BSDF_TRANSMISSION)
@@ -277,7 +277,7 @@ end
 
 @testset "FresnelSpecular" begin
     f = RayTracing.FresnelSpecular(
-        RayTracing.Spectrum(1.0), RayTracing.Spectrum(1.0),
+        RayTracing.spectrum_from_float(1.0), RayTracing.spectrum_from_float(1.0),
         1.0, 1.0, RayTracing.Radiance,
     )
     @test f & (RayTracing.BSDF_SPECULAR | RayTracing.BSDF_REFLECTION | RayTracing.BSDF_TRANSMISSION)
@@ -292,7 +292,7 @@ end
 
 # @testset "MicrofacetReflection" begin
 #     m = RayTracing.MicrofacetReflection(
-#         RayTracing.Spectrum(1.0),
+#         RayTracing.spectrum_from_float(1.0),
 #         RayTracing.TrowbridgeReitzDistribution(1.0, 1.0),
 #         RayTracing.FresnelNoOp(),
 #         # RayTracing.Radiance,
@@ -306,7 +306,7 @@ end
 
 # @testset "MicrofacetTransmission" begin
 #     m = RayTracing.MicrofacetTransmission(
-#         RayTracing.Spectrum(1.0),
+#         RayTracing.spectrum_from_float(1.0),
 #         RayTracing.TrowbridgeReitzDistribution(1.0, 1.0),
 #         1.0, 2.0,
 #         RayTracing.Radiance,
