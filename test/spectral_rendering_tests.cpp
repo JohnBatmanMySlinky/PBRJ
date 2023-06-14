@@ -914,6 +914,7 @@ const float RGBRefl2SpectBlue[nRGB2SpectSamples] = {
     4.9489586408030833e-02,  4.9595992290102905e-02,  4.9814819505812249e-02,
     3.9840911064978023e-02,  3.0501024937233868e-02,  2.1243054765241080e-02,
     6.9596532104356399e-03,  4.1733649330980525e-03};
+
 const float RGBIllum2SpectWhite[nRGB2SpectSamples] = {
     1.1565232050369776e+00, 1.1567225000119139e+00, 1.1566203150243823e+00,
     1.1555782088080084e+00, 1.1562175509215700e+00, 1.1567674012207332e+00,
@@ -1008,11 +1009,18 @@ const float RGBIllum2SpectBlue[nRGB2SpectSamples] = {
 
 float rgbRefl2SpectWhite[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
 float rgbRefl2SpectCyan[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
-
-
-
-
-
+float rgbRefl2SpectMagenta[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
+float rgbRefl2SpectYellow[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
+float rgbRefl2SpectRed[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
+float rgbRefl2SpectGreen[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
+float rgbRefl2SpectBlue[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
+float rgbIllum2SpectWhite[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
+float rgbIllum2SpectCyan[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
+float rgbIllum2SpectMagenta[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
+float rgbIllum2SpectYellow[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
+float rgbIllum2SpectRed[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
+float rgbIllum2SpectGreen[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
+float rgbIllum2SpectBlue[nSpectralSamples] = {0.0, 0.0, 0.0, 0.0};
 
 int main()
 // {
@@ -1041,46 +1049,59 @@ int main()
     rgbRefl2SpectCyan[i] =
         AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectCyan,
                                nRGB2SpectSamples, wl0, wl1);
-    // rgbRefl2SpectMagenta[i] =
-    //     AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectMagenta,
-    //                           nRGB2SpectSamples, wl0, wl1);
-    // rgbRefl2SpectYellow[i] =
-    //     AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectYellow,
-    //                           nRGB2SpectSamples, wl0, wl1);
-    // rgbRefl2SpectRed[i] = AverageSpectrumSamples(
-    //     RGB2SpectLambda, RGBRefl2SpectRed, nRGB2SpectSamples, wl0, wl1);
-    // rgbRefl2SpectGreen[i] =
-    //     AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectGreen,
-    //                           nRGB2SpectSamples, wl0, wl1);
-    // rgbRefl2SpectBlue[i] =
-    //     AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectBlue,
-    //                           nRGB2SpectSamples, wl0, wl1);
+    rgbRefl2SpectMagenta[i] =
+        AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectMagenta,
+                              nRGB2SpectSamples, wl0, wl1);
+    rgbRefl2SpectYellow[i] =
+        AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectYellow,
+                              nRGB2SpectSamples, wl0, wl1);
+    rgbRefl2SpectRed[i] = AverageSpectrumSamples(
+        RGB2SpectLambda, RGBRefl2SpectRed, nRGB2SpectSamples, wl0, wl1);
+    rgbRefl2SpectGreen[i] =
+        AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectGreen,
+                              nRGB2SpectSamples, wl0, wl1);
+    rgbRefl2SpectBlue[i] =
+        AverageSpectrumSamples(RGB2SpectLambda, RGBRefl2SpectBlue,
+                              nRGB2SpectSamples, wl0, wl1);
 
-    // rgbIllum2SpectWhite[i] =
-    //     AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectWhite,
-    //                           nRGB2SpectSamples, wl0, wl1);
-    // rgbIllum2SpectCyan[i] =
-    //     AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectCyan,
-    //                           nRGB2SpectSamples, wl0, wl1);
-    // rgbIllum2SpectMagenta[i] =
-    //     AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectMagenta,
-    //                           nRGB2SpectSamples, wl0, wl1);
-    // rgbIllum2SpectYellow[i] =
-    //     AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectYellow,
-    //                           nRGB2SpectSamples, wl0, wl1);
-    // rgbIllum2SpectRed[i] =
-    //     AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectRed,
-    //                           nRGB2SpectSamples, wl0, wl1);
-    // rgbIllum2SpectGreen[i] =
-    //     AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectGreen,
-    //                           nRGB2SpectSamples, wl0, wl1);
-    // rgbIllum2SpectBlue[i] =
-    //     AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectBlue,
-    //                           nRGB2SpectSamples, wl0, wl1);
+    rgbIllum2SpectWhite[i] =
+        AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectWhite,
+                              nRGB2SpectSamples, wl0, wl1);
+    rgbIllum2SpectCyan[i] =
+        AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectCyan,
+                              nRGB2SpectSamples, wl0, wl1);
+    rgbIllum2SpectMagenta[i] =
+        AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectMagenta,
+                              nRGB2SpectSamples, wl0, wl1);
+    rgbIllum2SpectYellow[i] =
+        AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectYellow,
+                              nRGB2SpectSamples, wl0, wl1);
+    rgbIllum2SpectRed[i] =
+        AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectRed,
+                              nRGB2SpectSamples, wl0, wl1);
+    rgbIllum2SpectGreen[i] =
+        AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectGreen,
+                              nRGB2SpectSamples, wl0, wl1);
+    rgbIllum2SpectBlue[i] =
+        AverageSpectrumSamples(RGB2SpectLambda, RGBIllum2SpectBlue,
+                              nRGB2SpectSamples, wl0, wl1);
 }
-    cout<<rgbRefl2SpectWhite[0]<<" "<<rgbRefl2SpectWhite[1]<<" "<<rgbRefl2SpectWhite[2]<<" "<<rgbRefl2SpectWhite[3]<<"  ";
-    cout<<rgbRefl2SpectCyan[0]<<" "<<rgbRefl2SpectCyan[1]<<" "<<rgbRefl2SpectCyan[2]<<" "<<rgbRefl2SpectCyan[3];
-
+    cout<<rgbRefl2SpectWhite[0]<<" "<<rgbRefl2SpectWhite[1]<<" "<<rgbRefl2SpectWhite[2]<<" "<<rgbRefl2SpectWhite[3]<<"\n";
+    cout<<rgbRefl2SpectCyan[0]<<" "<<rgbRefl2SpectCyan[1]<<" "<<rgbRefl2SpectCyan[2]<<" "<<rgbRefl2SpectCyan[3]<<"\n";
+    cout<<rgbRefl2SpectMagenta[0]<<" "<<rgbRefl2SpectMagenta[1]<<" "<<rgbRefl2SpectMagenta[2]<<" "<<rgbRefl2SpectMagenta[3]<<"\n";
+    cout<<rgbRefl2SpectYellow[0]<<" "<<rgbRefl2SpectYellow[1]<<" "<<rgbRefl2SpectYellow[2]<<" "<<rgbRefl2SpectYellow[3]<<"\n";
+    cout<<rgbRefl2SpectRed[0]<<" "<<rgbRefl2SpectRed[1]<<" "<<rgbRefl2SpectRed[2]<<" "<<rgbRefl2SpectRed[3]<<"\n";
+    cout<<rgbRefl2SpectGreen[0]<<" "<<rgbRefl2SpectGreen[1]<<" "<<rgbRefl2SpectGreen[2]<<" "<<rgbRefl2SpectGreen[3]<<"\n";
+    cout<<rgbRefl2SpectBlue[0]<<" "<<rgbRefl2SpectBlue[1]<<" "<<rgbRefl2SpectBlue[2]<<" "<<rgbRefl2SpectBlue[3]<<"\n";
+    
+    cout<<rgbIllum2SpectWhite[0]<<" "<<rgbIllum2SpectWhite[1]<<" "<<rgbIllum2SpectWhite[2]<<" "<<rgbIllum2SpectWhite[3]<<"\n";
+    cout<<rgbIllum2SpectCyan[0]<<" "<<rgbIllum2SpectCyan[1]<<" "<<rgbIllum2SpectCyan[2]<<" "<<rgbIllum2SpectCyan[3]<<"\n";
+    cout<<rgbIllum2SpectMagenta[0]<<" "<<rgbIllum2SpectMagenta[1]<<" "<<rgbIllum2SpectMagenta[2]<<" "<<rgbIllum2SpectMagenta[3]<<"\n";
+    cout<<rgbIllum2SpectYellow[0]<<" "<<rgbIllum2SpectYellow[1]<<" "<<rgbIllum2SpectYellow[2]<<" "<<rgbIllum2SpectYellow[3]<<"\n";
+    cout<<rgbIllum2SpectRed[0]<<" "<<rgbIllum2SpectRed[1]<<" "<<rgbIllum2SpectRed[2]<<" "<<rgbIllum2SpectRed[3]<<"\n";
+    cout<<rgbIllum2SpectGreen[0]<<" "<<rgbIllum2SpectGreen[1]<<" "<<rgbIllum2SpectGreen[2]<<" "<<rgbIllum2SpectGreen[3]<<"\n";
+    cout<<rgbIllum2SpectBlue[0]<<" "<<rgbIllum2SpectBlue[1]<<" "<<rgbIllum2SpectBlue[2]<<" "<<rgbIllum2SpectBlue[3]<<"\n";
+    
     return 0;
 }
 """

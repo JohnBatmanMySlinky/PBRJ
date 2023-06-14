@@ -6,6 +6,19 @@ using Test
 @testset "Creating conversion constants" begin
     @test sum(RayTracing.rgbRefl2SpectWhite - [1.0623, 1.06166, 1.06249, 1.06124]) < .01
     @test sum(RayTracing.rgbRefl2SpectCyan - [1.03195, 1.05198, 0.577821, 0.00287357]) < .01
+    @test sum(RayTracing.rgbRefl2SpectMagenta - [1.00789, 0.2194, 0.533892, 0.941869]) < .01
+    @test sum(RayTracing.rgbRefl2SpectYellow - [0.0546859, 0.826093, 1.05141, 1.05051]) < .01
+    @test sum(RayTracing.rgbRefl2SpectRed - [0.0473866, -0.00415798, 0.501113, 0.99376]) < .01
+    @test sum(RayTracing.rgbRefl2SpectGreen - [0.013564, 0.881334, 0.563789, -0.00667087]) < .01
+    @test sum(RayTracing.rgbRefl2SpectBlue - [0.988841, 0.251697, 0.00503804, 0.0402184]) < .01
+
+    @test sum(RayTracing.rgbIllum2SpectWhite - [1.15645, 1.14794, 1.00406, 0.887115]) < .01
+    @test sum(RayTracing.rgbIllum2SpectCyan - [1.13583, 1.13585, 0.606187, -0.00927071]) < .01
+    @test sum(RayTracing.rgbIllum2SpectMagenta - [1.0766, 0.365246, 0.381516, 1.04655]) < .01
+    @test sum(RayTracing.rgbIllum2SpectYellow - [0.0223417, 0.963893, 1.03094, 0.670829]) < .01
+    @test sum(RayTracing.rgbIllum2SpectRed - [0.0306278, 8.94049e-06, 0.384173, 0.982426]) < .01
+    @test sum(RayTracing.rgbIllum2SpectGreen - [0.0116823, 0.938951, 0.594614, 0.00460501]) < .01
+    @test sum(RayTracing.rgbIllum2SpectBlue - [1.05672, 0.328836, 0.000490442, 0.123488]) < .01
 end
 
 @testset "Spectral Conversions" begin
