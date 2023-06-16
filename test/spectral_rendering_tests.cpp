@@ -1181,8 +1181,17 @@ float AverageSpectrumSamples(const float *lambda, const float *vals, int n,
 
 int main()
 {
-    cout<<AverageSpectrumSamples(CopperWavelengths, CopperN, CopperSamples, 0.0, 300.0);
-
-    return 0;
+    Spectrum copperN = Spectrum::FromSampled(CopperWavelengths, CopperN, CopperSamples);
+    std::cout << copperN << "\n";
+    
+    Spectrum L1(0.0f);
+    std::cout << L1 << "\n";
+    
+    Spectrum L2(1.0f);
+    std::cout << L2 << "\n";
+    
+    float argh[3] = {1.0, 0.0, 0.0};
+    Spectrum L3 = Spectrum::FromRGB(argh);
+    std::cout << L3 << "\n";
 }
 """

@@ -9,10 +9,33 @@ static const int nSpectralSamples = 4;
 static const int sampledLambdaStart = 400;
 static const int sampledLambdaEnd = 700;
 static const float CIE_Y_integral = 106.856895;
+const int CopperSamples = 56;
 enum class SpectrumType { Reflectance, Illuminant };
 #define Infinity std::numeric_limits<float>::infinity()
 
 // ugh
+const float CopperWavelengths[CopperSamples] = {
+    298.7570554, 302.4004341, 306.1337728, 309.960445,  313.8839949,
+    317.9081487, 322.036826,  326.2741526, 330.6244747, 335.092373,
+    339.6826795, 344.4004944, 349.2512056, 354.2405086, 359.374429,
+    364.6593471, 370.1020239, 375.7096303, 381.4897785, 387.4505563,
+    393.6005651, 399.9489613, 406.5055016, 413.2805933, 420.2853492,
+    427.5316483, 435.0322035, 442.8006357, 450.8515564, 459.2006593,
+    467.8648226, 476.8622231, 486.2124627, 495.936712,  506.0578694,
+    516.6007417, 527.5922468, 539.0616435, 551.0407911, 563.5644455,
+    576.6705953, 590.4008476, 604.8008683, 619.92089,   635.8162974,
+    652.5483053, 670.1847459, 688.8009889, 708.4810171, 729.3186941,
+    751.4192606, 774.9011125, 799.8979226, 826.5611867, 855.0632966,
+    885.6012714};
+
+const float CopperN[CopperSamples] = {
+    1.400313, 1.38,  1.358438, 1.34,  1.329063, 1.325, 1.3325,   1.34,
+    1.334375, 1.325, 1.317812, 1.31,  1.300313, 1.29,  1.281563, 1.27,
+    1.249062, 1.225, 1.2,      1.18,  1.174375, 1.175, 1.1775,   1.18,
+    1.178125, 1.175, 1.172812, 1.17,  1.165312, 1.16,  1.155312, 1.15,
+    1.142812, 1.135, 1.131562, 1.12,  1.092437, 1.04,  0.950375, 0.826,
+    0.645875, 0.468, 0.35125,  0.272, 0.230813, 0.214, 0.20925,  0.213,
+    0.21625,  0.223, 0.2365,   0.25,  0.254188, 0.26,  0.28,     0.3};
 const float CIE_X[nCIESamples] = {
     // CIE X function values
     0.0001299000f,   0.0001458470f,   0.0001638021f,   0.0001840037f,
@@ -991,7 +1014,6 @@ inline void RGBToXYZ(const float rgb[3], float xyz[3]) {
 }
 float InterpolateSpectrumSamples(const float *lambda, const float *vals, int n,
                                  float l) {
-    // for (int i = 0; i < n - 1; ++i) CHECK_GT(lambda[i + 1], lambda[i]);
     if (l <= lambda[0]) return vals[0];
     if (l >= lambda[n - 1]) return vals[n - 1];
     int offset = FindInterval(n, [&](int index) { return lambda[index] <= l; });
@@ -1028,6 +1050,123 @@ float AverageSpectrumSamples(const float *lambda, const float *vals, int n,
     return sum / (lambdaEnd - lambdaStart);
 }
 
+// string printing stuff
+inline void stringPrintfRecursive(std::string *s, const char *fmt) {
+    const char *c = fmt;
+    // No args left; make sure there aren't any extra formatting
+    // specifiers.
+    while (*c) {
+        if (*c == '%') {
+            ++c;
+        }
+        *s += *c++;
+    }
+}
+
+// 1. Copy from fmt to *s, up to the next formatting directive.
+// 2. Advance fmt past the next formatting directive and return the
+//    formatting directive as a string.
+inline std::string copyToFormatString(const char **fmt_ptr, std::string *s) {
+    const char *&fmt = *fmt_ptr;
+    while (*fmt) {
+        if (*fmt != '%') {
+            *s += *fmt;
+            ++fmt;
+        } else if (fmt[1] == '%') {
+            // "%%"; let it pass through
+            *s += '%';
+            *s += '%';
+            fmt += 2;
+        } else
+            // fmt is at the start of a formatting directive.
+            break;
+    }
+
+    std::string nextFmt;
+    if (*fmt) {
+        do {
+            nextFmt += *fmt;
+            ++fmt;
+            // Incomplete (but good enough?) test for the end of the
+            // formatting directive: a new formatting directive starts, we
+            // hit whitespace, or we hit a comma.
+        } while (*fmt && *fmt != '%' && !isspace(*fmt) && *fmt != ',' &&
+                 *fmt != '[' && *fmt != ']' && *fmt != '(' && *fmt != ')');
+    }
+
+    return nextFmt;
+}
+
+template <typename T>
+inline std::string formatOne(const char *fmt, T v) {
+    // Figure out how much space we need to allocate; add an extra
+    // character for the '\0'.
+    size_t size = snprintf(nullptr, 0, fmt, v) + 1;
+    std::string str;
+    str.resize(size);
+    snprintf(&str[0], size, fmt, v);
+    str.pop_back();  // remove trailing NUL
+    return str;
+}
+
+// General-purpose version of stringPrintfRecursive; add the formatted
+// output for a single StringPrintf() argument to the final result string
+// in *s.
+template <typename T, typename... Args>
+inline void stringPrintfRecursive(std::string *s, const char *fmt, T v,
+                                  Args... args) {
+    std::string nextFmt = copyToFormatString(&fmt, s);
+    *s += formatOne(nextFmt.c_str(), v);
+    stringPrintfRecursive(s, fmt, args...);
+}
+
+// Special case of StringPrintRecursive for float-valued arguments.
+template <typename... Args>
+inline void stringPrintfRecursive(std::string *s, const char *fmt, float v,
+                                  Args... args) {
+    std::string nextFmt = copyToFormatString(&fmt, s);
+    if (nextFmt == "%f")
+        // Always use enough precision so that the printed value gives
+        // the exact floating-point value if it's used to initialize a
+        // float.
+        // https://randomascii.wordpress.com/2012/03/08/float-precisionfrom-zero-to-100-digits-2/
+        *s += formatOne("%.9g", v);
+    else
+        // If a specific formatting string other than "%f" was specified,
+        // just use that.
+        *s += formatOne(nextFmt.c_str(), v);
+
+    // Go forth and print the next arg.
+    stringPrintfRecursive(s, fmt, args...);
+}
+
+// Specialization for doubles that always uses enough precision.  (It seems
+// that this is the version that is actually called for floats.  I thought
+// that float->double promotion wasn't supposed to happen in this case?)
+template <typename... Args>
+inline void stringPrintfRecursive(std::string *s, const char *fmt, double v,
+                                  Args... args) {
+    std::string nextFmt = copyToFormatString(&fmt, s);
+    if (nextFmt == "%f")
+        *s += formatOne("%.17g", v);
+    else
+        *s += formatOne(nextFmt.c_str(), v);
+    stringPrintfRecursive(s, fmt, args...);
+}
+
+// StringPrintf() is a replacement for sprintf() (and the like) that
+// returns the result as a std::string. This gives convenience/control
+// of printf-style formatting in a more C++-ish way.
+//
+// Floating-point values with the formatting string "%f" are handled
+// specially so that enough digits are always printed so that the original
+// float/double can be reconstituted exactly from the printed digits.
+template <typename... Args>
+inline std::string StringPrintf(const char *fmt, Args... args) {
+    std::string ret;
+    stringPrintfRecursive(&ret, fmt, args...);
+    return ret;
+}
 
 // CoeffcientSpectrum Class
 template <int nSpectrumSamples>
@@ -1154,7 +1293,6 @@ class CoefficientSpectrum {
         CoefficientSpectrum ret;
         for (int i = 0; i < nSpectrumSamples; ++i)
             ret.c[i] = Clamp(c[i], low, high);
-        // DCHECK(!ret.HasNaNs());
         return ret;
     }
     float &operator[](int i) {
@@ -1376,7 +1514,12 @@ class SampledSpectrum : public CoefficientSpectrum<nSpectralSamples> {
 
 int main()
 {
-    std::cout<<"Hello World";
+    typedef SampledSpectrum Spectrum;
+    // typedef RGBSpectrum Spectrum;
+    
+    Spectrum copperN = Spectrum::FromSampled(CopperWavelengths, CopperN, CopperSamples);
+    
+    std::cout << copperN;
 
     return 0;
 }
