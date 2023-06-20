@@ -162,7 +162,7 @@ function merge_film_tile!(f::Film, ft::FilmTile)
             pixel = Pnt2(x, y)
             tile_pixel = get_pixel(ft, pixel)
             merge_pixel = get_pixel(f, pixel)
-            merge_pixel.xyz += RGB_to_XYZ(convert(Spectrum, tile_pixel.contrib_sum))
+            merge_pixel.xyz += to_XYZ(tile_pixel.contrib_sum)
             merge_pixel.filter_weight_sum += tile_pixel.filter_weight_sum
         end
     end
@@ -173,7 +173,7 @@ function add_splat!(f::Film, p::Pnt2, v::Spectrum)
     (!inside_exclusive(pp, f.cropped_pixel_bounds)) && (return )
     # JOHN HACK LUMINANCE CHECK
     pixel = get_pixel(f, pp)
-    Threads.atomic_add!(pixel.splat_xyz, RGB_to_XYZ(v))
+    Threads.atomic_add!(pixel.splat_xyz, to_XYZ(v))
 end
 
 function save(film::Film, render_pass_flag::UInt8, splat_scale::Float64 = 1.0)::Array{Float64}

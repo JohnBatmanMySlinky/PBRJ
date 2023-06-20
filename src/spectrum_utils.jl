@@ -71,9 +71,9 @@ end
 
 function XYZ_to_RGB(xyz::XYZPBRT)::RGBPBRT
     return RGBPBRT(
-        0.412453 * xyz.x + 0.357580 * xyz.y + 0.180423 * xyz.z,
-        0.212671 * xyz.x + 0.715160 * xyz.y + 0.072169 * xyz.z,
-        0.019334 * xyz.x + 0.119193 * xyz.y + 0.950227 * xyz.z,
+        3.240479  * xyz.x - 1.537150 * xyz.y - 0.498535 * xyz.z,
+        -0.969256 * xyz.x + 1.875991 * xyz.y + 0.041556 * xyz.z,
+        0.055648  * xyz.x - 0.204043 * xyz.y + 1.057311 * xyz.z,
     )
 end
 function RGB_to_XYZ(s::Spectrum)::XYZPBRT
