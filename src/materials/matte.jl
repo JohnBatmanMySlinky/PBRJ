@@ -15,6 +15,8 @@ function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     si.bsdf = BSDF(si)
     r = clamp.(m.Kd(si),0.0,1.0)
 
+    @info "Spectrum Kd: $(r)"
+
     # TODO implement black body check
     sigma = mean(clamp.(m.sigma(si), 0, 90))
     if sigma == 0.0

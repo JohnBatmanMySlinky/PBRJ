@@ -85,7 +85,7 @@ function spectrum_from_RGB(r::Float64, g::Float64, b::Float64)::Spectrum
         end
         s = s * .86445
     end
-    return clamp.(s, 0.0, 1.0)
+    return s
 end
 
 # THE ENTRY POINT

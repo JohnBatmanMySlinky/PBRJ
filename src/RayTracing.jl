@@ -207,7 +207,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     else
         logger = NullLogger()
         # io = open("log_$(now()).txt", "w+")
-        # logger = SimpleLogger(io, Logging.Error) # Error, Warn, Info, Debug        
+        # logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
     end
     global_logger(logger)
 

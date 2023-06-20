@@ -113,6 +113,8 @@ function render(
                                     camera_sample.film
                                 )
 
+                                @info "($(s)-light, $(t)-camera) L: $(L_path)"
+
                                 if t != 1
                                     L += L_path
                                 else

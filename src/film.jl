@@ -162,6 +162,7 @@ function merge_film_tile!(f::Film, ft::FilmTile)
             pixel = Pnt2(x, y)
             tile_pixel = get_pixel(ft, pixel)
             merge_pixel = get_pixel(f, pixel)
+            @info "merge_film_tile: Spectrum - $(tile_pixel.contrib_sum), XYZ - $(to_XYZ(tile_pixel.contrib_sum))"
             merge_pixel.xyz += to_XYZ(tile_pixel.contrib_sum)
             merge_pixel.filter_weight_sum += tile_pixel.filter_weight_sum
         end
@@ -190,6 +191,7 @@ function save(film::Film, render_pass_flag::UInt8, splat_scale::Float64 = 1.0)::
                 image[y, x, :] .= max.(0, image[y, x, :] .* inv_weight)
             end
             # Add splat value at pixel & scale.
+            @info "save: AtomicXYZ - $(pixel.splat_xyz), XYZ - $(convert(XYZPBRT, pixel.splat_xyz)), RGB - $(XYZ_to_RGB(convert(XYZPBRT, pixel.splat_xyz)))"
             splat_rgb = XYZ_to_RGB(convert(XYZPBRT, pixel.splat_xyz))
             image[y, x, :] .+= splat_scale .* splat_rgb
             image[y, x, :] .*= film.scale
