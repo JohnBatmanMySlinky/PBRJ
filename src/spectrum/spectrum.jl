@@ -16,7 +16,7 @@ function spectrum_from_sampled(lambda::Vector{Float64}, v::Vector{Float64}, n::I
 end
 
 function spectrum_from_RGB(r::Float64, g::Float64, b::Float64)::Spectrum
-    if true # JOHN HACK
+    if true # JOHN HACK TODO CLEAN UP
         # Convert reflectance spectrum to RGB
         if (r <= g) && (r <= b)
             # Compute reflectance _SampledSpectrum_ with r as minimum
