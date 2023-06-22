@@ -35,6 +35,10 @@ const Radiance = Val{:Radiance}
 const Importance = Val{:Importance}
 const TransportMode = Union{Radiance, Importance}
 
+const Reflectance = Val{:Reflectance}
+const Illuminant = Val{:Illuminant}
+const SpectrumType = Union{Reflectance, Illuminant}
+
 include("objects.jl")
 include("args.jl")
 

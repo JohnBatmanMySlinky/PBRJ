@@ -15,8 +15,8 @@ function spectrum_from_sampled(lambda::Vector{Float64}, v::Vector{Float64}, n::I
     return Spectrum(tmp)
 end
 
-function spectrum_from_RGB(r::Float64, g::Float64, b::Float64)::Spectrum
-    if true # JOHN HACK TODO CLEAN UP
+function spectrum_from_RGB(r::Float64, g::Float64, b::Float64, spectrum_type::Type{S}=Reflectance)::Spectrum where S <: SpectrumType
+    if spectrum_type == Reflectance
         # Convert reflectance spectrum to RGB
         if (r <= g) && (r <= b)
             # Compute reflectance _SampledSpectrum_ with r as minimum
@@ -89,14 +89,14 @@ function spectrum_from_RGB(r::Float64, g::Float64, b::Float64)::Spectrum
 end
 
 # THE ENTRY POINT
-function spectrum_from_float(r::Float64, g::Float64, b::Float64)::Spectrum
+function spectrum_from_float(r::Float64, g::Float64, b::Float64, spectrum_type::Type{S}=Reflectance)::Spectrum where S <: SpectrumType
     if nSpectralSamples == 3
         return Spectrum(r,g,b)
     else
-        return spectrum_from_RGB(r, g, b)
+        return spectrum_from_RGB(r, g, b, spectrum_type)
     end
 end
 
-function spectrum_from_float(x::Float64)::Spectrum
-    return spectrum_from_float(x, x, x)
+function spectrum_from_float(x::Float64, spectrum_type::Type{S}=Reflectance)::Spectrum where S <: SpectrumType
+    return spectrum_from_float(x, x, x, spectrum_type)
 end

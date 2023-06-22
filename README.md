@@ -5,7 +5,7 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 
 # Usage
 - Example command line usage
-    - `julia -t 4 RayTracing.jl --scene-number 2 --samples-per-pixel 16 --image-dim 250 --file-name "test.png"`
+    - `julia -t 4 RayTracing.jl --scene-number 2 --samples-per-pixel 16 --image-dim 250 --n-spectral-samples 10 --file-name "test.png"`
     - see `src/args.jl` for a full specification of command line options
 - Scenes are specified within `src/scene_builder.jl`
     1. Office scene. Interior scene. many (relative) diffuse area lights. specular floor. 
@@ -18,9 +18,21 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
         
     3. Dragon on a plane with Ambient Occlusion integrator
     4. Cornell Box
-## Features
-- Bi-Directional Path Tracing (BDPT)
-    - implement the rest of the lights
+
+## Features Implemented
+- BVH accelerator
+- Perspective camera
+- Edge-avoiding a-trous denoising
+- BDPT, path & whitted integrators
+- Area, distant, infinite, point, and spot lights
+- Glass, matte, metal, mirror, plastic, and substrate materials
+- Stratified sampling
+- Box, cylindar, disk, rectangle, sphere, and triangle shapes
+- RGB & spectral rendering
+- Constant, image, mixed, procedural and mixed textures
+- Logging
+
+# Feature List
 - Implement Metroplois Light Transport Integrator
 - Move to EXR
     - ~~for env lights~~
@@ -48,7 +60,7 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 ## Debt
 - stop kludging this and implement two versions: Texture<Spectrum> vs Texture<Float>
     - really good opportunity for parameterized types!!?
-- implement spectrum is black checks and measure preformance improvement
+- ~~implement spectrum is black checks and measure preformance improvement~~ 15% improvement!
 - clean up surface interaction instantiation (esp. when empty)
 - Implement passes with more dimensions of our film. Current method is hardcody and requires us to re-instantiate the scene every time!
 - Implement texture sampling and use those ray differentials
@@ -64,7 +76,7 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 - Triangles using UInt16 when small enough?
     - seems like I get a very small pay off when I did a quick test.
 - tuple of lights instead of vector?
-- can I make rays immutable and re-instantiate when mutation is needed?
+- ~~can I make rays immutable and re-instantiate when mutation is needed?~~ No performance boost observed.
 
 # Beyond PBRT
 - Denoiser. Opportunity for ML here?
