@@ -5,9 +5,9 @@
 ############################################################
 
 struct FresnelConductor{S <: Spectrum} <: Fresnel
-    eta_i::Spectrum
-    eta_t::Spectrum
-    k::Spectrum
+    eta_i::S
+    eta_t::S
+    k::S
 end
 
 function(f::FresnelConductor)(cos_theta_i::Float64) 

@@ -6,10 +6,10 @@ function spectrum_from_sampled(lambda::Vector{Float64}, v::Vector{Float64}, n::I
     # check lambda is sorted
     @assert check_monotonic(lambda)
 
-    tmp = zeroes(nSpectralSamples)
+    tmp = zeros(nSpectralSamples)
     for i in 1:nSpectralSamples
-        lambda0 = lerp(i/nSpectralSamples, sampledLambdaStart, sampledLambdaEnd)
-        lambda1 = lerp((i+1)/nSpectralSamples, sampledLambdaStart, sampledLambdaEnd)
+        lambda0 = lerp(i/nSpectralSamples, Float64(sampledLambdaStart), Float64(sampledLambdaEnd))
+        lambda1 = lerp((i+1)/nSpectralSamples, Float64(sampledLambdaStart), Float64(sampledLambdaEnd))
         tmp[i] = average_spectrum_samples(lambda, v, n, lambda0, lambda1)
     end
     return Spectrum(tmp)

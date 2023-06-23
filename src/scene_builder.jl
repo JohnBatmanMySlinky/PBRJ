@@ -716,6 +716,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             true, # remap
             nothing,
         )
+        mat_metal = Metal()
 
         # instantiate objects
         identity_shape_core = ShapeCore(
@@ -836,7 +837,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ),
             50.0
         )
-        push!(primitives, Primitive(sphere, mat_blue, nothing))
+        push!(primitives, Primitive(sphere, mat_metal, nothing))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

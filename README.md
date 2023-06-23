@@ -33,6 +33,10 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 - Logging
 
 # Feature List
+- use y() and dont hack with mean
+- build in rendering passes natively
+- Does v4 have rectangles natively?
+- Make sure I am sampling purley over the solid angle
 - Implement Metroplois Light Transport Integrator
 - Move to EXR
     - ~~for env lights~~
