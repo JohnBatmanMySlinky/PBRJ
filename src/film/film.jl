@@ -4,19 +4,6 @@ mutable struct Pixel
     splat_xyz::AtomicXYZPBRT
 end
 
-mutable struct PassPixel
-    # These three fields are a copy from Pixel
-    xyz::XYZPBRT
-    filter_weight_sum::Float64
-    splat_xyz::AtomicXYZPBRT
-
-    # additional fields needed for edge avoiding a-trous filter
-    albedo::XYZPBRT                 # albedo
-    depth::Float64                  # depth
-    normal::XYZPBRT                 # normal
-    position::XYZPBRT               # position
-end
-
 # PBR 7.9.1
 struct Film
     # overall resolution in pixels
@@ -88,14 +75,14 @@ end
 ########################################
 ######## Misc ##########################
 ########################################
-function get_sample_bounds(f::Film)
+function get_sample_bounds(f::Film)::Bounds2
     return Bounds2(
         floor.(f.cropped_pixel_bounds.pMin .+ 0.5 .- f.filter.radius),
         ceil.(f.cropped_pixel_bounds.pMax .- 0.5 .+ f.filter.radius),
     )
 end
 
-function get_pixel(f::Film, p::Pnt2)
+function get_pixel(f::Film, p::Pnt2)::Pixel
     pp = Int64.(p .- f.cropped_pixel_bounds.pMin .+ 1.0)
     return f.pixels[pp.y, pp.x]
 end
@@ -105,16 +92,6 @@ mutable struct FilmTilePixel
     contrib_sum::Spectrum
     filter_weight_sum::Float64
 end
-
-mutable struct FilmTilePassPixel
-    contrib_sum::Spectrum
-    albedo_sum::Spectrum
-    depth_sum::Spectrum
-    normal_sum::Spectrum
-    position_sum::Spectrum
-    filter_weight_sum::Float64
-end
-
 
 struct FilmTile
     pixel_bounds::Bounds2
