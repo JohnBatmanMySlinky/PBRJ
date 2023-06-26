@@ -17,13 +17,19 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
         ![caustic_glass](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/caustic-glass.png?raw=true)
         
     3. Dragon on a plane with Ambient Occlusion integrator
+
+        ![dragon](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/dragon.png?raw=true)
+
     4. Cornell Box
+
+        ![cornell_box](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/cornell-box.png?raw=true)
+        
 
 ## Features Implemented
 - BVH accelerator
 - Perspective camera
 - Edge-avoiding a-trous denoising
-- BDPT, path & whitted integrators
+- BDPT, ambient occlusion, path & whitted integrators
 - Area, distant, infinite, point, and spot lights
 - Glass, matte, metal, mirror, plastic, and substrate materials
 - Stratified sampling
@@ -35,9 +41,9 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 # Feature List
 - use y() and dont hack with mean
 - build in rendering passes natively
-- Does v4 have rectangles natively?
 - Make sure I am sampling purley over the solid angle
 - Implement Metroplois Light Transport Integrator
+- Implement texture sampling and use those ray differentials
 - Move to EXR
     - ~~for env lights~~
     - for final image
@@ -50,7 +56,7 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
         - pass all pxl-th's tests
     - Add metal material
     - Add fourier material
-- Improve munich re scene 
+- Improve munich scene 
     - Add more walls (left wall corner)
     - Add in more scene geometry (baseboards? stairs? elevator?)
     - Get reflections in back hallway looking nice and in general floor material
@@ -60,16 +66,6 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
     - logging
 - Move scene specification to a YAML or something. 
 - Expand test coverage
-
-## Debt
-- stop kludging this and implement two versions: Texture<Spectrum> vs Texture<Float>
-    - really good opportunity for parameterized types!!?
-- ~~implement spectrum is black checks and measure preformance improvement~~ 15% improvement!
-- clean up surface interaction instantiation (esp. when empty)
-- Implement passes with more dimensions of our film. Current method is hardcody and requires us to re-instantiate the scene every time!
-- Implement texture sampling and use those ray differentials
-- Static & dynamic code analysis
-- Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc.
 
 ## Bugs
 - XYZ color to RGB, I am doing something wrong...
