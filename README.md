@@ -38,12 +38,14 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 - Constant, image, mixed, procedural and mixed textures
 - Logging
 
-# Feature List
+# To do's
 - use y() and dont hack with mean
 - build in rendering passes natively
 - Make sure I am sampling purley over the solid angle
 - Implement Metroplois Light Transport Integrator
 - Implement texture sampling and use those ray differentials
+- Liberal use of `const` in all mutable structs
+- `Scene` uses a vector of (abstract) lights. would a tuple of lights be better? Could I use a macro to generate scene specific struct?
 - Move to EXR
     - ~~for env lights~~
     - for final image
@@ -68,14 +70,11 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 - Expand test coverage
 
 ## Bugs
-- XYZ color to RGB, I am doing something wrong...
 - My world is upside down! Use real pbrt to debug (or pxl-th's)
 - Sometimes objects are see through (ie when they have a really bright light behind them)
 
 ## Ideas
-- Triangles using UInt16 when small enough?
-    - seems like I get a very small pay off when I did a quick test.
-- tuple of lights instead of vector?
+- ~~Triangles using UInt16 when small enough?~~ I get a very small pay off when I did a quick test.
 - ~~can I make rays immutable and re-instantiate when mutation is needed?~~ No performance boost observed.
 
 # Beyond PBRT
