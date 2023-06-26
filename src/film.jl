@@ -4,6 +4,19 @@ mutable struct Pixel
     splat_xyz::AtomicXYZPBRT
 end
 
+mutable struct PassPixel
+    # These three fields are a copy from Pixel
+    xyz::XYZPBRT
+    filter_weight_sum::Float64
+    splat_xyz::AtomicXYZPBRT
+
+    # additional fields needed for edge avoiding a-trous filter
+    albedo::XYZPBRT                 # albedo
+    depth::Float64                  # depth
+    normal::XYZPBRT                 # normal
+    position::XYZPBRT               # position
+end
+
 # PBR 7.9.1
 struct Film
     # overall resolution in pixels
