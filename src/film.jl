@@ -106,6 +106,16 @@ mutable struct FilmTilePixel
     filter_weight_sum::Float64
 end
 
+mutable struct FilmTilePassPixel
+    contrib_sum::Spectrum
+    albedo_sum::Spectrum
+    depth_sum::Spectrum
+    normal_sum::Spectrum
+    position_sum::Spectrum
+    filter_weight_sum::Float64
+end
+
+
 struct FilmTile
     pixel_bounds::Bounds2
     filter_radius::Pnt2
