@@ -125,14 +125,6 @@ include("obj_reader.jl")
 include("scene_builder.jl")
 include("denoising/edge_avoiding_a_trous.jl")
 
-const PASSDICT = Dict{UInt8, String}(
-    UInt(0) => "full pass",
-    UInt(1) => "albedo pass",
-    UInt(2) => "depth pass",
-    UInt(3) => "normal pass",
-    UInt(4) => "position pass",
-)
-
 # do MIS_weight or nah
 const DO_MIS_WEIGHT = true
 
@@ -168,41 +160,22 @@ const BDPT_STAGES = [
 function render_scene()
     parsed_args = parse_commandline()
 
-    if parsed_args["denoise"] == true
-        passes = Vector{Array{Float64}}(undef, 5)
-        for (i,render_pass_flag) in enumerate([UInt8(0), UInt8(1), UInt8(2), UInt8(3), UInt8(4)])
-            I, scene = build_scene(parsed_args) # TODO get this outside the loop!
-            current_pass = render(
-                I, 
-                scene, 
-                render_pass_flag,
-                parsed_args["light-distribution-strategy"], 
-            )
-            passes[i] = current_pass
-            # FileIO.save("debug_$(i).png", clamp01nan.(current_pass)
-        end
+    for bdpt_pass in BDPT_STAGES
+        (bdpt_pass != (-1,-1)) && (print("working on bdpt pass s=$(bdpt_pass[1]), t=$(bdpt_pass[2])\n"))
+        I, scene = build_scene(parsed_args) # TODO get this outside the loop!
+        image = render(
+            I, 
+            scene, 
+            bdpt_pass,
+            parsed_args["light-distribution-strategy"], 
+        )
         image = denoise(passes, parsed_args["denoise-steps"])
-        FileIO.save(I.camera.core.core.film.filename, image)
-    elseif parsed_args["denoise"] == false
-        for bdpt_pass in BDPT_STAGES
-            (bdpt_pass != (-1,-1)) && (print("working on bdpt pass s=$(bdpt_pass[1]), t=$(bdpt_pass[2])\n"))
-            I, scene = build_scene(parsed_args) # TODO get this outside the loop!
-            image = render(
-                I, 
-                scene, 
-                UInt8(0), # full pass
-                bdpt_pass,
-                parsed_args["light-distribution-strategy"], 
-            )
-            image = clamp01nan.(image)
-            if bdpt_pass == (-1,-1)
-                FileIO.save(I.camera.core.core.film.filename, image)
-            else
-                FileIO.save(replace(I.camera.core.core.film.filename, ".png"=>"")*"_s_"*string(bdpt_pass[1])*"_t_"*string(bdpt_pass[2])*".png", image)
-            end
+        image = clamp01nan.(image)
+        if bdpt_pass == (-1,-1)
+            FileIO.save(I.camera.core.core.film.filename, image)
+        else
+            FileIO.save(replace(I.camera.core.core.film.filename, ".png"=>"")*"_s_"*string(bdpt_pass[1])*"_t_"*string(bdpt_pass[2])*".png", image)
         end
-    else
-        @assert false
     end
 end
 
