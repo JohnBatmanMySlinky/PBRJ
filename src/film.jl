@@ -126,7 +126,7 @@ struct PassFilm
     filter_table::Matrix{Float64}
     scale::Float64
 
-    function Film(
+    function PassFilm(
         full_resolution::Pnt2,
         cropped_pixel_bounds::Bounds2,
         filter::F,
@@ -146,7 +146,7 @@ struct PassFilm
 
 
         # allocate film image storage
-        pixels = Pixel[
+        pixels = PassPixel[
             PassPixel() for y in 1:cropped_resolution[end], x in 1:cropped_resolution[begin]
         ]
 
@@ -304,7 +304,12 @@ function save(film::Film, splat_scale::Float64 = 1.0)::Array{Float64}
     end
 end
 
-function save(film::PassFilm, splat_scale::Float64 = 1.0)::Array{Float64}
+function save(film::PassFilm, splat_scale::Float64 = 1.0)::Matrix{Float64}
+
+    # JOHN HACKS
+    # only splat for full pass
+    # filter weight sum is based off of full so I think I am improperly weighting...
+
     X, Y = size(film.pixels)
     pass = 5 # full, albedo, depth, normal, position
     image = Array{Float64}(undef, pass, X, Y, 3)
@@ -319,8 +324,7 @@ function save(film::PassFilm, splat_scale::Float64 = 1.0)::Array{Float64}
             # Normalize pixel with weight sum.
             filter_weight_sum = pixel.filter_weight_sum
             if filter_weight_sum != 0
-                inv_weight = 1 / filter_weight_sum
-                image[1, y, x, :] .= max.(0, image[y, x, :] .* inv_weight)
+                image[1, y, x, :] .= max.(0, image[1, y, x, :] ./ filter_weight_sum)
             end
             # Add splat value at pixel & scale.
             @info "save: AtomicXYZ - $(pixel.splat_xyz), XYZ - $(convert(XYZPBRT, pixel.splat_xyz)), RGB - $(XYZ_to_RGB(convert(XYZPBRT, pixel.splat_xyz)))"
@@ -331,17 +335,53 @@ function save(film::PassFilm, splat_scale::Float64 = 1.0)::Array{Float64}
             ###################
             ### albedo pass ###
             ###################
+            image[2, y, x, :] .= XYZ_to_RGB(pixel.albedo)
+            # Normalize pixel with weight sum.
+            filter_weight_sum = pixel.filter_weight_sum
+            if filter_weight_sum != 0
+                image[2, y, x, :] .= max.(0, image[2, y, x, :] ./ filter_weight_sum)
+            end
+
+            ##################
+            ### depth pass ###
+            ##################
+            image[3, y, x, :] .= XYZ_to_RGB(pixel.depth)
+            # Normalize pixel with weight sum.
+            filter_weight_sum = pixel.filter_weight_sum
+            if filter_weight_sum != 0
+                image[3, y, x, :] .= max.(0, image[3, y, x, :] ./ filter_weight_sum)
+            end
+
+            ###################
+            ### normal pass ###
+            ###################
+            image[4, y, x, :] .= XYZ_to_RGB(pixel.normal)
+            # Normalize pixel with weight sum.
+            filter_weight_sum = pixel.filter_weight_sum
+            if filter_weight_sum != 0
+                image[4, y, x, :] .= max.(0, image[4, y, x, :] ./ filter_weight_sum)
+            end
+
+            #####################
+            ### position pass ###
+            #####################
+            image[5, y, x, :] .= XYZ_to_RGB(pixel.position)
+            # Normalize pixel with weight sum.
+            filter_weight_sum = pixel.filter_weight_sum
+            if filter_weight_sum != 0
+                image[5, y, x, :] .= max.(0, image[5, y, x, :] ./ filter_weight_sum)
+            end
+
         end
     end
-    # # normalize depth and position pass to be [0,1]
-    # # also need make sure 0-1 not 1-0
-    # # if (render_pass_flag == 2) || (render_pass_flag == 4) 
-    # if (render_pass_flag == 2) || (render_pass_flag == 4)
-    #     max_depth = maximum(image)
-    #     min_depth = minimum(image)
-    #     image .-= max_depth
-    #     image ./= (min_depth - max_depth)
-    # end
-    # clamp!(image, 0.0, 1.0)
-    # return image[end:-1:begin, :, :]
+    # normalize depth and position pass to be [0,1]
+    # also need make sure 0-1 not 1-0
+    for pass in [2,4]
+        max_depth = maximum(image[pass, y, x, :])
+        min_depth = minimum(image[pass, y, x, :])
+        image[pass, y, x, :] .-= max_depth
+        image[pass, y, x, :] ./= (min_depth - max_depth)
+    end
+    clamp!(image, 0.0, 1.0)
+    return image[:, end:-1:begin, :, :]
 end

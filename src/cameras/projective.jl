@@ -22,7 +22,7 @@ struct ProjectiveCamera <: Camera
         shutter_closed::Float64,
         lens_radius::Float64,
         focal_distance::Float64,
-        film::Film
+        film::Union{Film, PassFilm}
     )
         core = CameraCore(camera_to_world, shutter_open, shutter_closed, film)
         screen_to_raster = (
@@ -69,7 +69,7 @@ struct PerspectiveCamera <: Camera
         lens_radius::Float64,
         focal_distance::Float64,
         fov::Float64,
-        film::Film
+        film::Union{Film, PassFilm}
     )
         projcam = ProjectiveCamera(
             camera_to_world,
