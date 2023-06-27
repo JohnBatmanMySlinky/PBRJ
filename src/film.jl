@@ -304,7 +304,7 @@ function save(film::Film, splat_scale::Float64 = 1.0)::Array{Float64}
     end
 end
 
-function save(film::PassFilm, splat_scale::Float64 = 1.0)::Matrix{Float64}
+function save(film::PassFilm, splat_scale::Float64 = 1.0)::Array{Float64}
 
     # JOHN HACKS
     # only splat for full pass
@@ -345,7 +345,7 @@ function save(film::PassFilm, splat_scale::Float64 = 1.0)::Matrix{Float64}
             ##################
             ### depth pass ###
             ##################
-            image[3, y, x, :] .= XYZ_to_RGB(pixel.depth)
+            image[3, y, x, :] .= RGBPBRT(pixel.depth, pixel.depth, pixel.depth)
             # Normalize pixel with weight sum.
             filter_weight_sum = pixel.filter_weight_sum
             if filter_weight_sum != 0
@@ -377,10 +377,10 @@ function save(film::PassFilm, splat_scale::Float64 = 1.0)::Matrix{Float64}
     # normalize depth and position pass to be [0,1]
     # also need make sure 0-1 not 1-0
     for pass in [2,4]
-        max_depth = maximum(image[pass, y, x, :])
-        min_depth = minimum(image[pass, y, x, :])
-        image[pass, y, x, :] .-= max_depth
-        image[pass, y, x, :] ./= (min_depth - max_depth)
+        max_depth = maximum(image[pass, :, :, :])
+        min_depth = minimum(image[pass, :, :, :])
+        image[pass, :, :, :] .-= max_depth
+        image[pass, :, :, :] ./= (min_depth - max_depth)
     end
     clamp!(image, 0.0, 1.0)
     return image[:, end:-1:begin, :, :]

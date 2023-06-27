@@ -50,21 +50,21 @@ function render(
                 camera_sample = get_camera_sample!(sampler, pixel)
 
                 # JOHN TODO Render pass hacking
-                if typeof(i.camera.film.pixels) == PassPixel
+                if i.camera.core.core.film isa PassFilm
                     ray, _ = generate_ray_differential(i.camera, camera_sample)
                     scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
                     check, t, interaction, = intersect!(scene.b, ray)
                     if !check
                         L = spectrum_from_float(0.0)
-                        i.camera.film.pixels[pixel.y, pixel.x].albedo = L
-                        i.camera.film.pixels[pixel.y, pixel.x].depth = L
-                        i.camera.film.pixels[pixel.y, pixel.x].normal = L
-                        i.camera.film.pixels[pixel.y, pixel.x].position = L
+                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].albedo = L
+                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].depth = 0.0
+                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].normal = L
+                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].position = L
                     else
-                        i.camera.film.pixels[pixel.y, pixel.x].albedo = spectrum_from_float(interaction.primitive.material.Kd(interaction))
-                        i.camera.film.pixels[pixel.y, pixel.x].depth = spectrum_from_float(t)
-                        i.camera.film.pixels[pixel.y, pixel.x].normal = spectrum_from_float(interaction.shading.n)
-                        i.camera.film.pixels[pixel.y, pixel.x].position = spectrum_from_float(interaction.core.p)
+                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].albedo = interaction.primitive.material.Kd(interaction)
+                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].depth = t
+                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].normal = spectrum_from_float(interaction.shading.n...)
+                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].position = spectrum_from_float(interaction.core.p...)
                     end
                 end
 
@@ -140,7 +140,7 @@ function render(
         Threads.unlock(l)
     end
     got_film = i.camera.core.core.film
-    img = save(got_film, render_pass_flag, 1.0/i.sampler.samples_per_pixel)
+    img = save(got_film, 1.0/i.sampler.samples_per_pixel)
     return img
 end
 

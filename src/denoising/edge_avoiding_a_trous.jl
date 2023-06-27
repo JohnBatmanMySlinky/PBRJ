@@ -1,12 +1,12 @@
-function denoise(img::Vector{Array{Float64}}, filter_steps::Int64)::Array{Float64}
+function denoise(img::Array{Float64}, filter_steps::Int64)::Array{Float64}
     @assert filter_steps-1 >= 0 # ya can't have a a filter with no steps
 
     # extract channels
-    color_buffer = img[1]  # full
-    albedo_buffer = img[2]  # albedo
-    depth_buffer = img[3]  # depth
-    normal_buffer = img[4] # normal
-    position_buffer = img[5] # position
+    color_buffer = img[1, :, :, :]  # full
+    albedo_buffer = img[2, :, :, :]  # albedo
+    depth_buffer = img[3, :, :, :]  # depth
+    normal_buffer = img[4, :, :, :] # normal
+    position_buffer = img[5, :, :, :] # position
 
     for step in 0:(filter_steps-1)
         step_width = 2^step

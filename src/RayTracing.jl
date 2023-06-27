@@ -169,7 +169,8 @@ function render_scene()
             bdpt_pass,
             parsed_args["light-distribution-strategy"], 
         )
-        image = denoise(passes, parsed_args["denoise-steps"])
+        image = image[5, :, :, :]
+        # image = denoise(image, 1)
         image = clamp01nan.(image)
         if bdpt_pass == (-1,-1)
             FileIO.save(I.camera.core.core.film.filename, image)

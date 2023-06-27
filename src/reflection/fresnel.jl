@@ -99,11 +99,11 @@ struct FresnelBlend <: AbstractBxDF
 end
 
 function SchlickFresnel(Rs::Spectrum, cos_theta::Float64)
-    return Rs + (spectrum_from_float(1,1,1)-Rs)*(1-cos_theta)^5
+    return Rs + (spectrum_from_float(1.0, 1.0, 1.0)-Rs)*(1-cos_theta)^5
 end
 
 function f(f::FresnelBlend, wo::Vec3, wi::Vec3)
-    diffuse = spectrum_from_float((28 / (23pi)) * f.Rd * (spectrum_from_float(1.0)-f.Rs) * (1-(1-abs_cos_theta(wi)/2)^5) * (1-(1-abs_cos_theta(wo)/2)^5))
+    diffuse = (28 / (23pi)) * f.Rd * (spectrum_from_float(1.0)-f.Rs) * (1-(1-abs_cos_theta(wi)/2)^5) * (1-(1-abs_cos_theta(wo)/2)^5)
     wh = wi + wo
     (wh.x==0)&&(wh.y==0)&&(wh.z==0) && return spectrum_from_float(0.0)
     wh = normalize(wh)
