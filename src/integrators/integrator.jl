@@ -28,14 +28,14 @@ function render(i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator}, scene
                 camera_sample = get_camera_sample!(sampler, pixel)
                 ray, w = generate_ray_differential(i.camera, camera_sample)
                 scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
-                L = Spectrum(0)
+                L = spectrum_from_float(0.0)
 
                 if w > 0
                     L = li(i.cos_sample, ray, scene, 0, sampler)
                 end
 
                 if any(isnan.(L))
-                    L = Spectrum(0)
+                    L = spectrum_from_float(0.0)
                 end
 
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
@@ -79,7 +79,7 @@ function estimate_direct(
     specular::Bool=false
 )::Spectrum
     bsdf_flags = specular ? BSDF_ALL : (BSDF_ALL & ~BSDF_SPECULAR)
-    Ld = Spectrum(0)
+    Ld = spectrum_from_float(0.0)
     
     # sample light source with multiple importance sampling
     Li, wi, light_pdf, vis, _, _  = sample_li(light, isect.core, u_light)
@@ -95,7 +95,7 @@ function estimate_direct(
             @assert false
         else
             if !unoccluded(vis, scene.b)
-                Li = Spectrum(0)
+                Li = spectrum_from_float(0.0)
             end
         end
 
@@ -130,12 +130,12 @@ function estimate_direct(
 
         # find intersection and compute transmittance
         ray = spawn_ray(isect.core, wi)
-        Tr = Spectrum(1,1,1)
+        Tr = spectrum_from_float(1,1,1)
         # assuming no media to handle
         found_surface_interaction, t, light_isect = intersect!(scene.b, ray)
 
         # add light contribution from material sampling
-        Li = Spectrum(0)
+        Li = spectrum_from_float(0.0)
         if found_surface_interaction
             if !(light_isect.primitive.area_light isa Nothing)
                 Li = le(light_isect, -wi)

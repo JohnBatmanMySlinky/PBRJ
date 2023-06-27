@@ -33,7 +33,7 @@ function power(p::PointLight)
 end
 
 function le(l::PointLight, ray::AbstractRay)
-    return Spectrum(0, 0, 0)
+    return spectrum_from_float(0, 0, 0)
 end
 
 function pdf_li(light::PointLight, isect::SurfaceInteraction, wi::Vec3)::Float64

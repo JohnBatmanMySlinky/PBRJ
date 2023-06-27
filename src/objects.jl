@@ -57,39 +57,57 @@ function Pnt2(a::Union{Float64, Int64})::Pnt2
     return Pnt2(a,a)
 end
 
-# An atomic Pnt3, needed for Film. needed for splat_xyz and bdpt
+################################
+#### RGB ######################
+################################
+struct RGBPBRT <: FieldVector{3, Float64}
+    r::Float64
+    g::Float64
+    b::Float64
+end
+
+################################
+#### XYZ ######################
+################################
+struct XYZPBRT <: FieldVector{3, Float64}
+    x::Float64
+    y::Float64
+    z::Float64
+end
+
+# An atomic XYZ, needed for Film. needed for splat_xyz and bdpt
 # PBR 7.9.2
 """
 Some light transport algorithms (notable bdpt) require the ability to 'splat' contributions to arbitrary pixels
 Rather than compute the final pixel as a weighted average of contributing splats, splats are simply summed. 
 """
-mutable struct AtomicPnt3 
+mutable struct AtomicXYZPBRT
     x::Threads.Atomic{Float64}
     y::Threads.Atomic{Float64}
     z::Threads.Atomic{Float64}
 end
-function AtomicPnt3(p::Pnt3)
-    return AtomicPnt3(
+function AtomicXYZPBRT(p::XYZPBRT)
+    return AtomicXYZPBRT(
         Threads.Atomic{Float64}(p.x),
         Threads.Atomic{Float64}(p.y),
         Threads.Atomic{Float64}(p.z),
     )
 end
-function AtomicPnt3(x::Float64, y::Float64, z::Float64)
-    return AtomicPnt3(
+function AtomicXYZPBRT(x::Float64, y::Float64, z::Float64)
+    return AtomicXYZPBRT(
         Threads.Atomic{Float64}(x),
         Threads.Atomic{Float64}(y),
         Threads.Atomic{Float64}(z),
     )
 end
 
-# AtomicPnt3 --> Pnt3
-function Base.convert(::Type{Pnt3}, a::AtomicPnt3)
-    return Pnt3(a.x[], a.y[], a.z[])
+# AtomicXYZPBRT --> XYZPBRT
+function Base.convert(::Type{XYZPBRT}, a::AtomicXYZPBRT)
+    return XYZPBRT(a.x[], a.y[], a.z[])
 end
 
 # atomic add
-function Threads.atomic_add!(a::AtomicPnt3, b::Pnt3)
+function Threads.atomic_add!(a::AtomicXYZPBRT, b::XYZPBRT)
     Threads.atomic_add!(a.x, b.x)
     Threads.atomic_add!(a.y, b.y)
     Threads.atomic_add!(a.z, b.z)
@@ -409,54 +427,6 @@ function Base.getindex(b::Union{Bounds2, Bounds3}, i::Integer)
     i == 1 && return b.pMin
     i == 2 && return b.pMax
     error("Invalid index `$i`. Only `1` & `2` are valid.")
-end
-
-################################
-######### Spectrum #############
-################################
-struct Spectrum <: FieldVector{3, Float64}
-    r::Float64
-    g::Float64
-    b::Float64
-end
-
-function Spectrum(a::Union{Float64,Int64})::Spectrum
-    return Spectrum(a,a,a)
-end
-
-function Spectrum(a::ColorTypes.RGBA{Float16})::Spectrum
-    return Spectrum(a.r, a.g, a.b)
-end
-
-function is_black(s::Spectrum)::Bool
-    return all(s .== 0.0)
-end
-
-function XYZ_to_RGB(xyz::Pnt3)::Spectrum
-    # return Spectrum(
-    #     0.412453 * xyz.x + 0.357580 * xyz.y + 0.180423 * xyz.z,
-    #     0.212671 * xyz.x + 0.715160 * xyz.y + 0.072169 * xyz.z,
-    #     0.019334 * xyz.x + 0.119193 * xyz.y + 0.950227 * xyz.z,
-    # )
-    return xyz
-end
-function RGB_to_XYZ(rgb::Spectrum)::Pnt3
-    # return Pnt3(
-    #     0.412453 * rgb.r + 0.357580 * rgb.g + 0.180423 * rgb.b,
-    #     0.212671 * rgb.r + 0.715160 * rgb.g + 0.072169 * rgb.b,
-    #     0.019334 * rgb.r + 0.119193 * rgb.g + 0.950227 * rgb.b,
-    # )
-    return rgb
-end
-
-# TODO I don't think I should need this??
-function Base.:*(a::Spectrum, b::Spectrum)
-    return Spectrum(a.r*b.r, a.g*b.g, a.b*b.b)
-end
-
-# AtomicPnt3 --> Spectrum
-function Base.convert(::Type{Spectrum}, a::AtomicPnt3)
-    return Spectrum(a.x[], a.y[], a.z[])
 end
 
 ################################

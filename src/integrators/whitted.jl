@@ -5,7 +5,7 @@ struct WhittedIntegrator <: AbstractIntegrator
 end
 
 function li(i::WhittedIntegrator, ray::AbstractRay, scene::Scene, depth::Int64)::Spectrum
-    L = Spectrum(0, 0, 0)
+    L = spectrum_from_float(0, 0, 0)
     check, t, interaction = intersect!(scene.b, ray)
     # if nothing is hit --> this is only for env light.
     if !check
@@ -79,7 +79,7 @@ function specular_reflect(i::WhittedIntegrator, ray::AbstractRay, surface_intera
 
     ns = surface_interaction.shading.n
     if pdf == 0 || abs(dot(wi, ns)) == 0
-        return Spectrum(0, 0, 0)
+        return spectrum_from_float(0, 0, 0)
     end
 
     ray = spawn_ray(surface_interaction.core, wi)
@@ -93,7 +93,7 @@ function specular_transmit(i::WhittedIntegrator, ray::AbstractRay, surface_inter
 
     ns = surface_interaction.shading.n
     if pdf == 0 || abs(dot(wi, ns)) == 0
-        return Spectrum(0, 0, 0)
+        return spectrum_from_float(0, 0, 0)
     end
 
     ray = spawn_ray(interaction.core, wi)

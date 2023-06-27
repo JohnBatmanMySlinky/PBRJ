@@ -5,7 +5,7 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 
 # Usage
 - Example command line usage
-    - `julia -t 4 RayTracing.jl --scene-number 2 --samples-per-pixel 16 --image-dim 250 --file-name "test.png"`
+    - `julia -t 4 RayTracing.jl --scene-number 2 --samples-per-pixel 16 --image-dim 250 --n-spectral-samples 10 --file-name "test.png"`
     - see `src/args.jl` for a full specification of command line options
 - Scenes are specified within `src/scene_builder.jl`
     1. Office scene. Interior scene. many (relative) diffuse area lights. specular floor. 
@@ -17,11 +17,35 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
         ![caustic_glass](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/caustic-glass.png?raw=true)
         
     3. Dragon on a plane with Ambient Occlusion integrator
+
+        ![dragon](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/dragon.png?raw=true)
+
     4. Cornell Box
-## Features
-- Bi-Directional Path Tracing (BDPT)
-    - implement the rest of the lights
+
+        ![cornell_box](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/cornell-box.png?raw=true)
+        
+
+## Features Implemented
+- BVH accelerator
+- Perspective camera
+- Edge-avoiding a-trous denoising
+- BDPT, ambient occlusion, path & whitted integrators
+- Area, distant, infinite, point, and spot lights
+- Glass, matte, metal, mirror, plastic, and substrate materials
+- Stratified sampling
+- Box, cylindar, disk, rectangle, sphere, and triangle shapes
+- RGB & spectral rendering
+- Constant, image, mixed, procedural and mixed textures
+- Logging
+
+# To do's
+- use y() and dont hack with mean
+- build in rendering passes natively
+- Make sure I am sampling purley over the solid angle
 - Implement Metroplois Light Transport Integrator
+- Implement texture sampling and use those ray differentials
+- Liberal use of `const` in all mutable structs
+- `Scene` uses a vector of (abstract) lights. would a tuple of lights be better? Could I use a macro to generate scene specific struct?
 - Move to EXR
     - ~~for env lights~~
     - for final image
@@ -34,7 +58,7 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
         - pass all pxl-th's tests
     - Add metal material
     - Add fourier material
-- Improve munich re scene 
+- Improve munich scene 
     - Add more walls (left wall corner)
     - Add in more scene geometry (baseboards? stairs? elevator?)
     - Get reflections in back hallway looking nice and in general floor material
@@ -45,26 +69,13 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 - Move scene specification to a YAML or something. 
 - Expand test coverage
 
-## Debt
-- stop kludging this and implement two versions: Texture<Spectrum> vs Texture<Float>
-    - really good opportunity for parameterized types!!?
-- implement spectrum is black checks and measure preformance improvement
-- clean up surface interaction instantiation (esp. when empty)
-- Implement passes with more dimensions of our film. Current method is hardcody and requires us to re-instantiate the scene every time!
-- Implement texture sampling and use those ray differentials
-- Static & dynamic code analysis
-- Add in synonyms to instantiate simple stuff Vec3(), Translate(), etc.
-
 ## Bugs
-- XYZ color to RGB, I am doing something wrong...
 - My world is upside down! Use real pbrt to debug (or pxl-th's)
 - Sometimes objects are see through (ie when they have a really bright light behind them)
 
 ## Ideas
-- Triangles using UInt16 when small enough?
-    - seems like I get a very small pay off when I did a quick test.
-- tuple of lights instead of vector?
-- can I make rays immutable and re-instantiate when mutation is needed?
+- ~~Triangles using UInt16 when small enough?~~ I get a very small pay off when I did a quick test.
+- ~~can I make rays immutable and re-instantiate when mutation is needed?~~ No performance boost observed.
 
 # Beyond PBRT
 - Denoiser. Opportunity for ML here?

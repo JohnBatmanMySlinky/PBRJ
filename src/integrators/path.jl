@@ -6,8 +6,8 @@ struct PathIntegrator <: AbstractIntegrator
 end
 
 function li(i::PathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64, light_dist_strat::String="uniform")::Spectrum
-    L = Spectrum(0)
-    beta = Spectrum(1) # the throughput weight
+    L = spectrum_from_float(0.0)
+    beta = spectrum_from_float(1.0) # the throughput weight
     specular_bounce = false
     bounces = 0
     light_distribution_generator = LightDistribution(light_dist_strat, scene)

@@ -30,11 +30,37 @@ abstract type Shape end
 abstract type Texture end
 abstract type MicrofacetDistribution end
 
+# Defining some global constants
 const Radiance = Val{:Radiance}
 const Importance = Val{:Importance}
 const TransportMode = Union{Radiance, Importance}
 
+const Reflectance = Val{:Reflectance}
+const Illuminant = Val{:Illuminant}
+const SpectrumType = Union{Reflectance, Illuminant}
+
 include("objects.jl")
+include("args.jl")
+
+########################
+### SPECTRUM HACKING ###
+########################
+include("spectrum/spectrum_constants.jl")   # constants for spectral <-> RGB <-> XYZ
+include("spectrum/spectrum_macro.jl")       # the file to create the macro
+include("spectrum/spectrum.jl")             # all of the 'constructors'
+tmp_parsed_args = parse_commandline() # ugh this is so messy TODO CELAN UP
+const nSpectralSamples = tmp_parsed_args["n-spectral-samples"]         # if it's 3 --> RGB if it's >3 --> spectral
+const sampledLambdaStart = 400
+const sampledLambdaEnd = 700
+const nCIESamples = 471
+const CIE_Y_integral = 106.856895
+const nRGB2SpectSamples = 32
+@make_spectrum nSpectralSamples    # define the Spectrum struct
+include("spectrum/spectrum_utils.jl")       # things that reference the Spectrum struct
+
+# instantiate these at global level to be used for spectral 
+const XXX, YYY, ZZZ, rgbRefl2SpectWhite, rgbRefl2SpectCyan, rgbRefl2SpectMagenta, rgbRefl2SpectYellow, rgbRefl2SpectRed, rgbRefl2SpectGreen, rgbRefl2SpectBlue, rgbIllum2SpectWhite, rgbIllum2SpectCyan, rgbIllum2SpectMagenta, rgbIllum2SpectYellow, rgbIllum2SpectRed, rgbIllum2SpectGreen, rgbIllum2SpectBlue = make_spectral_constants()
+
 include("primitive.jl")
 include("interactions.jl")
 include("transformations.jl")
@@ -71,6 +97,7 @@ include("materials/plastic.jl")
 include("materials/mirror.jl")
 include("materials/substrate.jl")
 include("materials/glass.jl")
+include("materials/metal.jl")
 include("textures/constant.jl")
 include("textures/image.jl")
 include("textures/procedural.jl")
@@ -95,7 +122,6 @@ include("integrators/bdpt.jl")
 include("integrators/bdpt_utils.jl")
 include("handy_prints.jl")
 include("obj_reader.jl")
-include("args.jl")
 include("scene_builder.jl")
 include("denoising/edge_avoiding_a_trous.jl")
 
@@ -188,7 +214,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     else
         logger = NullLogger()
         # io = open("log_$(now()).txt", "w+")
-        # logger = SimpleLogger(io, Logging.Error) # Error, Warn, Info, Debug        
+        # logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
     end
     global_logger(logger)
 

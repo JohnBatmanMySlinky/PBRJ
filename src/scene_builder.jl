@@ -113,8 +113,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             CornerProceduralTexture(
                 ceiling_floor_corner_alpha_mask_threshold,
-                Spectrum(1),
-                Spectrum(0),
+                spectrum_from_float(1.0),
+                spectrum_from_float(0.0),
             )
         )
         for tri in floor
@@ -137,13 +137,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 CircleProceduralTexture(
                     Pnt2(.5, .5),
                     ceiling_whole_size/foyer_dim,
-                    Spectrum(1),
-                    Spectrum(0)
+                    spectrum_from_float(1.0),
+                    spectrum_from_float(0.0)
                 ),
                 CornerProceduralTexture(
                     ceiling_floor_corner_alpha_mask_threshold,
-                    Spectrum(1),
-                    Spectrum(0),
+                    spectrum_from_float(1.0),
+                    spectrum_from_float(0.0),
                 )
             )
         )
@@ -242,12 +242,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         ################# Pillar Area Lights
         MULT = 5
-        yellow = Spectrum(1.0, 1.0, 0.0)
-        white = Spectrum(1.0, 1.0, 1.0)
-        blue = Spectrum(0.0, 0.0, 1.0)
-        red = Spectrum(1.0, 0.0, 0.0)
-        pink = Spectrum(1.0, 0.0, 1.0)
-        green = Spectrum(0.0, 1.0, 0.0)
+        yellow = spectrum_from_float(1.0, 1.0, 0.0)
+        white = spectrum_from_float(1.0, 1.0, 1.0)
+        blue = spectrum_from_float(0.0, 0.0, 1.0)
+        red = spectrum_from_float(1.0, 0.0, 0.0)
+        pink = spectrum_from_float(1.0, 0.0, 1.0)
+        green = spectrum_from_float(0.0, 1.0, 0.0)
         pillar_area_light_spec = Tuple{Pnt2, Pnt2, Float64, Int64, Spectrum, Bool}[
             (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), pillar_width_1+.5, 1, yellow, false),
             (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), pillar_width_1+.5, 1, white, false),
@@ -422,7 +422,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in hallway_light
             alight = DiffuseAreaLight(
-                Spectrum(5, 5, 5),
+                spectrum_from_float(5, 5, 5),
                 tri,
                 false
             )
@@ -524,7 +524,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # spot light
         spot_light = SpotLight(
             LookAt(Pnt3(0,5,9), Pnt3(-5, 2.75, 0), Vec3(0,-1,0)), 
-            Spectrum(1390.8113403320, 1180.6366500854, 1050.3887557983 ), 
+            spectrum_from_float(1390.8113403320, 1180.6366500854, 1050.3887557983 ), 
             30.0, 
             5.0
         )
@@ -539,7 +539,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # env_light = InfinteLight(
         #     world_bounds(bvh), 
         #     RotateY(125.0), 
-        #     Spectrum(1.5), 
+        #     spectrum_from_float(1.5), 
         #     "../ref/sky.exr"
         # )
         # push!(lights, env_light)
@@ -632,7 +632,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in alight
             tmp = DiffuseAreaLight(
-                Spectrum(5.0, 5.0, 5.0),
+                spectrum_from_float(5.0, 5.0, 5.0),
                 tri,
                 false # NOT two sided
             )
@@ -684,38 +684,39 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # MATERIALS
         mat_gray = Matte(
-            ConstantTexture(Vec3(.4, .4, .4)),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(spectrum_from_float(.4, .4, .4)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_white = Matte(
-            ConstantTexture(Vec3(1, 1, 1)),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_red = Matte(
-            ConstantTexture(Vec3(.9, 0.05, 0.05)),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(spectrum_from_float(.9, 0.05, 0.05)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_blue = Matte(
-            ConstantTexture(Vec3(0.05, 0.05, .9)),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(spectrum_from_float(0.05, 0.05, .9)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_green = Matte(
-            ConstantTexture(Vec3(0.05, 0.9, 0.05)),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(spectrum_from_float(0.05, 0.9, 0.05)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_ball = Substrate(
-            ConstantTexture(Spectrum(0.0, .5, .6)), # kd
-            ConstantTexture(Pnt3(.15, .15, .15)), # ks
-            ConstantTexture(Pnt3(.003, .003, .003)), # u
-            ConstantTexture(Pnt3(.003, .003, .003)), # v
+            ConstantTexture(spectrum_from_float(0.0, .5, .6)), # kd
+            ConstantTexture(spectrum_from_float(.15, .15, .15)), # ks
+            ConstantTexture(spectrum_from_float(.003, .003, .003)), # u
+            ConstantTexture(spectrum_from_float(.003, .003, .003)), # v
             true, # remap
             nothing,
         )
+        mat_metal = Metal()
 
         # instantiate objects
         identity_shape_core = ShapeCore(
@@ -796,7 +797,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in ceiling_light
             alight = DiffuseAreaLight(
-                Spectrum(20.0, 20.0, 20.0),
+                spectrum_from_float(20.0, 20.0, 20.0, Illuminant),
                 tri,
                 false # NOT two sided
             )
@@ -836,7 +837,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ),
             50.0
         )
-        push!(primitives, Primitive(sphere, mat_blue, nothing))
+        push!(primitives, Primitive(sphere, mat_metal, nothing))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -847,7 +848,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # env_light = InfinteLight(
         #     world_bounds(bvh), 
         #     Translate(Vec3(0,0,0)), 
-        #     Spectrum(1, 1, 1), 
+        #     spectrum_from_float(1, 1, 1), 
         #     "../ref/parking_lot.jpg"
         # )
         # push!(lights, env_light)
@@ -873,7 +874,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 
         # Instantiate a Sampler
-        S = StratifiedSampler(parsed_args["samples-per-pixel"], true)
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
         print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene

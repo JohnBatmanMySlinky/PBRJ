@@ -48,7 +48,7 @@ function power(il::InfinteLight)::Float64
     y, x = size(il.map)
     u = _uv_map(0.5, x)
     v = _uv_map(0.5, y)
-    return pi .* il.world_radius .* il.world_radius .* Spectrum(il.map[v, u]) .* il.I
+    return pi .* il.world_radius .* il.world_radius .* spectrum_from_float(il.map[v, u]) .* il.I
 end
 
 function le(il::InfinteLight, ray::AbstractRay)::Spectrum
@@ -58,14 +58,14 @@ function le(il::InfinteLight, ray::AbstractRay)::Spectrum
     t = spherical_theta(w) / pi
     new_s = _uv_map(t, x)
     new_t = _uv_map(s, y)
-    l = Spectrum(il.map[new_t, new_s])
+    l = spectrum_from_float(il.map[new_t, new_s])
     return l * il.I
 end
 
 function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     # Find $(u,v)$ sample coordinates in infinite light texture
     uv, map_pdf = sample_continuous(il.pdf, uvu)
-    (map_pdf == 0) && return Spectrum(0), Vec3(0), 0.0, VisibilityTester(Interaction(), Interaction()), Pnt3(0), Nml3(0)
+    (map_pdf == 0) && return spectrum_from_float(0.0), Vec3(0), 0.0, VisibilityTester(Interaction(), Interaction()), Pnt3(0), Nml3(0)
 
     # Convert infinite light sample point to direction
     theta = uv.y * pi
@@ -84,7 +84,7 @@ function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple
     y, x = size(il.map)
     new_u = _uv_map(uv.x, x)
     new_v = _uv_map(uv.y, y)
-    radiance = Spectrum(il.map[new_v, new_u]) * il.I
+    radiance = spectrum_from_float(il.map[new_v, new_u]) * il.I
 
     # visibility
     visibility = VisibilityTester(
@@ -118,7 +118,7 @@ function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
     # compute direction for infinite light sample ray
     # find uv coordinates in infinite light texture
     uv, map_pdf = sample_continuous(light.pdf, u1)
-    (map_pdf == 0.0) && return Spectrum(0.0), RayDifferential(Ray()), Nml3(0), 0.0, 0.0
+    (map_pdf == 0.0) && return spectrum_from_float(0.0), RayDifferential(Ray()), Nml3(0), 0.0, 0.0
 
     theta = uv.y * pi
     phi = uv.x * 2.0 * pi
@@ -143,7 +143,7 @@ function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
     y, x = size(light.map)
     new_u = _uv_map(uv.x, x)
     new_v = _uv_map(uv.y, y)
-    l = Spectrum(light.map[new_v, new_u])
+    l = spectrum_from_float(light.map[new_v, new_u])
     return l * light.I, ray, n_light, pdf_pos, pdf_dir
 end
 

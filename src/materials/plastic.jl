@@ -17,11 +17,11 @@ function (p::Plastic)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tran
     
     # initialize diffuse component of plastic material
     si.bsdf = BSDF(si)
-    kd = Spectrum(clamp.(p.Kd(si),0,1)...)
+    kd = spectrum_from_float(clamp.(p.Kd(si),0,1)...)
     add!(si.bsdf, LambertianReflection(kd))
 
     # initialize specular component of plastic material
-    ks = Spectrum(clamp.(p.Ks(si),0,1)...)
+    ks = spectrum_from_float(clamp.(p.Ks(si),0,1)...)
     fresnel = FresnelDielectric(1.0, 1.5)
     rough = mean(p.roughness(si))
     if p.remap_roughness

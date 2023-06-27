@@ -225,7 +225,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
                 nothing,
                 nothing
             )
-        if tri.mesh.alpha_mask(si) == Spectrum(1, 1, 1)
+        if tri.mesh.alpha_mask(si) == spectrum_from_float(1, 1, 1)
             return false, 0.0, si
         end
     end

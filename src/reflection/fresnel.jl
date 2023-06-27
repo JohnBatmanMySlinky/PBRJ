@@ -5,9 +5,9 @@
 ############################################################
 
 struct FresnelConductor{S <: Spectrum} <: Fresnel
-    eta_i::Spectrum
-    eta_t::Spectrum
-    k::Spectrum
+    eta_i::S
+    eta_t::S
+    k::S
 end
 
 function(f::FresnelConductor)(cos_theta_i::Float64) 
@@ -79,7 +79,7 @@ struct FresnelNoOp <: Fresnel
 end
 
 function (f::FresnelNoOp)(::Float64)
-    return Spectrum(1,1,1)
+    return spectrum_from_float(1,1,1)
 end
 
 
@@ -99,15 +99,15 @@ struct FresnelBlend <: AbstractBxDF
 end
 
 function SchlickFresnel(Rs::Spectrum, cos_theta::Float64)
-    return Rs + (Spectrum(1,1,1)-Rs)*(1-cos_theta)^5
+    return Rs + (spectrum_from_float(1,1,1)-Rs)*(1-cos_theta)^5
 end
 
 function f(f::FresnelBlend, wo::Vec3, wi::Vec3)
-    diffuse = Spectrum((28 / (23pi)) * f.Rd * (Spectrum(1)-f.Rs) * (1-(1-abs_cos_theta(wi)/2)^5) * (1-(1-abs_cos_theta(wo)/2)^5))
+    diffuse = spectrum_from_float((28 / (23pi)) * f.Rd * (spectrum_from_float(1.0)-f.Rs) * (1-(1-abs_cos_theta(wi)/2)^5) * (1-(1-abs_cos_theta(wo)/2)^5))
     wh = wi + wo
-    (wh.x==0)&&(wh.y==0)&&(wh.z==0) && return Spectrum(0)
+    (wh.x==0)&&(wh.y==0)&&(wh.z==0) && return spectrum_from_float(0.0)
     wh = normalize(wh)
-    specular = Spectrum(D(f.distrib, wh) / (4 * abs(dot(wi,wh)) * max(abs_cos_theta(wo), abs_cos_theta(wi))) * SchlickFresnel(f.Rs, dot(wi, wh)))
+    specular = spectrum_from_float(D(f.distrib, wh) / (4 * abs(dot(wi,wh)) * max(abs_cos_theta(wo), abs_cos_theta(wi))) * SchlickFresnel(f.Rs, dot(wi, wh)))
     return diffuse + specular
 end
 
@@ -128,7 +128,7 @@ struct FresnelSpecular <: AbstractBxDF
 end
 
 function f(s::FresnelSpecular, wo::Vec3, wi::Vec3)::Spectrum
-    return Spectrum(0.0)
+    return spectrum_from_float(0.0)
 end
 
 function sample_f(s::FresnelSpecular, wo::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
@@ -150,7 +150,7 @@ function sample_f(s::FresnelSpecular, wo::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec
         # compute ray direction for specular transmission
         check, wi = refact(wo, face_forward(Nml3(0,0,1), wo), etaI / etaT)
         if !check
-            return Vec3(0.0), Spectrum(0.0), 0.0, nothing
+            return Vec3(0.0), spectrum_from_float(0.0), 0.0, nothing
         end
         ft = s.TT * (1-F)
 

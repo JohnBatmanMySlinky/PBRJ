@@ -18,6 +18,10 @@ function parse_commandline()::Dict
             help = "samples per pixel"
             arg_type = Int
             default = 5
+        "--n-spectral-samples"
+            help = "number of spectral samples to be used in rendering. 3 == RGB, else == Spectral"
+            arg_type = Int
+            default = 3
         "--jitter"
             help = "for stratified sampler: do jitter"
             arg_type = Bool

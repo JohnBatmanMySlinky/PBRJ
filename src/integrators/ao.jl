@@ -5,7 +5,7 @@ struct AOIntegrator <: AbstractIntegrator
 end
 
 function li(cos_sample::Bool, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
-    L = Spectrum(0)
+    L = spectrum_from_float(0.0)
     isect = empty_surface_interation()
 
     while true

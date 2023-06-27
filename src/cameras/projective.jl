@@ -164,7 +164,7 @@ function we(camera::PerspectiveCamera, ray::AbstractRay)::Tuple{Spectrum, Pnt2}
     # interpolate camera matrix and check if w is forward facing
     # JOHN HACK no interpolation
     cos_theta = dot(ray.direction, camera.core.core.camera_to_world(Vec3(0,0,1)))
-    (cos_theta <= 0) && return Spectrum(0), Pnt2(0, 0)
+    (cos_theta <= 0) && return spectrum_from_float(0.0), Pnt2(0, 0)
 
     # map ray (p,w) onto the raster grid
     p_focus = at(ray, (camera.core.lens_radius > 0 ? camera.core.focal_distance : 1) / cos_theta)
@@ -176,14 +176,14 @@ function we(camera::PerspectiveCamera, ray::AbstractRay)::Tuple{Spectrum, Pnt2}
     # return zero importance for out of bound points
     sample_bounds = get_sample_bounds(camera.core.core.film)
     if (p_raster.x < sample_bounds.pMin.x) || (p_raster.x >= sample_bounds.pMax.x) || (p_raster.y < sample_bounds.pMin.y) || (p_raster.y >= sample_bounds.pMax.y)
-        return Spectrum(0), p_raster2
+        return spectrum_from_float(0.0), p_raster2
     end
     
     # compute lens area of perspective camera
     lens_area = camera.core.lens_radius != 0 ? (pi * camera.core.lens_radius ^ 2) : 1.0
 
     # return importance for point on image plane
-    return Spectrum(1/(camera.A * lens_area * cos_theta ^ 4)), p_raster2
+    return spectrum_from_float(1.0/(camera.A * lens_area * cos_theta ^ 4)), p_raster2
 end
 
 function pdf_we(camera::PerspectiveCamera, ray::AbstractRay)::Tuple{Float64, Float64}

@@ -19,7 +19,7 @@ struct DistantLight <: Light
 end
 
 function le(dl::DistantLight, ray::AbstractRay)::Spectrum
-    return Spectrum(0,0,0)
+    return spectrum_from_float(0,0,0)
 end
 function L(dl::DistantLight, n::Nml3, w::Vec3)::Spectrum
     return dl.L
