@@ -302,6 +302,7 @@ function save(film::Film, splat_scale::Float64 = 1.0)::Array{Float64}
             image[y, x, :] .*= film.scale
         end
     end
+    return image[end:-1:begin, :, :]
 end
 
 function save(film::PassFilm, splat_scale::Float64 = 1.0)::Array{Float64}

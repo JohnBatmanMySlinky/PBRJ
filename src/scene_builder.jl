@@ -857,7 +857,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         filter = BoxFilter(Pnt2(.1, .1))
 
         # Instantiate a Film
-        film = PassFilm(
+        film = Film(
             Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
             Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
             filter,
