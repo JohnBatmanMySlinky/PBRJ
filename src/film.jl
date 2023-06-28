@@ -20,7 +20,7 @@ mutable struct PassPixel
 
     # additional fields needed for edge avoiding a-trous filter
     albedo::XYZPBRT                 # albedo
-    depth::Float64                  # depth
+    depth::XYZPBRT                  # depth
     normal::XYZPBRT                 # normal
     position::XYZPBRT               # position
 
@@ -30,7 +30,7 @@ mutable struct PassPixel
             0.0,
             AtomicXYZPBRT(0.0, 0.0, 0.0),
             XYZPBRT(0.0, 0.0, 0.0),
-            0.0,
+            XYZPBRT(0.0, 0.0, 0.0),
             XYZPBRT(0.0, 0.0, 0.0),
             XYZPBRT(0.0, 0.0, 0.0)
         )
@@ -336,52 +336,39 @@ function save(film::PassFilm, splat_scale::Float64 = 1.0)::Array{Float64}
             ### albedo pass ###
             ###################
             image[2, y, x, :] .= XYZ_to_RGB(pixel.albedo)
-            # Normalize pixel with weight sum.
-            filter_weight_sum = pixel.filter_weight_sum
-            if filter_weight_sum != 0
-                image[2, y, x, :] .= max.(0, image[2, y, x, :] ./ filter_weight_sum)
-            end
 
             ##################
             ### depth pass ###
             ##################
-            image[3, y, x, :] .= RGBPBRT(pixel.depth, pixel.depth, pixel.depth)
-            # Normalize pixel with weight sum.
-            filter_weight_sum = pixel.filter_weight_sum
-            if filter_weight_sum != 0
-                image[3, y, x, :] .= max.(0, image[3, y, x, :] ./ filter_weight_sum)
-            end
+            image[3, y, x, :] .= XYZ_to_RGB(pixel.depth)
 
             ###################
             ### normal pass ###
             ###################
             image[4, y, x, :] .= XYZ_to_RGB(pixel.normal)
-            # Normalize pixel with weight sum.
-            filter_weight_sum = pixel.filter_weight_sum
-            if filter_weight_sum != 0
-                image[4, y, x, :] .= max.(0, image[4, y, x, :] ./ filter_weight_sum)
-            end
 
             #####################
             ### position pass ###
             #####################
             image[5, y, x, :] .= XYZ_to_RGB(pixel.position)
-            # Normalize pixel with weight sum.
-            filter_weight_sum = pixel.filter_weight_sum
-            if filter_weight_sum != 0
-                image[5, y, x, :] .= max.(0, image[5, y, x, :] ./ filter_weight_sum)
-            end
-
         end
     end
     # normalize depth and position pass to be [0,1]
     # also need make sure 0-1 not 1-0
-    for pass in [2,4]
-        max_depth = maximum(image[pass, :, :, :])
-        min_depth = minimum(image[pass, :, :, :])
-        image[pass, :, :, :] .-= max_depth
-        image[pass, :, :, :] ./= (min_depth - max_depth)
+    # depth
+    max_depth = maximum(image[2, :, :, :])
+    min_depth = minimum(image[2, :, :, :])
+    image[2, :, :, :] .-= max_depth
+    image[2, :, :, :] ./= (min_depth - max_depth)
+
+    # position
+    for dim in 1:3
+        max_depth = maximum(image[5, :, :, dim])
+        min_depth = minimum(image[5, :, :, dim])
+        image[5, :, :, dim] .-= max_depth
+        image[5, :, :, dim] ./= (min_depth - max_depth)
     end
+
     clamp!(image, 0.0, 1.0)
     return image[:, end:-1:begin, :, :]
 end

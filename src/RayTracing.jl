@@ -169,8 +169,10 @@ function render_scene()
             bdpt_pass,
             parsed_args["light-distribution-strategy"], 
         )
-        image = image[5, :, :, :]
-        # image = denoise(image, 1)
+        # for i in 1:5
+        #     FileIO.save(replace(I.camera.core.core.film.filename, ".png"=>"")*"_"*string(i)*".png", image[i, :, :, :])
+        # end
+        image = denoise(image, 1)
         image = clamp01nan.(image)
         if bdpt_pass == (-1,-1)
             FileIO.save(I.camera.core.core.film.filename, image)

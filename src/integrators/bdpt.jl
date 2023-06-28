@@ -50,21 +50,23 @@ function render(
                 camera_sample = get_camera_sample!(sampler, pixel)
 
                 # JOHN TODO Render pass hacking
-                if i.camera.core.core.film isa PassFilm
-                    ray, _ = generate_ray_differential(i.camera, camera_sample)
-                    scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
-                    check, t, interaction, = intersect!(scene.b, ray)
-                    if !check
-                        L = spectrum_from_float(0.0)
-                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].albedo = L
-                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].depth = 0.0
-                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].normal = L
-                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].position = L
-                    else
-                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].albedo = interaction.primitive.material.Kd(interaction)
-                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].depth = t
-                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].normal = spectrum_from_float(interaction.shading.n...)
-                        i.camera.core.core.film.pixels[Int(pixel.x), Int(pixel.y)].position = spectrum_from_float(interaction.core.p...)
+                if sample_index == 1
+                    if i.camera.core.core.film isa PassFilm
+                        ray, _ = generate_ray_differential(i.camera, camera_sample)
+                        scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
+                        check, t, interaction, = intersect!(scene.b, ray)
+                        if !check
+                            L = to_XYZ(spectrum_from_float(0.0))
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].albedo = L
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].depth = L
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].normal = L
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].position = L
+                        else
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].albedo = to_XYZ(interaction.primitive.material.Kd(interaction))
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].depth = to_XYZ(spectrum_from_float(t))
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].normal = to_XYZ(spectrum_from_float(interaction.shading.n...))
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].position = to_XYZ(spectrum_from_float(interaction.core.p...))
+                        end
                     end
                 end
 
