@@ -41,6 +41,7 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 # To do's
 - use y() and dont hack with mean
 - build in rendering passes natively
+    - don't just use 1 spp for rendering passes
 - Make sure I am sampling purley over the solid angle
 - Implement Metroplois Light Transport Integrator
 - Implement texture sampling and use those ray differentials
