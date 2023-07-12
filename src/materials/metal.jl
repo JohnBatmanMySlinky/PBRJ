@@ -15,7 +15,7 @@ struct Metal <: Material
         v_roughness::Maybe{Texture}=nothing,
         bump_map::Maybe{Texture}=nothing,
         remap_roughness::Bool=true
-    )::Glass
+    )::Metal
         return new(eta, k, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
     end
 end
