@@ -3,6 +3,7 @@ scene 1: munich re
 scene 2: plastic ball on plane
 scene 3: dragon
 scene 4: cornell box
+scene 5: soft bodies
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -884,6 +885,114 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate an Integrator
         I = BDPTIntegrator(C, S, parsed_args["max-depth"])
 
+        return I, scene
+    elseif parsed_args["scene-number"] == 5
+        primitives = Primitive[]
+        lights = Light[]
+
+        # MATERIALS
+        mat_gray = Matte(
+            ConstantTexture(spectrum_from_float(.4, .4, .4)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        mat_blue = Matte(
+            ConstantTexture(spectrum_from_float(0.05, 0.05, .9)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        mat_white = Matte(
+            ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+
+        # instantiate objects
+        identity_shape_core = ShapeCore(
+            Translate(Pnt3(0)),
+            Translate(Pnt3(0)),
+            false,
+            false
+        )
+        floor = Rectangle(
+            Pnt2(0, 0), 
+            Pnt2(555, 555), 
+            0.0,
+            2, 
+            identity_shape_core,
+            false,
+            nothing
+        )
+        for tri in floor
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
+        
+        ceiling_light = Rectangle(
+            Pnt2(213, 213), 
+            Pnt2(343, 343), 
+            554.0,
+            2, 
+            identity_shape_core,
+            true,
+            nothing
+        )
+        for tri in ceiling_light
+            alight = DiffuseAreaLight(
+                spectrum_from_float(30.0, 30.0, 30.0, Illuminant),
+                tri,
+                false # NOT two sided
+            )
+            push!(lights,alight)
+            push!(primitives, Primitive(tri, mat_white, alight))
+        end
+
+        sphere_transform = Translate(Pnt3(250,50,250))
+        sphere = Sphere(
+            ShapeCore(
+                sphere_transform,
+                Inv(sphere_transform),
+                false,
+                false
+            ),
+            50.0
+        )
+        push!(primitives, Primitive(sphere, mat_blue, nothing))
+
+        # instantiate accelerator
+        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives)
+        print("Done building BVH\n")
+
+        # Instantiate a Filter
+        filter = BoxFilter(Pnt2(.5, .5))
+
+        # Instantiate a Film
+        film = PassFilm(
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+            Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
+            filter,
+            1.0,
+            1.0,
+            parsed_args["file-name"]
+        )
+
+        # Instantiate a Camera
+        look_from = Pnt3(278, 278, -800)
+        look_at = Pnt3(278, 278, 0)
+        up = Vec3(0, -1, 0)
+        screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
+
+        # Instantiate a Sampler
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+        
+        # Instantiate Scene
+        print("There are " * num2str(length(lights)) * " lights in the scene\n")
+        scene = Scene(lights, bvh)
+        
+        # Instantiate an Integrator
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
         return I, scene
     else
         @assert false
