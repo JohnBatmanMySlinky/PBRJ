@@ -50,6 +50,16 @@ function orthonormal_basis(v::Vec3)::Tuple{Vec3, Vec3, Vec3}
     return v, v2, cross(v, v2)
 end
 
+# for implicit surface normal reverse engineering
+function orthonormal_basis(v::Nml3)::Tuple{Nml3, Vec3, Vec3}
+    if abs(v.x) > abs(v.y)
+        v2 = Vec3(-v.z, 0.0, v.x) / sqrt(v.x^2 + v.z^2)
+    else
+        v2 = Vec3(0.0, v.z, -v.y) / sqrt(v.y^2 + v.z^2)
+    end
+    return v, v2, Vec3(cross(v, v2)) # cross product is anti-commutative so need to be v * v2 then cast
+end
+
 function face_forward(n, v)::Nml3
     return dot(n, v) < 0.0 ? -n : n
 end
