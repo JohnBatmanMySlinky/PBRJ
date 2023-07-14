@@ -40,12 +40,72 @@ function f(soft_body::SoftBody, pp::RayTracing.Pnt3)::Float64
     return f_val
 end
 
+function normal(soft_body::SoftBody, p::Pnt3)::Vec3
+    e = .00001
+    return normalize(
+        Vec3(1, -1, -1) * f(soft_body, p + RayTracing.Vec3(e, -e, -e)) +
+        Vec3(-1, -1, 1) * f(soft_body, p + RayTracing.Vec3(-e, -e, e)) +
+        Vec3(-1, 1, -1) * f(soft_body, p + RayTracing.Vec3(-e, e, -e)) +
+        Vec3(1, 1, 1)   * f(soft_body, p + RayTracing.Vec3(e, e, e))
+    )
+end
+
+############ Now back to the PBRT stuff
+
 function ObjectBounds(s::SoftBody)::Bounds3
-    #TODO
+    # JOHN HACK: why is this is so ugly
+    return s.core.world_to_object(# WORLD SPACE
+
+        Bounds3(
+            Pnt3(
+                minimum(getfield.(s.ks, 1))-s.R,
+                minimum(getfield.(s.ks, 2))-s.R,
+                minimum(getfield.(s.ks, 3))-s.R,
+            ),
+            Pnt3(
+                maximum(getfield.(s.ks, 1))+s.R,
+                maximum(getfield.(s.ks, 2))+s.R,
+                maximum(getfield.(s.ks, 3))+s.R,
+            ),
+        )
+    )
 end
 
 function intersect(s::SoftBody, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
-    #TODO
+    # set up anonymous function for solver
+    tmp_solve = (x -> f(s, x, ray))
+
+    # solve
+    # HANDLE NO SOLUTIONS
+    # HOW TO SET BOUNDS
+    zeros = find_zeros(tmp_solve, 0.0, 100.0)
+
+    # WHAT HAPPENS IF T NEGATIVE
+    t = minimum(zeros)
+
+    # get intersection point
+    p = at(ray, t)
+
+    # get surface normal
+    n = normal(s, p)
+
+    # convert to dpdu & dpdv
+    n, dpdu, dpdv = orthonormal_basis(n)
+
+    # instantiate surface interaction
+    # TODO KLUDING AND HACKING HERE
+    interaction = InstantiateSurfaceInteraction(
+        p,
+        t,
+        -r.direction,
+        Pnt2(0.5, 0.5), # KLUDGE
+        dpdu, # HACK
+        dpdv, # HACK
+        Nml3(0.0), # KLUDGE
+        Nml3(0.0), # KLUDGE
+        s
+    )
+    return true, t, interaction
 end
 
 function intersect_p(s::SoftBody, r::AbstractRay)::Bool
