@@ -11,6 +11,7 @@ using ArgParse
 using Logging
 using Dates
 using OpenEXR
+using Roots
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
