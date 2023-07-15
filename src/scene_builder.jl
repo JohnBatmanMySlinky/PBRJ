@@ -946,17 +946,31 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(tri, mat_white, alight))
         end
 
-        sphere_transform = Translate(Pnt3(250,50,250))
-        sphere = Sphere(
-            ShapeCore(
-                sphere_transform,
-                Inv(sphere_transform),
-                false,
-                false
-            ),
-            50.0
+        # sphere_transform = Translate(Pnt3(250,50,250))
+        # sphere = Sphere(
+        #     ShapeCore(
+        #         sphere_transform,
+        #         Inv(sphere_transform),
+        #         false,
+        #         false
+        #     ),
+        #     50.0
+        # )
+        # push!(primitives, Primitive(sphere, mat_blue, nothing))
+        softy_t = Translate(Pnt3(250,10,250))
+        softy_core = ShapeCore(
+            softy_t,
+            Inv(softy_t),
+            false,
+            false
         )
-        push!(primitives, Primitive(sphere, mat_blue, nothing))
+        softy = SoftObject(
+            softy_core, 
+            [Pnt3(0.0)],
+            3.0,
+            0.5
+        )
+        push!(primitives, Primitive(softy, mat_blue, nothing))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -977,7 +991,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(278, 278, -800)
+        look_from = Pnt3(278, 800, -800)
         look_at = Pnt3(278, 278, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
