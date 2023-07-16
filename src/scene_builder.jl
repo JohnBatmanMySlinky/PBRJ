@@ -946,7 +946,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(tri, mat_white, alight))
         end
 
-        # sphere_transform = Translate(Pnt3(250,50,250))
+        # sphere_transform = Translate(Pnt3(277.5, 5, 277.5))
         # sphere = Sphere(
         #     ShapeCore(
         #         sphere_transform,
@@ -954,10 +954,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         #         false,
         #         false
         #     ),
-        #     50.0
+        #     10.0
         # )
         # push!(primitives, Primitive(sphere, mat_blue, nothing))
-        softy_t = Translate(Pnt3(250,10,250))
+
+        softy_t = Translate(Pnt3(227.5, 5, 277.5))
         softy_core = ShapeCore(
             softy_t,
             Inv(softy_t),
@@ -991,11 +992,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(278, 800, -800)
-        look_at = Pnt3(278, 278, 0)
+        look_from = Pnt3(0, 100, -50)
+        look_at = Pnt3(277.5, 0, 277.5)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 20.0, film)
 
         # Instantiate a Sampler
         S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])

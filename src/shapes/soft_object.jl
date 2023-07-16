@@ -3,14 +3,16 @@ struct SoftObject <: Shape
     ks::Vector{Pnt3} # world space
     R::Float64
     magic::Float64
+    world_diameter::Float64
     
     function SoftObject(
         core::ShapeCore, 
         ks::Vector{Pnt3}=[Pnt3(0.0)],
         R::Float64=3.0,
-        magic::Float64=0.5
+        magic::Float64=0.5,
+        world_diameter::Float64=300.0
     )
-        return new(core, ks, R, magic)
+        return new(core, ks, R, magic, world_diameter)
     end
 end
 
@@ -78,7 +80,10 @@ function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceI
     # solve
     # HANDLE NO SOLUTIONS
     # HOW TO SET BOUNDS
-    solutions = find_zeros(tmp_solve, 0.0, 1000.0)
+    approx_upper_bound = s.world_diameter / mean(r.direction)
+    solutions = find_zeros(tmp_solve, 0.0, approx_upper_bound)
+
+    @info "SoftObjectIntersection: ray: $(r), solutions: $(solutions)"
 
     if length(solutions) == 0
         return false, 0.0, empty_surface_interation()
@@ -86,10 +91,6 @@ function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceI
     
     # find intersection time
     t = minimum(solutions)
-
-    if t <= 0.0
-        return false, 0.0, empty_surface_interation()
-    end
 
     # get intersection point
     p = at(r, t)
@@ -121,21 +122,18 @@ function intersect_p(s::SoftObject, r::AbstractRay)::Bool
     tmp_solve = (x -> f(s, x, r))
 
     # solve
-    # HANDLE NO SOLUTIONS
     # HOW TO SET BOUNDS
-    solutions = find_zeros(tmp_solve, 0.0, 1000.0)
+    approx_upper_bound = s.world_diameter / mean(r.direction)
+    solutions = find_zeros(tmp_solve, 0.0, approx_upper_bound)
+
+    @info "SoftObjectIntersection: ray: $(r), solutions: $(solutions)"
 
     if length(solutions) == 0
-        return false, 0.0, empty_surface_interation()
+        return false
     end
-    
-    # find intersection time
-    t = minimum(solutions)
 
-    if t <= 0.0
-        return false, 0.0, empty_surface_interation()
-    end
-    @assert false
+    # ray tmax check
+    
     return true
 end
 
