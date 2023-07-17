@@ -56,24 +56,23 @@ end
 
 function ObjectBounds(s::SoftObject)::Bounds3
     # JOHN HACK: why is this is so ugly
-    return s.core.world_to_object(# WORLD SPACE
-
-        Bounds3(
-            Pnt3(
-                minimum(getfield.(s.ks, 1))-s.R,
-                minimum(getfield.(s.ks, 2))-s.R,
-                minimum(getfield.(s.ks, 3))-s.R,
-            ),
-            Pnt3(
-                maximum(getfield.(s.ks, 1))+s.R,
-                maximum(getfield.(s.ks, 2))+s.R,
-                maximum(getfield.(s.ks, 3))+s.R,
-            ),
-        )
+    return Bounds3(
+        Pnt3(
+            minimum(getfield.(s.ks, 1))-s.R,
+            minimum(getfield.(s.ks, 2))-s.R,
+            minimum(getfield.(s.ks, 3))-s.R,
+        ),
+        Pnt3(
+            maximum(getfield.(s.ks, 1))+s.R,
+            maximum(getfield.(s.ks, 2))+s.R,
+            maximum(getfield.(s.ks, 3))+s.R,
+        ),
     )
 end
 
 function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
+    r = s.core.world_to_object(r)
+
     # set up anonymous function for solver
     tmp_solve = (x -> f(s, x, r))
 
@@ -114,10 +113,12 @@ function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceI
         Nml3(0.0), # KLUDGE
         s
     )
-    return true, t, interaction
+    return true, t, s.core.object_to_world(interaction)
 end
 
 function intersect_p(s::SoftObject, r::AbstractRay)::Bool
+    r = s.core.world_to_object(r)
+
     # set up anonymous function for solver
     tmp_solve = (x -> f(s, x, r))
 

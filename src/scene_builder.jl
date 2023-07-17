@@ -915,8 +915,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false
         )
         floor = Rectangle(
-            Pnt2(0, 0), 
-            Pnt2(555, 555), 
+            Pnt2(-25, -25), 
+            Pnt2(25, 25), 
             0.0,
             2, 
             identity_shape_core,
@@ -928,9 +928,9 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
         
         ceiling_light = Rectangle(
-            Pnt2(213, 213), 
-            Pnt2(343, 343), 
-            554.0,
+            Pnt2(-65, -65), 
+            Pnt2(65, 65), 
+            100.0,
             2, 
             identity_shape_core,
             true,
@@ -946,19 +946,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(tri, mat_white, alight))
         end
 
-        # sphere_transform = Translate(Pnt3(277.5, 5, 277.5))
-        # sphere = Sphere(
-        #     ShapeCore(
-        #         sphere_transform,
-        #         Inv(sphere_transform),
-        #         false,
-        #         false
-        #     ),
-        #     10.0
-        # )
-        # push!(primitives, Primitive(sphere, mat_blue, nothing))
-
-        softy_t = Translate(Pnt3(227.5, 5, 277.5))
+        softy_t = Translate(Pnt3(0, 3, 0))
         softy_core = ShapeCore(
             softy_t,
             Inv(softy_t),
@@ -992,8 +980,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(0, 100, -50)
-        look_at = Pnt3(277.5, 0, 277.5)
+        look_from = Pnt3(30, 30, 30)
+        look_at = Pnt3(0, 0, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 20.0, film)
