@@ -79,10 +79,10 @@ function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceI
     # solve
     # HANDLE NO SOLUTIONS
     # HOW TO SET BOUNDS
-    approx_upper_bound = s.world_diameter / mean(r.direction)
+    approx_upper_bound = abs(s.world_diameter / mean(r.direction))
     solutions = find_zeros(tmp_solve, 0.0, approx_upper_bound)
 
-    @info "SoftObjectIntersection: ray: $(r), solutions: $(solutions)"
+    @info "SoftObjectIntersection: ray: $(r), solutions: $(solutions), approx_upper_bound: $(approx_upper_bound)"
 
     if length(solutions) == 0
         return false, 0.0, empty_surface_interation()
@@ -124,10 +124,10 @@ function intersect_p(s::SoftObject, r::AbstractRay)::Bool
 
     # solve
     # HOW TO SET BOUNDS
-    approx_upper_bound = s.world_diameter / mean(r.direction)
+    approx_upper_bound = abs(s.world_diameter / mean(r.direction))
     solutions = find_zeros(tmp_solve, 0.0, approx_upper_bound)
 
-    @info "SoftObjectIntersection: ray: $(r), solutions: $(solutions)"
+    @info "SoftObjectIntersection: ray: $(r), solutions: $(solutions), approx_upper_bound: $(approx_upper_bound)"
 
     if length(solutions) == 0
         return false
