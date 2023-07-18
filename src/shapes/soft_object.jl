@@ -98,6 +98,8 @@ function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceI
     # JOHN HACK WHY THE NEGATIVE
     n = -normal(s, p)
 
+    @info "SoftObjectIntersection: p: $(p), n: $(n)"
+
     # convert to dpdu & dpdv
     n, dpdu, dpdv = orthonormal_basis(n)
 
@@ -128,7 +130,7 @@ function intersect_p(s::SoftObject, r::AbstractRay)::Bool
     approx_upper_bound = abs(s.world_diameter / mean(r.direction))
     solutions = find_zeros(tmp_solve, 0.0, approx_upper_bound)
 
-    @info "SoftObjectIntersection: ray: $(r), solutions: $(solutions), approx_upper_bound: $(approx_upper_bound)"
+    @info "SoftObjectIntersectionTest: ray: $(r), solutions: $(solutions), approx_upper_bound: $(approx_upper_bound)"
 
     if length(solutions) == 0
         return false
