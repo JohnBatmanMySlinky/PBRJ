@@ -908,12 +908,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # instantiate objects
-        # identity_shape_core = ShapeCore(
-        #     Translate(Pnt3(0)),
-        #     Translate(Pnt3(0)),
-        #     false,
-        #     false
-        # )
+        identity_shape_core = ShapeCore(
+            Translate(Pnt3(0)),
+            Translate(Pnt3(0)),
+            false,
+            false
+        )
         # floor = Rectangle(
         #     Pnt2(-25, -25), 
         #     Pnt2(25, 25), 
@@ -927,24 +927,24 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         #     push!(primitives, Primitive(tri, mat_gray, nothing))
         # end
         
-        # ceiling_light = Rectangle(
-        #     Pnt2(-65, -65), 
-        #     Pnt2(65, 65), 
-        #     100.0,
-        #     2, 
-        #     identity_shape_core,
-        #     true,
-        #     nothing
-        # )
-        # for tri in ceiling_light
-        #     alight = DiffuseAreaLight(
-        #         spectrum_from_float(30.0, 30.0, 30.0, Illuminant),
-        #         tri,
-        #         false # NOT two sided
-        #     )
-        #     push!(lights,alight)
-        #     push!(primitives, Primitive(tri, mat_white, alight))
-        # end
+        ceiling_light = Rectangle(
+            Pnt2(-65, -65), 
+            Pnt2(65, 65), 
+            100.0,
+            2, 
+            identity_shape_core,
+            true,
+            nothing
+        )
+        for tri in ceiling_light
+            alight = DiffuseAreaLight(
+                spectrum_from_float(30.0, 30.0, 30.0, Illuminant),
+                tri,
+                false # NOT two sided
+            )
+            push!(lights,alight)
+            push!(primitives, Primitive(tri, mat_white, alight))
+        end
 
         softy_t = Translate(Pnt3(0, 0, 0))
         softy_core = ShapeCore(

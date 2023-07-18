@@ -95,7 +95,8 @@ function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceI
     p = at(r, t)
 
     # get surface normal
-    n = normal(s, p)
+    # JOHN HACK WHY THE NEGATIVE
+    n = -normal(s, p)
 
     # convert to dpdu & dpdv
     n, dpdu, dpdv = orthonormal_basis(n)
