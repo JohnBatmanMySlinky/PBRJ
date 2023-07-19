@@ -955,11 +955,14 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         softy = SoftObject(
             softy_core, 
-            [Pnt3(0.0)],
+            [Pnt3(1.70, 0.0, 0.0), Pnt3(-1.70, 0.0, 0.0)],
             3.0,
             0.5
         )
         push!(primitives, Primitive(softy, mat_blue, nothing))
+
+        # sphere = Sphere(softy_core, 3.0)
+        # push!(primitives, Primitive(sphere, mat_blue, nothing))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -980,7 +983,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(30, 30, 30)
+        look_from = Pnt3(0, 30, 30)
         look_at = Pnt3(0, 0, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))

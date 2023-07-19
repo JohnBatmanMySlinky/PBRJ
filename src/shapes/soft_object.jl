@@ -91,6 +91,10 @@ function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceI
     # find intersection time
     t = minimum(solutions)
 
+    if t > r.tMax
+        return false, 0.0, empty_surface_interation()
+    end
+
     # get intersection point
     p = at(r, t)
 
@@ -112,8 +116,8 @@ function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceI
         Pnt2(0.5, 0.5), # KLUDGE
         dpdu, # HACK
         dpdv, # HACK
-        Nml3(0.0), # KLUDGE
-        Nml3(0.0), # KLUDGE
+        Nml3(1.0, 0.0, 0.0), # KLUDGE
+        Nml3(0.0, 1.0, 0.0), # KLUDGE
         s
     )
     return true, t, s.core.object_to_world(interaction)
@@ -136,8 +140,11 @@ function intersect_p(s::SoftObject, r::AbstractRay)::Bool
         return false
     end
 
-    # ray tmax check
-    
+    t = minimum(solutions)
+
+    if t > r.tMax
+        return false
+    end    
     return true
 end
 
