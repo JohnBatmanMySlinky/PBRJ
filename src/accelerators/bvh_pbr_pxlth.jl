@@ -230,7 +230,7 @@ end
 #### Intersect with BVH
 #################################################
 
-function intersect!(bvh::BVH, ray::AbstractRay)
+function intersect!(bvh::BVH, ray::AbstractRay, shadow_ray::Bool=false)
     hit = false
     final_time = nothing
     interaction::Maybe{SurfaceInteraction} = nothing
@@ -250,7 +250,7 @@ function intersect!(bvh::BVH, ray::AbstractRay)
                 # Intersect ray with primitives in node.
                 for i in 0:ln.n_primitives - 1
                     tmp_hit, tmp_time, tmp_interaction = intersect!(
-                        bvh.primitives[ln.primitives_offset + i], ray,
+                        bvh.primitives[ln.primitives_offset + i], ray, shadow_ray
                     )
                     if tmp_hit
                         hit = tmp_hit

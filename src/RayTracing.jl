@@ -191,7 +191,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # set up logging
     if Sys.iswindows()
         logger = NullLogger()
-        # io = open("windows_log.txt", "w+")
+        # io = open("windows_log_softy.txt", "w+")
         # logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
     else
         # logger = NullLogger()

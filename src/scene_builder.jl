@@ -955,13 +955,16 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         softy = SoftObject(
             softy_core, 
-            [Pnt3(1.70, 0.0, 0.0), Pnt3(-1.70, 0.0, 0.0)],
+            [
+                Pnt3(1.70, 0.0, 0.0),
+                Pnt3(-1.70, 0.0, 0.0)
+            ],
             3.0,
             0.5
         )
         push!(primitives, Primitive(softy, mat_blue, nothing))
 
-        # sphere = Sphere(softy_core, 3.0)
+        sphere = Sphere(softy_core, 3.0)
         # push!(primitives, Primitive(sphere, mat_blue, nothing))
 
         # instantiate accelerator
@@ -973,7 +976,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         filter = BoxFilter(Pnt2(.5, .5))
 
         # Instantiate a Film
-        film = PassFilm(
+        film = Film(
             Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
             Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
             filter,
