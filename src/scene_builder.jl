@@ -914,18 +914,18 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         )
-        # floor = Rectangle(
-        #     Pnt2(-25, -25), 
-        #     Pnt2(25, 25), 
-        #     0.0,
-        #     2, 
-        #     identity_shape_core,
-        #     false,
-        #     nothing
-        # )
-        # for tri in floor
-        #     push!(primitives, Primitive(tri, mat_gray, nothing))
-        # end
+        floor = Rectangle(
+            Pnt2(-25, -25), 
+            Pnt2(25, 25), 
+            0.0,
+            2, 
+            identity_shape_core,
+            false,
+            nothing
+        )
+        for tri in floor
+            # push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
         
         ceiling_light = Rectangle(
             Pnt2(-65, -65), 
@@ -938,7 +938,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in ceiling_light
             alight = DiffuseAreaLight(
-                spectrum_from_float(30.0, 30.0, 30.0, Illuminant),
+                spectrum_from_float(2.0, 2.0, 2.0, Illuminant),
                 tri,
                 false # NOT two sided
             )

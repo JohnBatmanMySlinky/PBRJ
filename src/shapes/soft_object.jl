@@ -100,7 +100,7 @@ function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceI
 
     # get surface normal
     # JOHN HACK WHY THE NEGATIVE
-    n = -normal(s, p)
+    n = normal(s, p)
 
     @info "SoftObjectIntersection: p: $(p), n: $(n)"
 

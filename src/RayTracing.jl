@@ -171,10 +171,11 @@ function render_scene()
             bdpt_pass,
             parsed_args["light-distribution-strategy"], 
         )
-        for i in 1:5
-            FileIO.save(replace(I.camera.core.core.film.filename, ".png"=>"")*"_"*string(i)*".png", image[i, :, :, :])
-        end
         if I.camera.core.core.film isa PassFilm
+            for i in 1:5
+                FileIO.save(replace(I.camera.core.core.film.filename, ".png"=>"")*"_"*string(i)*".png", image[i, :, :, :])
+            end
+            
             image = denoise(image, 1)
         end
         
@@ -190,9 +191,9 @@ end
 if abspath(PROGRAM_FILE) == @__FILE__
     # set up logging
     if Sys.iswindows()
-        logger = NullLogger()
-        # io = open("windows_log_softy.txt", "w+")
-        # logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
+        # logger = NullLogger()
+        io = open("windows_log_softy.txt", "w+")
+        logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
     else
         # logger = NullLogger()
         io = open("log_$(now()).txt", "w+")
