@@ -3,16 +3,22 @@ struct SoftObject <: Shape
     ks::Vector{Pnt3} # world space
     R::Float64
     magic::Float64
-    world_diameter::Float64
+    bounding_sphere::Sphere
     
     function SoftObject(
         core::ShapeCore, 
         ks::Vector{Pnt3}=[Pnt3(0.0)],
         R::Float64=3.0,
-        magic::Float64=0.5,
-        world_diameter::Float64=300.0
+        magic::Float64=0.5
     )
-        return new(core, ks, R, magic, world_diameter)
+        # TODO 
+        # clean and make a simple sphere class
+        centroid = mean(ks)
+        radius = maximum(maximum(Pnt3[abs.(centroid-k) for k in ks]))+R
+        bounding_shere_t = Translate(centroid)
+        bounding_sphere_core = ShapeCore(bounding_shere_t, Inv(bounding_shere_t), false, false)
+        bounding_sphere = Sphere(bounding_sphere_core, radius)
+        return new(core, ks, R, magic, bounding_sphere)
     end
 end
 
@@ -40,6 +46,16 @@ function f(soft_object::SoftObject, pp::Pnt3)::Float64
         end
     end
     return f_val
+end
+
+function intersect_simple(s::Sphere, rr::AbstractRay)::Tuple{Bool, Float64, Float64}
+    rr = s.core.world_to_object(rr)
+
+    a = rr.direction.x^2 + rr.direction.y^2 + rr.direction.z^2
+    b = 2 * (rr.direction.x * rr.origin.x + rr.direction.y * rr.origin.y + rr.direction.z * rr.origin.z)
+    c = rr.origin.x^2 + rr.origin.y^2 + rr.origin.z^2- s.radius ^ 2
+
+    return solve_quadratic(a, b, c)
 end
 
 function normal(soft_object::SoftObject, p::Pnt3)::Vec3
@@ -71,18 +87,27 @@ function ObjectBounds(s::SoftObject)::Bounds3
 end
 
 function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
-    r = s.core.world_to_object(r)
-
     # set up anonymous function for solver
     tmp_solve = (x -> f(s, x, r))
 
-    # solve
-    # HANDLE NO SOLUTIONS
-    # HOW TO SET BOUNDS
-    approx_upper_bound = abs(s.world_diameter / mean(r.direction))
-    solutions = find_zeros(tmp_solve, 0.0, approx_upper_bound)
+    # intersect bounding sphere
+    check, t0, t1 = intersect_simple(s.bounding_sphere, r)
 
-    @info "SoftObjectIntersection: ray: $(r), solutions: $(solutions), approx_upper_bound: $(approx_upper_bound)"
+    # transform ray, note timing of this after the bounding sphere test
+    r = s.core.world_to_object(r)
+
+    # doesn't intersect sphere, NEXT
+    if !check
+        return false, 0.0, empty_surface_interation()
+    end
+
+    # TODO some checks t0 & t1 aren't negative?
+
+    # solve
+    # HOW TO SET BOUNDS
+    solutions = find_zeros(tmp_solve, 0.0, t1*1.1) # HACKY
+
+    @info "SoftObjectIntersectionTest: ray: $(r), solutions: $(solutions), bounding_sphere bounds: ($(t0/1.1), $(t1*1.1))"
 
     if length(solutions) == 0
         return false, 0.0, empty_surface_interation()
@@ -124,17 +149,28 @@ function intersect(s::SoftObject, r::AbstractRay)::Tuple{Bool, Float64, SurfaceI
 end
 
 function intersect_p(s::SoftObject, r::AbstractRay)::Bool
-    r = s.core.world_to_object(r)
-
+    # TODO add duplicate code a helper function
     # set up anonymous function for solver
     tmp_solve = (x -> f(s, x, r))
 
+    # intersect bounding sphere
+    check, t0, t1 = intersect_simple(s.bounding_sphere, r)
+
+    # transform ray, note timing of this after the bounding sphere test
+    r = s.core.world_to_object(r)
+
+    # doesn't intersect sphere, NEXT
+    if !check
+        return false, 0.0, empty_surface_interation()
+    end
+
+    # TODO some checks t0 & t1 aren't negative?
+
     # solve
     # HOW TO SET BOUNDS
-    approx_upper_bound = abs(s.world_diameter / mean(r.direction))
-    solutions = find_zeros(tmp_solve, 0.0, approx_upper_bound)
+    solutions = find_zeros(tmp_solve, 0.0, t1*1.1) # HACKY
 
-    @info "SoftObjectIntersectionTest: ray: $(r), solutions: $(solutions), approx_upper_bound: $(approx_upper_bound)"
+    @info "SoftObjectIntersectionTest: ray: $(r), solutions: $(solutions), bounding_sphere bounds: ($(t0/1.1), $(t1*1.1))"
 
     if length(solutions) == 0
         return false

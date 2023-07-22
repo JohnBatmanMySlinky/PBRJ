@@ -924,13 +924,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in floor
-            # push!(primitives, Primitive(tri, mat_gray, nothing))
+            push!(primitives, Primitive(tri, mat_gray, nothing))
         end
         
         ceiling_light = Rectangle(
-            Pnt2(-65, -65), 
-            Pnt2(65, 65), 
-            100.0,
+            Pnt2(-5, -5), 
+            Pnt2(5, 5), 
+            15.0,
             2, 
             identity_shape_core,
             true,
@@ -938,7 +938,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in ceiling_light
             alight = DiffuseAreaLight(
-                spectrum_from_float(2.0, 2.0, 2.0, Illuminant),
+                spectrum_from_float(1.5, 1.5, 1.5, Illuminant),
                 tri,
                 false # NOT two sided
             )
@@ -956,8 +956,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         softy = SoftObject(
             softy_core, 
             [
-                Pnt3(1.70, 0.0, 0.0),
-                Pnt3(-1.70, 0.0, 0.0)
+                Pnt3(1.70, 3.0, 0.0),
+                Pnt3(-1.70, 3.0, 0.0)
             ],
             3.0,
             0.5

@@ -87,3 +87,27 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 - Based on [Physically Based Rendering: From Theory to Implementation by Matt Pharr, Wenzel Jakob, and Greg Humphreys](https://www.pbr-book.org/).
 - [This implementation of PBRT in Julia](https://github.com/pxl-th/Trace.jl) repo has been an invaluable reference.
 - [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
+
+
+# Metaball learnings
+- Implicit, Explicit, Parametric surfaces
+    - I liked how this paper drove home why it is a single variable problem: https://graphicsinterface.org/wp-content/uploads/gi1990-8.pdf
+    - this article had the lovely normal hack. http://rodolphe-vaillant.fr/entry/87/normal-to-an-implicit-surface
+    - this article's 2d examples made things click a lot: http://www.geisswerks.com/ryan/BLOBS/blobs.html
+    - stick some math in here
+- How to fit into PBRT.
+    - Easy (if we assume they cannot be emmissive). We only need the two following methods.
+        - Intersect (+ IntersectP)
+        - ObjectBounds
+    - Intersect is also made easy if we assume that they surface will not be UV textured. Because our surface interaction really just needs p, t, n at it's core (pun intended)
+    - Normals can be approximated via (INIGO QUILEZ + French guy).
+    - The actual ray object intersection is the fun part. 
+- Ray object intersection
+    - Naive algorithm. Use a generic Solver library to calculate at what t, our ray will intersect the surface of the metaball. This is a pretty straightforward single variable root finding problem.
+    - My first catch was that using that generic Solvier library wasn't so easy. 
+    - I needed to define bounds in which the ray intersection could exist. My initial heuristic was to get an upper bound on my solution space by looking at my world radius and using a mean magnitude of the ray distance vector. 
+    - This wasn't good enough. 
+    - Second move was the calculate a bounding sphere of our metaball, re-use sphere intersection code and use the solutions to the bounding sphere -ray intersection as bounds for the metaball root solve.
+    - now i have something that 'works' lets do some test renders
+        - number of balls
+        - more reflective material
