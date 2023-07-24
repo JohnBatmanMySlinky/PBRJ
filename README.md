@@ -111,3 +111,13 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
     - now i have something that 'works' lets do some test renders
         - number of balls
         - more reflective material
+    - my guess is that is going to be slow because intersection grows linearly with # of balls. let's use the idea that some balls are far away and will never influence the f().
+        - first BVH idea
+            - create BVH of balls
+            - shoot ray all the way through the BVH until you don't hit any more balls. 
+            - every ball that is hit, could be active
+                - we can prune at the end. we will see the closest hit and then can remove balls too far away
+                    - !! Need to be careful, our tree doesnt guarantee first hit is closest... i think
+            - with active balls, go about your normal business
+        - second BVH idea 
+            - ray tracing gems 2 approach with inner and outer bounding spheres
