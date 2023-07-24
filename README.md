@@ -92,29 +92,32 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 # Metaball learnings
 - Implicit Surfaces
     - Some math
-        - Definitions to start
+        - Definitions to start (because notation is hard.)
             - $\bm{p}$ represents a vector. In our case, most likely a point in 3d space with components $p_x, p_y, p_z$
-            - $||\bm{p}||$ represents the **norm** of that vector. Component wise, this looks like $\sqrt{p_x^2 + p_y^2 + p_z^2}$
+            - $||\bm{p}||$ represents the **norm** of that vector. Component wise, this looks like $\sqrt{p_x^2 + p_y^2 + p_z^2}$. It's *like* a distance.
         - An implicit surface takes the form $F(\bm{p}) = 0$
             - where $F$ is a function 
-            - where $\bm{p}$ is a point in space
-            - $\bm{p}$ is on the surface if and only if $F(\bm{p})=0$. 
+            - where $\bm{p}$ is a point in space. We can say $\bm{p}$ is on the surface if and only if $F(\bm{p})=0$. 
         - This formulation makes it easy to test if $\bm{p}$ is on the surface, however this representation gives you no way to systematicaly generate consecutive points on the surface. 
-        - Let's apply this framework and math to a sphere. 
+    - Spheres
+        - Let's apply this framework, notation, and math to a sphere. 
             - Equation for a sphere: $\bm{p}^2-r^2 = 0$ where $r$ is the radius. 
-            - Expanding vector notation: $\bm{p}^2$ = $p_x^2 + p_y^2 + p_z^2$ gives us $p_x^2 + p_y^2 + p_z^2 - r^2 = 0$
-        - Now let's introduce the ray and construct the ray intersection test math. 
-            - Let's parameterize our ray as a function of time, an origin and a direction: $r(t) = \bm{p} = \bm{o} + t * \bm{d}$
+            - Expanding vector notation: $\bm{p}^2$ = $p_x^2 + p_y^2 + p_z^2$ gives us $p_x^2 + p_y^2 + p_z^2 - r^2 = 0$. Looks familiar, nice.
+        - Now let's introduce the ray and construct the ray-sphere intersection test math. 
+            - Let's parameterize our ray as a function of time, an origin and a direction: $r(t) = \bm{p} = \bm{o} + t * \bm{d}$ where we know the origin and direction and time is really the only variable.
             - Expanding vector notation: $r(t) = \bm{p} = (o_x + t * d_x) + (o_ + t * d_y) + (o_z + t * d_z)$
-        - So our ray defines a point $\bm{p}$ as a function of time. Subbing in our equation for a sphere gives us
-            - $(o_x + t * d_x)^2 + (o_y + t * d_y)^2 + (o_z + t * d_z)^2 - r^2 = 0$
-            - Which now is an equation with **one unknown** $t$ that we can easily solve for. When you expand terms you will more clearly see that this is a nice quadratic to which we can apply the quadratic formula or use a more generic root finding algorithm.
+        - So our ray defines a point $\bm{p}$ as a function of time. Subbing in our equation for a sphere gives us $(o_x + t * d_x)^2 + (o_y + t * d_y)^2 + (o_z + t * d_z)^2 - r^2 = 0$. Which now is an equation with **one unknown** $t$ that we can easily solve for. When you expand terms you will more clearly see that this is a nice quadratic to which we can apply the quadratic formula or use a more generic root finding algorithm.
             - I liked how this paper drove home why it is a single variable problem: https://graphicsinterface.org/wp-content/uploads/gi1990-8.pdf. PBRT was also helpful here.
         - https://people.computing.clemson.edu/~dhouse/courses/405/notes/implicit-parametric.pdf
     - Metaballs
-        - Now let's apply this framework to Metaballs. This was honestly a bit trickier for me. Just translation vernacular into one consistent basis was a challenge. 
+        - Now let's apply this framework to Metaballs. This was honestly a bit trickier for me. Just translation notation into one consistent basis was a challenge. 
         - I think it is important to keep in mind the core idea of Implicit Surfaces, they are a function of a point in 3d space. The surface is defined as the set of points where that function equals zero. 
-        - So the whole game is one of solving roots. Youre trying to find points in space that result in your function being zero, $F(\bm{p}) = 0$. And if your point $\bm{p}$ can be defined as $\bm{p} = r(t) = (o_x + t * d_x) + (o_ + t * d_y) + (o_z + t * d_z)$ then really it is about finding $t$ that result in $F(r(t)) = 0$
+        - So the whole game is one of solving roots. You're trying to find points in space that result in your function being zero, $F(\bm{p}) = 0$. And if your point $\bm{p}$ can be defined as $\bm{p} = r(t) = (o_x + t * d_x) + (o_ + t * d_y) + (o_z + t * d_z)$ then really it is about finding $t$ that result in $F(r(t)) = 0$
+        - How to parameterize a metaball? 
+            - Wyvill and Wyvill 1989a  use the following formulation
+                - $f_i(r_i) = -\frac{4}{9} * (\frac{r_i}{R})^6 + \frac{17}{9}*(\frac{r_i}{R})^4 - \frac{22}{9}*(\frac{r_i}{R})^2$ if $r_i \leq R $ else $f_i(r_i)=0$
+                - $F(r(t))=\sum{f_i(||r(t)-k_i||)}^n_{i=1}-\text{magic}=0$
+
         - this article's 2d examples made things click a lot: http://www.geisswerks.com/ryan/BLOBS/blobs.html
         
     
