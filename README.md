@@ -90,47 +90,57 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 
 
 # Metaball learnings
-- Implicit Surfaces
-    - Some math
-        - Definitions to start (because notation is hard.)
-            - $\bm{p}$ represents a vector. In our case, most likely a point in 3d space with components $p_x, p_y, p_z$
-            - $||\bm{p}||$ represents the **norm** of that vector. Component wise, this looks like $\sqrt{p_x^2 + p_y^2 + p_z^2}$. It's *like* a distance.
-        - An implicit surface takes the form $F(\bm{p}) = 0$
-            - where $F$ is a function 
-            - where $\bm{p}$ is a point in space. We can say $\bm{p}$ is on the surface if and only if $F(\bm{p})=0$. 
-        - This formulation makes it easy to test if $\bm{p}$ is on the surface, however this representation gives you no way to systematicaly generate consecutive points on the surface. 
-    - Spheres
-        - Let's apply this framework, notation, and math to a sphere. 
-            - Equation for a sphere: $\bm{p}^2-r^2 = 0$ where $r$ is the radius. 
-            - Expanding vector notation: $\bm{p}^2$ = $p_x^2 + p_y^2 + p_z^2$ gives us $p_x^2 + p_y^2 + p_z^2 - r^2 = 0$. Looks familiar, nice.
-        - Now let's introduce the ray and construct the ray-sphere intersection test math. 
-            - Let's parameterize our ray as a function of time, an origin and a direction: $r(t) = \bm{p} = \bm{o} + t * \bm{d}$ where we know the origin and direction and time is really the only variable.
-            - Expanding vector notation: $r(t) = \bm{p} = (o_x + t * d_x) + (o_ + t * d_y) + (o_z + t * d_z)$
-        - So our ray defines a point $\bm{p}$ as a function of time. Subbing in our equation for a sphere gives us $(o_x + t * d_x)^2 + (o_y + t * d_y)^2 + (o_z + t * d_z)^2 - r^2 = 0$. Which now is an equation with **one unknown** $t$ that we can easily solve for. When you expand terms you will more clearly see that this is a nice quadratic to which we can apply the quadratic formula or use a more generic root finding algorithm.
-            - I liked how this paper drove home why it is a single variable problem: https://graphicsinterface.org/wp-content/uploads/gi1990-8.pdf. PBRT was also helpful here.
-        - https://people.computing.clemson.edu/~dhouse/courses/405/notes/implicit-parametric.pdf
-    - Metaballs
-        - Now let's apply this framework to Metaballs. This was honestly a bit trickier for me. Just translation notation into one consistent basis was a challenge. 
-        - I think it is important to keep in mind the core idea of Implicit Surfaces, they are a function of a point in 3d space. The surface is defined as the set of points where that function equals zero. 
-        - So the whole game is one of solving roots. You're trying to find points in space that result in your function being zero, $F(\bm{p}) = 0$. And if your point $\bm{p}$ can be defined as $\bm{p} = r(t) = (o_x + t * d_x) + (o_ + t * d_y) + (o_z + t * d_z)$ then really it is about finding $t$ that result in $F(r(t)) = 0$
-        - How to parameterize a metaball? 
-            - Wyvill and Wyvill 1989a  use the following formulation
-                - $f_i(r_i) = -\frac{4}{9} * (\frac{r_i}{R})^6 + \frac{17}{9}*(\frac{r_i}{R})^4 - \frac{22}{9}*(\frac{r_i}{R})^2$ if $r_i \leq R $ else $f_i(r_i)=0$
-                - $F(r(t))=\sum{f_i(||r(t)-k_i||)}^n_{i=1}-\text{magic}=0$
+- Before we talk about surfaces and use any real mathemetical notation, I want to talk about functions. 
+    - The function [f(x,y,z) = x^2 + y^2 + z^2] will have a value of zero at the origin, and for 
+any other point, its value will be the distance from the origin.  Therefore the isosurface 
+created by this function (when you take the output vs. a threshold value) will create a 
+beautiful, perfect sphere.  (The radius of the sphere is the square root of the threshold.)  
+        - http://www.geisswerks.com/ryan/BLOBS/blobs.html
+    - So think about that, a function of x,y,z will return a value at any point, nothing is stopping you from plugging in any value of x, y, or z. This function only becomes the implicit surface of a sphere when you threshold it. 
+    - This image represents a bunch of points with various strengths. This is the output of the above function, brightness is a function of distance. 
+    - It is the act of thresholding when $f(x,y,z) < magic$ --> 1 else 0. That turns it into an image we would want to ray trace. 
+    - That's all an implicit surface is!
+    - In PBRT terms, that means our intersect method is shooting a ray and finding if it passes through a point that is a solution to our thresholding problem. Another way to think about this, is as a root finding exercise. 
+    - With that in mind, our function need not be a sphere! it not even really look like a sphere.
+    - With the below framework we could implement things like torus' or arbitrary 3d functions.
+    - It turns out that while easy to formulate, this problem of finding points along a ray that satisfy our implicit surface equality is hard to solve robustly and efficiently.
+- Some math
+    - Definitions to start (because notation is hard.)
+        - $\bm{p}$ represents a vector. In our case, most likely a point in 3d space with components $p_x, p_y, p_z$
+        - $||\bm{p}||$ represents the **norm** of that vector. Component wise, this looks like $\sqrt{p_x^2 + p_y^2 + p_z^2}$. It's *like* a distance.
+    - An implicit surface takes the form $F(\bm{p}) = 0$
+        - where $F$ is a function 
+        - where $\bm{p}$ is a point in space. We can say $\bm{p}$ is on the surface if and only if $F(\bm{p})=0$. 
+    - This formulation makes it easy to test if $\bm{p}$ is on the surface, however this representation gives you no way to systematicaly generate consecutive points on the surface. 
+- Spheres
+    - Let's apply this framework, notation, and math to a sphere. 
+        - Equation for a sphere: $\bm{p}^2-r^2 = 0$ where $r$ is the radius. 
+        - Expanding vector notation: $\bm{p}^2$ = $p_x^2 + p_y^2 + p_z^2$ gives us $p_x^2 + p_y^2 + p_z^2 - r^2 = 0$. Looks familiar, nice.
+    - Now let's introduce the ray and construct the ray-sphere intersection test math. 
+        - Let's parameterize our ray as a function of time, an origin and a direction: $r(t) = \bm{p} = \bm{o} + t * \bm{d}$ where we know the origin and direction and time is really the only variable.
+        - Expanding vector notation: $r(t) = \bm{p} = (o_x + t * d_x) + (o_ + t * d_y) + (o_z + t * d_z)$
+    - So our ray defines a point $\bm{p}$ as a function of time. Subbing in our equation for a sphere gives us $(o_x + t * d_x)^2 + (o_y + t * d_y)^2 + (o_z + t * d_z)^2 - r^2 = 0$. Which now is an equation with **one unknown** $t$ that we can easily solve for. When you expand terms you will more clearly see that this is a nice quadratic to which we can apply the quadratic formula or use a more generic root finding algorithm.
+        - I liked how this paper drove home why it is a single variable problem: https://graphicsinterface.org/wp-content/uploads/gi1990-8.pdf. PBRT was also helpful here.
+    - https://people.computing.clemson.edu/~dhouse/courses/405/notes/implicit-parametric.pdf
+- Metaballs
+    - Now let's apply this framework to Metaballs. This was honestly a bit trickier for me. Just translation notation into one consistent basis was a challenge. 
+    - I think it is important to keep in mind the core idea of Implicit Surfaces, they are a function of a point in 3d space. The surface is defined as the set of points where that function equals zero. 
+    - So the whole game is one of solving roots. You're trying to find points in space that result in your function being zero, $F(\bm{p}) = 0$. And if your point $\bm{p}$ can be defined as $\bm{p} = r(t) = (o_x + t * d_x) + (o_ + t * d_y) + (o_z + t * d_z)$ then really it is about finding $t$ that result in $F(r(t)) = 0$
+    - How to parameterize a metaball? 
+        - Wyvill and Wyvill 1989a  use the following formulation
+            - $f_i(r_i) = -\frac{4}{9} * (\frac{r_i}{R})^6 + \frac{17}{9}*(\frac{r_i}{R})^4 - \frac{22}{9}*(\frac{r_i}{R})^2$ if $r_i \leq R $ else $f_i(r_i)=0$
+            - $F(r(t))=\sum{f_i(||r(t)-k_i||)}^n_{i=1}-\text{magic}=0$
 
-        - this article's 2d examples made things click a lot: http://www.geisswerks.com/ryan/BLOBS/blobs.html
-        
-    
-    
-    - this article had the lovely normal hack. http://rodolphe-vaillant.fr/entry/87/normal-to-an-implicit-surface
-    
-    - stick some math in here
+
+- this article had the lovely normal hack. 
+
 - How to fit into PBRT.
     - Easy (if we assume they cannot be emmissive). We only need the two following methods.
         - Intersect (+ IntersectP)
         - ObjectBounds
     - Intersect is also made easy if we assume that they surface will not be UV textured. Because our surface interaction really just needs p, t, n at it's core (pun intended)
-    - Normals can be approximated via (INIGO QUILEZ + French guy).
+    - Normals can be approximated via this black magic
+        - http://rodolphe-vaillant.fr/entry/87/normal-to-an-implicit-surface
     - The actual ray object intersection is the fun part. 
 - Ray object intersection
     - Naive algorithm. Use a generic Solver library to calculate at what t, our ray will intersect the surface of the metaball. This is a pretty straightforward single variable root finding problem.
@@ -151,3 +161,11 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
             - with active balls, go about your normal business
         - second BVH idea 
             - ray tracing gems 2 approach with inner and outer bounding spheres
+
+# Metaballs TODO
+- Test out how bad this scales
+- break out balls into their own shapes with key point level parameters then have MetaBalls be a container of Balls
+- meta ball BVH
+- Blending materials and colors
+- ellipsoid balls
+- negative balls

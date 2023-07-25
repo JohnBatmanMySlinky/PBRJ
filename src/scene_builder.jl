@@ -953,11 +953,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         )
+        asdf = 3.8
         softy = SoftObject(
             softy_core, 
             [
-                Pnt3(1.70, 3.0, 0.0),
-                Pnt3(-1.70, 3.0, 0.0)
+                Pnt3(asdf/2,  3.0, 0.0),
+                Pnt3(-asdf/2, 3.0, 0.0),
+                Pnt3(0.0,     3.0, sqrt(asdf^2 - (asdf/2)^2))
             ],
             3.0,
             0.5
@@ -986,7 +988,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(0, 30, 30)
+        look_from = Pnt3(0, 40, 30)
         look_at = Pnt3(0, 0, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
