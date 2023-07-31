@@ -132,7 +132,7 @@ const DO_MIS_WEIGHT = true
 
 # specify (s,t) combinations to save off intermediate stages. 
 # (-1,-1) should result in a normal full render
-const BDPT_STAGES = [
+const BDPT_STAGES = Tuple{Int64, Int64}[
     (-1,-1),
     # (0,2),
 

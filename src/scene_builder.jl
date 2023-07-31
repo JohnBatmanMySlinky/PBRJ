@@ -953,37 +953,18 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         )
-        # asdf = 3.8
-        # softy = MetaBalls(
-        #     softy_core, 
-        #     [
-        #         Pnt3(asdf/2,  3.0, 0.0),
-        #         Pnt3(-asdf/2, 3.0, 0.0),
-        #         Pnt3(0.0,     3.0, sqrt(asdf^2 - (asdf/2)^2))
-        #     ],
-        #     3.0,
-        #     0.5
-        # )
-        ks = Pnt3[]
-        for x in 1:6
-            for z in 1:6
-                d = 12.0
-                xx = d*rand()-d/2
-                zz = d*rand()-d/2
-                yy = 2*rand()+2
-                push!(ks, Pnt3(xx, yy, zz))
-            end
-        end
+        asdf = 3.8
         meta_balls = MetaBalls(
             softy_core, 
-            ks,
+            [
+                Pnt3(asdf/2,  3.0, 0.0),
+                Pnt3(-asdf/2, 3.0, 0.0),
+                Pnt3(0.0,     3.0, sqrt(asdf^2 - (asdf/2)^2))
+            ],
             3.0,
             0.5
         )
         push!(primitives, Primitive(meta_balls, mat_blue, nothing))
-
-        sphere = Sphere(softy_core, 3.0)
-        # push!(primitives, Primitive(sphere, mat_blue, nothing))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

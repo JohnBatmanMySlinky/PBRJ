@@ -131,13 +131,18 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
     - Naive algorithm. Use a generic Solver library to calculate at what t, our ray will intersect the surface of the metaball. This is a pretty straightforward single variable root finding problem.
     - My first catch was that using that generic Solvier library wasn't so easy. 
     - I needed to define bounds in which the ray intersection could exist. My initial heuristic to get an upper bound on my solution space by looking at my world radius and using a mean magnitude of the ray distance vector. Lower bound of $t=0.0$
-    - Apparently, this wasn't good enough. My root solver wasn't good enough and frequently wouldn't converge so I got images that looked like this...
-        - IMAGE HERE
+    - Apparently, this wasn't good enough. My root solver wasn't good enough and frequently wouldn't converge.
     - It was a real pain to diagnose this issue. My root solver is a 3rd party black box and it's not like I know which rays should intersect. I eventually logged all my rays, their intersection and validated some manually until I realized that sometimes (read; often) would have a ray that didn't intersect that my manual calculations indicate it should have.
     - Second move was to calculate a bounding sphere of our metaball, re-use sphere intersection code and use the solutions to the bounding sphere-ray intersection as bounds for the root solve.
     - Now i have something that 'works' enough that I can do some test renders
         - IMAGE HERE
     - my guess is that is going to be slow because intersection grows linearly with # of balls. yeah so I was right...
+        - `julia -t 4 RayTracing.jl --scene-number 5 --samples-per-pixel 4 --image-dim 150` on my personal mac not plugged in (if that matters)
+        - 1: 13s
+        - 9: 23s
+        - 49: 33s
+        - 100: 42s
+        - 484: 100s
     - Let's use the idea that some balls are far away and will never influence the f(). Extreme example
         - IMAGE HERE: balls in a line from left to right
         - if I hit the right most ball only, I still must evaluate f() at every key point. Lame.

@@ -97,7 +97,7 @@ function ObjectBounds(s::MetaBalls)::Bounds3
     )
 end
 
-# Due to the fact we are solving for t first, then proceeding, we can basically re-ruse all of intersect_p
+# Due to the fact we are solving for t first, then proceeding, we can basically re-ruse all of intersect_p in intersect
 # intersect_p just needs to return a bool instead of a float...
 function intersect_t(s::MetaBalls, r::AbstractRay)::Float64
     # set up anonymous function for solver
