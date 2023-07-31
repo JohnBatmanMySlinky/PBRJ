@@ -93,77 +93,64 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 
 
 # Metaball learnings
-- Before we talk about surfaces and use any real mathemetical notation, I want to talk about functions. 
-    - The function [f(x,y,z) = x^2 + y^2 + z^2] will have a value of zero at the origin, and for 
-any other point, its value will be the distance from the origin.  Therefore the isosurface 
-created by this function (when you take the output vs. a threshold value) will create a 
-beautiful, perfect sphere.  (The radius of the sphere is the square root of the threshold.)  
-        - http://www.geisswerks.com/ryan/BLOBS/blobs.html
-    - So think about that, a function of x,y,z will return a value at any point, nothing is stopping you from plugging in any value of x, y, or z. This function only becomes the implicit surface of a sphere when you threshold it. 
-    - This image represents a bunch of points with various strengths. This is the output of the above function, brightness is a function of distance. 
-    - It is the act of thresholding when $f(x,y,z) < magic$ --> 1 else 0. That turns it into an image we would want to ray trace. 
-    - That's all an implicit surface is!
-    - In PBRT terms, that means our intersect method is shooting a ray and finding if it passes through a point that is a solution to our thresholding problem. Another way to think about this, is as a root finding exercise. 
-    - With that in mind, our function need not be a sphere! it not even really look like a sphere.
-    - With the below framework we could implement things like torus' or arbitrary 3d functions.
-    - It turns out that while easy to formulate, this problem of finding points along a ray that satisfy our implicit surface equality is hard to solve robustly and efficiently.
-- Some math
+- To start, I want to talk about **Functions**. The function $f(x,y,z) = x^2 + y^2 + z^2$ takes in 3 numbers, $x, y, z$ and returns one number. Since I am only really interested in 3D rendering, let's equate these three numbers to a single point in space. Swithing to points let's re-write $f(p) = p_x^2 + p_y^2 + p_z^2$. Now the intuition is that for any point in 3D space, this function returns a single number. For instance at the origin $(0,0,0)$ this function returns $0$ and for any other point it returns the distance from the origin.
+- Functions are nice, but we want to render Shapes, aka Surfaces. One way to think about Surfaces, is as a collection of specific points (very 3D rendering view of the world here...). Functions return an unconstrained collection of points, where Surfaces are a collection of specific points. The trick to go from Functions to Surfaces is thresholding aka root finding. With our previous example, let's find the collection of points that is the solution to $f(p) = 0.5$ (0.5 being the threshold here). In this particular example the collection of points that is the solution to our constrained function is a sphere! I also like the note that this setup gives us a very easy check to determine if a point is in fact on the surface, but gives us zilch in terms of programmatic ways of finding those points that make up the surface.
+- I really like the following images because they made the idea that thresholding a continuous function turns it into a surface. 
+    - http://www.geisswerks.com/ryan/BLOBS/blobs.html
+
+- Let's introduce the Ray. Our ray is specified by an Origin and a Direction and when we give our Ray a time $t$, it will return a point. We will write $r(t) = o + t*d = p$ or equivalently and verbosely $p_x = o_x + t * d_x, \quad p_y = o_y + t * d_y, \quad p_z = o_z + t * d_z$. At the core of RayTracing, we shoot rays from our camera into a 3D world, find stuff they intersect with and evaluate the lighting at that 3D point. So we need to figure out where, in 3D space, our Ray will intersect our Surface. Turns out this is pretty easy and a univariate problem. If we have $r(t) = p$ and $f(p)=0.5$ then our problem is to find $f(r(t))=0.5$, again more verbosely, $(o_x + t*d_x)^2 + (o_y + t*d_y)^2 + (o_z + t*d_z)^2 = 0.5$ with our one unknown $t$. 
+    - I liked how this paper drove home why it is a single variable problem: https://graphicsinterface.org/wp-content/uploads/gi1990-8.pdf.
+    - PBRT was also helpful here.
+- Now it turns out that for this example we can find a closed form solution to the above problem, since it is quadratic. But what happens if our $f(p)$ ain't so nice? Well the problem is the same, find solutions to the equality, but we will have to use more general root finding algorithms.
+
+- In comes the MetaBall. 
     - Definitions to start (because notation is hard.)
-        - $\bm{p}$ represents a vector. In our case, most likely a point in 3d space with components $p_x, p_y, p_z$
-        - $||\bm{p}||$ represents the **norm** of that vector. Component wise, this looks like $\sqrt{p_x^2 + p_y^2 + p_z^2}$. It's *like* a distance.
-    - An implicit surface takes the form $F(\bm{p}) = 0$
-        - where $F$ is a function 
-        - where $\bm{p}$ is a point in space. We can say $\bm{p}$ is on the surface if and only if $F(\bm{p})=0$. 
-    - This formulation makes it easy to test if $\bm{p}$ is on the surface, however this representation gives you no way to systematicaly generate consecutive points on the surface. 
-- Spheres
-    - Let's apply this framework, notation, and math to a sphere. 
-        - Equation for a sphere: $\bm{p}^2-r^2 = 0$ where $r$ is the radius. 
-        - Expanding vector notation: $\bm{p}^2$ = $p_x^2 + p_y^2 + p_z^2$ gives us $p_x^2 + p_y^2 + p_z^2 - r^2 = 0$. Looks familiar, nice.
-    - Now let's introduce the ray and construct the ray-sphere intersection test math. 
-        - Let's parameterize our ray as a function of time, an origin and a direction: $r(t) = \bm{p} = \bm{o} + t * \bm{d}$ where we know the origin and direction and time is really the only variable.
-        - Expanding vector notation: $r(t) = \bm{p} = (o_x + t * d_x) + (o_ + t * d_y) + (o_z + t * d_z)$
-    - So our ray defines a point $\bm{p}$ as a function of time. Subbing in our equation for a sphere gives us $(o_x + t * d_x)^2 + (o_y + t * d_y)^2 + (o_z + t * d_z)^2 - r^2 = 0$. Which now is an equation with **one unknown** $t$ that we can easily solve for. When you expand terms you will more clearly see that this is a nice quadratic to which we can apply the quadratic formula or use a more generic root finding algorithm.
-        - I liked how this paper drove home why it is a single variable problem: https://graphicsinterface.org/wp-content/uploads/gi1990-8.pdf. PBRT was also helpful here.
+        - $||\bm{p}||$ represents the **norm** of that point. Component wise, this looks like $\sqrt{p_x^2 + p_y^2 + p_z^2}$. It's *like* a distance.
     - https://people.computing.clemson.edu/~dhouse/courses/405/notes/implicit-parametric.pdf
-- Metaballs
-    - Now let's apply this framework to Metaballs. This was honestly a bit trickier for me. Just translation notation into one consistent basis was a challenge. 
-    - I think it is important to keep in mind the core idea of Implicit Surfaces, they are a function of a point in 3d space. The surface is defined as the set of points where that function equals zero. 
-    - So the whole game is one of solving roots. You're trying to find points in space that result in your function being zero, $F(\bm{p}) = 0$. And if your point $\bm{p}$ can be defined as $\bm{p} = r(t) = (o_x + t * d_x) + (o_ + t * d_y) + (o_z + t * d_z)$ then really it is about finding $t$ that result in $F(r(t)) = 0$
     - How to parameterize a metaball? 
         - Wyvill and Wyvill 1989a  use the following formulation
             - $f_i(r_i) = -\frac{4}{9} * (\frac{r_i}{R})^6 + \frac{17}{9}*(\frac{r_i}{R})^4 - \frac{22}{9}*(\frac{r_i}{R})^2$ if $r_i \leq R $ else $f_i(r_i)=0$
             - $F(r(t))=\sum{f_i(||r(t)-k_i||)}^n_{i=1}-\text{magic}=0$
+            - Where there are $n$ key points $k_i$ in space (so 3D points) that parameterize the meta ball, think of these as the origins of the Balls.
+            - R is also a parameter that does something...
+        - For me, trying to visualize this hurts my brain. The sphere I can do, it is like a point light at the origin and it glows, and the glowing fades uniformly in 3D with space. But wtf is this?
+        - The lovely part is that it doesn't matter wtf this is. Just shoot some rays, see if they intersect and if they do calculate a normal then on to the next. Stop over thinking it. For now. 
 
 
-- this article had the lovely normal hack. 
+    - Normals
+        - normals can be empirically approximated using this black magic: http://rodolphe-vaillant.fr/entry/87/normal-to-an-implicit-surface
+        - though I suppose this is pretty easily derived by hand in this case. 
 
 - How to fit into PBRT.
     - Easy (if we assume they cannot be emmissive). We only need the two following methods.
         - Intersect (+ IntersectP)
         - ObjectBounds
     - Intersect is also made easy if we assume that they surface will not be UV textured. Because our surface interaction really just needs p, t, n at it's core (pun intended)
-    - Normals can be approximated via this black magic
-        - http://rodolphe-vaillant.fr/entry/87/normal-to-an-implicit-surface
     - The actual ray object intersection is the fun part. 
 - Ray object intersection
     - Naive algorithm. Use a generic Solver library to calculate at what t, our ray will intersect the surface of the metaball. This is a pretty straightforward single variable root finding problem.
     - My first catch was that using that generic Solvier library wasn't so easy. 
-    - I needed to define bounds in which the ray intersection could exist. My initial heuristic was to get an upper bound on my solution space by looking at my world radius and using a mean magnitude of the ray distance vector. 
-    - This wasn't good enough. 
-    - Second move was the calculate a bounding sphere of our metaball, re-use sphere intersection code and use the solutions to the bounding sphere -ray intersection as bounds for the metaball root solve.
-    - now i have something that 'works' lets do some test renders
-        - number of balls
-        - more reflective material
-    - my guess is that is going to be slow because intersection grows linearly with # of balls. let's use the idea that some balls are far away and will never influence the f().
-        - first BVH idea
-            - create BVH of balls
-            - shoot ray all the way through the BVH until you don't hit any more balls. 
-            - every ball that is hit, could be active
-                - we can prune at the end. we will see the closest hit and then can remove balls too far away
-                    - !! Need to be careful, our tree doesnt guarantee first hit is closest... i think
-            - with active balls, go about your normal business
-        - second BVH idea 
-            - ray tracing gems 2 approach with inner and outer bounding spheres
+    - I needed to define bounds in which the ray intersection could exist. My initial heuristic to get an upper bound on my solution space by looking at my world radius and using a mean magnitude of the ray distance vector. Lower bound of $t=0.0$
+    - Apparently, this wasn't good enough. My root solver wasn't good enough and frequently wouldn't converge so I got images that looked like this...
+        - IMAGE HERE
+    - It was a real pain to diagnose this issue. My root solver is a 3rd party black box and it's not like I know which rays should intersect. I eventually logged all my rays, their intersection and validated some manually until I realized that sometimes (read; often) would have a ray that didn't intersect that my manual calculations indicate it should have.
+    - Second move was to calculate a bounding sphere of our metaball, re-use sphere intersection code and use the solutions to the bounding sphere-ray intersection as bounds for the root solve.
+    - Now i have something that 'works' enough that I can do some test renders
+        - IMAGE HERE
+    - my guess is that is going to be slow because intersection grows linearly with # of balls. yeah so I was right...
+    - Let's use the idea that some balls are far away and will never influence the f(). Extreme example
+        - IMAGE HERE: balls in a line from left to right
+        - if I hit the right most ball only, I still must evaluate f() at every key point. Lame.
+    - first BVH idea
+        - I think the idea is to figure out the subset of key points which are **active** and only evaluate f() for that active subset. 
+        - create BVH of balls (AABB for each key point & it's R_i)
+        - shoot ray all the way through the BVH until you don't hit any more balls. 
+        - every ball that is hit, could be active
+            - we can prune at the end. we will see the closest hit and then can remove balls too far away
+                - !! Need to be careful, our tree doesnt guarantee first hit is closest... i think
+        - with active balls, go about your normal business
+    - second BVH idea 
+        - ray tracing gems 2 approach with inner and outer bounding spheres
 
 # Metaballs TODO
 - Test out how bad this scales

@@ -954,7 +954,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false
         )
         # asdf = 3.8
-        # softy = SoftObject(
+        # softy = MetaBalls(
         #     softy_core, 
         #     [
         #         Pnt3(asdf/2,  3.0, 0.0),
@@ -974,13 +974,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 push!(ks, Pnt3(xx, yy, zz))
             end
         end
-        softy = SoftObject(
+        meta_balls = MetaBalls(
             softy_core, 
             ks,
             3.0,
             0.5
         )
-        push!(primitives, Primitive(softy, mat_blue, nothing))
+        push!(primitives, Primitive(meta_balls, mat_blue, nothing))
 
         sphere = Sphere(softy_core, 3.0)
         # push!(primitives, Primitive(sphere, mat_blue, nothing))
