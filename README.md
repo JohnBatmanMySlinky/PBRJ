@@ -40,6 +40,9 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 
 # To do's
 - Implicit Surfaces
+- what are those cones and normals in pbrt?
+- sampling over the solid angle
+- light bvh?
 - use y() and dont hack with mean
 - build in rendering passes natively
     - don't just use 1 spp for rendering passes
