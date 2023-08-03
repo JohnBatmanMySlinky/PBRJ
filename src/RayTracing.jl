@@ -71,12 +71,12 @@ include("shapes/triangle.jl")
 include("shapes/rectangles.jl")
 include("shapes/disk.jl")
 include("shapes/cylindar.jl")
-include("shapes/metaballs.jl")
 include("shapes/box.jl")
 include("math_utils.jl")
 include("rand_utils.jl")
 include("accelerators/bvh_naive.jl")
 include("accelerators/bvh_pbr_pxlth.jl")
+include("shapes/metaballs.jl")
 include("filters/box.jl")
 include("filters/lanczos_sinc.jl")
 include("film.jl")
@@ -195,9 +195,9 @@ if abspath(PROGRAM_FILE) == @__FILE__
         # io = open("windows_log_softy.txt", "w+")
         # logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
     else
-        logger = NullLogger()
-        # io = open("log_$(now()).txt", "w+")
-        # logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
+        # logger = NullLogger()
+        io = open("log_$(now()).txt", "w+")
+        logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
     end
     global_logger(logger)
 

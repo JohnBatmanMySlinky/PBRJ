@@ -1,25 +1,12 @@
 struct MetaBalls <: Shape
     core::ShapeCore
-    ks::Vector{Pnt3} # world space
-    R::Float64
     magic::Float64
-    bounding_sphere::Sphere
-    
-    function MetaBalls(
-        core::ShapeCore, 
-        ks::Vector{Pnt3}=Pnt3[Pnt3(0.0)],
-        R::Float64=3.0,
-        magic::Float64=0.5
-    )
-        # TODO 
-        # clean and make a simple sphere class
-        centroid = mean(ks)
-        radius = maximum(maximum(Pnt3[abs.(centroid-k) for k in ks]))+R
-        bounding_shere_t = Translate(centroid)
-        bounding_sphere_core = ShapeCore(bounding_shere_t, Inv(bounding_shere_t), false, false)
-        bounding_sphere = Sphere(bounding_sphere_core, radius)
-        return new(core, ks, R, magic, bounding_sphere)
-    end
+    bvh::BVH
+end
+
+struct SimpleSphere
+    p::Pnt3
+    r::Float64
 end
 
 ################
@@ -33,12 +20,12 @@ end
 
 # for use in intersection point calc
 # given ray & t
-function f(meta_balls::MetaBalls, t::Float64, ray::AbstractRay)::Float64
+function f(meta_balls::MetaBalls, ss::Set{SimpleSphere}, t::Float64, ray::AbstractRay)::Float64
     f_val = 0.0 - meta_balls.magic # start at negative target so we can "solve for zero"
-    for k in meta_balls.ks
-        p = norm(at(ray, t)-k)
-        if p <= meta_balls.R
-            f_val += f_inner(p, meta_balls.R)
+    for s in ss
+        p = norm(at(ray, t)-s.p)
+        if p <= s.r
+            f_val += f_inner(p, s.r)
         end
     end
     return f_val
@@ -46,12 +33,12 @@ end
 
 # for use in normal calc
 # given a point eval f
-function f(meta_balls::MetaBalls, pp::Pnt3)::Float64
+function f(meta_balls::MetaBalls, ss::Set{SimpleSphere}, pp::Pnt3)::Float64
     f_val = 0.0 - meta_balls.magic # do I need target here?
-    for k in meta_balls.ks
-        p = norm(pp-k)
-        if p <= meta_balls.R
-            f_val += f_inner(p, meta_balls.R)
+    for s in ss
+        p = norm(pp-s.p)
+        if p <= s.r
+            f_val += f_inner(p, s.r)
         end
     end
     return f_val
@@ -68,13 +55,13 @@ end
 
 # an approximation. 
 # TODO calc this by hand...
-function normal(meta_balls::MetaBalls, p::Pnt3)::Vec3
+function normal(meta_balls::MetaBalls, sphere_set::Set{SimpleSphere}, p::Pnt3)::Vec3
     e = .00001
     return normalize(
-        Vec3(1, -1, -1) * f(meta_balls, p + Vec3(e, -e, -e)) +
-        Vec3(-1, -1, 1) * f(meta_balls, p + Vec3(-e, -e, e)) +
-        Vec3(-1, 1, -1) * f(meta_balls, p + Vec3(-e, e, -e)) +
-        Vec3(1, 1, 1)   * f(meta_balls, p + Vec3(e, e, e))
+        Vec3(1, -1, -1) * f(meta_balls, sphere_set, p + Vec3(e, -e, -e)) +
+        Vec3(-1, -1, 1) * f(meta_balls, sphere_set, p + Vec3(-e, -e, e)) +
+        Vec3(-1, 1, -1) * f(meta_balls, sphere_set, p + Vec3(-e, e, -e)) +
+        Vec3(1, 1, 1)   * f(meta_balls, sphere_set, p + Vec3(e, e, e))
     )
 end
 
@@ -82,72 +69,59 @@ end
 #### PBRT #####
 ###############
 function ObjectBounds(s::MetaBalls)::Bounds3
-    # JOHN HACK: why is this is so ugly
-    return Bounds3(
-        Pnt3(
-            minimum(getfield.(s.ks, 1))-s.R,
-            minimum(getfield.(s.ks, 2))-s.R,
-            minimum(getfield.(s.ks, 3))-s.R,
-        ),
-        Pnt3(
-            maximum(getfield.(s.ks, 1))+s.R,
-            maximum(getfield.(s.ks, 2))+s.R,
-            maximum(getfield.(s.ks, 3))+s.R,
-        ),
-    )
+    return s.core.world_to_object(world_bounds(s.bvh))
 end
 
-# Due to the fact we are solving for t first, then proceeding, we can basically re-ruse all of intersect_p in intersect
-# intersect_p just needs to return a bool instead of a float...
-function intersect_t(s::MetaBalls, r::AbstractRay)::Float64
-    # set up anonymous function for solver
-    tmp_solve = (x -> f(s, x, r))
+function intersect(s::MetaBalls, rr::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
+    # transform ray, note re-allocation from rr to r
+    r = s.core.world_to_object(rr)
 
-    # intersect bounding sphere
-    check, t0, t1 = intersect_simple(s.bounding_sphere, r)
+    check, t, intersect = intersect!(s.bvh, rr)
+    (!check) && (return false, 0.0, empty_surface_interation())        
+    sphere_set = Set(SimpleSphere[])
+    t_set = Set(Float64[])
+    for _ in 1:s.bvh.max_node_primitives
+        push!(sphere_set, SimpleSphere(intersect.shape.core.object_to_world(Pnt3(0,0,0)), intersect.shape.radius))  
+        rr.t = 0.0
+        rr.tMax = typemax(Float64)
+        rr.origin = intersect.core.p
+        
+        # for some fucking reason I can't trust t that comes from sphere intersect. Maybe the transform?
+        # idk.
+        # what ever, we have the tools to calculate t
+        idx = argmax(abs.(r.direction))
+        push!(t_set, (intersect.core.p[idx] - r.origin[idx]) / r.direction[idx])
 
-    # transform ray, note timing of this after the bounding sphere test
-    r = s.core.world_to_object(r)
-
-    # doesn't intersect sphere, NEXT
-    if !check
-        return -1.0
+        check, t, intersect = intersect!(s.bvh, rr)
+        (!check) && break
     end
 
-    # TODO some checks t0 & t1 aren't negative?
+    @info "MetaBallsIntersectionTest: ray: $(r), active_spheres: $(sphere_set), bounds: 0.0 - $(maximum(t_set) * 1.1)"
+
+    tmp_solve = (x -> f(s, sphere_set, x, r))
 
     # solve
     # HOW TO SET BOUNDS
-    solutions = find_zeros(tmp_solve, 0.0, t1*1.1) # HACKY
+    solutions = find_zeros(tmp_solve, 0.0, maximum(t_set)*1.1) # HACKY
 
-    @info "MetaBallsIntersectionTest: ray: $(r), solutions: $(solutions), bounding_sphere bounds: ($(t0/1.1), $(t1*1.1))"
+    @info "MetaBallsIntersectionTest: solutions: $(solutions)"
 
     if length(solutions) == 0
-        return -1.0
+        return false, 0.0, empty_surface_interation()
     end
     
     # find intersection time
     t = minimum(solutions)
 
     if t > r.tMax
-        return -1.0
-    end
-
-    return t
-end
-
-function intersect(s::MetaBalls, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
-    t = intersect_t(s, r)
-
-    if t == -1.0
         return false, 0.0, empty_surface_interation()
-    end   
+    end
 
     # get intersection point
     p = at(r, t)
 
     # get surface normal
-    n = normal(s, p)
+    n = normal(s, sphere_set, p)
 
     @info "MetaBallsIntersection: p: $(p), n: $(n)"
 
@@ -170,8 +144,52 @@ function intersect(s::MetaBalls, r::AbstractRay)::Tuple{Bool, Float64, SurfaceIn
     return true, t, s.core.object_to_world(interaction)
 end
 
-function intersect_p(s::MetaBalls, r::AbstractRay)::Bool
-    return intersect_t(s, r) == -1.0 ? false : true
+function intersect_p(s::MetaBalls, rr::AbstractRay)::Bool
+    # transform ray, note re-allocation from rr to r
+    r = s.core.world_to_object(rr)
+
+    check, t, intersect = intersect!(s.bvh, rr)
+    (!check) && (return false, 0.0, empty_surface_interation())        
+    sphere_set = Set(SimpleSphere[])
+    t_set = Set(Float64[])
+    for _ in 1:s.bvh.max_node_primitives
+        push!(sphere_set, SimpleSphere(intersect.shape.core.object_to_world(Pnt3(0,0,0)), intersect.shape.radius))  
+        rr.t = 0.0
+        rr.tMax = typemax(Float64)
+        rr.origin = intersect.core.p
+        
+        # for some fucking reason I can't trust t that comes from sphere intersect. Maybe the transform?
+        # idk.
+        # what ever, we have the tools to calculate t
+        idx = argmax(abs.(r.direction))
+        push!(t_set, (intersect.core.p[idx] - r.origin[idx]) / r.direction[idx])
+
+        check, t, intersect = intersect!(s.bvh, rr)
+        (!check) && break
+    end
+
+    @info "MetaBallsIntersectionTest: ray: $(r), active_spheres: $(sphere_set), bounds: 0.0 - $(maximum(t_set) * 1.1)"
+
+    tmp_solve = (x -> f(s, sphere_set, x, r))
+
+    # solve
+    # HOW TO SET BOUNDS
+    solutions = find_zeros(tmp_solve, 0.0, maximum(t_set)*1.1) # HACKY
+
+    @info "MetaBallsIntersectionTest: ray: $(r), solutions: $(solutions), bounds: 0.0-$(t * 1.1) active spheres: $(sphere_set)"
+    
+    if length(solutions) == 0
+        return false
+    end
+    
+    # find intersection time
+    t = minimum(solutions)
+
+    if t > r.tMax
+        return false
+    end
+
+    return true
 end
 
 #########################################

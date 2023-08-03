@@ -21,6 +21,17 @@ struct Sphere <: Shape
             2pi
         )
     end
+    function Sphere(center::Pnt3, radius::Float64)
+        new(
+            ShapeCore(Translate(center), Inv(Translate(center)), false, false),
+            radius,
+            -radius,
+            radius,
+            0.0,
+            pi,
+            2pi
+        )
+    end
 end
 
 # PBR 3.2.1
@@ -32,7 +43,7 @@ function ObjectBounds(s::Sphere)::Bounds3
 end
 
 # PBR 3.2.2
-function intersect(s::Sphere, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
+function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64, SurfaceInteraction}
     # transform ray to object space 
     r = s.core.world_to_object(r)
 
@@ -144,6 +155,20 @@ function intersect(s::Sphere, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInter
     interaction = s.core.object_to_world(interaction)
 
     return true, t_shape_hit, interaction
+end
+
+###############
+## JOHN HACK ##
+###############
+# kludge because I am not using primitives....
+function intersect!(s::Sphere, ray::AbstractRay, shadow_ray::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
+    check, t, interaction = intersect(s, ray)
+    if !check
+        return false, nothing, nothing
+    end
+    ray.tMax = t
+    interaction.shape = s
+    return true, t, interaction
 end
 
 function intersect_p(s::Sphere, r::AbstractRay)::Bool

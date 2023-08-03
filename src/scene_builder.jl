@@ -938,7 +938,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in ceiling_light
             alight = DiffuseAreaLight(
-                spectrum_from_float(2.0, 2.0, 2.0, Illuminant),
+                spectrum_from_float(4.0, 4.0, 4.0, Illuminant),
                 tri,
                 false # NOT two sided
             )
@@ -956,13 +956,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         asdf = 3.8
         meta_balls = MetaBalls(
             softy_core, 
-            [
-                Pnt3(asdf/2,  3.0, 0.0),
-                Pnt3(-asdf/2, 3.0, 0.0),
-                Pnt3(0.0,     3.0, sqrt(asdf^2 - (asdf/2)^2))
-            ],
-            3.0,
-            0.5
+            0.5,
+            BVH([
+                Sphere(Pnt3(asdf/2,  3.0, 0.0), 3.0),
+                Sphere(Pnt3(-asdf/2, 3.0, 0.0), 3.0),
+                Sphere(Pnt3(0.0,     3.0, sqrt(asdf^2 - (asdf/2)^2)), 3.0)
+            ])
         )
         push!(primitives, Primitive(meta_balls, mat_blue, nothing))
 
