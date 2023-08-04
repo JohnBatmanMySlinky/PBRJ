@@ -65,6 +65,29 @@ function normal(meta_balls::MetaBalls, sphere_set::Set{SimpleSphere}, p::Pnt3)::
     )
 end
 
+# function normal(sphere_set::Set{SimpleSphere}, pp::Pnt3)::Vec3
+#     n = Nml3(0, 0, 0)
+#     for s in sphere_set
+#         p = norm(pp-s.p)
+#         if p <= s.r
+#             x = -0.4444 * 3.0 * 0.5 * (pp.x - s.p.x) * p^5 / s.r ^ 6
+#             x+=  1.8888 * 2.0 * 0.5 * (pp.x - s.p.x) * p^3 / s.r ^ 4
+#             x+= -2.4444 * 1.0 * 0.5 * (pp.x - s.p.x)       / s.r ^ 2
+
+#             y = -0.4444 * 3.0 * 0.5 * (pp.y - s.p.y) * p^5 / s.r ^ 6
+#             y+=  1.8888 * 2.0 * 0.5 * (pp.y - s.p.y) * p^3 / s.r ^ 4
+#             y+= -2.4444 * 1.0 * 0.5 * (pp.y - s.p.y)       / s.r ^ 2
+
+#             z = -0.4444 * 3.0 * 0.5 * (pp.z - s.p.z) * p^5 / s.r ^ 6
+#             z+=  1.8888 * 2.0 * 0.5 * (pp.z - s.p.z) * p^3 / s.r ^ 4
+#             z+= -2.4444 * 1.0 * 0.5 * (pp.z - s.p.z)       / s.r ^ 2
+#             n += Nml3(x,y,z)
+#         end
+#     end
+#     return normalize(n)
+# end
+
+
 ###############
 #### PBRT #####
 ###############
