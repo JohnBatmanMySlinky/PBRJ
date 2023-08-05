@@ -99,21 +99,22 @@ function intersect(s::MetaBalls, rr::AbstractRay)::Tuple{Bool, Float64, SurfaceI
     # transform ray, note re-allocation from rr to r
     r = s.core.world_to_object(rr)
 
+    rr_origin = rr.origin
+    rr_direction = rr.direction
+
     check, t, intersect = intersect!(s.bvh, rr)
     (!check) && (return false, 0.0, empty_surface_interation())        
     sphere_set = Set(SimpleSphere[])
     t_set = Set(Float64[])
-    for _ in 1:s.bvh.max_node_primitives
+    while true
         push!(sphere_set, SimpleSphere(intersect.shape.core.object_to_world(Pnt3(0,0,0)), intersect.shape.radius))  
+        idx = argmax(abs.(rr_direction))
+        push!(t_set, (intersect.core.p[idx] - rr_origin[idx]) / rr_direction[idx])
+
         rr.t = 0.0
         rr.tMax = typemax(Float64)
-        rr.origin = intersect.core.p
-        
-        # for some fucking reason I can't trust t that comes from sphere intersect. Maybe the transform?
-        # idk.
-        # what ever, we have the tools to calculate t
-        idx = argmax(abs.(r.direction))
-        push!(t_set, (intersect.core.p[idx] - r.origin[idx]) / r.direction[idx])
+        rr.origin = intersect.core.p + rr_direction * .00001
+                
 
         check, t, intersect = intersect!(s.bvh, rr)
         (!check) && break
@@ -125,7 +126,7 @@ function intersect(s::MetaBalls, rr::AbstractRay)::Tuple{Bool, Float64, SurfaceI
 
     # solve
     # HOW TO SET BOUNDS
-    solutions = find_zeros(tmp_solve, 0.0, maximum(t_set)*1.1) # HACKY
+    solutions = find_zeros(tmp_solve, minimum(t_set)/1.1, maximum(t_set)*1.1) # HACKY
 
     @info "MetaBallsIntersectionTest: solutions: $(solutions)"
 
@@ -171,21 +172,22 @@ function intersect_p(s::MetaBalls, rr::AbstractRay)::Bool
     # transform ray, note re-allocation from rr to r
     r = s.core.world_to_object(rr)
 
+    rr_origin = rr.origin
+    rr_direction = rr.direction
+
     check, t, intersect = intersect!(s.bvh, rr)
     (!check) && (return false, 0.0, empty_surface_interation())        
     sphere_set = Set(SimpleSphere[])
     t_set = Set(Float64[])
-    for _ in 1:s.bvh.max_node_primitives
+    while true
         push!(sphere_set, SimpleSphere(intersect.shape.core.object_to_world(Pnt3(0,0,0)), intersect.shape.radius))  
+        idx = argmax(abs.(rr_direction))
+        push!(t_set, (intersect.core.p[idx] - rr_origin[idx]) / rr_direction[idx])
+
         rr.t = 0.0
         rr.tMax = typemax(Float64)
-        rr.origin = intersect.core.p
-        
-        # for some fucking reason I can't trust t that comes from sphere intersect. Maybe the transform?
-        # idk.
-        # what ever, we have the tools to calculate t
-        idx = argmax(abs.(r.direction))
-        push!(t_set, (intersect.core.p[idx] - r.origin[idx]) / r.direction[idx])
+        rr.origin = intersect.core.p + rr_direction * .00001
+                
 
         check, t, intersect = intersect!(s.bvh, rr)
         (!check) && break
@@ -197,10 +199,10 @@ function intersect_p(s::MetaBalls, rr::AbstractRay)::Bool
 
     # solve
     # HOW TO SET BOUNDS
-    solutions = find_zeros(tmp_solve, 0.0, maximum(t_set)*1.1) # HACKY
+    solutions = find_zeros(tmp_solve, minimum(t_set)/1.1, maximum(t_set)*1.1) # HACKY
 
-    @info "MetaBallsIntersectionTest: ray: $(r), solutions: $(solutions), bounds: 0.0-$(t * 1.1) active spheres: $(sphere_set)"
-    
+    @info "MetaBallsIntersectionTest: solutions: $(solutions)"
+
     if length(solutions) == 0
         return false
     end
