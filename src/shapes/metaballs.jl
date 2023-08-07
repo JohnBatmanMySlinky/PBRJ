@@ -119,6 +119,7 @@ function intersect(s::MetaBalls, rr::AbstractRay)::Tuple{Bool, Float64, SurfaceI
         check, t, intersect = intersect!(s.bvh, rr)
         (!check) && break
     end
+    rr.origin = rr_origin
 
     @info "MetaBallsIntersectionTest: ray: $(r), active_spheres: $(sphere_set), bounds: 0.0 - $(maximum(t_set) * 1.1)"
 
@@ -192,6 +193,7 @@ function intersect_p(s::MetaBalls, rr::AbstractRay)::Bool
         check, t, intersect = intersect!(s.bvh, rr)
         (!check) && break
     end
+    rr.origin = rr_origin
 
     @info "MetaBallsIntersectionTest: ray: $(r), active_spheres: $(sphere_set), bounds: 0.0 - $(maximum(t_set) * 1.1)"
 
