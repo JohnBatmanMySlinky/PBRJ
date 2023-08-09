@@ -157,20 +157,6 @@ function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64
     return true, t_shape_hit, interaction
 end
 
-###############
-## JOHN HACK ##
-###############
-# kludge because I am not using primitives....
-function intersect!(s::Sphere, ray::AbstractRay, shadow_ray::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
-    check, t, interaction = intersect(s, ray)
-    if !check
-        return false, nothing, nothing
-    end
-    ray.tMax = t
-    interaction.shape = s
-    return true, t, interaction
-end
-
 function intersect_p(s::Sphere, r::AbstractRay)::Bool
     # transform ray to object space 
     r = s.core.world_to_object(r)

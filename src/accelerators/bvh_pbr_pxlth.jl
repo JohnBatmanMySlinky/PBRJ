@@ -1,6 +1,6 @@
 # JOHN HACK
 # big kludge here so I can build a BVH from spheres
-const BVHAble = Union{Primitive, Sphere}
+const BVHAble = Union{Primitive, BasicSphere}
 
 #################################################
 # The two components of the actual tree of pointers
