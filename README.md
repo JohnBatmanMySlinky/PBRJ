@@ -152,8 +152,15 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
         - shoot ray all the way through the BVH until you don't hit any more balls. 
         - every ball that is hit, could be active
             - we can prune at the end. we will see the closest hit and then can remove balls too far away
-                - !! Need to be careful, our tree doesnt guarantee first hit is closest... i think
         - with active balls, go about your normal business
+        - Results:
+            - horrendously slow! 10x slower than my naive approach! What???
+            - So what I realized is that in f() isn't THAT inefficient, the norm() < R essentially just finds the active balls and compared to the whole BVH stuff, the norm() < R is apparently pretty good!
+                - The other thing, my test of generating many spheres in a tight space, is biased against BVH. It isn't realistic to have so many overlapping metaballs and results in excess BVH traversals. 
+                - BVH results look less bad when I use a grid of balls instead of a random smattering. 
+            - So then why does that ray tracing gems article have a BVH?
+                - anisotropy! if you want non-spherical balls, you can't use norm() < R!!!! so then how do you find active balls? BVH is how. 
+                - or can you get away with norm() < R ... ???
     - second BVH idea 
         - ray tracing gems 2 approach with inner and outer bounding spheres
 
