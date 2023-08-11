@@ -963,21 +963,23 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         #         Sphere(Pnt3(0.0,     3.0, sqrt(asdf^2 - (asdf/2)^2)), 3.0)
         #     ])
         # )
-        ks = BasicSphere[]
+        ks = Pnt3[]
+        ks_BVH = BasicSphere[]
         d = 12.0
         N = 6
         for x in 1:N
             for z in 1:N
                 xx = d / N * x - d / 2
                 zz = d / N * z - d / 2
-                yy = 2*rand()+2
-                push!(ks, BasicSphere(Pnt3(xx, yy, zz), 3.0))
+                yy = 3.0
+                push!(ks, Pnt3(xx, yy, zz))
+                push!(ks_BVH, BasicSphere(Pnt3(xx, yy, zz), 3.0))
             end
         end
-        meta_balls = MetaBalls(
+        ks_BVH = BVH(ks_BVH)
+        meta_balls = MetaBallsBVH(
             softy_core, 
-            0.5,
-            BVH(ks)
+            ks_BVH,
         )
         push!(primitives, Primitive(meta_balls, mat_blue, nothing))
 

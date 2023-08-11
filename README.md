@@ -161,6 +161,10 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
             - So then why does that ray tracing gems article have a BVH?
                 - anisotropy! if you want non-spherical balls, you can't use norm() < R!!!! so then how do you find active balls? BVH is how. 
                 - or can you get away with norm() < R ... ???
+            - Thoughts to improve BVH
+                - within intersect!(bvh): don't intersect spheres, just return leaf's whose AABB are hit and t
+                - MB intersect will collect leafs and t's
+                - this will include more spheres in activeset when hit aabb but not bounding sphere BUT save lots of traversal time?
     - second BVH idea 
         - ray tracing gems 2 approach with inner and outer bounding spheres
 

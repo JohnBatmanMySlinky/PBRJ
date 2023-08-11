@@ -1,7 +1,17 @@
-struct MetaBalls <: Shape
+struct MetaBallsBVH <: Shape
     core::ShapeCore
-    magic::Float64
     bvh::BVH
+    magic::Float64
+    function MetaBallsBVH(
+        core::ShapeCore,
+        bvh::BVH
+    )
+        return new(
+            core,
+            bvh,
+            0.5
+        )
+    end
 end
 
 struct SimpleSphere
@@ -20,7 +30,7 @@ end
 
 # for use in intersection point calc
 # given ray & t
-function f(meta_balls::MetaBalls, ss::Set{SimpleSphere}, t::Float64, ray::AbstractRay)::Float64
+function f(meta_balls::MetaBallsBVH, ss::Set{SimpleSphere}, t::Float64, ray::AbstractRay)::Float64
     f_val = 0.0 - meta_balls.magic # start at negative target so we can "solve for zero"
     for s in ss
         p = norm(at(ray, t)-s.p)
@@ -33,7 +43,7 @@ end
 
 # for use in normal calc
 # given a point eval f
-function f(meta_balls::MetaBalls, ss::Set{SimpleSphere}, pp::Pnt3)::Float64
+function f(meta_balls::MetaBallsBVH, ss::Set{SimpleSphere}, pp::Pnt3)::Float64
     f_val = 0.0 - meta_balls.magic # do I need target here?
     for s in ss
         p = norm(pp-s.p)
@@ -55,7 +65,7 @@ end
 
 # an approximation. 
 # TODO calc this by hand...
-function normal(meta_balls::MetaBalls, sphere_set::Set{SimpleSphere}, p::Pnt3)::Vec3
+function normal(meta_balls::MetaBallsBVH, sphere_set::Set{SimpleSphere}, p::Pnt3)::Vec3
     e = .00001
     return normalize(
         Vec3(1, -1, -1) * f(meta_balls, sphere_set, p + Vec3(e, -e, -e)) +
@@ -91,11 +101,11 @@ end
 ###############
 #### PBRT #####
 ###############
-function ObjectBounds(s::MetaBalls)::Bounds3
+function ObjectBounds(s::MetaBallsBVH)::Bounds3
     return s.core.world_to_object(world_bounds(s.bvh))
 end
 
-function intersect(s::MetaBalls, rr::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
+function intersect(s::MetaBallsBVH, rr::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
     # transform ray, note re-allocation from rr to r
     r = s.core.world_to_object(rr)
 
@@ -106,7 +116,8 @@ function intersect(s::MetaBalls, rr::AbstractRay)::Tuple{Bool, Float64, SurfaceI
     (!check) && (return false, 0.0, empty_surface_interation())        
     sphere_set = Set(SimpleSphere[])
     t_set = Set(Float64[])
-    while true
+    ugh = 0
+    while true & (ugh < 30)
         push!(sphere_set, SimpleSphere(intersect.shape.core.object_to_world(Pnt3(0,0,0)), intersect.shape.radius))  
         idx = argmax(abs.(rr_direction))
         push!(t_set, (intersect.core.p[idx] - rr_origin[idx]) / rr_direction[idx])
@@ -118,10 +129,11 @@ function intersect(s::MetaBalls, rr::AbstractRay)::Tuple{Bool, Float64, SurfaceI
 
         check, t, intersect = intersect!(s.bvh, rr)
         (!check) && break
+        ugh += 1
     end
     rr.origin = rr_origin
 
-    @info "MetaBallsIntersectionTest: ray: $(r), active_spheres: $(sphere_set), bounds: 0.0 - $(maximum(t_set) * 1.1)"
+    @info "MetaBallsBVHIntersectionTest: ray: $(r), active_spheres: $(sphere_set), bounds: 0.0 - $(maximum(t_set) * 1.1)"
 
     tmp_solve = (x -> f(s, sphere_set, x, r))
 
@@ -129,7 +141,7 @@ function intersect(s::MetaBalls, rr::AbstractRay)::Tuple{Bool, Float64, SurfaceI
     # HOW TO SET BOUNDS
     solutions = find_zeros(tmp_solve, minimum(t_set)/1.1, maximum(t_set)*1.1) # HACKY
 
-    @info "MetaBallsIntersectionTest: solutions: $(solutions)"
+    @info "MetaBallsBVHIntersectionTest: solutions: $(solutions)"
 
     if length(solutions) == 0
         return false, 0.0, empty_surface_interation()
@@ -148,7 +160,7 @@ function intersect(s::MetaBalls, rr::AbstractRay)::Tuple{Bool, Float64, SurfaceI
     # get surface normal
     n = normal(s, sphere_set, p)
 
-    @info "MetaBallsIntersection: p: $(p), n: $(n)"
+    @info "MetaBallsBVHIntersection: p: $(p), n: $(n)"
 
     # convert to dpdu & dpdv
     n, dpdu, dpdv = orthonormal_basis(n)
@@ -169,7 +181,7 @@ function intersect(s::MetaBalls, rr::AbstractRay)::Tuple{Bool, Float64, SurfaceI
     return true, t, s.core.object_to_world(interaction)
 end
 
-function intersect_p(s::MetaBalls, rr::AbstractRay)::Bool
+function intersect_p(s::MetaBallsBVH, rr::AbstractRay)::Bool
     # transform ray, note re-allocation from rr to r
     r = s.core.world_to_object(rr)
 
@@ -180,7 +192,8 @@ function intersect_p(s::MetaBalls, rr::AbstractRay)::Bool
     (!check) && (return false, 0.0, empty_surface_interation())        
     sphere_set = Set(SimpleSphere[])
     t_set = Set(Float64[])
-    while true
+    ugh = 0
+    while true & (ugh < 30)
         push!(sphere_set, SimpleSphere(intersect.shape.core.object_to_world(Pnt3(0,0,0)), intersect.shape.radius))  
         idx = argmax(abs.(rr_direction))
         push!(t_set, (intersect.core.p[idx] - rr_origin[idx]) / rr_direction[idx])
@@ -192,10 +205,11 @@ function intersect_p(s::MetaBalls, rr::AbstractRay)::Bool
 
         check, t, intersect = intersect!(s.bvh, rr)
         (!check) && break
+        ugh += 1
     end
     rr.origin = rr_origin
 
-    @info "MetaBallsIntersectionTest: ray: $(r), active_spheres: $(sphere_set), bounds: 0.0 - $(maximum(t_set) * 1.1)"
+    @info "MetaBallsBVHIntersectionTest: ray: $(r), active_spheres: $(sphere_set), bounds: 0.0 - $(maximum(t_set) * 1.1)"
 
     tmp_solve = (x -> f(s, sphere_set, x, r))
 
@@ -203,7 +217,7 @@ function intersect_p(s::MetaBalls, rr::AbstractRay)::Bool
     # HOW TO SET BOUNDS
     solutions = find_zeros(tmp_solve, minimum(t_set)/1.1, maximum(t_set)*1.1) # HACKY
 
-    @info "MetaBallsIntersectionTest: solutions: $(solutions)"
+    @info "MetaBallsBVHIntersectionTest: solutions: $(solutions)"
 
     if length(solutions) == 0
         return false
@@ -223,10 +237,10 @@ end
 ## NOT NEEDED AS LONG AS NOT EMMISSIVE ##
 #########################################
 
-function sample(s::MetaBalls, u::Pnt2)::Tuple{Pnt3, Nml3}
+function sample(s::MetaBallsBVH, u::Pnt2)::Tuple{Pnt3, Nml3}
     @assert false
 end
 
-function sample(s::MetaBalls, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
+function sample(s::MetaBallsBVH, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     @assert false
 end
