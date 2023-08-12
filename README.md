@@ -47,6 +47,7 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 - build in rendering passes natively
     - don't just use 1 spp for rendering passes
 - Julia 1.9 has native support for Float16, a 4x speed up would be very nice albeit at some cost.
+- use inplace operations where possible ie `normalize!()` vs `normalize`
 - Make sure I am sampling purley over the solid angle
 - Implement Metroplois Light Transport Integrator
 - Implement texture sampling and use those ray differentials
