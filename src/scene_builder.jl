@@ -928,24 +928,37 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(tri, mat_gray, nothing))
         end
         
-        ceiling_light = Rectangle(
-            Pnt2(-5, -5), 
-            Pnt2(5, 5), 
-            15.0,
-            2, 
-            identity_shape_core,
-            true,
-            nothing
+        spot_light1 = SpotLight(
+            LookAt(Pnt3(8, 16, 8), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
+            spectrum_from_float(345.8113403320, 258.6366500854, 300.3887557983 ), 
+            30.0, 
+            5.0
         )
-        for tri in ceiling_light
-            alight = DiffuseAreaLight(
-                spectrum_from_float(3.0, 3.0, 3.0, Illuminant),
-                tri,
-                false # NOT two sided
-            )
-            push!(lights,alight)
-            push!(primitives, Primitive(tri, mat_white, alight))
-        end
+        push!(lights, spot_light1)
+
+        spot_light2 = SpotLight(
+            LookAt(Pnt3(-10, 10, -10), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
+            spectrum_from_float(300.8113403320, 200.0, 250.3887557983 ), 
+            30.0, 
+            5.0
+        )
+        push!(lights, spot_light2)
+
+        spot_light3 = SpotLight(
+            LookAt(Pnt3(-15, 7, 8), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
+            spectrum_from_float(450.8113403320, 167.6366500854, 297.3887557983 ), 
+            30.0, 
+            5.0
+        )
+        push!(lights, spot_light3)
+
+        spot_light4 = SpotLight(
+            LookAt(Pnt3(5, 20, -5), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
+            spectrum_from_float(260.8113403320, 250.6366500854, 490.3887557983 ), 
+            30.0, 
+            5.0
+        )
+        push!(lights, spot_light4)
 
         softy_t = Translate(Pnt3(0, 0, 0))
         softy_core = ShapeCore(
@@ -972,7 +985,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 Pnt3(0.0,     3.0, sqrt(asdf^2 - (asdf/2)^2))
             ]
         )
-        push!(primitives, Primitive(meta_balls, mat_metal, nothing))
+        push!(primitives, Primitive(meta_balls, mat_blue, nothing))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -993,7 +1006,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(0, 20, 15)
+        look_from = Pnt3(0, 20, 5)
         look_at = Pnt3(0, 0, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))

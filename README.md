@@ -23,6 +23,10 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
     4. Cornell Box
 
         ![cornell_box](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/cornell-box.png?raw=true)
+
+    4. Metaballs
+
+        ![metaballs](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/metaballs.png?raw=true)
         
 
 ## Features Implemented
@@ -40,6 +44,7 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 
 # To do's
 - Implicit Surfaces
+- displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
 - what are those cones and normals in pbrt?
 - sampling over the solid angle
 - light bvh?
