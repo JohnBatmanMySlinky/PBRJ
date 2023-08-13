@@ -66,16 +66,42 @@ function intersect_simple(s::Sphere, rr::AbstractRay)::Tuple{Bool, Float64, Floa
     return solve_quadratic(a, b, c)
 end
 
-# an approximation. 
-# TODO calc this by hand...
-function normal(meta_balls::MetaBalls, p::Pnt3)::Vec3
-    e = .00001
-    return normalize(
-        Vec3(1, -1, -1) * f(meta_balls, p + Vec3(e, -e, -e)) +
-        Vec3(-1, -1, 1) * f(meta_balls, p + Vec3(-e, -e, e)) +
-        Vec3(-1, 1, -1) * f(meta_balls, p + Vec3(-e, e, -e)) +
-        Vec3(1, 1, 1)   * f(meta_balls, p + Vec3(e, e, e))
-    )
+# # an approximation. 
+# function normal(meta_balls::MetaBalls, p::Pnt3)::Vec3
+#     e = .00001
+#     return normalize(
+#         Vec3(1, -1, -1) * f(meta_balls, p + Vec3(e, -e, -e)) +
+#         Vec3(-1, -1, 1) * f(meta_balls, p + Vec3(-e, -e, e)) +
+#         Vec3(-1, 1, -1) * f(meta_balls, p + Vec3(-e, e, -e)) +
+#         Vec3(1, 1, 1)   * f(meta_balls, p + Vec3(e, e, e))
+#     )
+# end
+
+function normal(meta_balls::RayTracing.MetaBalls, pp::RayTracing.Pnt3)::RayTracing.Vec3
+    n = RayTracing.Nml3(0, 0, 0)
+    for s in meta_balls.ks
+        p = RayTracing.norm(pp-s)
+        if p <= meta_balls.R
+            # exponent goes like (E / 2 - 1 )*2
+                # E is exp, div 2 for sqrt, minus 1 for deriv * 2 for back to sqrt terms
+                # first factor is eq to E because the derivative of the inside gives *2 and the sqrt is a /2
+                # note the sign change.... I think that's right.
+            x =  0.4444 * 6.0 * (pp.x - s.x) * p^4 / meta_balls.R ^ 6
+                -1.8888 * 4.0 * (pp.x - s.x) * p^2 / meta_balls.R ^ 4
+                 2.4444 * 2.0 * (pp.x - s.x)       / meta_balls.R ^ 2
+
+            y =  0.4444 * 6.0 * (pp.y - s.y) * p^4 / meta_balls.R ^ 6
+                -1.8888 * 4.0 * (pp.y - s.y) * p^2 / meta_balls.R ^ 4
+                 2.4444 * 2.0 * (pp.y - s.y)       / meta_balls.R ^ 2
+
+            z =  0.4444 * 6.0 * (pp.z - s.z) * p^4 / meta_balls.R ^ 6
+                -1.8888 * 4.0 * (pp.z - s.z) * p^2 / meta_balls.R ^ 4
+                 2.4444 * 2.0 * (pp.z - s.z)       / meta_balls.R ^ 2
+
+            n += RayTracing.Nml3(x,y,z)
+        end
+    end
+    return RayTracing.normalize(n)
 end
 
 ###############

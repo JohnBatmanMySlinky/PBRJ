@@ -906,6 +906,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
+        mat_metal = Metal()
 
         # instantiate objects
         identity_shape_core = ShapeCore(
@@ -953,35 +954,25 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         )
-        # asdf = 3.8
-        # meta_balls = MetaBalls(
+        asdf = 3.8
+        # can use a BVH of BasicSpheres
+        # meta_balls = MetaBallsBVH(
         #     softy_core, 
-        #     0.5,
         #     BVH([
-        #         Sphere(Pnt3(asdf/2,  3.0, 0.0), 3.0),
-        #         Sphere(Pnt3(-asdf/2, 3.0, 0.0), 3.0),
-        #         Sphere(Pnt3(0.0,     3.0, sqrt(asdf^2 - (asdf/2)^2)), 3.0)
+        #         BasicSphere(Pnt3(asdf/2,  3.0, 0.0), 3.0),
+        #         BasicSphere(Pnt3(-asdf/2, 3.0, 0.0), 3.0),
+        #         BasicSphere(Pnt3(0.0,     3.0, sqrt(asdf^2 - (asdf/2)^2)), 3.0)
         #     ])
         # )
-        ks = Pnt3[]
-        ks_BVH = BasicSphere[]
-        d = 12.0
-        N = 6
-        for x in 1:N
-            for z in 1:N
-                xx = d / N * x - d / 2
-                zz = d / N * z - d / 2
-                yy = 3.0
-                push!(ks, Pnt3(xx, yy, zz))
-                push!(ks_BVH, BasicSphere(Pnt3(xx, yy, zz), 3.0))
-            end
-        end
-        ks_BVH = BVH(ks_BVH)
-        meta_balls = MetaBallsBVH(
+        meta_balls = MetaBalls(
             softy_core, 
-            ks_BVH,
+            Pnt3[
+                Pnt3(asdf/2,  3.0, 0.0),
+                Pnt3(-asdf/2, 3.0, 0.0),
+                Pnt3(0.0,     3.0, sqrt(asdf^2 - (asdf/2)^2))
+            ]
         )
-        push!(primitives, Primitive(meta_balls, mat_blue, nothing))
+        push!(primitives, Primitive(meta_balls, mat_metal, nothing))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -1002,11 +993,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(0, 40, 30)
+        look_from = Pnt3(0, 20, 15)
         look_at = Pnt3(0, 0, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 20.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 30.0, film)
 
         # Instantiate a Sampler
         S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])

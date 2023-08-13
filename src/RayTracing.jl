@@ -70,12 +70,12 @@ include("primitive.jl")
 include("interactions.jl")
 include("transformations.jl")
 include("shapes/shape.jl")
-include("shapes/sphere2.jl")
+include("shapes/sphere.jl")
+include("shapes/basic_sphere.jl")
 include("shapes/triangle.jl")
 include("shapes/rectangles.jl")
 include("shapes/disk.jl")
 include("shapes/cylindar.jl")
-include("shapes/metaballs.jl")
 include("shapes/box.jl")
 include("math_utils.jl")
 include("rand_utils.jl")
@@ -138,7 +138,7 @@ const DO_MIS_WEIGHT::Bool = true
 
 # specify (s,t) combinations to save off intermediate stages. 
 # (-1,-1) should result in a normal full render
-const BDPT_STAGES::Tuple{Int64, Int64} = [
+const BDPT_STAGES::Vector{Tuple{Int64, Int64}} = [
     (-1,-1),
     # (0,2),
 
