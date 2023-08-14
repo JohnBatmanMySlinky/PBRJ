@@ -929,16 +929,16 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
         
         spot_light1 = SpotLight(
-            LookAt(Pnt3(8, 16, 8), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
-            spectrum_from_float(345.8113403320, 258.6366500854, 300.3887557983 ), 
+            LookAt(Pnt3(8, 8, 8), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
+            spectrum_from_float(245.8113403320, 258.6366500854, 200.3887557983 ), 
             30.0, 
             5.0
         )
         push!(lights, spot_light1)
 
         spot_light2 = SpotLight(
-            LookAt(Pnt3(-10, 10, -10), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
-            spectrum_from_float(300.8113403320, 200.0, 250.3887557983 ), 
+            LookAt(Pnt3(-10, 5, -10), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
+            spectrum_from_float(200.8113403320, 200.0, 250.3887557983 ), 
             30.0, 
             5.0
         )
@@ -946,7 +946,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         spot_light3 = SpotLight(
             LookAt(Pnt3(-15, 7, 8), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
-            spectrum_from_float(450.8113403320, 167.6366500854, 297.3887557983 ), 
+            spectrum_from_float(350.8113403320, 167.6366500854, 297.3887557983 ), 
             30.0, 
             5.0
         )
@@ -954,7 +954,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         spot_light4 = SpotLight(
             LookAt(Pnt3(5, 20, -5), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
-            spectrum_from_float(260.8113403320, 250.6366500854, 490.3887557983 ), 
+            spectrum_from_float(260.8113403320, 250.6366500854, 290.3887557983 ), 
             30.0, 
             5.0
         )
