@@ -11,6 +11,7 @@ using ArgParse
 using Logging
 using Dates
 using OpenEXR
+using Roots
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -49,23 +50,28 @@ include("spectrum/spectrum_constants.jl")   # constants for spectral <-> RGB <->
 include("spectrum/spectrum_macro.jl")       # the file to create the macro
 include("spectrum/spectrum.jl")             # all of the 'constructors'
 tmp_parsed_args = parse_commandline() # ugh this is so messy TODO CELAN UP
-const nSpectralSamples = tmp_parsed_args["n-spectral-samples"]         # if it's 3 --> RGB if it's >3 --> spectral
-const sampledLambdaStart = 400
-const sampledLambdaEnd = 700
-const nCIESamples = 471
-const CIE_Y_integral = 106.856895
-const nRGB2SpectSamples = 32
+const nSpectralSamples::Int64 = tmp_parsed_args["n-spectral-samples"]         # if it's 3 --> RGB if it's >3 --> spectral
+const sampledLambdaStart::Int64 = 400
+const sampledLambdaEnd::Int64 = 700
+const nCIESamples::Int64 = 471
+const CIE_Y_integral::Float64 = 106.856895
+const nRGB2SpectSamples::Int64 = 32
 @make_spectrum nSpectralSamples    # define the Spectrum struct
 include("spectrum/spectrum_utils.jl")       # things that reference the Spectrum struct
 
 # instantiate these at global level to be used for spectral 
-const XXX, YYY, ZZZ, rgbRefl2SpectWhite, rgbRefl2SpectCyan, rgbRefl2SpectMagenta, rgbRefl2SpectYellow, rgbRefl2SpectRed, rgbRefl2SpectGreen, rgbRefl2SpectBlue, rgbIllum2SpectWhite, rgbIllum2SpectCyan, rgbIllum2SpectMagenta, rgbIllum2SpectYellow, rgbIllum2SpectRed, rgbIllum2SpectGreen, rgbIllum2SpectBlue = make_spectral_constants()
+const XXX::Spectrum, YYY::Spectrum, ZZZ::Spectrum, rgbRefl2SpectWhite::Spectrum, rgbRefl2SpectCyan::Spectrum, 
+    rgbRefl2SpectMagenta::Spectrum, rgbRefl2SpectYellow::Spectrum, rgbRefl2SpectRed::Spectrum,
+    rgbRefl2SpectGreen::Spectrum, rgbRefl2SpectBlue::Spectrum, rgbIllum2SpectWhite::Spectrum, 
+    rgbIllum2SpectCyan::Spectrum, rgbIllum2SpectMagenta::Spectrum, rgbIllum2SpectYellow::Spectrum, 
+    rgbIllum2SpectRed::Spectrum, rgbIllum2SpectGreen::Spectrum, rgbIllum2SpectBlue::Spectrum = make_spectral_constants()
 
 include("primitive.jl")
 include("interactions.jl")
 include("transformations.jl")
 include("shapes/shape.jl")
 include("shapes/sphere.jl")
+include("shapes/basic_sphere.jl")
 include("shapes/triangle.jl")
 include("shapes/rectangles.jl")
 include("shapes/disk.jl")
@@ -75,6 +81,8 @@ include("math_utils.jl")
 include("rand_utils.jl")
 include("accelerators/bvh_naive.jl")
 include("accelerators/bvh_pbr_pxlth.jl")
+include("shapes/metaballs_bvh.jl")
+include("shapes/metaballs_naive.jl")
 include("filters/box.jl")
 include("filters/lanczos_sinc.jl")
 include("film.jl")
@@ -125,20 +133,12 @@ include("obj_reader.jl")
 include("scene_builder.jl")
 include("denoising/edge_avoiding_a_trous.jl")
 
-const PASSDICT = Dict{UInt8, String}(
-    UInt(0) => "full pass",
-    UInt(1) => "albedo pass",
-    UInt(2) => "depth pass",
-    UInt(3) => "normal pass",
-    UInt(4) => "position pass",
-)
-
 # do MIS_weight or nah
-const DO_MIS_WEIGHT = true
+const DO_MIS_WEIGHT::Bool = true
 
 # specify (s,t) combinations to save off intermediate stages. 
 # (-1,-1) should result in a normal full render
-const BDPT_STAGES = [
+const BDPT_STAGES::Vector{Tuple{Int64, Int64}} = [
     (-1,-1),
     # (0,2),
 
@@ -168,49 +168,38 @@ const BDPT_STAGES = [
 function render_scene()
     parsed_args = parse_commandline()
 
-    if parsed_args["denoise"] == true
-        passes = Vector{Array{Float64}}(undef, 5)
-        for (i,render_pass_flag) in enumerate([UInt8(0), UInt8(1), UInt8(2), UInt8(3), UInt8(4)])
-            I, scene = build_scene(parsed_args) # TODO get this outside the loop!
-            current_pass = render(
-                I, 
-                scene, 
-                render_pass_flag,
-                parsed_args["light-distribution-strategy"], 
-            )
-            passes[i] = current_pass
-            # FileIO.save("debug_$(i).png", clamp01nan.(current_pass)
-        end
-        image = denoise(passes, parsed_args["denoise-steps"])
-        FileIO.save(I.camera.core.core.film.filename, image)
-    elseif parsed_args["denoise"] == false
-        for bdpt_pass in BDPT_STAGES
-            (bdpt_pass != (-1,-1)) && (print("working on bdpt pass s=$(bdpt_pass[1]), t=$(bdpt_pass[2])\n"))
-            I, scene = build_scene(parsed_args) # TODO get this outside the loop!
-            image = render(
-                I, 
-                scene, 
-                UInt8(0), # full pass
-                bdpt_pass,
-                parsed_args["light-distribution-strategy"], 
-            )
-            image = clamp01nan.(image)
-            if bdpt_pass == (-1,-1)
-                FileIO.save(I.camera.core.core.film.filename, image)
-            else
-                FileIO.save(replace(I.camera.core.core.film.filename, ".png"=>"")*"_s_"*string(bdpt_pass[1])*"_t_"*string(bdpt_pass[2])*".png", image)
+    for bdpt_pass in BDPT_STAGES
+        (bdpt_pass != (-1,-1)) && (print("working on bdpt pass s=$(bdpt_pass[1]), t=$(bdpt_pass[2])\n"))
+        I, scene = build_scene(parsed_args) # TODO get this outside the loop!
+        image = render(
+            I, 
+            scene, 
+            bdpt_pass,
+            parsed_args["light-distribution-strategy"], 
+        )
+        if I.camera.core.core.film isa PassFilm
+            for i in 1:5
+                FileIO.save(replace(I.camera.core.core.film.filename, ".png"=>"")*"_"*string(i)*".png", image[i, :, :, :])
             end
+            
+            image = denoise(image, 1)
         end
-    else
-        @assert false
+        
+        image = clamp01nan.(image)
+        if bdpt_pass == (-1,-1)
+            FileIO.save(I.camera.core.core.film.filename, image)
+        else
+            FileIO.save(replace(I.camera.core.core.film.filename, ".png"=>"")*"_s_"*string(bdpt_pass[1])*"_t_"*string(bdpt_pass[2])*".png", image)
+        end
     end
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
     # set up logging
     if Sys.iswindows()
-        logger = NullLogger()   # TODO how to log to file on Windows?
-        # logger = SimpleLogger()
+        logger = NullLogger()
+        # io = open("windows_log_softy.txt", "w+")
+        # logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
     else
         logger = NullLogger()
         # io = open("log_$(now()).txt", "w+")

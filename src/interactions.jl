@@ -155,7 +155,7 @@ end
 function spawn_shadow_ray(p0::Interaction, p1::Interaction, delta::Float64 = 1e-6,)::RayDifferential
     direction = p1.p - p0.p
     origin = p0.p .+ delta .* direction
-    return RayDifferential(Ray(origin, direction, 0, p0.t)) # JOHN HACK: this has to be 0, p0.t for s==1 bdpt to work?
+    return RayDifferential(Ray(origin, direction, p0.t, 1.0-.0001)) # JOHN HACK: this has to be 0, p0.t for s==1 bdpt to work?
 end
 
 

@@ -9,14 +9,19 @@ end
 #### underlying shape or material ###################
 #####################################################
 
-function intersect!(gp::Primitive, ray::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
-    check, t, interaction = intersect(gp.shape, ray)
-    if !check
+function intersect!(gp::Primitive, ray::AbstractRay, shadow_ray::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
+    if shadow_ray && !(gp.area_light isa Nothing) # JOHN HACK
+        # shadow rays can't intersect with lights
         return false, nothing, nothing
+    else
+        check, t, interaction = intersect(gp.shape, ray)
+        if !check
+            return false, nothing, nothing
+        end
+        ray.tMax = t
+        interaction.primitive = gp
+        return true, t, interaction
     end
-    ray.tMax = t
-    interaction.primitive = gp
-    return true, t, interaction
 end
 
 function intersect_p(gp::Primitive, ray::AbstractRay)::Bool

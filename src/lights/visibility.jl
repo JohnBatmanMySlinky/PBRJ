@@ -12,7 +12,8 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
     ray = spawn_shadow_ray(vt.p0, vt.p1)
     Tr = spectrum_from_float(1.0)
     while true
-        check, t, isect = intersect!(scene, ray)
+        check, t, isect = intersect!(scene, ray, true)
+        @info "VisiblityTesting: ray: $(ray), check: $(check), isect: $(isect)"
         if check && !(isect.primitive.material isa Nothing)
             return spectrum_from_float(0.0)
         end

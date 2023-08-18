@@ -4,7 +4,7 @@ struct CameraCore
     camera_to_world::Transformation
     shutter_open::Float64
     shutter_closed::Float64
-    film::Film
+    film::Union{Film, PassFilm}
 end
 
 # "The CameraSample structure holds all of the sample values needed to specify a camera ray."

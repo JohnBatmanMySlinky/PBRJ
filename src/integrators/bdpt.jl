@@ -8,19 +8,9 @@ end
 function render(
     i::BDPTIntegrator, 
     scene::Scene, 
-    render_pass_flag::UInt8,
     bdpt_pass::Tuple{Int64, Int64}=(-1,-1),
     light_dist_strat::String="uniform", 
 )::Array{Float64}
-    @assert render_pass_flag <= 4
-    """
-    0 = full 
-    1 = albedo
-    2 = depth
-    3 = normal
-    4 = position
-    """
-
     # create light sampling light_distribution
     # JOHN HACK --> hard coding uniform dist
     light_distr_generator = LightDistribution(light_dist_strat, scene)
@@ -40,7 +30,6 @@ function render(
     l = Threads.SpinLock()
 
     print("Utilizing $(Threads.nthreads()) threads\n\n")
-    print("Working on the $(PASSDICT[render_pass_flag])\n")
     # the multi-threaded loop
     Threads.@threads for k in 0:total_tiles
         # Render a single tile using BDPT
@@ -60,91 +49,86 @@ function render(
                 # Generate a single sample using BDPT
                 camera_sample = get_camera_sample!(sampler, pixel)
 
-                L = spectrum_from_float(0.0)
-                if render_pass_flag == UInt8(0) # full pass
-                    # instantiate the list of vertices
-                    camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
-                    light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
-
-                    # Trace the camera and light subpaths
-                    n_camera = generate_camera_subpath!(
-                        camera_vertices,
-                        scene, 
-                        sampler, 
-                        i.max_depth + 2, 
-                        i.camera,
-                        camera_sample, 
-                    )
-                    # setting up light sampling dist at the start
-                    # this isn't a good strategy
-                    # default is "uniform" so not a big deal 
-                    # would be worse with spatial or distance
-                    light_distr = lookup(light_distr_generator, p(camera_vertices[1]))
-                    n_light, light_num = generate_light_subpath!(
-                        light_vertices,
-                        scene,
-                        sampler,
-                        i.max_depth + 1,
-                        time(camera_vertices[1]),
-                        light_distr
-                    )
-
-                    # execute all BDPT connection strategies
-                    # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
-                    for t in 1:n_camera
-                        for s in 0:n_light
-                            if ((s,t) == bdpt_pass) || (bdpt_pass == (-1,-1))
-                                depth = t + s - 2
-                                if ((s==1)&&(t==1) || (depth<0) || (depth>i.max_depth))
-                                    continue
-                                end
-
-                                mis_weight = 0.0
-                                L_path, mis_weight, p_film_new = connect_BDPT(
-                                    scene,
-                                    light_vertices,
-                                    camera_vertices,
-                                    s,
-                                    t,
-                                    light_distr,
-                                    light_num,
-                                    i.camera,
-                                    sampler,
-                                    camera_sample.film
-                                )
-
-                                @info "($(s)-light, $(t)-camera) L: $(L_path)"
-
-                                if t != 1
-                                    L += L_path
-                                else
-                                    add_splat!(i.camera.core.core.film, p_film_new, L_path)
-                                end
-                            end
+                # JOHN TODO Render pass hacking
+                if sample_index == 1
+                    if i.camera.core.core.film isa PassFilm
+                        ray, _ = generate_ray_differential(i.camera, camera_sample)
+                        scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
+                        check, t, interaction, = intersect!(scene.b, ray)
+                        if !check
+                            L = to_XYZ(spectrum_from_float(0.0))
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].albedo = L
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].depth = L
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].normal = L
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].position = L
+                        else
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].albedo = to_XYZ(interaction.primitive.material.Kd(interaction))
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].depth = to_XYZ(spectrum_from_float(t))
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].normal = to_XYZ(spectrum_from_float(interaction.shading.n...))
+                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].position = to_XYZ(spectrum_from_float(interaction.core.p...))
                         end
                     end
-                else
-                    ray, _ = generate_ray_differential(i.camera, camera_sample)
-                    scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
-                    check, t, interaction, = intersect!(scene.b, ray)
+                end
 
-                    if !check
-                        L = spectrum_from_float(0.0)
-                    else
-                        if render_pass_flag == UInt(1) # albedo   
-                            L = spectrum_from_float(interaction.primitive.material.Kd(interaction))
-                        elseif render_pass_flag == UInt8(2) # depth
-                            L = spectrum_from_float(t)
-                        elseif render_pass_flag == UInt8(3) # normal
-                            L = spectrum_from_float(interaction.shading.n)
-                        elseif render_pass_flag == UInt8(4) # depth
-                            if any(isnan.(interaction.core.p))
-                                L = spectrum_from_float(0.0)
-                            else
-                                L = spectrum_from_float(interaction.core.p)
+                L = spectrum_from_float(0.0)
+                # instantiate the list of vertices
+                camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
+                light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
+
+                # Trace the camera and light subpaths
+                n_camera = generate_camera_subpath!(
+                    camera_vertices,
+                    scene, 
+                    sampler, 
+                    i.max_depth + 2, 
+                    i.camera,
+                    camera_sample, 
+                )
+                # setting up light sampling dist at the start
+                # this isn't a good strategy
+                # default is "uniform" so not a big deal 
+                # would be worse with spatial or distance
+                light_distr = lookup(light_distr_generator, p(camera_vertices[1]))
+                n_light, light_num = generate_light_subpath!(
+                    light_vertices,
+                    scene,
+                    sampler,
+                    i.max_depth + 1,
+                    time(camera_vertices[1]),
+                    light_distr
+                )
+
+                # execute all BDPT connection strategies
+                # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
+                for t in 1:n_camera
+                    for s in 0:n_light
+                        if ((s,t) == bdpt_pass) || (bdpt_pass == (-1,-1))
+                            depth = t + s - 2
+                            if ((s==1)&&(t==1) || (depth<0) || (depth>i.max_depth))
+                                continue
                             end
-                        else
-                            @assert false
+
+                            mis_weight = 0.0
+                            L_path, mis_weight, p_film_new = connect_BDPT(
+                                scene,
+                                light_vertices,
+                                camera_vertices,
+                                s,
+                                t,
+                                light_distr,
+                                light_num,
+                                i.camera,
+                                sampler,
+                                camera_sample.film
+                            )
+
+                            @info "($(s)-light, $(t)-camera) L: $(L_path)"
+
+                            if t != 1
+                                L += L_path
+                            else
+                                add_splat!(i.camera.core.core.film, p_film_new, L_path)
+                            end
                         end
                     end
                 end
@@ -158,7 +142,7 @@ function render(
         Threads.unlock(l)
     end
     got_film = i.camera.core.core.film
-    img = save(got_film, render_pass_flag, 1.0/i.sampler.samples_per_pixel)
+    img = save(got_film, 1.0/i.sampler.samples_per_pixel)
     return img
 end
 
@@ -384,20 +368,27 @@ function connect_BDPT(
         """
         pt = camera_vertices[t-1+1]
         if is_connectible(pt)
+            @info "is connectable"
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
             sampled_li, wi, pdf_val, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
+            @info "sampled Li from last camera vertex: sampled_li: $(sampled_li), wi: $(wi), pdf_val: $(pdf_val), visibility tester: $(vis)"
             if pdf_val > 0.0 && !(is_black(sampled_li))
                 ei = EndpointInteraction(vis.p1, light)
                 sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled, Radiance) * sampled.beta
+                @info "L: $(L)"
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))
                 end
+                @info "L: $(L)"
                 if !is_black(L)
-                    L *= tr(vis, scene.b, sampler)
+                    TR = tr(vis, scene.b, sampler)
+                    @info "trace: $(TR)"
+                    L *= TR
                 end
+                @info "L: $(L)"
             end
         end
     else

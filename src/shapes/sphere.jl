@@ -21,6 +21,17 @@ struct Sphere <: Shape
             2pi
         )
     end
+    function Sphere(center::Pnt3, radius::Float64)
+        new(
+            ShapeCore(Translate(center), Inv(Translate(center)), false, false),
+            radius,
+            -radius,
+            radius,
+            0.0,
+            pi,
+            2pi
+        )
+    end
 end
 
 # PBR 3.2.1
@@ -32,7 +43,7 @@ function ObjectBounds(s::Sphere)::Bounds3
 end
 
 # PBR 3.2.2
-function intersect(s::Sphere, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
+function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64, SurfaceInteraction}
     # transform ray to object space 
     r = s.core.world_to_object(r)
 

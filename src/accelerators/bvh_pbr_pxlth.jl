@@ -1,3 +1,7 @@
+# JOHN HACK
+# big kludge here so I can build a BVH from spheres
+const BVHAble = Union{Primitive, BasicSphere}
+
 #################################################
 # The two components of the actual tree of pointers
 # 1) Leaf Nodes
@@ -62,11 +66,11 @@ end
 ### https://aws1.discourse-cdn.com/business5/uploads/julialang/original/2X/a/aa75df26de1d2a062204ae74a7d91dfe7b0c4aa3.png
 #######################################################################################
 struct BVH <: BVHAccel
-    primitives::Vector{Primitive}
+    primitives::Vector{<:BVHAble}
     max_node_primitives::Int64
     nodes::Vector{LinearBVH}
 
-    function BVH(primitives::Vector{Primitive}, max_node_primitives::Int64=1)
+    function BVH(primitives::Vector{<:BVHAble}, max_node_primitives::Int64=1)
         max_node_primitives = min(255, max_node_primitives) # why 255?
         length(primitives) == 0 && return new(primitives, max_node_primitives) # doesn't this cause an infinite loop?
 
@@ -77,7 +81,7 @@ struct BVH <: BVHAccel
 
         # instantiate array component of data structure
         total_nodes = Ref(0)
-        ordered_primitives = Vector{Primitive}(undef, 0)
+        ordered_primitives = Vector{BVHAble}(undef, 0)
 
         # build tree
         root = _build_tree(
@@ -106,8 +110,8 @@ end
 ### Functions to build and traverse tree
 ############################################
 function _build_tree(
-    primitives::Vector{Primitive}, primitives_info::Vector{BVHPrimitiveInfo}, from::Int64, to::Int64,
-    total_nodes::Ref{Int64}, ordered_primitives::Vector{Primitive}, max_node_primitives::Int64
+    primitives::Vector{<:BVHAble}, primitives_info::Vector{BVHPrimitiveInfo}, from::Int64, to::Int64,
+    total_nodes::Ref{Int64}, ordered_primitives::Vector{<:BVHAble}, max_node_primitives::Int64
 )
     total_nodes[] += 1
     n_primitives = to - from + 1
@@ -230,7 +234,7 @@ end
 #### Intersect with BVH
 #################################################
 
-function intersect!(bvh::BVH, ray::AbstractRay)
+function intersect!(bvh::BVH, ray::AbstractRay, shadow_ray::Bool=false)
     hit = false
     final_time = nothing
     interaction::Maybe{SurfaceInteraction} = nothing
@@ -250,7 +254,7 @@ function intersect!(bvh::BVH, ray::AbstractRay)
                 # Intersect ray with primitives in node.
                 for i in 0:ln.n_primitives - 1
                     tmp_hit, tmp_time, tmp_interaction = intersect!(
-                        bvh.primitives[ln.primitives_offset + i], ray,
+                        bvh.primitives[ln.primitives_offset + i], ray, shadow_ray
                     )
                     if tmp_hit
                         hit = tmp_hit
