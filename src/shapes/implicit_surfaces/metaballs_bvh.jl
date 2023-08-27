@@ -1,4 +1,4 @@
-struct MetaBallsBVH <: Shape
+struct MetaBallsBVH <: ImplicitSurface
     core::ShapeCore
     bvh::BVH
     magic::Float64

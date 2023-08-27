@@ -28,6 +28,7 @@ abstract type Material end
 abstract type Medium end
 abstract type AbstractSampler end
 abstract type Shape end
+abstract type ImplicitSurface <: Shape end
 abstract type Texture end
 abstract type MicrofacetDistribution end
 
@@ -81,8 +82,9 @@ include("math_utils.jl")
 include("rand_utils.jl")
 include("accelerators/bvh_naive.jl")
 include("accelerators/bvh_pbr_pxlth.jl")
-include("shapes/metaballs_bvh.jl")
-include("shapes/metaballs_naive.jl")
+include("shapes/implicit_surfaces/intersection.jl")
+include("shapes/implicit_surfaces/metaballs_bvh.jl")
+include("shapes/implicit_surfaces/metaballs_naive.jl")
 include("filters/box.jl")
 include("filters/lanczos_sinc.jl")
 include("film.jl")
