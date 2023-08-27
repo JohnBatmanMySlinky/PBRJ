@@ -57,17 +57,6 @@ function f(meta_balls::MetaBalls, pp::Pnt3)::Float64
     return f_val
 end
 
-# # an approximation. 
-function normal(meta_balls::MetaBalls, p::Pnt3)::Vec3
-    e = .00000001
-    return normalize(
-        Vec3(1, -1, -1) * f(meta_balls, p + Vec3(e, -e, -e)) +
-        Vec3(-1, -1, 1) * f(meta_balls, p + Vec3(-e, -e, e)) +
-        Vec3(-1, 1, -1) * f(meta_balls, p + Vec3(-e, e, -e)) +
-        Vec3(1, 1, 1)   * f(meta_balls, p + Vec3(e, e, e))
-    )
-end
-
 # function normal(meta_balls::MetaBalls, pp::Pnt3)::Vec3
 #     n = RayTracing.Nml3(0, 0, 0)
 #     for s in meta_balls.ks

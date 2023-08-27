@@ -63,18 +63,6 @@ function intersect_simple(s::Sphere, rr::AbstractRay)::Tuple{Bool, Float64, Floa
     return solve_quadratic(a, b, c)
 end
 
-# an approximation. 
-# TODO calc this by hand...
-function normal(meta_balls::MetaBallsBVH, sphere_set::Set{SimpleSphere}, p::Pnt3)::Vec3
-    e = .00001
-    return normalize(
-        Vec3(1, -1, -1) * f(meta_balls, sphere_set, p + Vec3(e, -e, -e)) +
-        Vec3(-1, -1, 1) * f(meta_balls, sphere_set, p + Vec3(-e, -e, e)) +
-        Vec3(-1, 1, -1) * f(meta_balls, sphere_set, p + Vec3(-e, e, -e)) +
-        Vec3(1, 1, 1)   * f(meta_balls, sphere_set, p + Vec3(e, e, e))
-    )
-end
-
 # function normal(sphere_set::Set{SimpleSphere}, pp::Pnt3)::Vec3
 #     n = Nml3(0, 0, 0)
 #     for s in sphere_set

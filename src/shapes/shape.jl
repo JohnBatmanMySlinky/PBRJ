@@ -3,6 +3,16 @@ struct ShapeCore
     world_to_object::Transformation
     reverse_orientation::Bool
     transform_swaps_handedness::Bool
+
+    function ShapeCore()
+        tr = Translate(Pnt3(0,0,0))
+        return new(
+            tr,
+            Inv(tr),
+            false,
+            false
+        )
+    end
 end
 
 ##############################
