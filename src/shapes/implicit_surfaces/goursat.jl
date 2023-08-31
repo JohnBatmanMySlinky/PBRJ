@@ -6,12 +6,14 @@ struct GoursatSurface <: ImplicitSurface
     bounding_sphere::Sphere
 
     function GoursatSurface(
-        core::ShapeCore
-        a::Float64
-        b::Float64
+        core::ShapeCore,
+        a::Float64,
+        b::Float64,
         magic::Float64 # equivalent to wolfram's c
     )
         r = goursat_bounding_sphere_radius(a, b, magic)
+        r *= 3
+        print("GOURSAT: BOUNDING SPHERE $(r)")
         bounding_sphere = Sphere(ShapeCore(), r)
         return new(core, a, b, magic, bounding_sphere)
     end
@@ -19,7 +21,7 @@ end
 
 function f(g::GoursatSurface, t::Float64, ray::AbstractRay)::Float64
     pp = at(ray, t)
-    return f(a, b, magic, pp)
+    return f(g.a, g.b, g.magic, pp)
 end
 
 function f(g::GoursatSurface, pp::Pnt3)::Float64
@@ -54,19 +56,29 @@ function goursat_bounding_sphere_radius(a::Float64, b::Float64, magic::Float64):
     # WARNING
     # this method fails on the wolfram case of a=-1, b=1, c=-1
     # ----------------------------------
+    tmp_solve = (x -> f(a, b, magic, r, x))
 
     # test case 1: the corner
-    r = Ray(Pnt3(0,0,0), Vec3(-1.0, -1.0, -1.0), 0, typemax(Float64))
-    tmp_solve = (x -> f(r, x, a, b, magic))
-    solutions = find_zeros(tmp_solve, 0.0, 5.0) # a random guess here...
-    @assert length(solutions) > 0
-    return maximum(solutions)
+    r = Ray(Pnt3(0,0,0), Vec3(1.0, 1.0, 1.0), 0, typemax(Float64))
+    s1 = find_zeros(tmp_solve, 0.0, 5.0) # a random guess here...
+    @assert length(s1) > 0
+
+    # test case 2: the other corner?
+    r = Ray(Pnt3(0,0,0), Vec3(0.0, 1.0, 1.0), 0, typemax(Float64))
+    s2 = find_zeros(tmp_solve, 0.0, 5.0) # a random guess here...
+    @assert length(s2) > 0
+
+    # THIS IS T IS WRONG
+    # IT IS A FUNCTION OF RAY LEGNTH
+    # SO CALCULATE THE POINT AND THEN TAKE THE DISTANCE!
+
+    return max(maximum(s1), maximum(s2))
 end
 
 function ObjectBounds(g::GoursatSurface)::Bounds3
     r = g.bounding_sphere.radius
     return Bounds3(
-        Pnt3(-r, -r, -r) * 1.1,
-        Pnt3(r, r, r) * 1.1,
+        Pnt3(-r, -r, -r),
+        Pnt3(r, r, r),
     )
 end
