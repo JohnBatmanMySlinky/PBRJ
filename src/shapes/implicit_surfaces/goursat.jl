@@ -11,8 +11,7 @@ struct GoursatSurface <: ImplicitSurface
         b::Float64,
         magic::Float64 # equivalent to wolfram's c
     )
-        r = goursat_bounding_sphere_radius(a, b, magic)
-        r *= 3
+        r = goursat_bounding_sphere_radius(a, b, magic) * 1.1 # + buffer
         print("GOURSAT: BOUNDING SPHERE $(r)")
         bounding_sphere = Sphere(ShapeCore(), r)
         return new(core, a, b, magic, bounding_sphere)
@@ -60,19 +59,15 @@ function goursat_bounding_sphere_radius(a::Float64, b::Float64, magic::Float64):
 
     # test case 1: the corner
     r = Ray(Pnt3(0,0,0), Vec3(1.0, 1.0, 1.0), 0, typemax(Float64))
-    s1 = find_zeros(tmp_solve, 0.0, 5.0) # a random guess here...
-    @assert length(s1) > 0
+    sol1 = find_zeros(tmp_solve, 0.0, 5.0) # a random guess here...
+    @assert length(sol1) > 0
 
-    # test case 2: the other corner?
-    r = Ray(Pnt3(0,0,0), Vec3(0.0, 1.0, 1.0), 0, typemax(Float64))
-    s2 = find_zeros(tmp_solve, 0.0, 5.0) # a random guess here...
-    @assert length(s2) > 0
+    # max sol1 is a t, but in terms of the scale of the ray's magnitude
+    # need to calculate the intersection point
+    # to get a distance
+    hitp = at(r, maximum(sol1))
 
-    # THIS IS T IS WRONG
-    # IT IS A FUNCTION OF RAY LEGNTH
-    # SO CALCULATE THE POINT AND THEN TAKE THE DISTANCE!
-
-    return max(maximum(s1), maximum(s2))
+    return norm(hitp)
 end
 
 function ObjectBounds(g::GoursatSurface)::Bounds3

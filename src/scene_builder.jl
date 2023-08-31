@@ -1110,7 +1110,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(10, 20, 5)
+        look_from = Pnt3(10, 15, 5)
         look_at = Pnt3(0, 0, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
