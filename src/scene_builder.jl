@@ -1082,13 +1082,40 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         push!(lights, spot_light4)
 
-        goursat = GoursatSurface(
-            identity_shape_core,
+        floor_t = Translate(Pnt3(0, -3.0, 0))
+        floor_sc = ShapeCore(
+            floor_t,
+            Inv(floor_t),
+            false,
+            false
+        )
+        floor = Rectangle(
+            Pnt2(-25, -25), 
+            Pnt2(25, 25), 
             0.0,
-            -2.0,
+            2, 
+            floor_sc,
+            # identity_shape_core,
+            false,
+            nothing
+        )
+        for tri in floor
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
+
+        goursat_t = Translate(Pnt3(0,0,0))
+        goursat_sc = ShapeCore(
+            goursat_t,
+            Inv(goursat_t),
+            false,
+            false
+        )
+        goursat = GoursatSurface(
+            goursat_sc,
+            0.0,
+            -3.0,
             -1.0
         )
-
         push!(primitives, Primitive(goursat, mat_blue, nothing))
 
         # instantiate accelerator

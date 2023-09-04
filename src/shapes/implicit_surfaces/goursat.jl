@@ -12,8 +12,9 @@ struct GoursatSurface <: ImplicitSurface
         magic::Float64 # equivalent to wolfram's c
     )
         r = goursat_bounding_sphere_radius(a, b, magic) * 1.1 # + buffer
-        print("GOURSAT: BOUNDING SPHERE $(r)")
-        bounding_sphere = Sphere(ShapeCore(), r)
+        bs_center = core.object_to_world(Pnt3(0,0,0))
+        # print("GOURSAT: $(bs_center)")
+        bounding_sphere = Sphere(bs_center, r)
         return new(core, a, b, magic, bounding_sphere)
     end
 end
