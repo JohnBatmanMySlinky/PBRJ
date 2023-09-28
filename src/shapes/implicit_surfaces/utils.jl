@@ -11,7 +11,7 @@ end
 
 # for the ray-bounding sphere intersection
 function intersect_simple(s::Sphere, rr::AbstractRay)::Tuple{Bool, Float64, Float64}
-    rr = s.core.world_to_object(rr)
+    rr = s.core.world_to_object(rr) 
     a = rr.direction.x^2 + rr.direction.y^2 + rr.direction.z^2
     b = 2.0 * (rr.direction.x * rr.origin.x + rr.direction.y * rr.origin.y + rr.direction.z * rr.origin.z)
     c = rr.origin.x^2 + rr.origin.y^2 + rr.origin.z^2 - s.radius ^ 2
@@ -27,15 +27,16 @@ function intersect_t(s::ImplicitSurface, r::AbstractRay)::Float64
     # intersect bounding sphere
     check, t0, t1 = intersect_simple(s.bounding_sphere, r)
 
-    # transform ray, note timing of this after the bounding sphere test
-    r = s.core.world_to_object(r)
-
     # doesn't intersect sphere, NEXT
     if !check
         return -1.0
     end
 
     # TODO some checks t0 & t1 aren't negative?
+
+    if check
+        @info "Implicit Surface Bounding Sphere Intersection: $(at(r, t0)), $(t0)"
+    end
 
     # solve
     # HOW TO SET BOUNDS
@@ -58,14 +59,17 @@ function intersect_t(s::ImplicitSurface, r::AbstractRay)::Float64
 end
 
 function intersect(s::ImplicitSurface, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
-    t = intersect_t(s, r)
+    # transform ray to local space
+    rr = s.core.world_to_object(r)
+
+    t = intersect_t(s, rr)
 
     if t == -1.0
         return false, 0.0, empty_surface_interation()
     end   
 
     # get intersection point
-    p = at(r, t)
+    p = at(rr, t)
 
     # get surface normal
     n = normal(s, p)
@@ -92,5 +96,7 @@ function intersect(s::ImplicitSurface, r::AbstractRay)::Tuple{Bool, Float64, Sur
 end
 
 function intersect_p(s::ImplicitSurface, r::AbstractRay)::Bool
-    return intersect_t(s, r) == -1.0 ? false : true
+    # transform ray to local space
+    rr = s.core.world_to_object(r)
+    return intersect_t(s, rr) == -1.0 ? false : true
 end

@@ -6,7 +6,7 @@ struct MetaBalls <: ImplicitSurface
     bounding_sphere::Sphere
 
     function MetaBalls(
-        core::ShapeCore, 
+        core::ShapeCore=ShapeCore(), 
         ks::Vector{Pnt3}=Pnt3[Pnt3(0.0)],
         R::Float64=3.0,
         magic::Float64=0.5

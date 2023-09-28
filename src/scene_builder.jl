@@ -1040,6 +1040,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
+        mat_red = Matte(
+            ConstantTexture(spectrum_from_float(0.88, 0.05, .07)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
         mat_white = Matte(
             ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
@@ -1103,20 +1108,22 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(tri, mat_gray, nothing))
         end
 
-        goursat_t = Translate(Pnt3(0,0,0))
-        goursat_sc = ShapeCore(
-            goursat_t,
-            Inv(goursat_t),
-            false,
-            false
-        )
-        goursat = GoursatSurface(
-            goursat_sc,
-            0.0,
-            -3.0,
-            -1.0
-        )
-        push!(primitives, Primitive(goursat, mat_blue, nothing))
+        for (col, offset, rot) in [(mat_red, 2.5, RotateX(0.0)), (mat_blue, -2.5, RotateX(45.0))]
+            goursat_t = Translate(Pnt3(0 + offset, 0, 0)) * rot
+            goursat_sc = ShapeCore(
+                goursat_t,
+                Inv(goursat_t),
+                false,
+                false
+            )
+            goursat = GoursatSurface(
+                goursat_sc,
+                0.0,
+                -3.0,
+                -1.0
+            )
+            push!(primitives, Primitive(goursat, col, nothing))
+        end
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
