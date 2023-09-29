@@ -1172,11 +1172,173 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
-        mat_julia_green = Matte(
-            ConstantTexture(spectrum_from_float(0.05, 0.05, .9)),
+        mat_white = Matte(
+            ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
+        mat_julia_green = Matte(
+            ConstantTexture(spectrum_from_float(0.22, 0.596, .149)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        mat_julia_purple = Matte(
+            ConstantTexture(spectrum_from_float(0.584, .345, .698)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        mat_julia_red = Matte(
+            ConstantTexture(spectrum_from_float(.796, .235, .2)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        #######################
+        # instantiate objects #
+        #######################
+        # walls
+        identity_shape_core = ShapeCore()
+        floor = Rectangle(
+            Pnt2(-250, -250), 
+            Pnt2(250, 250), 
+            0.0,
+            2, 
+            identity_shape_core,
+            false,
+            nothing
+        )
+        for tri in floor
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
+
+        back_wall = Rectangle(
+            Pnt2(0, -100), 
+            Pnt2(75, 100), 
+            -100.0,
+            1, 
+            identity_shape_core,
+            false,
+            nothing
+        )
+        for tri in back_wall
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
+
+        side_wall = Rectangle(
+            Pnt2(-100, 0), 
+            Pnt2(100, 75), 
+            -45.0,
+            3, 
+            identity_shape_core,
+            false,
+            nothing
+        )
+        for tri in side_wall
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
+
+        # rafters
+        rafter = Box(
+            Pnt3(-100, 75, -250),
+            Pnt3(-80, 100, 250),
+            identity_shape_core,
+            nothing
+        )
+        for tri in rafter
+            push!(primitives, Primitive(tri, mat_white, nothing))
+        end
+        rafter = Box(
+            Pnt3(-70, 75, -250),
+            Pnt3(-50, 100, 250),
+            identity_shape_core,
+            nothing
+        )
+        for tri in rafter
+            push!(primitives, Primitive(tri, mat_white, nothing))
+        end
+        rafter = Box(
+            Pnt3(-40, 75, -250),
+            Pnt3(-20, 100, 250),
+            identity_shape_core,
+            nothing
+        )
+        for tri in rafter
+            push!(primitives, Primitive(tri, mat_white, nothing))
+        end
+        rafter = Box(
+            Pnt3(-10, 75, -250),
+            Pnt3(10, 100, 250),
+            identity_shape_core,
+            nothing
+        )
+        for tri in rafter
+            push!(primitives, Primitive(tri, mat_white, nothing))
+        end
+        rafter = Box(
+            Pnt3(20, 75, -250),
+            Pnt3(40, 100, 250),
+            identity_shape_core,
+            nothing
+        )
+        for tri in rafter
+            push!(primitives, Primitive(tri, mat_white, nothing))
+        end
+        rafter = Box(
+            Pnt3(50, 75, -250),
+            Pnt3(70, 100, 250),
+            identity_shape_core,
+            nothing
+        )
+        for tri in rafter
+            push!(primitives, Primitive(tri, mat_white, nothing))
+        end
+        rafter = Box(
+            Pnt3(80, 75, -250),
+            Pnt3(100, 100, 250),
+            identity_shape_core,
+            nothing
+        )
+        for tri in rafter
+            push!(primitives, Primitive(tri, mat_white, nothing))
+        end
+
+
+        asdf = 20.0
+        sphere1_t = Translate(Pnt3(0, 20, asdf/2.0))
+        sphere1_sc = ShapeCore(sphere1_t, Inv(sphere1_t), false, false)
+        sphere1 = Sphere(sphere1_sc, asdf/2.0)
+        push!(primitives, Primitive(sphere1, mat_julia_red, nothing))
+
+        sphere2_t = Translate(Pnt3(0, 20, -asdf/2.0))
+        sphere2_sc = ShapeCore(sphere2_t, Inv(sphere2_t), false, false)
+        sphere2 = Sphere(sphere2_sc, asdf/2.0)
+        push!(primitives, Primitive(sphere2, mat_julia_purple, nothing))
+
+        sphere3_t = Translate(Pnt3(0, 20 + sqrt(asdf^2 - (asdf/2.0)^2), 0))
+        sphere3_sc = ShapeCore(sphere3_t, Inv(sphere3_t), false, false)
+        sphere3 = Sphere(sphere3_sc, asdf/2.0)
+        push!(primitives, Primitive(sphere3, mat_julia_green, nothing))
+
+        # instantiate lights
+        light_t = Translate(Pnt3(0, 100, 0))
+        light_sc = ShapeCore(light_t, Inv(light_t), false, false)
+        light_tris = Rectangle(
+            Pnt2(-50, -50), 
+            Pnt2(50, 50), 
+            0.0,
+            2, 
+            light_sc,
+            true,
+            nothing
+        )
+        for tri in light_tris
+            alight = DiffuseAreaLight(
+                spectrum_from_float(4.0),
+                tri,
+                false
+            )
+            push!(lights, alight)
+            push!(primitives, Primitive(tri, mat_white, alight))
+        end
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -1197,11 +1359,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(10, 15, 5)
-        look_at = Pnt3(0, 0, 0)
+        look_from = Pnt3(85, 35, 35)
+        look_at = Pnt3(0, 20.0 + sqrt(asdf^2 - (asdf/2.0)^2) / 2.0, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 30.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 55.0, film)
 
         # Instantiate a Sampler
         S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
