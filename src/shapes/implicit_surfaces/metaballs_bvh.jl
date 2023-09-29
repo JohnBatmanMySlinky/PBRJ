@@ -1,4 +1,4 @@
-struct MetaBallsBVH <: Shape
+struct MetaBallsBVH <: ImplicitSurface
     core::ShapeCore
     bvh::BVH
     magic::Float64
@@ -61,18 +61,6 @@ function intersect_simple(s::Sphere, rr::AbstractRay)::Tuple{Bool, Float64, Floa
     b = 2.0 * (rr.direction.x * rr.origin.x + rr.direction.y * rr.origin.y + rr.direction.z * rr.origin.z)
     c = rr.origin.x^2 + rr.origin.y^2 + rr.origin.z^2 - s.radius ^ 2
     return solve_quadratic(a, b, c)
-end
-
-# an approximation. 
-# TODO calc this by hand...
-function normal(meta_balls::MetaBallsBVH, sphere_set::Set{SimpleSphere}, p::Pnt3)::Vec3
-    e = .00001
-    return normalize(
-        Vec3(1, -1, -1) * f(meta_balls, sphere_set, p + Vec3(e, -e, -e)) +
-        Vec3(-1, -1, 1) * f(meta_balls, sphere_set, p + Vec3(-e, -e, e)) +
-        Vec3(-1, 1, -1) * f(meta_balls, sphere_set, p + Vec3(-e, e, -e)) +
-        Vec3(1, 1, 1)   * f(meta_balls, sphere_set, p + Vec3(e, e, e))
-    )
 end
 
 # function normal(sphere_set::Set{SimpleSphere}, pp::Pnt3)::Vec3
