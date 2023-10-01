@@ -1236,71 +1236,48 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(tri, mat_gray, nothing))
         end
 
-        # rafters
-        rafter = Box(
-            Pnt3(-100, 75, -250),
-            Pnt3(-80, 100, 250),
-            identity_shape_core,
-            nothing
-        )
-        for tri in rafter
-            push!(primitives, Primitive(tri, mat_white, nothing))
-        end
-        rafter = Box(
-            Pnt3(-70, 75, -250),
-            Pnt3(-50, 100, 250),
-            identity_shape_core,
-            nothing
-        )
-        for tri in rafter
-            push!(primitives, Primitive(tri, mat_white, nothing))
-        end
-        rafter = Box(
-            Pnt3(-40, 75, -250),
-            Pnt3(-20, 100, 250),
-            identity_shape_core,
-            nothing
-        )
-        for tri in rafter
-            push!(primitives, Primitive(tri, mat_white, nothing))
-        end
-        rafter = Box(
-            Pnt3(-10, 75, -250),
-            Pnt3(10, 100, 250),
-            identity_shape_core,
-            nothing
-        )
-        for tri in rafter
-            push!(primitives, Primitive(tri, mat_white, nothing))
-        end
-        rafter = Box(
-            Pnt3(20, 75, -250),
-            Pnt3(40, 100, 250),
-            identity_shape_core,
-            nothing
-        )
-        for tri in rafter
-            push!(primitives, Primitive(tri, mat_white, nothing))
-        end
-        rafter = Box(
-            Pnt3(50, 75, -250),
-            Pnt3(70, 100, 250),
-            identity_shape_core,
-            nothing
-        )
-        for tri in rafter
-            push!(primitives, Primitive(tri, mat_white, nothing))
-        end
-        rafter = Box(
-            Pnt3(80, 75, -250),
-            Pnt3(100, 100, 250),
-            identity_shape_core,
-            nothing
-        )
-        for tri in rafter
-            push!(primitives, Primitive(tri, mat_white, nothing))
-        end
+        for i in 0:6
+            start = -100
+            width = 20
+            space = 10
+            rafter = Box(
+                Pnt3(start + i * (width + space),         75,  -250),
+                Pnt3(start + i * (width + space) + width, 100,  250),
+                identity_shape_core,
+                nothing
+            )
+            for tri in rafter
+                push!(primitives, Primitive(tri, mat_white, nothing))
+            end
 
+            light_tris = Rectangle(
+                Pnt2(start +     i   * (width + space) + width + 1.0, -250), 
+                Pnt2(start + (i + 1) * (width + space)         - 1.0, 250), 
+                95.0,
+                2, 
+                identity_shape_core,
+                true,
+                nothing
+            )
+            for tri in light_tris
+                alight = DiffuseAreaLight(
+                    spectrum_from_float(4.0),
+                    tri,
+                    false
+                )
+                push!(lights, alight)
+                push!(primitives, Primitive(tri, mat_white, alight))
+            end
+            # print(
+            #     "       Box $(i+1)
+            #             - start: $(start + i * (width + space))
+            #             - end: $(start + i * (width + space) + width)
+            #             Light $(i+1)
+            #             - start: $(start +     i * (width + space) + width + 1.0)
+            #             - end: $(start + (i + 1) * (width + space)         - 1.0)\n\n\n
+            #     "
+            # )
+        end
 
         asdf = 20.0
         sphere1_t = Translate(Pnt3(0, 20, asdf/2.0))
