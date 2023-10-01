@@ -45,7 +45,8 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 # To do's
 - Implicit Surfaces
 - displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
-- what are those cones and normals in pbrt?
+- add mediums
+- add bi-linear patches
 - sampling over the solid angle
 - light bvh?
 - use y() and dont hack with mean
