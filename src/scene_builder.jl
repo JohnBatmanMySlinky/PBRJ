@@ -1188,7 +1188,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         mat_julia_red = Matte(
-            ConstantTexture(spectrum_from_float(.796, .235, .2)),
+            ConstantTexture(spectrum_from_float(.235, .2, .796)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
