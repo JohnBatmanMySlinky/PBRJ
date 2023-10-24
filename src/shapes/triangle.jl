@@ -386,6 +386,7 @@ function area(tri::Triangle)::Float64
     return 0.5 * sqrt(dot(c, c))
 end
 
+# non-spherical angle sampling
 function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3}
     su0 = sqrt(u[1])
     b = Pnt2(1 - su0, u[2] * su0)
@@ -407,6 +408,70 @@ function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3}
     
     return p, n
 end
-function sample(tri::Triangle, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
-    return sample(tri, u)
+
+function spherical_triangle_area(a::Vec3, b::Vec3, c::Vec3)::Float64
+    return abs(2.0 * atan(
+        dot(a, cross(b, c)),
+        1.0 + dot(a, b) + dot(a, c) + dot(b, c)
+    ))
+end
+
+function sold_angle(p0::Pnt2, p1::Pnt3, p2::Pnt3, p::Pnt3)::Float64
+    return spherical_triangle_area(
+        normalize(p0 - p),
+        normalize(p1 - p),
+        normalize(p2 - p)
+    )
+end
+
+function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
+    # not defining global vars...
+    min_spherical_sample_area=3e-4
+    max_spherical_sample_area=6.22
+
+    # Get triangle vertices in _p0_, _p1_, and _p2_
+    p0, p1, p2 = get_vertices(tri)
+
+    # Use uniform area sampling for numerically unstable cases
+    solid_angle_val = solid_angle(p0, p1, p2, intr.p)
+
+    if (solid_angle_val < min_spherical_sample_area) || (solid_angle_val > max_spherical_sample_area)
+        # Sample shape by area and compute incident direction _wi_
+        return sample(tri, u)
+    end
+
+    # Sample spherical triangle from reference point
+    # Apply warp product sampling for cosine factor at reference point
+    pdf_val = 1.0
+    if intr.n != Nml3(0, 0, 0)
+        # Compute $\cos\theta$-based weights _w_ at sample domain corners
+        rp = intr.p
+        wi = Vec3(normalize(p0 - rp), normalize(p1 - rp), normalize(p2 - rp))
+        w = Vec4(
+            max(.01, abs(dot(intr.n, wi.y))),
+            max(.01, abs(dot(intr.n, wi.y))),
+            max(.01, abs(dot(intr.n, wi.x))),
+            max(.01, abs(dot(intr.n, wi.z)))
+        )
+        u = sample_bilinear(u, w)
+        @assert (u[1] >= 0.0) && (u[1] < 1.0) && (u[2] >= 0.0) && (u[2] < 1.0)
+        pdf_val = bilinear_pdf(u, w)
+    end
+    b, tri_pdf = sample_spherical_triangle(p0, p1, p2, intr.p, u)
+    # TODO what if pdf 0?
+    # if triPDF == 0.0
+    #     return {};
+    pdf_val *= tri_pdf
+
+    # Return _ShapeSample_ for solid angle sampled point on triangle
+    p = b[1] * p0 + b[2] * p1 + b[3] * p2
+    # Compute surface normal for sampled point on triangle
+    n = normalize(Nml3(cross(p1 - p0, p2 - p0)));
+    if !(tri.mesh.normals isa Nothing) {
+        Normal3f ns(b[0] * mesh->n[v[0]] + b[1] * mesh->n[v[1]] +
+                    (1 - b[0] - b[1]) * mesh->n[v[2]]);
+        n = FaceForward(n, ns);
+    } else if (mesh->reverseOrientation ^ mesh->transformSwapsHandedness)
+        n *= -1;
+    end
 end
