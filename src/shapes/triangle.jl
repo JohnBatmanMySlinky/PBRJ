@@ -466,12 +466,13 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     # Return _ShapeSample_ for solid angle sampled point on triangle
     p = b[1] * p0 + b[2] * p1 + b[3] * p2
     # Compute surface normal for sampled point on triangle
-    n = normalize(Nml3(cross(p1 - p0, p2 - p0)));
-    if !(tri.mesh.normals isa Nothing) {
-        Normal3f ns(b[0] * mesh->n[v[0]] + b[1] * mesh->n[v[1]] +
-                    (1 - b[0] - b[1]) * mesh->n[v[2]]);
-        n = FaceForward(n, ns);
-    } else if (mesh->reverseOrientation ^ mesh->transformSwapsHandedness)
-        n *= -1;
+    n = normalize(Nml3(cross(p1 - p0, p2 - p0)))
+    if !(tri.mesh.normals isa Nothing)
+        n0, n1, n2 = get_normals(tri)
+        ns = b[0] * n0 + b[1] * n1 + (1.0 - b[0] - b[1]) * n2
+        n = face_forward(n, ns)
+    elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
+        n *= -1.0
     end
+    return p, n
 end
