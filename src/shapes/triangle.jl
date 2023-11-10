@@ -459,8 +459,8 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     end
     b, tri_pdf = sample_spherical_triangle(p0, p1, p2, intr.p, u)
     # TODO what if pdf 0?
-    # if triPDF == 0.0
-    #     return {};
+    if triPDF == 0.0
+        return Pnt3(0,0,0), Nml3(0,0,0)
     pdf_val *= tri_pdf
 
     # Return _ShapeSample_ for solid angle sampled point on triangle
