@@ -27,6 +27,10 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
     4. Metaballs
 
         ![metaballs](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/metaballs.png?raw=true)
+
+    5. Julia logo but with teapots
+
+        ![julia_logo](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/julia-logo.png?raw=true)
         
 
 ## Features Implemented
