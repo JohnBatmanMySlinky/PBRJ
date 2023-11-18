@@ -409,14 +409,14 @@ function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3}
     return p, n
 end
 
-function spherical_triangle_area(a::Vec3, b::Vec3, c::Vec3)::Float64
+function spherical_triangle_area(a::Pnt3, b::Pnt3, c::Pnt3)::Float64
     return abs(2.0 * atan(
         dot(a, cross(b, c)),
         1.0 + dot(a, b) + dot(a, c) + dot(b, c)
     ))
 end
 
-function sold_angle(p0::Pnt2, p1::Pnt3, p2::Pnt3, p::Pnt3)::Float64
+function solid_angle(p0::Pnt3, p1::Pnt3, p2::Pnt3, p::Pnt3)::Float64
     return spherical_triangle_area(
         normalize(p0 - p),
         normalize(p1 - p),
@@ -446,12 +446,12 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     if intr.n != Nml3(0, 0, 0)
         # Compute $\cos\theta$-based weights _w_ at sample domain corners
         rp = intr.p
-        wi = Vec3(normalize(p0 - rp), normalize(p1 - rp), normalize(p2 - rp))
+        # wi = Vec3(, , )
         w = Vec4(
-            max(.01, abs(dot(intr.n, wi.y))),
-            max(.01, abs(dot(intr.n, wi.y))),
-            max(.01, abs(dot(intr.n, wi.x))),
-            max(.01, abs(dot(intr.n, wi.z)))
+            max(.01, abs(dot(intr.n, normalize(p1 - rp)))),
+            max(.01, abs(dot(intr.n, normalize(p1 - rp)))),
+            max(.01, abs(dot(intr.n, normalize(p0 - rp)))),
+            max(.01, abs(dot(intr.n, normalize(p2 - rp))))
         )
         u = sample_bilinear(u, w)
         @assert (u[1] >= 0.0) && (u[1] < 1.0) && (u[2] >= 0.0) && (u[2] < 1.0)
@@ -461,6 +461,7 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     # TODO what if pdf 0?
     if triPDF == 0.0
         return Pnt3(0,0,0), Nml3(0,0,0)
+    end
     pdf_val *= tri_pdf
 
     # Return _ShapeSample_ for solid angle sampled point on triangle
