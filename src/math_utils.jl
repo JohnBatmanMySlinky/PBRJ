@@ -1,3 +1,9 @@
+function safe_sqrt(x::Float64)::Float64
+    # JOHN HACK
+    # @assert x > -1e-3 # not too negative
+    return sqrt(max(0.0, x))
+end
+
 function solve_quadratic(a::Float64, b::Float64, c::Float64)::Tuple{Bool, Float64, Float64}
     # Find disriminant.
     d = b ^ 2 - 4 * a * c
@@ -21,7 +27,49 @@ end
 
 function distance_squared(p1::Pnt3, p2::Pnt3)::Float64
     p = p1 - p2
-    return dot(p,p)
+    return dot(p, p)
+end
+
+function length_squared(v::Vec3)::Float64
+    return sum(v.^2)
+end
+
+function length_pbrt(v::Vec3)::Float64
+    return sqrt(length_squared(v))
+end
+
+# Equivalent to std::acos(Dot(a, b)), but more numerically stable.
+# via http://www.plunk.org/~hatch/rightway.html
+function angle_between(v1::Vec3, v2::Vec3)::Float64
+    if dot(v1, v2) < 0.0
+        return pi - 2.0 * safe_asin(length_pbrt(v1 + v2) / 2.0)
+    else
+        return 2.0 * safe_asin(length_pbrt(v2 - v1) / 2.0)
+    end
+end
+
+function safe_asin(f::Float64)::Float64
+    return asin(clamp(f, -1.0, 1.0))
+end
+
+function difference_of_products(a::Float64, b::Float64, c::Float64, d::Float64)::Float64
+    # JOHN HACK
+    # this is clearly just me porting their code over needlessly exactly.
+    cd = c * d
+    dop = a * b - cd
+    err = -c * d + cd
+    return dop + err
+end
+
+function sum_of_products(a::Float64, b::Float64, c::Float64, d::Float64)::Float64
+    cd = c * d
+    sop = a * b + cd
+    err = c * d - cd
+    return sop + err
+end
+
+function gram_schmidt(v::Vec3, w::Vec3)::Vec3
+    return v - dot(v, w) * w
 end
 
 function lerp(t::Float64, a::Float64, b::Float64)::Float64
