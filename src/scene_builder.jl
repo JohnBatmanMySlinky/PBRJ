@@ -5,6 +5,7 @@ scene 3: dragon
 scene 4: cornell box
 scene 5: soft bodies
 scene 6: goursat
+scene 7: julia logo
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -1278,21 +1279,43 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             # )
         end
 
+        # asdf = 20.0
+        # sphere1_t = Translate(Pnt3(0, 20, asdf/2.0))
+        # sphere1_sc = ShapeCore(sphere1_t, Inv(sphere1_t), false, false)
+        # sphere1 = Sphere(sphere1_sc, asdf/2.0)
+        # push!(primitives, Primitive(sphere1, mat_julia_red, nothing))
+
+        # sphere2_t = Translate(Pnt3(0, 20, -asdf/2.0))
+        # sphere2_sc = ShapeCore(sphere2_t, Inv(sphere2_t), false, false)
+        # sphere2 = Sphere(sphere2_sc, asdf/2.0)
+        # push!(primitives, Primitive(sphere2, mat_julia_purple, nothing))
+
+        # sphere3_t = Translate(Pnt3(0, 20 + sqrt(asdf^2 - (asdf/2.0)^2), 0))
+        # sphere3_sc = ShapeCore(sphere3_t, Inv(sphere3_t), false, false)
+        # sphere3 = Sphere(sphere3_sc, asdf/2.0)
+        # push!(primitives, Primitive(sphere3, mat_julia_green, nothing))
+
         asdf = 20.0
-        sphere1_t = Translate(Pnt3(0, 20, asdf/2.0))
-        sphere1_sc = ShapeCore(sphere1_t, Inv(sphere1_t), false, false)
-        sphere1 = Sphere(sphere1_sc, asdf/2.0)
-        push!(primitives, Primitive(sphere1, mat_julia_red, nothing))
+        teapot_scale = 0.175
+        teapot_y_shift = 20
+        rotate_y = 45.0
+        teapot_t1 = Translate(Pnt3(0, teapot_y_shift, asdf/2.0)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
+        teapot1 = parse_obj("../ref/teapot.obj", teapot_t1, false, false, nothing) 
+        for tri in teapot1
+            push!(primitives, Primitive(tri, mat_julia_red, nothing))
+        end
 
-        sphere2_t = Translate(Pnt3(0, 20, -asdf/2.0))
-        sphere2_sc = ShapeCore(sphere2_t, Inv(sphere2_t), false, false)
-        sphere2 = Sphere(sphere2_sc, asdf/2.0)
-        push!(primitives, Primitive(sphere2, mat_julia_purple, nothing))
+        teapot_t2 = Translate(Pnt3(0, teapot_y_shift, -asdf/2.0)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
+        teapot2 = parse_obj("../ref/teapot.obj", teapot_t2, false, false, nothing) 
+        for tri in teapot2
+            push!(primitives, Primitive(tri, mat_julia_purple, nothing))
+        end
 
-        sphere3_t = Translate(Pnt3(0, 20 + sqrt(asdf^2 - (asdf/2.0)^2), 0))
-        sphere3_sc = ShapeCore(sphere3_t, Inv(sphere3_t), false, false)
-        sphere3 = Sphere(sphere3_sc, asdf/2.0)
-        push!(primitives, Primitive(sphere3, mat_julia_green, nothing))
+        teapot_t3 = Translate(Pnt3(0, teapot_y_shift + sqrt(asdf^2 - (asdf/2.0)^2), 0)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
+        teapot3 = parse_obj("../ref/teapot.obj", teapot_t3, false, false, nothing) 
+        for tri in teapot3
+            push!(primitives, Primitive(tri, mat_julia_green, nothing))
+        end
 
         # instantiate lights
         light_t = Translate(Pnt3(0, 100, 0))
@@ -1336,7 +1359,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # Instantiate a Camera
         look_from = Pnt3(85, 35, 35)
-        look_at = Pnt3(0, 20.0 + sqrt(asdf^2 - (asdf/2.0)^2) / 2.0, 0)
+        look_at = Pnt3(0, teapot_y_shift + sqrt(asdf^2 - (asdf/2.0)^2) / 2.0, 0)
         up = Vec3(0, -1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 55.0, film)
