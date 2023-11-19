@@ -132,7 +132,7 @@ function sample_spherical_triangle(v1::Pnt3, v2::Pnt3, v3::Pnt3, p::Pnt3, u::Pnt
     # happens if the triangle basically covers the entire hemisphere.
     # we currently depend on calling code to deteect this case, which is sort of ugly / unfortunate
     # JOHN HACK skipping is nan
-    clamp!(cos_bp, -1.0, 1.0)
+    cos_bp = clamp(cos_bp, -1.0, 1.0)
 
     # sample $c'$ along the arc between $b'$ and $a$
     sin_bp = safe_sqrt(1.0 - cos_bp^2)
@@ -143,8 +143,8 @@ function sample_spherical_triangle(v1::Pnt3, v2::Pnt3, v3::Pnt3, p::Pnt3, u::Pnt
     sin_theta = safe_sqrt(1.0 - cos_theta^2)
     w = cos_theta * b + sin_theta * normalize(gram_schmidt(cp, b))
     # find barycentric coordinates for sampled direction _w_
-    e1 = v.y - v.x
-    e2 = v.z - v.x
+    e1 = v2 - v1
+    e2 = v3 - v1
     s1 = cross(w, e2)
     divisor = dot(s1, e1)
     if divisor == 0.0
@@ -153,13 +153,13 @@ function sample_spherical_triangle(v1::Pnt3, v2::Pnt3, v3::Pnt3, p::Pnt3, u::Pnt
     end
 
     inv_divisor = 1.0 / divisor
-    s = p - v.x
+    s = p - v1
     b1 = dot(s, s1) * inv_divisor
-    b2 = dot(w, corss(s, e1)) * inv_divisor
+    b2 = dot(w, cross(s, e1)) * inv_divisor
 
     # return clamped barycentrics for sampled direction
-    clamp!(b1, 0.0, 1.0)
-    clamp!(b2, 0.0, 1.0)
+    b1 = clamp(b1, 0.0, 1.0)
+    b2 = clamp(b2, 0.0, 1.0)
     if b1 + b2 > 1.0
         b1 /= (b1 + b2)
         b2 /= (b1 + b2)

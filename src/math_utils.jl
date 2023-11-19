@@ -1,3 +1,9 @@
+function safe_sqrt(x::Float64)::Float64
+    # JOHN HACK
+    # @assert x > -1e-3 # not too negative
+    return sqrt(max(0.0, x))
+end
+
 function solve_quadratic(a::Float64, b::Float64, c::Float64)::Tuple{Bool, Float64, Float64}
     # Find disriminant.
     d = b ^ 2 - 4 * a * c

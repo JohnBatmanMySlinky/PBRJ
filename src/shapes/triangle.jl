@@ -459,7 +459,7 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     end
     b, tri_pdf = sample_spherical_triangle(p0, p1, p2, intr.p, u)
     # TODO what if pdf 0?
-    if triPDF == 0.0
+    if tri_pdf == 0.0
         return Pnt3(0,0,0), Nml3(0,0,0)
     end
     pdf_val *= tri_pdf
@@ -470,7 +470,7 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     n = normalize(Nml3(cross(p1 - p0, p2 - p0)))
     if !(tri.mesh.normals isa Nothing)
         n0, n1, n2 = get_normals(tri)
-        ns = b[0] * n0 + b[1] * n1 + (1.0 - b[0] - b[1]) * n2
+        ns = b[1] * n0 + b[2] * n1 + (1.0 - b[1] - b[2]) * n2
         n = face_forward(n, ns)
     elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
         n *= -1.0
