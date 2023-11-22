@@ -17,15 +17,17 @@ function LSystem(rules::Dict{String, String}, start::String, iterations::Int64)
     definitions = generate_lsystem_string(rules, start, iterations)
     print("Our L-System string definition is: $(definitions)\n\n")
 
-    primitives = generate_lsystem_primitives(definitions)
-    print("Our LSystem primitives are:\n")
-    for prim in primitives
-        print("\t$(prim)\n")
+    control_points = generate_control_points(definitions)
+    print("Our LSystem control points are:\n")
+    for control_point in control_points
+        print("\t$(control_point)\n")
     end
 
     return definitions
 end
 
+# TODO
+# MOVE THIS TO objects.jl
 mutable struct SimpleRay
     p::Pnt3
     d::Vec3
@@ -35,7 +37,7 @@ function at(r::SimpleRay, t::Float64)::Pnt3
     return Pnt3(r.p + t * r.d)
 end
 
-function generate_lsystem_primitives(definitions::String)::Vector{Pnt3}
+function generate_control_points(definitions::String)::Vector{Pnt3}
     l = 4.0
     r = -25.0
     drawn = Pnt3[]
@@ -62,7 +64,7 @@ function generate_lsystem_primitives(definitions::String)::Vector{Pnt3}
         elseif definition == ']'
             ray = pop!(stack)
         elseif definition == 'X'
-            
+            continue
         else
             @assert "Bad Character in the L-System Definition"
         end
