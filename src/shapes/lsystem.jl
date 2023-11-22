@@ -1,4 +1,5 @@
 using StaticArrays
+using LinearAlgebra
 abstract type AbstractRay end
 abstract type AbstractBSDF end
 abstract type Material end
@@ -25,30 +26,48 @@ function LSystem(rules::Dict{String, String}, start::String, iterations::Int64)
     return definitions
 end
 
-function generate_lsystem_primitives(definitions::String)::Vector{Ray}
-    drawn = Ray[]
-    ray = Ray(Pnt3(0,0,0), Vec3(0, 1, 0), 0.0, typemax(Float64))
-    stack = Ray[]
-    l = 4.0
-    r = 25.0
+mutable struct SimpleRay
+    p::Pnt3
+    d::Vec3
+end
 
+function at(r::SimpleRay, t::Float64)::Pnt3
+    return Pnt3(r.p + t * r.d)
+end
+
+function generate_lsystem_primitives(definitions::String)::Vector{Pnt3}
+    l = 4.0
+    r = -25.0
+    drawn = Pnt3[]
+    stack = SimpleRay[]
+
+    # instantiate ray
+    ray = SimpleRay(
+        Pnt3(0, 0, 0),
+        RotateZ(r)(Vec3(0, 1, 0))
+    )
+    push!(drawn, ray.p)
+
+    # begin drawing
     for definition in definitions
         if definition == 'F'
-            ray = Translate(Pnt3(0, l, 0))(ray)
-            push!(drawn, ray)
+            ray.p = at(ray, 2.0)
+            push!(drawn, ray.p)
         elseif definition == '+'
-            ray = RotateZ(-r)(ray)
+            ray.d = RotateZ(-r)(ray.d)
         elseif definition == '-'
-            ray = RotateZ(r)(ray)
+            ray.d = RotateZ(r)(ray.d)
         elseif definition == '['
-            push!(stack, ray)
+            push!(stack, deepcopy(ray)) # Rotates were mutating the stack...
         elseif definition == ']'
             ray = pop!(stack)
         elseif definition == 'X'
-            continue
+            
         else
             @assert "Bad Character in the L-System Definition"
         end
+        # print("\tDefinition: $(definition) -- Current Ray: $(ray)\n")
+        # print("\t\tStack: $(stack)\n")
     end
     @assert length(stack) == 0
     return drawn
@@ -74,6 +93,6 @@ end
 
 d1 = Dict("X" => "F+[[X]-X]-F[-FX]+X", "F" => "FF")
 
-LSystem(d1, "X", 1)
+LSystem(d1, "X", 2)
 
 # https://editor.p5js.org/BarneyCodes/sketches/zYE1AuET8
