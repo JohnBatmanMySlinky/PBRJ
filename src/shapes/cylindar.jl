@@ -5,7 +5,7 @@ struct Cylindar <: Shape
     z_max::Float64
     phi_max::Float64
 
-    function Cylindar(t::Transformation, radius::Float64, z_min::Float64, z_max::Float64, phi_max::Float64, reverse_orientation::Bool, transform_swaps_handedness::Bool)
+    function Cylindar(t::Transformation, radius::Float64, z_min::Float64, z_max::Float64, phi_max::Float64=360.0, reverse_orientation::Bool=false, transform_swaps_handedness::Bool=false)
         @assert z_min <= z_max
         new(
             ShapeCore(t, Inv(t), reverse_orientation, transform_swaps_handedness),

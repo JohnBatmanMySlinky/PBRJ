@@ -12,6 +12,7 @@ using Logging
 using Dates
 using OpenEXR
 using Roots
+using IterTools
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
