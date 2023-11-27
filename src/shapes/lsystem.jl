@@ -1,18 +1,18 @@
-using StaticArrays
-using LinearAlgebra
-using IterTools
-abstract type AbstractRay end
-abstract type AbstractBSDF end
-abstract type Material end
-abstract type Light end
-abstract type Shape end
-const Radiance = Val{:Radiance}
-const Importance = Val{:Importance}
-const TransportMode = Union{Radiance, Importance}
-include("../objects.jl")
-include("../primitive.jl")
-include("../interactions.jl")
-include("../transformations.jl")
+# using StaticArrays
+# using LinearAlgebra
+# using IterTools
+# abstract type AbstractRay end
+# abstract type AbstractBSDF end
+# abstract type Material end
+# abstract type Light end
+# abstract type Shape end
+# const Radiance = Val{:Radiance}
+# const Importance = Val{:Importance}
+# const TransportMode = Union{Radiance, Importance}
+# include("../objects.jl")
+# include("../primitive.jl")
+# include("../interactions.jl")
+# include("../transformations.jl")
 
 # very helpful!
 # https://editor.p5js.org/BarneyCodes/sketches/zYE1AuET8
@@ -26,23 +26,17 @@ include("../transformations.jl")
 #   - each sublist should be continuous branch. 
 #   - "back tracking" should be delineated by a break in sublists so those segments aren't drawn.
 
-function LSystem(rules::Dict{String, String}, start::String, iterations::Int64)
+function LSystem(rules::Dict{String, String}, start::String, iterations::Int64)::Vector{Shape}
 
     # BECAUSE BACK TRACKING IS BORKEN
-    @assert iterations == 1
+    # @assert iterations == 1
 
     definitions = generate_lsystem_string(rules, start, iterations)
-    # print("Our L-System string definition is: $(definitions)\n\n")
+    print("Our L-System string definition is: $(definitions)\n\n")
 
-    control_points = generate_control_points(definitions)
-    print("Our LSystem control points are:\n")
-    for control_point in control_points
-        print("\t\t$(control_point)\n")
-    end
+    shapes = generate_control_points(definitions)
 
-    # TODO
-    # make this primitives next by passing materials
-    shapes = generate_shapes(control_points)
+    @assert count("F", definitions) == length(shapes)
 
     return shapes
 end
@@ -58,24 +52,28 @@ function at(r::SimpleRay, t::Float64)::Pnt3
     return Pnt3(r.p + t * r.d)
 end
 
-function generate_shapes(v::Vector{Pnt3})::Vector{Shape}
-    shapes = Shape[]
-    for (look_from, look_to) in partition(v, 2, 1)
-        tmp = Cylindar(
-            LookAt(look_from, look_to, Vec3(0,1,0)),
-            3.0,
-            0.0,
-            20.0
-        )
-        push!(shapes, tmp)
-    end
-    return shapes
-end
+# function generate_shapes(v::Vector{Pnt3})::Vector{Shape}
+#     shapes = Shape[]
+#     print("\tLSystem: To's and From's\n")
+#     for (look_from, look_to) in partition(v, 2, 1)
+#         if sum(look_from .== look_to) < 2
+#             print("\t\tLookFrom: $(look_from), LookTo: $(look_to)\n")
+#             tmp = Cylindar(
+#                 LookAt(look_from, look_to, Vec3(0,1,0)),
+#                 2.0,
+#                 0.0,
+#                 10.0
+#             )
+#             push!(shapes, tmp)
+#         end
+#     end
+#     return shapes
+# end
 
-function generate_control_points(definitions::String)::Vector{Pnt3}
-    l = 20.0
+function generate_control_points(definitions::String)::Vector{Shape}
+    l = 10.0
     r = -25.0
-    drawn = Pnt3[]
+    drawn = Shape[]
     stack = SimpleRay[]
 
     # instantiate ray
@@ -83,13 +81,20 @@ function generate_control_points(definitions::String)::Vector{Pnt3}
         Pnt3(0, 0, 0),
         RotateZ(r)(Vec3(0, 1, 0))
     )
-    push!(drawn, ray.p)
 
     # begin drawing
     for definition in definitions
         if definition == 'F'
-            ray.p = at(ray, l)
-            push!(drawn, ray.p)
+            new_p = at(ray, l)
+            drawn_cyl = Cylindar(
+                LookAt(ray.p, new_p, Vec3(0, 0, 1)),
+                2.0,
+                0.0,
+                l
+            )
+            print("\t\t\t\tFrom: $(ray.p), To: $(new_p), Δ: $(new_p - ray.p)\n")
+            ray.p = new_p
+            push!(drawn, deepcopy(drawn_cyl))
         elseif definition == '+'
             ray.d = RotateZ(-r)(ray.d)
         elseif definition == '-'
