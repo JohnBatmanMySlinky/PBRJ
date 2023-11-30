@@ -32,7 +32,7 @@ function LSystem(rules::Dict{String, String}, start::String, iterations::Int64):
     # @assert iterations == 1
 
     definitions = generate_lsystem_string(rules, start, iterations)
-    print("Our L-System string definition is: $(definitions)\n\n")
+    # print("Our L-System string definition is: $(definitions)\n\n")
 
     shapes = generate_control_points(definitions)
 
@@ -71,8 +71,8 @@ end
 # end
 
 function generate_control_points(definitions::String)::Vector{Shape}
-    l = 10.0
-    r = -25.0
+    l = 5.0
+    r = -15.0
     drawn = Shape[]
     stack = SimpleRay[]
 
@@ -87,12 +87,12 @@ function generate_control_points(definitions::String)::Vector{Shape}
         if definition == 'F'
             new_p = at(ray, l)
             drawn_cyl = Cylindar(
-                LookAt(ray.p, new_p, Vec3(0, 0, 1)),
-                2.0,
+                RotateY(-100.0) * LookAt(ray.p, new_p, Vec3(0, 0, 1)),
+                0.75,
                 0.0,
                 l
             )
-            print("\t\t\t\tFrom: $(ray.p), To: $(new_p), Δ: $(new_p - ray.p)\n")
+            # print("\t\t\t\tFrom: $(ray.p), To: $(new_p), Δ: $(new_p - ray.p)\n")
             ray.p = new_p
             push!(drawn, deepcopy(drawn_cyl))
         elseif definition == '+'

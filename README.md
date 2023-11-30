@@ -47,6 +47,8 @@ An implementation of [Physically Based Rendering: From Theory to Implementation]
 - Logging
 
 # To do's
+- direct match with PBRT because I have too many fireflies.
+- render some sample scenes
 - Implicit Surfaces
 - displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
 - add mediums

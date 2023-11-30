@@ -1494,7 +1494,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # push!(primitives, Primitive(cyl, mat_julia_green, nothing))
 
         d1 = Dict("X" => "F+[[X]-X]-F[-FX]+X", "F" => "FF")
-        lsystem_shapes = LSystem(d1, "X", 2)
+        lsystem_shapes = LSystem(d1, "X", 3)
         for (i, cyl) in enumerate(lsystem_shapes)
             if i % 2 == 0                
                 push!(primitives, Primitive(cyl, mat_julia_red, nothing))
