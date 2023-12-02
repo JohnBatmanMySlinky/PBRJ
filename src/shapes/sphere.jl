@@ -252,13 +252,13 @@ function sample(s::Sphere, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     cos_theta_max = sqrt(max(0, 1- sin_theta_max2))
     cos_theta = (1-u[1]) + u[1] * cos_theta_max
     sin_theta = sqrt(max(0,1-cos_theta^2))
-    phi = u[2] * 2 * pi
+    phi::Float64 = u[2] * 2 * pi
 
     # compute angle alpha from center of sphere to sampled point on surface
-    dc = distance(interaction.p, pcenter)
-    ds = dc * cos_theta - sqrt(max(0, s.radius^2 - dc^2 * sin_theta^2))
-    cos_alpha = (dc^2 + s.radius^2 - ds^2) / (2 * dc * s.radius)
-    sin_alpha = sqrt(max(0, 1-cos_alpha^2))
+    dc::Float64 = distance(interaction.p, pcenter)
+    ds::Float64 = dc * cos_theta - sqrt(max(0, s.radius^2 - dc^2 * sin_theta^2))
+    cos_alpha::Float64 = (dc^2 + s.radius^2 - ds^2) / (2 * dc * s.radius)
+    sin_alpha::Float64 = sqrt(max(0, 1-cos_alpha^2))
 
     # compute surface normal and sampled point on sphere
     nobj = Nml3(spherical_direction(sin_alpha, cos_alpha, phi, -wcX, -wcY, -wc))

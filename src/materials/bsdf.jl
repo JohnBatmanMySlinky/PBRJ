@@ -36,6 +36,7 @@ function add!(b::BSDF, x::B) where B <: AbstractBxDF
 end
 
 function world_to_local(b::BSDF, v::Vec3)::Vec3
+    @info "World To Local:: ss=$(b.ss), ts=$(b.ts), ns=$(b.ns)"
     return Vec3(dot(v, b.ss), dot(v, b.ts), dot(v, b.ns))
 end
 
@@ -94,7 +95,9 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
         min(u.x * matching_components - component, 1), u.y,
     )
     # Sample chosen BxDF.
+    @info "BSDF:: wo_world: $(wo_world)"
     wo = world_to_local(b, wo_world)
+    @info "BSDF:: wo: $(wo)"
     wo.z == 0 && return (Vec3(0), spectrum_from_float(0.0), 0, BSDF_NONE)   
 
     # TODO when to update sampled type

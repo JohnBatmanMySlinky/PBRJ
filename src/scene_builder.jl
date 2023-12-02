@@ -687,7 +687,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # MATERIALS
         mat_gray = Matte(
-            ConstantTexture(spectrum_from_float(.4, .4, .4)),
+            ConstantTexture(spectrum_from_float(.75, .75, .75)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
@@ -697,17 +697,17 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         mat_red = Matte(
-            ConstantTexture(spectrum_from_float(.9, 0.05, 0.05)),
+            ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_blue = Matte(
-            ConstantTexture(spectrum_from_float(0.05, 0.05, .9)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
         mat_green = Matte(
-            ConstantTexture(spectrum_from_float(0.05, 0.9, 0.05)),
+            ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
@@ -770,11 +770,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             0.0,
             1, 
             identity_shape_core,
-            false,
+            true,
             nothing
         )
         for tri in leftwall
-            push!(primitives, Primitive(tri, mat_green, nothing))
+            push!(primitives, Primitive(tri, mat_red, nothing))
         end
         rightwall = Rectangle(
             Pnt2(0, 0), 
@@ -782,11 +782,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             555.0,
             1, 
             identity_shape_core,
-            true,
+            false,
             nothing
         )
         for tri in rightwall
-            push!(primitives, Primitive(tri, mat_red, nothing))
+            push!(primitives, Primitive(tri, mat_green, nothing))
         end
 
         ceiling_light = Rectangle(
@@ -798,15 +798,31 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             true,
             nothing
         )
-        for tri in ceiling_light
-            alight = DiffuseAreaLight(
-                spectrum_from_float(20.0, 20.0, 20.0, Illuminant),
-                tri,
-                false # NOT two sided
-            )
-            push!(lights,alight)
-            push!(primitives, Primitive(tri, mat_white, alight))
-        end
+        # for tri in reverse(ceiling_light)
+        #     alight = DiffuseAreaLight(
+        #         spectrum_from_float(20.0, 20.0, 20.0, Illuminant),
+        #         tri,
+        #         false # NOT two sided
+        #     )
+        #     push!(lights,alight)
+        #     push!(primitives, Primitive(tri, mat_white, alight))
+        # end
+        s = Sphere(
+            ShapeCore(
+                Translate(Pnt3(0, 525, 0)),
+                Inv(Translate(Pnt3(0, 525, 0))),
+                false,
+                false
+            ),
+            50.0
+        )
+        alight = DiffuseAreaLight(
+            spectrum_from_float(20.0, 20.0, 20.0, Illuminant),
+            s,
+            false
+        )
+        push!(lights, alight)
+        push!(primitives, Primitive(s, mat_white, alight))
 
         box_1_transform = Translate(Pnt3(265, 0, 295)) * RotateY(25.0)
         box_1 = Box(
@@ -860,7 +876,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         filter = BoxFilter(Pnt2(.1, .1))
 
         # Instantiate a Film
-        film = PassFilm(
+        film = Film(
             Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
             Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
             filter,
@@ -872,7 +888,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Camera
         look_from = Pnt3(278, 278, -800)
         look_at = Pnt3(278, 278, 0)
-        up = Vec3(0, -1, 0)
+        up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 

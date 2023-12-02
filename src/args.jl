@@ -42,7 +42,7 @@ function parse_commandline()::Dict
         "--file-name"
             help = "name of file"
             arg_type = String
-            default = "yeehaw.png"
+            default = "yeehaw.exr"
     end
 
     return parse_args(s)

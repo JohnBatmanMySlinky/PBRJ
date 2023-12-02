@@ -10,7 +10,7 @@ function render(
     scene::Scene, 
     bdpt_pass::Tuple{Int64, Int64}=(-1,-1),
     light_dist_strat::String="uniform", 
-)::Array{Float64}
+)::Array{RGB}
     # create light sampling light_distribution
     # JOHN HACK --> hard coding uniform dist
     light_distr_generator = LightDistribution(light_dist_strat, scene)
@@ -191,6 +191,7 @@ function generate_light_subpath!(
     
     # sample initial ray for light subpath
     light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
+    @info "Light subpath light #$(light_num)"
     light = scene.lights[light_num]
     Le, ray, n_light, pdf_pos, pdf_dir = sample_le(light, get_2D!(sampler), get_2D!(sampler), t)
     if (pdf_pos == 0.0) || (pdf_dir == 0.0) || is_black(Le)
@@ -245,6 +246,8 @@ function random_walk!(
         COUNTER += 1
         # attempt to create the next subpath verte in *path*
         check, t, isect = intersect!(scene.b, ray)
+        @info "Random walk intersection $(isect.core), shadingg = $(isect.shading)"
+
         
         # JOHN HACK --> no medium no is black so continue
 

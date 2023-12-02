@@ -72,9 +72,10 @@ struct Film
 
         # compute image bounds
         cropped_pixel_bounds = Bounds2(
-            ceil.(full_resolution .* cropped_pixel_bounds.pMin) .+ 1.0,
+            ceil.(full_resolution .* cropped_pixel_bounds.pMin),
             ceil.(full_resolution .* cropped_pixel_bounds.pMax)
         )
+        @info "Cropped Pixel Bounds at the source: $(cropped_pixel_bounds)"
         cropped_resolution = inclusive_sides(cropped_pixel_bounds)
 
 
@@ -139,7 +140,7 @@ struct PassFilm
 
         # compute image bounds
         cropped_pixel_bounds = Bounds2(
-            ceil.(full_resolution .* cropped_pixel_bounds.pMin) .+ 1.0,
+            ceil.(full_resolution .* cropped_pixel_bounds.pMin),
             ceil.(full_resolution .* cropped_pixel_bounds.pMax)
         )
         cropped_resolution = inclusive_sides(cropped_pixel_bounds)
@@ -282,7 +283,7 @@ function add_splat!(f::Union{Film, PassFilm}, p::Pnt2, v::Spectrum)
     Threads.atomic_add!(pixel.splat_xyz, to_XYZ(v))
 end
 
-function save(film::Film, splat_scale::Float64 = 1.0)::Array{Float64}
+function save(film::Film, splat_scale::Float64 = 1.0)::Array{RGB}
     X, Y = size(film.pixels)
     image = Array{Float64}(undef, X, Y, 3)
     for y in 1:Y
@@ -302,7 +303,13 @@ function save(film::Film, splat_scale::Float64 = 1.0)::Array{Float64}
             image[y, x, :] .*= film.scale
         end
     end
-    return image[end:-1:begin, :, :]
+    newimage = zeros(RGB, X, Y)
+    for y in 1:Y
+        for x in 1:X
+            newimage[y,x] = RGB(image[y,x,1], image[y,x,2], image[y,x,3])
+        end
+    end
+    return newimage
 end
 
 function save(film::PassFilm, splat_scale::Float64 = 1.0)::Array{Float64}
@@ -371,5 +378,5 @@ function save(film::PassFilm, splat_scale::Float64 = 1.0)::Array{Float64}
     end
 
     clamp!(image, 0.0, 1.0)
-    return image[:, end:-1:begin, :, :]
+    return image
 end

@@ -85,7 +85,7 @@ function spherical_theta(v::Vec3)::Float64
     return acos(clamp(v.z, -1.0, 1.0))
 end
 
-function spherical_direction(sin_theta::Float64, cos_theta::Float64, phi::Float64, x::Vec3, y::Vec3, z::Vec3)::Float64
+function spherical_direction(sin_theta::Float64, cos_theta::Float64, phi::Float64, x::Vec3, y::Vec3, z::Vec3)::Vec3
     return sin_theta * cos(phi) * x + sin_theta * sin(phi) * y + cos_theta * z
 end
 

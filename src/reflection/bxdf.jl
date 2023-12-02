@@ -1,6 +1,7 @@
 #14.1 sampling reflection functions
 function sample_f(bxdf::AbstractBxDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
     wi = cosine_sample_hemisphere(u)
+    @info "sample_f:::BxDF: u = $(u), wi = $(wi)"
     if wo.z < 0 
         wi = Vec3(wi.x, wi.y, wi.z * -1)
     end
