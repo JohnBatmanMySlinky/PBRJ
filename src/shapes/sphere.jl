@@ -224,7 +224,9 @@ end
 
 # sample w.r.t. the surface area
 function sample(s::Sphere, u::Pnt2)::Tuple{Pnt3, Nml3}
+    @info "Light Sampling u: $(u)"
     pobj = Pnt3(s.radius .* random_on_sphere(u))
+    @info "Light Sampling Deeper: p:$(pobj)"
     n = normalize(
         s.core.object_to_world(Nml3(pobj.x, pobj.y, pobj.z))
     )

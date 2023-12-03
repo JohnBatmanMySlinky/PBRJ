@@ -246,9 +246,7 @@ function random_walk!(
         COUNTER += 1
         # attempt to create the next subpath verte in *path*
         check, t, isect = intersect!(scene.b, ray)
-        @info "Random walk intersection $(isect.core), shadingg = $(isect.shading)"
-
-        
+       
         # JOHN HACK --> no medium no is black so continue
 
         # JOHN HACK --> using indexes
@@ -278,6 +276,8 @@ function random_walk!(
         if bounces >= max_depth + path_offset # JOHN HACK
             break
         end
+
+        @info "Random walk intersection $(isect.core), shadingg = $(isect.shading)"
 
         # sample BSDF at current vertex and compute reverse probability
         wo = isect.core.wo
@@ -408,6 +408,7 @@ function connect_BDPT(
 
     # compute MIS weight for connection strategy
     mis_weight = is_black(L) ? 0.0 : MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr, light_num)
+    @info "MIS weight for (s,t) = ($(s),$(t)) connection $(mis_weight)"
     (DO_MIS_WEIGHT) && (L *= mis_weight)
     return L, mis_weight, pfilm
 end

@@ -58,6 +58,7 @@ function sample_le(light::DiffuseAreaLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tup
     
     # samplea  point on the area lights shape, pshape
     p_shape, n_light = sample(light.shape, u1)
+    @info "Light Sampling: p:$(p_shape), n:$(n_light)"
     pdf_pos = pdf(light.shape)
 
     if light.two_sided
