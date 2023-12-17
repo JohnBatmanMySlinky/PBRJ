@@ -36,7 +36,7 @@ function add!(b::BSDF, x::B) where B <: AbstractBxDF
 end
 
 function world_to_local(b::BSDF, v::Vec3)::Vec3
-    @info "World To Local:: ss=$(b.ss), ts=$(b.ts), ns=$(b.ns)"
+    # @info "World To Local:: ss=$(b.ss), ts=$(b.ts), ns=$(b.ns)"
     return Vec3(dot(v, b.ss), dot(v, b.ts), dot(v, b.ns))
 end
 

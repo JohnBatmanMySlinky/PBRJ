@@ -223,19 +223,20 @@ end
 #################################
 
 # sample w.r.t. the surface area
-function sample(s::Sphere, u::Pnt2)::Tuple{Pnt3, Nml3}
+function sample(s::Sphere, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
     @info "Light Sampling u: $(u)"
     pobj = Pnt3(s.radius .* random_on_sphere(u))
-    @info "Light Sampling Deeper: p:$(pobj)"
+    @info "Light Sampling Depeper: p:$(pobj)"
     n = normalize(
         s.core.object_to_world(Nml3(pobj.x, pobj.y, pobj.z))
     )
     p = s.core.object_to_world(pobj)
-    return p, n
+    pdf_val = 1 / area(s)
+    return p, n, pdf_val
 end
 
 # sample w.r.t. the solid anglefrom reference point interaction
-function sample(s::Sphere, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
+function sample(s::Sphere, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
     # compute coordinate system for sphere sampling
     pcenter = s.core.object_to_world(Pnt3(0,0,0))
     wc = Vec3(normalize(pcenter - interaction.p))
@@ -245,7 +246,15 @@ function sample(s::Sphere, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     # TODO offsetrayorigin?
     porigin = pcenter - interaction.p
     if distance(porigin, pcenter)^2 <= s.radius^2
-        return sample(s, u)
+        p, n, pdf_val = sample(s, u)
+        wi = p - interaction.p
+        if length_squared(wi) == 0.0
+            pdf_val = 0.0
+        else
+            wi = normalize(wi)
+            pdf_val *= distance_squared(interaction.p, p) / abs(dot(n, -wi))
+        end
+        return p, n, pdf_val
     end
 
     # sample sphere uniformly inside subtended cone
@@ -269,7 +278,10 @@ function sample(s::Sphere, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     # return interaction for sampleed point on sphere
     p = s.core.object_to_world(pobj)
     n = s.core.object_to_world(nobj)
-    return (p, n)
+
+    pdf_val = 1 / (2.0 * pi * (1 - cos_theta_max))
+
+    return (p, n, pdf_val)
 end
 
 function refine_Interaction(p::Pnt3, s::Sphere)

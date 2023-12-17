@@ -122,7 +122,7 @@ function render(
                                 camera_sample.film
                             )
 
-                            @info "($(s)-light, $(t)-camera) L: $(L_path)"
+                            @info "Connect bdpt s: $(s), t: $(t), Lpath: $(L_path), misWeight: $(mis_weight)"
 
                             if t != 1
                                 L += L_path
@@ -132,6 +132,8 @@ function render(
                         end
                     end
                 end
+                
+                @info "Add film sample pFilm: $(camera_sample.film), L: $(L), (y: $(y_spectrum(L)))"
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
             end
         end

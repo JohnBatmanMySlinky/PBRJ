@@ -143,7 +143,7 @@ function make_spectral_constants()::Tuple{Spectrum, Spectrum, Spectrum, Spectrum
     return Spectrum(tmp_X), Spectrum(tmp_Y), Spectrum(tmp_Z), Spectrum(tmp_rgbRefl2SpectWhite), Spectrum(tmp_rgbRefl2SpectCyan), Spectrum(tmp_rgbRefl2SpectMagenta), Spectrum(tmp_rgbRefl2SpectYellow), Spectrum(tmp_rgbRefl2SpectRed), Spectrum(tmp_rgbRefl2SpectGreen), Spectrum(tmp_rgbRefl2SpectBlue), Spectrum(tmp_rgbIllum2SpectWhite), Spectrum(tmp_rgbIllum2SpectCyan), Spectrum(tmp_rgbIllum2SpectMagenta), Spectrum(tmp_rgbIllum2SpectYellow), Spectrum(tmp_rgbIllum2SpectRed), Spectrum(tmp_rgbIllum2SpectGreen), Spectrum(tmp_rgbIllum2SpectBlue)
 end
 
-function y(s::Spectrum)::Float64
+function y_spectrum(s::Spectrum)::Float64
     if length(s) == 3
         return s[2]
     else

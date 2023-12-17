@@ -814,10 +814,10 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 false,
                 false
             ),
-            50.0
+            25.0
         )
         alight = DiffuseAreaLight(
-            spectrum_from_float(20.0, 20.0, 20.0, Illuminant),
+            spectrum_from_float(200.0, 200.0, 200.0, Illuminant),
             s,
             false
         )
