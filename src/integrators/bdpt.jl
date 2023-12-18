@@ -390,7 +390,6 @@ function connect_BDPT(
                 @info "L: $(L)"
                 if !is_black(L)
                     TR = tr(vis, scene.b, sampler)
-                    @info "trace: $(TR)"
                     L *= TR
                 end
                 @info "L: $(L)"

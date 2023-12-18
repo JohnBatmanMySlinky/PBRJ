@@ -31,9 +31,9 @@ end
 # PBR 14.2.3
 function sample_li(dal::DiffuseAreaLight, interaction::Interaction, u::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     # TODO use more efficient sampling cone of visibility
-    pshape, nshape = sample(dal.shape, interaction, u)
+    pshape, nshape, pdf_val = sample(dal.shape, interaction, u)
     wi = Vec3(normalize(pshape - interaction.p))
-    pdf_val = pdf(dal.shape, interaction, wi)
+    # pdf_val = pdf(dal.shape, interaction, wi)
     visibility = VisibilityTester(
         interaction,
         Interaction(pshape, interaction.t, nshape)
