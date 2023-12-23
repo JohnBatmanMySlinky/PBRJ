@@ -534,7 +534,6 @@ function MIS_weight(
         delta_light_vertex = i > 0 ? light_vertices[i-1+1].delta : is_delta_light(light_vertices[0+1].ei.light)
         if !light_vertices[i+1].delta && !delta_light_vertex
             sum_ri += ri
-            @info "MISWEIGHT: Light Subpath: sumRi: $(sum_ri) ri: $(ri)"
         end
     end
 
