@@ -522,7 +522,9 @@ function MIS_weight(
     ri = 1.0
     for i in reverse(1:(t-1))
         ri *= remap0(camera_vertices[i+1].pdf_rev) / remap0(camera_vertices[i+1].pdf_fwd)
-        (!camera_vertices[i+1].delta && !camera_vertices[i-1+1].delta) && (sum_ri += ri)
+        if !camera_vertices[i+1].delta && !camera_vertices[i-1+1].delta
+            sum_ri += ri
+        end
     end
 
     # Consider hypothetical connection strategies along the light subpath
@@ -530,7 +532,10 @@ function MIS_weight(
     for i in reverse(0:(s-1))
         ri *= remap0(light_vertices[i+1].pdf_rev) / remap0(light_vertices[i+1].pdf_fwd)
         delta_light_vertex = i > 0 ? light_vertices[i-1+1].delta : is_delta_light(light_vertices[0+1].ei.light)
-        (light_vertices[i+1].delta && !delta_light_vertex) && (sum_ri += ri)
+        if !light_vertices[i+1].delta && !delta_light_vertex
+            sum_ri += ri
+            @info "MISWEIGHT: Light Subpath: sumRi: $(sum_ri) ri: $(ri)"
+        end
     end
 
     # UNROLL a1
