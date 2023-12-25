@@ -245,7 +245,7 @@ function sample(s::Sphere, interaction::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3,
     porigin = pcenter - interaction.p
     if distance(porigin, pcenter)^2 <= s.radius^2
         p, n, pdf_val = sample(s, u)
-        wi = p - interaction.p
+        wi = Vec3(p - interaction.p)
         if length_squared(wi) == 0.0
             pdf_val = 0.0
         else

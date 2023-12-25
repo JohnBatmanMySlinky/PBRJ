@@ -205,7 +205,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         dpdu = Vec3(dpu)
         dpdv = Vec3(dpv)
     end
-    @info "TRIANGLE: dpdu=$(dpdu), dpdv=$(dpdv)"
+    # @info "TRIANGLE: dpdu=$(dpdu), dpdv=$(dpdv)"
 
     # interpolate uv coords and hit point
     phit = b0 * p0 + b1 * p1 + b2 * p2
@@ -236,7 +236,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
 
     # Override surface normal in _isect_ for triangle
     interaction.core.n = interaction.shading.n = Nml3(normalize(cross(dp13, dp23)))
-    @info "Original normal: $(interaction.core.n)"
+    # @info "Original normal: $(interaction.core.n)"
     if tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
         @info "FLIPPED NORMAL"
         interaction.core.n = interaction.shading.n = -interaction.core.n    
@@ -278,7 +278,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
 
         # Compute shading bitangent _ts_ for triangle and adjust _ss_
         ts = cross(ss, ns)
-        @info "TRIANGLE: ts=$(ts), ss=$(ss), ns=$(ns)"
+        # @info "TRIANGLE: ts=$(ts), ss=$(ss), ns=$(ns)"
         if length_squared(ts) > 0.0
             ts = normalize(ts)
             ss = cross(ts, ns)

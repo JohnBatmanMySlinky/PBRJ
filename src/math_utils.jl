@@ -141,3 +141,13 @@ function multiplicative_inverse(a::Int64, n::Int64)::Int64
     x = gcd(a,n)
     return mod(x,n)
 end
+
+function count_not_undef(iterable::Vector)::Int64
+    nope = 0
+    for i in 1:length(iterable)
+        if isassigned(iterable, i)
+            nope += 1
+        end
+    end
+    return nope
+end

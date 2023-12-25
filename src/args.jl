@@ -34,7 +34,7 @@ function parse_commandline()::Dict
         "--max-depth"
             help = "max # of bounces"
             arg_type = Int
-            default = 4
+            default = 6
         "--light-distribution-strategy"
             help = "strategy for sampling lights"
             arg_type = String
