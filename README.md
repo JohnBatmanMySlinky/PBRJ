@@ -65,7 +65,7 @@ Render
 - Glass, matte, metal, mirror, plastic, and substrate materials
 - Stratified sampling
 - Box, cylindar, disk, rectangle, sphere, and triangle shapes
-- Very basic L-systrem
+- Very basic L-system
 - Implicit surfaces: Goursat surface & metaballs
 - RGB & spectral rendering
 - Constant, image, mixed, procedural and mixed textures
@@ -75,7 +75,10 @@ Render
 - Validate 100% aginst PBR for a single scene
     - Document what is needed to get that level of validation
     - Suffer thru MISWeight & image writing
+- Julia 1.9 has native support for Float16, a 4x speed up would be very nice albeit at some cost.
 - Tidy up implicit Surfaces
+- Add leafs to l-systems
+- What if I instantiated the samplers within the parallel loop instead of deepcopy'ing?
 - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
 - Add mediums
 - Add bi-linear patches
@@ -84,7 +87,6 @@ Render
 - Use y(::Spectrum) and dont hack with mean
 - Build in rendering passes natively
     - don't just use 1 spp for rendering passes
-- Julia 1.9 has native support for Float16, a 4x speed up would be very nice albeit at some cost.
 - ~~use inplace operations where possible ie `normalize!()` vs `normalize`~~
 - Make sure I am sampling purley over the solid angle
 - Implement Metroplois Light Transport Integrator
@@ -115,7 +117,7 @@ Render
 - Expand test coverage
 
 # Bugs
-- My world is upside down! Use real pbrt to debug (or pxl-th's)
+- ~~My world is upside down! Use real pbrt to debug (or pxl-th's)~~
 - Sometimes objects are see through (ie when they have a really bright light behind them)
 
 # Ideas

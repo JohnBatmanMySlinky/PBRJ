@@ -168,9 +168,7 @@ const BDPT_STAGES::Vector{Tuple{Int64, Int64}} = [
     # (5,1)
 ]
 
-function render_scene()
-    parsed_args = parse_commandline()
-
+function render_scene(parsed_args::Dict)
     for bdpt_pass in BDPT_STAGES
         (bdpt_pass != (-1,-1)) && (print("working on bdpt pass s=$(bdpt_pass[1]), t=$(bdpt_pass[2])\n"))
         I, scene = build_scene(parsed_args) # TODO get this outside the loop!
@@ -197,20 +195,32 @@ function render_scene()
     end
 end
 
-if abspath(PROGRAM_FILE) == @__FILE__
-    # set up logging
+function setup_logging(debug::Bool)
     if Sys.iswindows()
-        logger = NullLogger()
-        io = open("windows_log_softy.txt", "w+")
-        logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
+        if parsed_args["debug"]
+            io = open("windows_log_softy.txt", "w+")
+            logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
+        else
+            logger = NullLogger()
+        end
     else
-        logger = NullLogger()
-        io = open("log_$(now()).txt", "w+")
-        logger = SimpleLogger(io, Logging.Debug) # Error, Warn, Info, Debug        
+        if parsed_args["debug"]
+            io = open("log_$(now()).txt", "w+")
+            logger = SimpleLogger(io, Logging.Debug) # Error, Warn, Info, Debug        
+        else
+            logger = NullLogger()
+        end
     end
+    return logger
+end
+
+if abspath(PROGRAM_FILE) == @__FILE__
+    parsed_args = parse_commandline()
+    
+    logger = setup_logging(parsed_args["debug"])
     global_logger(logger)
 
-    @time render_scene()
+    @time render_scene(parsed_args)
 end
 
 end
