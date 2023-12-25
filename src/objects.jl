@@ -242,7 +242,7 @@ function diagonal(b::Union{Bounds2, Bounds3})
 end
 
 function Base.length(b::Bounds2)::Int64
-    delta = ceil.(b.pMax .- b.pMin)
+    delta = ceil.(b.pMax .- b.pMin .+ 1.0)
     return Int64(delta.x * delta.y)
 end
 
