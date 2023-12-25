@@ -145,7 +145,7 @@ end
 
 function y_spectrum(s::Spectrum)::Float64
     if length(s) == 3
-        return s[2]
+        return s.a * 0.212671 + s.b * 0.715160 + s.c * 0.072169
     else
         yy = 0.0
         for i in 1:nSpectralSamples

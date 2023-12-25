@@ -43,6 +43,10 @@ function parse_commandline()::Dict
             help = "name of file"
             arg_type = String
             default = "yeehaw.exr"
+        "--debug"
+            help = "true = debug mode, false = not debug mode"
+            arg_type = Bool
+            default = false
     end
 
     return parse_args(s)
