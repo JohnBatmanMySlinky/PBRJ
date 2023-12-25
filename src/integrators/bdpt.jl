@@ -17,6 +17,7 @@ function render(
 
     # partition the image into tiles
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
+    @info "Sample Bounds $(sample_bounds)"
     sample_extent = diagonal(sample_bounds)
     tile_size = 16
     width, height = Int64.(floor.((sample_extent .+ tile_size) ./ tile_size))
