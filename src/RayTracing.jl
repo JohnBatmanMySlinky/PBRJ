@@ -186,7 +186,6 @@ function render_scene(parsed_args::Dict)
             image = denoise(image, 1)
         end
         
-        image = clamp01nan.(image)
         if bdpt_pass == (-1,-1)
             OpenEXR.save(I.camera.core.core.film.filename, image)
         else
@@ -197,14 +196,14 @@ end
 
 function setup_logging(debug::Bool)
     if Sys.iswindows()
-        if parsed_args["debug"]
+        if debug
             io = open("windows_log_softy.txt", "w+")
             logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
         else
             logger = NullLogger()
         end
     else
-        if parsed_args["debug"]
+        if debug
             io = open("log_$(now()).txt", "w+")
             logger = SimpleLogger(io, Logging.Debug) # Error, Warn, Info, Debug        
         else
