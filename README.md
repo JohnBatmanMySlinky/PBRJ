@@ -134,6 +134,13 @@ Render
 - [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
 
 # Notes
+## The pain of matching PBRT *exactly*
+- Sampler: The threee options here are
+    - StratifiedSampler with jitter = false. The catch is that if you have more than 1 spp, the order of which the samples is taken matters. So going with 1 spp removes one more thing to account for.
+    - RandomSampler overridden to just return 0.5's. Very nice.
+    - Some of the pseudo random ones are complicated and I haven't implemented them yet.
+- Geometry: It matters! When you sample a light or pick a piece of geometry you need to make sure the order of Primitives in your arrays is the same. I had to reverse some loops in my scene_builder.jl.
+- The combination of geometry ordering and Sampler ordering is also not something I have broached yet.
 ## Metaball learnings
 - To start, I want to talk about **Functions**. The function $f(x,y,z) = x^2 + y^2 + z^2$ takes in 3 numbers, $x, y, z$ and returns one number. Since I am only really interested in 3D rendering, let's equate these three numbers to a single point in space. Swithing to points let's re-write $f(p) = p_x^2 + p_y^2 + p_z^2$. Now the intuition is that for any point in 3D space, this function returns a single number. For instance at the origin $(0,0,0)$ this function returns $0$ and for any other point it returns the distance from the origin.
 - Functions are nice, but we want to render Shapes, aka Surfaces. One way to think about Surfaces, is as a collection of specific points (very 3D rendering view of the world here...). Functions return an unconstrained collection of points, where Surfaces are a collection of specific points. The trick to go from Functions to Surfaces is thresholding aka root finding. With our previous example, let's find the collection of points that is the solution to $f(p) = 0.5$ (0.5 being the threshold here). In this particular example the collection of points that is the solution to our constrained function is a sphere! I also like the note that this setup gives us a very easy check to determine if a point is in fact on the surface, but gives us zilch in terms of programmatic ways of finding those points that make up the surface.
