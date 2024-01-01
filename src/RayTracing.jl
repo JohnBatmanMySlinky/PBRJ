@@ -214,10 +214,15 @@ function setup_logging(debug::Bool)
 end
 
 if abspath(PROGRAM_FILE) == @__FILE__
+    # parse args
     parsed_args = parse_commandline()
     
+    # set up logging
     logger = setup_logging(parsed_args["debug"])
     global_logger(logger)
+
+    # set random seed
+    Random.seed!(parsed_args["seed"])
 
     @time render_scene(parsed_args)
 end
