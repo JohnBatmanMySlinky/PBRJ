@@ -138,14 +138,17 @@ Render
 - Sampler: The threee options here are
     - StratifiedSampler with jitter = false. The catch is that if you have more than 1 spp, the order of which the samples is taken matters. So going with 1 spp removes one more thing to account for.
     - RandomSampler overridden to just return 0.5's. Very nice.
-    - Some of the pseudo random ones are complicated and I haven't implemented them yet.
-- Geometry: It matters! When you sample a light or pick a piece of geometry you need to make sure the order of Primitives in your arrays is the same. I had to reverse some loops in my scene_builder.jl.
+    - Some of the pseudo random ones are complicated and I haven't implemented them yet. But in theory are good options too. 
+    - Write my own simple pseudo random algorithm (aka LCG). Perks of above with less pain to implement.
+- Geometry: It matters! When you sample a light or a piece of geometry you need to make sure the order of Primitives in your arrays is the same. I had to reverse some loops in my scene_builder.jl.
 - The combination of geometry ordering and Sampler ordering is also not something I have broached yet.
 - `julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 1 --jitter false --image-dim 250 --crop-window 0.964 0.452 0.965 0.453 --debug true`
 - Finding Fireflies
-    - First let's run a re-producible image, now that we can get a single pixel to tie, in theory this whole image should tie! `julia -t 4 RayTracing.jl --scene-number 4 --samples-per-pixel 1 --jitter false --image-dim 250`
-    - Uh oh. no fireflies without jitter... ah crap
-    - 
+    - I ran three experiments. 1) 1 spp + jitter off, 2) 1 spp + jitter on, 3) 25 spp + jitter on
+    - Then I realized that looking at experiment #1, the light on the back wall was much too bright in my version. Nice. 
+    - Using a NB I found that to be pixel (58, 67). which translates into `--crop-window 0.232 0.268 0.233 0.269`
+
+- Logging this too since im lazy and can never remember the logging args / params: `/Users/johnmyslinski/Documents/pbrt-v3/not_debug/pbrt ../scenes/cornell_box_not_debug.pbrt --logdir . --v 3`
 
 ## Metaball learnings
 - To start, I want to talk about **Functions**. The function $f(x,y,z) = x^2 + y^2 + z^2$ takes in 3 numbers, $x, y, z$ and returns one number. Since I am only really interested in 3D rendering, let's equate these three numbers to a single point in space. Swithing to points let's re-write $f(p) = p_x^2 + p_y^2 + p_z^2$. Now the intuition is that for any point in 3D space, this function returns a single number. For instance at the origin $(0,0,0)$ this function returns $0$ and for any other point it returns the distance from the origin.
