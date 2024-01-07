@@ -147,6 +147,7 @@ Render
     - I ran three experiments. 1) 1 spp + jitter off, 2) 1 spp + jitter on, 3) 25 spp + jitter on
     - Then I realized that looking at experiment #1, the light on the back wall was much too bright in my version. Nice. 
     - Using a NB I found that to be pixel (58, 67). which translates into `--crop-window 0.232 0.268 0.233 0.269`
+- to expand we go to `--crop-window 0.232 0.268 0.237 0.273`
 
 - Logging this too since im lazy and can never remember the logging args / params: `/Users/johnmyslinski/Documents/pbrt-v3/not_debug/pbrt ../scenes/cornell_box_not_debug.pbrt --logdir . --v 3`
 
