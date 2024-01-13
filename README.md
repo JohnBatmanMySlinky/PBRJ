@@ -75,6 +75,8 @@ Render
 - Validate 100% aginst PBR for a single scene
     - Document what is needed to get that level of validation
     - Suffer thru MISWeight & image writing
+    - write a robust triangle test suite. oof.
+    - write a fn to clean julia logs and make format close to pbrt lol
 - WHERE ARE THE FIREFLIES COMING FROM
 - Julia 1.9 has native support for Float16, a 4x speed up would be very nice albeit at some cost.
 - Tidy up implicit Surfaces

@@ -271,7 +271,7 @@ function pdf_light(v0::Vertex, scene::Scene, v1::Vertex)::Float64
         worldradius = world_radius(scene.b)
         pdf_val = 1 / (pi * worldradius * worldradius)
     else
-        light = v0.type == VTLight ? v0.ei.light : v1.si.primitive.area_light
+        light = v0.type == VTLight ? v0.ei.light : v0.si.primitive.area_light
         pdf_pos, pdf_dir = pdf_le(light, Ray(p(v0), w, time(v0), typemax(Float64)), ng(v0))
         pdf_val = pdf_dir * invdist2
     end
