@@ -846,7 +846,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(tri, mat_gray, nothing))
         end
 
-        sphere_transform = Translate(Pnt3(65,250,130))
+        sphere_transform = Translate(Pnt3(130,250,65))
         sphere = Sphere(
             ShapeCore(
                 sphere_transform,
