@@ -471,18 +471,12 @@ function MIS_weight(
 
     # Look up connection vertices and their predecessors
     # JOHN HACK: these are idx's not vertex's
-    check = (sampled isa Nothing)
-    # qs = ((s > 0) && (!check)) ? s-1+1 : 0 # --> LIGHT
-    # pt = ((t > 0) && (!check)) ? t-1+1 : 0 # --> CAMERA
-    # qs_minus = ((s > 1) && (!check)) ? s-2+1 : 0 # --> LIGHT
-    # pt_minus = ((t > 1) && (!check)) ? t-2+1 : 0 # --> CAMERA
-    
     qs = (s > 0) ? s-1+1 : 0 # --> LIGHT
     pt = (t > 0) ? t-1+1 : 0 # --> CAMERA
     qs_minus = (s > 1) ? s-2+1 : 0 # --> LIGHT
     pt_minus = (t > 1) ? t-2+1 : 0 # --> CAMERA
 
-    @info "MISWEIGHTLOOP: s $(s), t $(t), check $(check), qs $(qs), qs_mins $(qs_minus), pt $(pt), pt_minus $(pt_minus)"
+    @info "MISWEIGHTLOOP: s $(s), t $(t), qs $(qs), qs_mins $(qs_minus), pt $(pt), pt_minus $(pt_minus)"
 
     # LOG INITIAL STATE
     logg = Dict{Tuple{Int64,Int64}, VertexLog}()
