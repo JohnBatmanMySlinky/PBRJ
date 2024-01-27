@@ -243,7 +243,7 @@ end
 
 function Base.length(b::Bounds2)::Int64
     delta = ceil.(b.pMax .- b.pMin .+ 1.0)
-    return Int64(delta[1] * delta[2])
+    return Int64(delta.x * delta.y)
 end
 
 function centroid(b::Bounds3)::Pnt3

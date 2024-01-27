@@ -1,0 +1,3 @@
+a_pbrj.exr: stratified 1 spp with no jitter
+b_pbrj.exr: stratified 1 spp with jitter
+c_pbrj.exr: stratified 25 spp with jitter

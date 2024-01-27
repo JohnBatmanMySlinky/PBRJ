@@ -31,9 +31,9 @@ end
 # PBR 14.2.3
 function sample_li(dal::DiffuseAreaLight, interaction::Interaction, u::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     # TODO use more efficient sampling cone of visibility
-    pshape, nshape = sample(dal.shape, interaction, u)
+    pshape, nshape, pdf_val = sample(dal.shape, interaction, u)
     wi = Vec3(normalize(pshape - interaction.p))
-    pdf_val = pdf(dal.shape, interaction, wi)
+    # pdf_val = pdf(dal.shape, interaction, wi)
     visibility = VisibilityTester(
         interaction,
         Interaction(pshape, interaction.t, nshape)
@@ -58,6 +58,7 @@ function sample_le(light::DiffuseAreaLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tup
     
     # samplea  point on the area lights shape, pshape
     p_shape, n_light = sample(light.shape, u1)
+    @info "Light Sampling: p:$(p_shape), n:$(n_light)"
     pdf_pos = pdf(light.shape)
 
     if light.two_sided

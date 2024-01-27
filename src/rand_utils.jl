@@ -25,9 +25,10 @@ end
 
 function random_on_sphere(u::Pnt2)::Pnt3
     z = 1.0 - 2.0 * u.x
-    r = sqrt(max(0, 1-z^2))
+    r = sqrt(max(0.0, 1-z^2))
     phi = 2 * pi * u.y
-    return Vec3(r *cos(phi), r*sin(phi), z)
+    @info "Light Sampling DEEP: z:$(z), r:$(r), phi:$(phi)"
+    return Vec3(r * cos(phi), r * sin(phi), z)
 end
 
 function cosine_sample_hemisphere(u::Pnt2)::Vec3
