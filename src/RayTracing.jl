@@ -12,6 +12,7 @@ using Logging
 using Dates
 using OpenEXR
 using Roots
+using IterTools
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
@@ -80,6 +81,7 @@ include("shapes/rectangles.jl")
 include("shapes/disk.jl")
 include("shapes/cylindar.jl")
 include("shapes/box.jl")
+include("shapes/lsystem.jl")
 include("accelerators/bvh_naive.jl")
 include("accelerators/bvh_pbr_pxlth.jl")
 include("shapes/implicit_surfaces/utils.jl")

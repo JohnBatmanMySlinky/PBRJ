@@ -100,6 +100,7 @@ end
 function LookAt(pos::Pnt3, look::Pnt3, up::Vec3)::Transformation
     dir = normalize(look - pos)
     left = normalize(cross(normalize(up), dir))
+    @assert length_pbrt(left) != 0.0 "Uh oh your viewing angle and up vector are the same!"
     new_up = cross(dir, left)
     m = Mat4([
         left.x new_up.x dir.x pos.x
