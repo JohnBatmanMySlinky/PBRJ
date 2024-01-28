@@ -102,6 +102,7 @@ function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ra
     p_camera = camera.core.raster_to_camera(p_film)
 
     ray = Ray(Pnt3(0), normalize(Vec3(p_camera)), 0, typemax(Float64))
+    @info "p_film: $(p_film), p_camera: $(p_camera), ray: $(ray)"
     if camera.core.lens_radius > 0
         p_lens = camera.core.lens_radius .* random_in_concentric_disk(sample.lens)
         t = camera.core.focal_distance / ray.direction.z
@@ -123,6 +124,7 @@ function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSamp
     p_film = Pnt3(sample.film.x, sample.film.y, 0)
     p_camera = camera.core.raster_to_camera(p_film)
     ray = RayDifferential(Ray(Pnt3(0), normalize(Vec3(p_camera)), 0, typemax(Float64)))
+    @info "p_film: $(p_film), p_camera: $(p_camera), ray: $(ray)"
 
     if camera.core.lens_radius > 0
         p_lens = camera.core.lens_radius .* random_in_concentric_disk(sample.lens)

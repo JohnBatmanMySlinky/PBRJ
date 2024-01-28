@@ -34,7 +34,7 @@ function parse_commandline()::Dict
         "--max-depth"
             help = "max # of bounces"
             arg_type = Int
-            default = 4
+            default = 6
         "--light-distribution-strategy"
             help = "strategy for sampling lights"
             arg_type = String
@@ -42,7 +42,15 @@ function parse_commandline()::Dict
         "--file-name"
             help = "name of file"
             arg_type = String
-            default = "yeehaw.png"
+            default = "yeehaw.exr"
+        "--debug"
+            help = "true = debug mode, false = not debug mode"
+            arg_type = Bool
+            default = false
+        "--seed"
+            help = "a random seeed for re-producibility"
+            arg_type = Int
+            default = 1234
     end
 
     return parse_args(s)

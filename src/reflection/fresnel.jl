@@ -107,7 +107,7 @@ function f(f::FresnelBlend, wo::Vec3, wi::Vec3)
     wh = wi + wo
     (wh.x==0)&&(wh.y==0)&&(wh.z==0) && return spectrum_from_float(0.0)
     wh = normalize(wh)
-    specular = spectrum_from_float(D(f.distrib, wh) / (4 * abs(dot(wi,wh)) * max(abs_cos_theta(wo), abs_cos_theta(wi))) * SchlickFresnel(f.Rs, dot(wi, wh)))
+    specular = D(f.distrib, wh) / (4 * abs(dot(wi,wh)) * max(abs_cos_theta(wo), abs_cos_theta(wi))) * SchlickFresnel(f.Rs, dot(wi, wh))
     return diffuse + specular
 end
 

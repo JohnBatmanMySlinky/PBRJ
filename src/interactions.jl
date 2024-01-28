@@ -76,7 +76,7 @@ function InstantiateSurfaceInteraction(
     shading = ShadingInteraction(n, dpdu, dpdv, dndu, dndv)
 
     if !(shape isa Nothing)
-        if shape.core.reverse_orientation
+        if shape.core.reverse_orientation ⊻ shape.core.transform_swaps_handedness
             core.n = core.n * -1
             shading.n = shading.n * -1
         end

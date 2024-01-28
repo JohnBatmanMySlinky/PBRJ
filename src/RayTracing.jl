@@ -170,9 +170,7 @@ const BDPT_STAGES::Vector{Tuple{Int64, Int64}} = [
     # (5,1)
 ]
 
-function render_scene()
-    parsed_args = parse_commandline()
-
+function render_scene(parsed_args::Dict)
     for bdpt_pass in BDPT_STAGES
         (bdpt_pass != (-1,-1)) && (print("working on bdpt pass s=$(bdpt_pass[1]), t=$(bdpt_pass[2])\n"))
         I, scene = build_scene(parsed_args) # TODO get this outside the loop!
@@ -184,35 +182,51 @@ function render_scene()
         )
         if I.camera.core.core.film isa PassFilm
             for i in 1:5
-                FileIO.save(replace(I.camera.core.core.film.filename, ".png"=>"")*"_"*string(i)*".png", image[i, :, :, :])
+                OpenEXR.save(replace(I.camera.core.core.film.filename, ".exr"=>"")*"_"*string(i)*".exr", image[i, :, :, :])
             end
             
             image = denoise(image, 1)
         end
         
-        image = clamp01nan.(image)
         if bdpt_pass == (-1,-1)
-            FileIO.save(I.camera.core.core.film.filename, image)
+            OpenEXR.save(I.camera.core.core.film.filename, image)
         else
-            FileIO.save(replace(I.camera.core.core.film.filename, ".png"=>"")*"_s_"*string(bdpt_pass[1])*"_t_"*string(bdpt_pass[2])*".png", image)
+            OpenEXR.save(replace(I.camera.core.core.film.filename, ".exr"=>"")*"_s_"*string(bdpt_pass[1])*"_t_"*string(bdpt_pass[2])*".exr", image)
         end
     end
 end
 
-if abspath(PROGRAM_FILE) == @__FILE__
-    # set up logging
+function setup_logging(debug::Bool)
     if Sys.iswindows()
-        logger = NullLogger()
-        # io = open("windows_log_softy.txt", "w+")
-        # logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
+        if debug
+            io = open("windows_log_softy.txt", "w+")
+            logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
+        else
+            logger = NullLogger()
+        end
     else
-        logger = NullLogger()
-        # io = open("log_$(now()).txt", "w+")
-        # logger = SimpleLogger(io, Logging.Info) # Error, Warn, Info, Debug        
+        if debug
+            io = open("log_$(now()).txt", "w+")
+            logger = SimpleLogger(io, Logging.Debug) # Error, Warn, Info, Debug        
+        else
+            logger = NullLogger()
+        end
     end
+    return logger
+end
+
+if abspath(PROGRAM_FILE) == @__FILE__
+    # parse args
+    parsed_args = parse_commandline()
+    
+    # set up logging
+    logger = setup_logging(parsed_args["debug"])
     global_logger(logger)
 
-    @time render_scene()
+    # set random seed
+    Random.seed!(parsed_args["seed"])
+
+    @time render_scene(parsed_args)
 end
 
 end
