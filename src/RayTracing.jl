@@ -14,7 +14,6 @@ using OpenEXR
 using Roots
 using IterTools
 
-abstract type Aggregate end
 abstract type AbstractBxDF end
 abstract type AbstractBSDF end
 abstract type AbstractLightDistribution end
