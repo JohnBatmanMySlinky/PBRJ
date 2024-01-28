@@ -285,7 +285,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         else
             _, ss, ts = orthonormal_basis(Vec3(ns))
         end
-        @info "TRIANGLE AGAIN: ts=$(ts), ss=$(ss), ns=$(ns)"
+        # @info "TRIANGLE AGAIN: ts=$(ts), ss=$(ss), ns=$(ns)"
 
         # Compute $\dndu$ and $\dndv$ for triangle shading geometry
         if !(tri.mesh.normals isa Nothing)
