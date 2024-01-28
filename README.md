@@ -73,13 +73,15 @@ Render
 
 
 # TODO's
-- Validate 100% aginst PBR for a single scene
-    - Document what is needed to get that level of validation
-    - Suffer thru MISWeight & image writing
+- ~~Validate 100% aginst PBR for a single scene~~ I'm pretty close, see NB. Off on the red channel? idk, no more fireflies!
+    - ~~Document what is needed to get that level of validation~~
+    - ~~Suffer thru MISWeight & image writing~~
     - write a robust triangle test suite. oof.
-    - write a fn to clean julia logs and make format close to pbrt lol
-- WHERE ARE THE FIREFLIES COMING FROM
-- Julia 1.9 has native support for Float16, a 4x speed up would be very nice albeit at some cost.
+        - Write c++ version to double check
+        - copy pbrt's triangle test suite. off.
+    - ~~write a fn to clean julia logs and make format close to pbrt lol~~
+- ~~WHERE ARE THE FIREFLIES COMING FROM~~
+- Convert to Float32
 - Tidy up implicit Surfaces
 - Add leafs to l-systems
 - What if I instantiated the samplers within the parallel loop instead of deepcopy'ing?
@@ -88,11 +90,11 @@ Render
 - Add bi-linear patches
 - ~~sampling over the solid angle~~
 - Implement light BVH for more efficient sampling
-- Use y(::Spectrum) and dont hack with mean
+- ~~Use y(::Spectrum) and dont hack with mean~~
 - Build in rendering passes natively
     - don't just use 1 spp for rendering passes
 - ~~use inplace operations where possible ie `normalize!()` vs `normalize`~~
-- Make sure I am sampling purley over the solid angle
+- Make sure I am sampling purley over the solid angle. PBRT has this covered in a test suite.
 - Implement Metroplois Light Transport Integrator
 - Implement texture sampling and use those ray differentials
 - ~~Liberal use of `const` in all mutable structs~~
@@ -109,14 +111,14 @@ Render
         - pass all pxl-th's tests
     - Add metal material
     - Add fourier material
-- Improve munich scene 
+- Improve office scene 
     - Add more walls (left wall corner)
     - Add in more scene geometry (baseboards? stairs? elevator?)
     - Get reflections in back hallway looking nice and in general floor material
     - Wall material
 - Parameterize more stuff
     - integrator
-    - logging
+    - ~~logging~~
 - Move scene specification to a YAML or something. 
 - Expand test coverage
 

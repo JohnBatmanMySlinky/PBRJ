@@ -238,7 +238,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     interaction.core.n = interaction.shading.n = Nml3(normalize(cross(dp13, dp23)))
     # @info "Original normal: $(interaction.core.n)"
     if tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
-        @info "FLIPPED NORMAL"
+        # @info "FLIPPED NORMAL"
         interaction.core.n = interaction.shading.n = -interaction.core.n    
     end
 
