@@ -84,7 +84,8 @@ function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple
     y, x = size(il.map)
     new_u = _uv_map(uv.x, x)
     new_v = _uv_map(uv.y, y)
-    radiance = spectrum_from_float(il.map[new_v, new_u]) * il.I
+    tmp = il.map[new_v, new_u]
+    radiance = spectrum_from_float(Float64(tmp.r), Float64(tmp.g), Float64(tmp.b)) * il.I
 
     # visibility
     visibility = VisibilityTester(
@@ -143,7 +144,8 @@ function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
     y, x = size(light.map)
     new_u = _uv_map(uv.x, x)
     new_v = _uv_map(uv.y, y)
-    l = spectrum_from_float(light.map[new_v, new_u])
+    tmp = light.map[new_v, new_u]
+    l = spectrum_from_float(Float64(tmp.r), Float64(tmp.g), Float64(tmp.b))
     return l * light.I, ray, n_light, pdf_pos, pdf_dir
 end
 
