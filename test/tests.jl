@@ -2,6 +2,7 @@ include("../src/RayTracing.jl")
 
 using Test
 using BenchmarkTools
+using Random
 
 @testset "Transformations" begin
     # simple (translate), (inverse translate), (identity A), (identity B)
@@ -40,6 +41,133 @@ using BenchmarkTools
     @test r(RayTracing.Pnt3(1,1,1)) ≈ RayTracing.Pnt3(-1,-1,-1)
     invr = RayTracing.Inv(r)
     @test  invr(r(RayTracing.Pnt3(1,1,1))) ≈ RayTracing.Pnt3(1,1,1) 
+end
+
+@testset "Robust Triangle Intersection & normals" begin
+    N1 = 5
+    rectmin, rectmax = -10, 10
+    trisize = 5
+
+    # make a bunch of triangles to ensure we hit every branch of `intrersect(tri, ray)`
+    core = RayTracing.ShapeCore()
+
+    # variety 1 of normals
+    ### No normals specified
+    tri1 = RayTracing.Triangle(
+        core,
+        RayTracing.TriangleMesh(
+            core.object_to_world,
+            1,
+            3,
+            [RayTracing.Pnt3(0.0, 0.0, -trisize), RayTracing.Pnt3(0.0, trisize, trisize), RayTracing.Pnt3(0.0, 0.0, trisize)],
+            [1, 2, 3],
+            [RayTracing.Nml3(0), RayTracing.Nml3(0), RayTracing.Nml3(0)],
+            [RayTracing.Pnt2(0,0), RayTracing.Pnt2(1,1), RayTracing.Pnt2(0,1)],
+            nothing
+        ),
+        0
+    ) 
+    # variety 2 of normals
+    ### Normals specified
+    tri2 = RayTracing.Triangle(
+        core,
+        RayTracing.TriangleMesh(
+            core.object_to_world,
+            1,
+            3,
+            [RayTracing.Pnt3(0.0, 0.0, -trisize), RayTracing.Pnt3(0.0, trisize, trisize), RayTracing.Pnt3(0.0, 0.0, trisize)],
+            [1, 2, 3],
+            [RayTracing.Nml3(0, 0, 1), RayTracing.Nml3(0, 0, 1), RayTracing.Nml3(0, 0, 1)],
+            [RayTracing.Pnt2(0,0), RayTracing.Pnt2(1,1), RayTracing.Pnt2(0,1)],
+            nothing
+        ),
+        0
+    ) 
+    # variety 3 of normals
+    ### Normals * -1 specified
+    tri3 = RayTracing.Triangle(
+        core,
+        RayTracing.TriangleMesh(
+            core.object_to_world,
+            1,
+            3,
+            [RayTracing.Pnt3(0.0, 0.0, -trisize), RayTracing.Pnt3(0.0, trisize, trisize), RayTracing.Pnt3(0.0, 0.0, trisize)],
+            [1, 2, 3],
+            [RayTracing.Nml3(0, 0, -1), RayTracing.Nml3(0, 0, -1), RayTracing.Nml3(0, 0, -1)],
+            [RayTracing.Pnt2(0,0), RayTracing.Pnt2(1,1), RayTracing.Pnt2(0,1)],
+            nothing
+        ),
+        0
+    ) 
+    # variety 4 of normals
+    ### Normals specified, reverse orientation tho
+    core2 = RayTracing.ShapeCore(RayTracing.Translate(RayTracing.Pnt3(0)), RayTracing.Inv(RayTracing.Translate(RayTracing.Pnt3(0))), true, false)
+    tri4 = RayTracing.Triangle(
+        core2,
+        RayTracing.TriangleMesh(
+            core2.object_to_world,
+            1,
+            3,
+            [RayTracing.Pnt3(0.0, 0.0, -trisize), RayTracing.Pnt3(0.0, trisize, trisize), RayTracing.Pnt3(0.0, 0.0, trisize)],
+            [1, 2, 3],
+            [RayTracing.Nml3(0, 0, -1), RayTracing.Nml3(0, 0, -1), RayTracing.Nml3(0, 0, -1)],
+            [RayTracing.Pnt2(0,0), RayTracing.Pnt2(1,1), RayTracing.Pnt2(0,1)],
+            nothing
+        ),
+        0
+    ) 
+    # tri5 = Triangle() # alpha mask
+    tris = (tri1, tri2, tri3, tri4)
+
+    # Low Hanging Fruit
+    ### sample a random point on the XZ plane, sample a random point on the triangle
+    ### build a ray, intersect. N1 times.
+    for i in 1:N1 
+        # 4 randoms for sampling
+        Random.seed!(9)
+        u1, u2, u3, u4 = rand(), rand(), rand(), rand()
+        
+        # rect coord
+        rectx = u1 * (rectmax - rectmin) + rectmin
+        rectz = u2 * (rectmax - rectmin) + rectmin
+        from = RayTracing.Pnt3(rectx, 0, rectz)
+        
+        # tri coord
+        for tri in tris
+            # create ray & intersect
+            to, n = RayTracing.sample(tri, RayTracing.Pnt2(u3, u4))
+            ray = RayTracing.Ray(from, RayTracing.normalize(RayTracing.Vec3(to - from)), 0.0, typemax(Float64))
+            check, t, inter = RayTracing.intersect(tri, ray)
+            
+            # test intersection precision
+            @test isapprox(inter.core.p, to, atol=1e-14)
+
+            # calculate flip for normals
+            flip = tri.core.reverse_orientation ? -1.0 : 1.0
+
+            # testing geometric normals
+            @test inter.core.n == RayTracing.Nml3(1, 0, 0) * flip
+
+            # testing shading normals
+            # if we have normals
+            if sum(sum(tri.mesh.normals)) == 0.0
+                # if no normals are specified we end up here
+                n = RayTracing.Nml3(1, 0, 0) * flip
+            else
+                # if normals are specified we need to check where we're coming from
+                # THIS SEEMS LIKE IT SHOULD BE SWAPPED: FUCK
+                if tri.mesh.normals[1].z == -1.0
+                    # 'forward' facing specified normals
+                    tmpdir = rectz < 0 ? -1.0 : 1.0
+                else
+                    # 'backward' facing specified normals
+                    tmpdir = rectz < 0 ? 1.0 : -1.0
+                end
+                n = RayTracing.Nml3(0, 0, 1) * tmpdir * flip
+            end
+            @test inter.shading.n == n
+        end
+    end
 end
 
 @testset "Distributions1D --> continuous sampling" begin
