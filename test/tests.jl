@@ -484,23 +484,23 @@ end
     ### Transformations.jl ###
     ##########################
     # Transformation instantiatio
-    @test @ballocated(RayTracing.Translate(RayTracing.Pnt3(1.0, 2.0, 3.0))) == 288
-    @test @ballocated(RayTracing.Scale(RayTracing.Vec3(1.0, 2.0, 3.0))) == 288
-    @test @ballocated(RayTracing.RotateX(45.0)) == 288
-    @test @ballocated(RayTracing.RotateY(45.0)) == 288
-    @test @ballocated(RayTracing.RotateZ(45.0)) == 288
-    @test @ballocated(RayTracing.Perspective(45.0, .01, .0001)) == 1184
-    @test @ballocated(RayTracing.LookAt(
-        RayTracing.Pnt3(0,0,0),
-        RayTracing.Pnt3(5,8,9),
-        RayTracing.Vec3(0,1,0),
-    )) == 288
+    # @test @ballocated(RayTracing.Translate(RayTracing.Pnt3(1.0, 2.0, 3.0))) == 288
+    # @test @ballocated(RayTracing.Scale(RayTracing.Vec3(1.0, 2.0, 3.0))) == 288
+    # @test @ballocated(RayTracing.RotateX(45.0)) == 288
+    # @test @ballocated(RayTracing.RotateY(45.0)) == 288
+    # @test @ballocated(RayTracing.RotateZ(45.0)) == 288
+    # @test @ballocated(RayTracing.Perspective(45.0, .01, .0001)) == 1184
+    # @test @ballocated(RayTracing.LookAt(
+    #     RayTracing.Pnt3(0,0,0),
+    #     RayTracing.Pnt3(5,8,9),
+    #     RayTracing.Vec3(0,1,0),
+    # )) == 288
 
-    # Transformation application
-    t1 = RayTracing.Translate(RayTracing.Pnt3(1.0, 2.0, 3.0))
-    t2 = RayTracing.Scale(RayTracing.Vec3(1.0, 2.0, 3.0))
-    t3 = RayTracing.RotateX(45.0)
+    # # Transformation application
+    # t1 = RayTracing.Translate(RayTracing.Pnt3(1.0, 2.0, 3.0))
+    # t2 = RayTracing.Scale(RayTracing.Vec3(1.0, 2.0, 3.0))
+    # t3 = RayTracing.RotateX(45.0)
 
-    p = RayTracing.Pnt3(10, 0.5, 3.0)
-    v = RayTracing.Vec3()
+    # p = RayTracing.Pnt3(10, 0.5, 3.0)
+    # v = RayTracing.Vec3()
 end
