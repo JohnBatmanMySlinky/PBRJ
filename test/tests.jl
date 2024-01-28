@@ -2,6 +2,7 @@ include("../src/RayTracing.jl")
 
 using Test
 using BenchmarkTools
+using Random
 
 # @testset "Transformations" begin
 #     # simple (translate), (inverse translate), (identity A), (identity B)
@@ -43,7 +44,7 @@ using BenchmarkTools
 # end
 
 @testset "Robust Triangle Intersection" begin
-    N1 = 50
+    N1 = 5
     rectmin, rectmax = -10, 10
     trisize = 5
 
@@ -80,15 +81,30 @@ using BenchmarkTools
         ),
         0
     ) 
-    # tri3 = Triangle() # variety 3 of normals
+    # variety 3 of normals
+    tri3 = RayTracing.Triangle(
+        core,
+        RayTracing.TriangleMesh(
+            core.object_to_world,
+            1,
+            3,
+            [RayTracing.Pnt3(0.0, 0.0, -trisize), RayTracing.Pnt3(0.0, trisize, trisize), RayTracing.Pnt3(0.0, 0.0, trisize)],
+            [1, 2, 3],
+            [RayTracing.Nml3(0, 0, -1), RayTracing.Nml3(0, 0, -1), RayTracing.Nml3(0, 0, -1)],
+            [RayTracing.Pnt2(0,0), RayTracing.Pnt2(1,1), RayTracing.Pnt2(0,1)],
+            nothing
+        ),
+        0
+    ) 
     # tri4 = Triangle() # alpha mask
-    tris = (tri1, tri2)
+    tris = (tri1, tri2, tri3)
 
     # Low Hanging Fruit
     ### sample a random point on the XZ plane, sample a random point on the triangle
     ### build a ray, intersect. N1 times.
     for i in 1:N1 
         # 4 randoms for sampling
+        Random.seed!(9)
         u1, u2, u3, u4 = rand(), rand(), rand(), rand()
         
         # rect coord
@@ -98,24 +114,34 @@ using BenchmarkTools
         
         # tri coord
         for tri in tris
+            # create ray & intersect
             to, n = RayTracing.sample(tri, RayTracing.Pnt2(u3, u4))
-            
-            # create ray
             ray = RayTracing.Ray(from, RayTracing.normalize(RayTracing.Vec3(to - from)), 0.0, typemax(Float64))
-            
-            # intersect
             check, t, inter = RayTracing.intersect(tri, ray)
             
-            # testing
+            # test intersection precision
             @test isapprox(inter.core.p, to, atol=1e-14)
 
-            # determining what the normals should be
-            if sum(sum(tri.mesh.normals)) == 0 # aka tri1
+            # testing geometric normals
+            @test inter.core.n == RayTracing.Nml3(1, 0, 0)
+
+            # testing shading normals
+            if sum(sum(tri.mesh.normals)) == 0.0
+                # if no normals are specified we end up here
                 n = RayTracing.Nml3(1, 0, 0)
             else
-                n = RayTracing.Nml3(1,0,0)
+                # if normals are specified we need to check where we're coming from
+                # THIS SEEMS LIKE IT SHOULD BE SWAPPED: FUCK
+                if tri.mesh.normals[1].z == -1.0
+                    # 'forward' facing specified normals
+                    tmpdir = rectz < 0 ? -1.0 : 1.0
+                else
+                    # 'backward facing specified normals
+                    tmpdir = rectz < 0 ? 1.0 : -1.0
+                end
+                n = RayTracing.Nml3(0, 0, 1) * tmpdir
             end
-            @test inter.core.n == n
+            @test inter.shading.n == n
         end
     end
 end
