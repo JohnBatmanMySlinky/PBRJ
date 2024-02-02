@@ -1137,8 +1137,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             goursat = GoursatSurface(
                 goursat_sc,
                 0.0,
-                -3.0,
-                -1.0
+                -2.0,
+                1.5
             )
             push!(primitives, Primitive(goursat, col, nothing))
         end
@@ -1164,7 +1164,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Camera
         look_from = Pnt3(10, 15, 5)
         look_at = Pnt3(0, 0, 0)
-        up = Vec3(0, -1, 0)
+        up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 30.0, film)
 
