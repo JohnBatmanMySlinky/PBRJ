@@ -83,6 +83,10 @@ Render
 - ~~WHERE ARE THE FIREFLIES COMING FROM~~
 - Convert to Float32
 - Tidy up implicit Surfaces
+    - add kiss surface (https://mathworld.wolfram.com/KissSurface.html)
+    - improve goursat scene
+- testing something with an infite env light
+- match some scenes from pbrt (dragon seems easy, since the mesh loads)
 - Add leafs to l-systems
 - What if I instantiated the samplers within the parallel loop instead of deepcopy'ing?
 - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
