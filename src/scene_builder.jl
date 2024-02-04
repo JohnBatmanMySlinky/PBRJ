@@ -426,7 +426,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in hallway_light
             alight = DiffuseAreaLight(
-                spectrum_from_float(5, 5, 5),
+                spectrum_from_float(5.0, 5.0, 5.0),
                 tri,
                 false
             )
@@ -455,7 +455,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Camera
         look_from = Pnt3(150, 120, 400)
         look_at = Pnt3(0, 100, 0)
-        up = Vec3(0, -1, 0)
+        up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
@@ -564,7 +564,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Camera
         look_from = Pnt3(-5.5, 7, -5.5)
         look_at = Pnt3(-4.75, 2.25, 0)
-        up = Vec3(0, -1, 0)
+        up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 30.0, film)
 
@@ -636,7 +636,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in alight
             tmp = DiffuseAreaLight(
-                spectrum_from_float(5.0, 5.0, 5.0),
+                spectrum_from_float(50.0, 50.0, 50.0),
                 tri,
                 false # NOT two sided
             )
@@ -665,7 +665,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Camera
         look_from = Pnt3(200, 200, 200)
         look_at = Pnt3(-35, 0, -35)
-        up = Vec3(0, -1, 0)
+        up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
@@ -678,7 +678,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = AOIntegrator(C, S, true)
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
         return I, scene
     elseif parsed_args["scene-number"] == 4
         primitives = Primitive[]
@@ -1027,7 +1027,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Camera
         look_from = Pnt3(10, 20, 5)
         look_at = Pnt3(0, 0, 0)
-        up = Vec3(0, -1, 0)
+        up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 30.0, film)
 
@@ -1377,7 +1377,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Camera
         look_from = Pnt3(85, 35, 35)
         look_at = Pnt3(0, teapot_y_shift + sqrt(asdf^2 - (asdf/2.0)^2) / 2.0, 0)
-        up = Vec3(0, -1, 0)
+        up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 55.0, film)
 
@@ -1540,9 +1540,129 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Camera
         look_from = Pnt3(85, 35, 35)
         look_at = Pnt3(0, teapot_y_shift + sqrt(asdf^2 - (asdf/2.0)^2) / 2.0, 0)
-        up = Vec3(0, -1, 0)
+        up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 55.0, film)
+
+        # Instantiate a Sampler
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+        
+        # Instantiate Scene
+        print("There are " * num2str(length(lights)) * " lights in the scene\n")
+        scene = Scene(lights, bvh)
+        
+        # Instantiate an Integrator
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+        return I, scene
+    
+    elseif parsed_args["scene-number"] == 9
+        primitives = Primitive[]
+        lights = Light[]
+
+        # materials
+        mat_white = Matte(
+            ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        mat_inner = Matte(
+            ConstantTexture(spectrum_from_float(0.4, 0.4, 0.7)),
+            ConstantTexture(spectrum_from_float(20.0, 20.0, 20.0)),
+            nothing
+        )
+
+        #####################
+        ### an area light ###
+        #####################
+        sc_alight = ShapeCore(
+            Translate(Pnt3(0,0,0)),
+            Inv(Translate(Pnt3(0,0,0))),
+            true,
+            false
+        )
+        tris = construct_triangle_mesh(
+            sc_alight,
+            2,
+            4,
+            Pnt3[Pnt3(-1, 3.204596996, -0.9997209907), Pnt3(1, 3.204596996, -0.9997209907), Pnt3(1, 3.251826048, 0.9997209907), Pnt3(-1, 3.251826048, 0.9997209907)],
+            Int64[1, 2, 3, 1, 3, 4],
+            Nml3[Nml3(0), Nml3(0), Nml3(0), Nml3(0)],
+            Pnt2[Pnt2(0,0), Pnt2(1,0), Pnt2(0,1), Pnt2(1,1)],
+            nothing
+        )
+        for tri in tris
+            alight = DiffuseAreaLight(
+                spectrum_from_float(9.5),
+                tri,
+                false
+            )
+            push!(lights, alight)
+            push!(primitives, Primitive(tri, mat_white, alight))
+        end
+
+        ##############
+        ### a mesh ###
+        ##############
+
+        mesh012_translate = Translate(Pnt3(0,0,0)) 
+        mesh0 =  parse_obj(
+            "../ref/lte-orb/mesh-0.obj",
+            mesh012_translate,
+            true,
+            false,
+            nothing
+        )
+        for tri in mesh0
+            push!(primitives, Primitive(tri, mat_inner, nothing))
+        end
+        mesh1 =  parse_obj(
+            "../ref/lte-orb/mesh-1.obj",
+            mesh012_translate,
+            true,
+            false,
+            nothing
+        )
+        for tri in mesh1
+            push!(primitives, Primitive(tri, mat_inner, nothing))
+        end
+        mesh2 =  parse_obj(
+            "../ref/lte-orb/mesh-2.obj",
+            mesh012_translate,
+            true,
+            false,
+            nothing
+        )
+        for tri in mesh2
+            push!(primitives, Primitive(tri, mat_inner, nothing))
+        end
+
+
+
+        # instantiate accelerator
+        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives)
+        print("Done building BVH\n")
+
+        # Instantiate a Filter
+        filter = BoxFilter(Pnt2(.5, .5))
+
+        # Instantiate a Film
+        film = Film(
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+            Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
+            filter,
+            1.0,
+            1.0,
+            parsed_args["file-name"]
+        )
+
+        # Instantiate a Camera
+        look_from = Pnt3(-.3, .5, -.5)
+        look_at = Pnt3(0, 0.0, 0)
+        up = Vec3(0, 1, 0)
+        screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
 
         # Instantiate a Sampler
         S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
