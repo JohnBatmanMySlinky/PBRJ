@@ -81,6 +81,7 @@ Render
         - copy pbrt's triangle test suite. off.
     - ~~write a fn to clean julia logs and make format close to pbrt lol~~
 - ~~WHERE ARE THE FIREFLIES COMING FROM~~
+- emmissive textures and sampling according to the distribution implied by the texture
 - Convert to Float32
 - Tidy up implicit Surfaces
     - add kiss surface (https://mathworld.wolfram.com/KissSurface.html)
@@ -101,7 +102,7 @@ Render
 - Make sure I am sampling purley over the solid angle. PBRT has this covered in a test suite.
 - Implement Metroplois Light Transport Integrator
 - Implement texture sampling and use those ray differentials
-- ~~Liberal use of `const` in all mutable structs~~
+- ~~Liberal use of `const` in all mutable structs~~ --> didnt do anything before buy maybe post concrete typing?
 - `Scene` uses a vector of (abstract) lights. would a tuple of lights be better? Could I use a macro to generate scene specific struct?
 - ~~Move to EXR~~
     - ~~for env lights~~
