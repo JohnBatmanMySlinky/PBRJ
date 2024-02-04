@@ -73,59 +73,66 @@ Render
 
 
 # TODO's
-- ~~Validate 100% aginst PBR for a single scene~~ I'm pretty close, see NB. Off on the red channel? idk, no more fireflies!
-    - ~~Document what is needed to get that level of validation~~
-    - ~~Suffer thru MISWeight & image writing~~
-    - write a robust triangle test suite. oof.
-        - Write c++ version to double check
-        - copy pbrt's triangle test suite. off.
-    - ~~write a fn to clean julia logs and make format close to pbrt lol~~
-- ~~WHERE ARE THE FIREFLIES COMING FROM~~
-- emmissive textures and sampling according to the distribution implied by the texture
-- Convert to Float32
-- Tidy up implicit Surfaces
-    - add kiss surface (https://mathworld.wolfram.com/KissSurface.html)
-    - improve goursat scene
-- testing something with an infite env light
-- match some scenes from pbrt (dragon seems easy, since the mesh loads)
-- Add leafs to l-systems
-- What if I instantiated the samplers within the parallel loop instead of deepcopy'ing?
-- Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
-- Add mediums
-- Add bi-linear patches
-- ~~sampling over the solid angle~~
-- Implement light BVH for more efficient sampling
-- ~~Use y(::Spectrum) and dont hack with mean~~
-- Build in rendering passes natively
-    - don't just use 1 spp for rendering passes
-- ~~use inplace operations where possible ie `normalize!()` vs `normalize`~~
-- Make sure I am sampling purley over the solid angle. PBRT has this covered in a test suite.
-- Implement Metroplois Light Transport Integrator
-- Implement texture sampling and use those ray differentials
-- ~~Liberal use of `const` in all mutable structs~~ --> didnt do anything before buy maybe post concrete typing?
-- `Scene` uses a vector of (abstract) lights. would a tuple of lights be better? Could I use a macro to generate scene specific struct?
-- ~~Move to EXR~~
-    - ~~for env lights~~
-    - ~~for final image~~
-- Move the pbrt-v4's sampler structure
+- Testing
+    - ~~Validate 100% aginst PBR for a single scene~~ I'm pretty close, see NB. Off on the red channel? idk, no more fireflies!
+        - ~~Document what is needed to get that level of validation~~
+        - ~~Suffer thru MISWeight & image writing~~
+        - write a robust triangle test suite. oof.
+            - Write c++ version to double check
+            - copy pbrt's triangle test suite. off.
+        - ~~write a fn to clean julia logs and make format close to pbrt lol~~
+    - ~~WHERE ARE THE FIREFLIES COMING FROM~~
+    - testing something with an infite env light
+- Re run old scenes and fix up
+- Performance
+    - TYPE MORE CONCRETELY, use a NB and copy pxl-th
+    - Convert to Float32
+    - What if I instantiated the samplers within the parallel loop instead of deepcopy'ing?
+    - ~~sampling over the solid angle~~
+    - ~~use inplace operations where possible ie `normalize!()` vs `normalize`~~
+    - Make sure I am sampling purley over the solid angle. PBRT has this covered in a test suite.
+    - ~~Liberal use of `const` in all mutable structs~~ --> revisit once I am typing more concretely
+    - `Scene` uses a vector of (abstract) lights. would a tuple of lights be better? Could I use a macro to generate scene specific struct?
+- New stuff
+    - Tidy up implicit Surfaces
+        - add kiss surface (https://mathworld.wolfram.com/KissSurface.html) aka $ x^2 + y^2 = (1-z)x^4 $
+        - improve goursat scene
+    - Add leafs to l-systems
+    - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
+    
+- PBRT Features
+    - Add mediums
+    - Add bi-linear patches
+    - Add sub div surfaces
+    - Implement more materials
+        - Add glass material
+            - make sure all paths of Glass's compute scattering function work
+            - pass all pxl-th's tests
+        - Add metal material
+        - Add fourier material
+        - Add subsurface scattering
+    - Implement light BVH for more efficient sampling
+    - Implement Metroplois Light Transport Integrator
+    - Implement texture sampling and use those ray differentials
+    - ~~Move to EXR~~
+        - ~~for env lights~~
+        - ~~for final image~~
+    - Move the pbrt-v4's sampler structure
     - Implement more samplers beyond just stratified sampler
-- Make obj_parser less anemic.
-- Implement more materials
-    - Add glass material
-        - make sure all paths of Glass's compute scattering function work
-        - pass all pxl-th's tests
-    - Add metal material
-    - Add fourier material
-- Improve office scene 
-    - Add more walls (left wall corner)
-    - Add in more scene geometry (baseboards? stairs? elevator?)
-    - Get reflections in back hallway looking nice and in general floor material
-    - Wall material
-- Parameterize more stuff
-    - integrator
-    - ~~logging~~
-- Move scene specification to a YAML or something. 
-- Expand test coverage
+- Scene work
+    - add lte-orb scene. 
+    - Improve office scene 
+        - Add more walls (left wall corner)
+        - Add in more scene geometry (baseboards? stairs? elevator?)
+        - Get reflections in back hallway looking nice and in general floor material
+        - Wall material
+- Clean up sloppy stuff
+    - ~~Use y(::Spectrum) and dont hack with mean~~
+    - Build in rendering passes natively (don't just use 1 spp for rendering passes)
+    - Make obj_parser less anemic.
+    - Parameterize more stuff
+        - integrator
+        - ~~logging~~
 
 # Bugs
 - ~~My world is upside down! Use real pbrt to debug (or pxl-th's)~~

@@ -226,7 +226,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
                 nothing,
                 nothing
             )
-        if tri.mesh.alpha_mask(si) == spectrum_from_float(1, 1, 1)
+        if tri.mesh.alpha_mask(si) == spectrum_from_float(1.0, 1.0, 1.0)
             return false, 0.0, si
         end
     end
@@ -394,7 +394,7 @@ function area(tri::Triangle)::Float64
 end
 
 # non-spherical angle sampling
-function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3}
+function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
     su0 = sqrt(u[1])
     b = Pnt2(1 - su0, u[2] * su0)
     p0, p1, p2 = get_vertices(tri)
@@ -412,8 +412,8 @@ function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3}
     elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
         n = -n
     end
-    
-    return p, n
+    pdf_val = 1.0 / area(tri)
+    return p, n, pdf_val
 end
 
 function spherical_triangle_area(a::Pnt3, b::Pnt3, c::Pnt3)::Float64
@@ -431,7 +431,7 @@ function solid_angle(p0::Pnt3, p1::Pnt3, p2::Pnt3, p::Pnt3)::Float64
     )
 end
 
-function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
+function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
     # not defining global vars...
     min_spherical_sample_area=3e-4
     max_spherical_sample_area=6.22
@@ -482,5 +482,5 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3}
     elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
         n *= -1.0
     end
-    return p, n
+    return p, n, pdf_val
 end
