@@ -84,6 +84,7 @@ Render
     - ~~WHERE ARE THE FIREFLIES COMING FROM~~
     - testing something with an infite env light
 - Re run old scenes and fix up
+- Test suite of scenes, testing materials, lights & integrators
 - Performance
     - TYPE MORE CONCRETELY, use a NB and copy pxl-th
     - Convert to Float32
