@@ -82,6 +82,8 @@ Render
             - copy pbrt's triangle test suite. off.
         - ~~write a fn to clean julia logs and make format close to pbrt lol~~
     - ~~WHERE ARE THE FIREFLIES COMING FROM~~
+    - add a sphere with substrate material to test scene
+    - add test scene file to repo
     - testing something with an infite env light
 - Re run old scenes and fix up
 - Benchmark suite of scenes, testing materials, lights & integrators
