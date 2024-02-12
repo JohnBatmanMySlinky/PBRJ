@@ -84,10 +84,11 @@ Render
     - ~~WHERE ARE THE FIREFLIES COMING FROM~~
     - testing something with an infite env light
 - Re run old scenes and fix up
-- Test suite of scenes, testing materials, lights & integrators
+- Benchmark suite of scenes, testing materials, lights & integrators
 - Performance
-    - TYPE MORE CONCRETELY, use a NB and copy pxl-th
-    - Convert to Float32
+    - Create a simple sample scene in Trace.jl and benchmark. Because my testing is showing no performance benefit from Float32 and Parametric Typing
+        - TYPE MORE CONCRETELY, use a NB and copy pxl-th
+        - Convert to Float32
     - What if I instantiated the samplers within the parallel loop instead of deepcopy'ing?
     - ~~sampling over the solid angle~~
     - ~~use inplace operations where possible ie `normalize!()` vs `normalize`~~
@@ -105,6 +106,7 @@ Render
     - Add mediums
     - Add bi-linear patches
     - Add sub div surfaces
+    - Robustly parse .pbrt scene files
     - Implement more materials
         - Add glass material
             - make sure all paths of Glass's compute scattering function work
