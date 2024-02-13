@@ -73,6 +73,7 @@ Render
 
 
 # TODO's
+- Set up CI and unit tests
 - Testing
     - ~~Validate 100% aginst PBR for a single scene~~ I'm pretty close, see NB. Off on the red channel? idk, no more fireflies!
         - ~~Document what is needed to get that level of validation~~
@@ -103,7 +104,6 @@ Render
         - improve goursat scene
     - Add leafs to l-systems
     - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
-    
 - PBRT Features
     - Add mediums
     - Add bi-linear patches
