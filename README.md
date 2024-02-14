@@ -74,6 +74,7 @@ Render
 
 # TODO's
 - Set up CI and unit tests
+    - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Testing
     - ~~Validate 100% aginst PBR for a single scene~~ I'm pretty close, see NB. Off on the red channel? idk, no more fireflies!
         - ~~Document what is needed to get that level of validation~~
