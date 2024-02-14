@@ -99,6 +99,7 @@ Render
     - Make sure I am sampling purley over the solid angle. PBRT has this covered in a test suite.
     - ~~Liberal use of `const` in all mutable structs~~ --> revisit once I am typing more concretely
     - `Scene` uses a vector of (abstract) lights. would a tuple of lights be better? Could I use a macro to generate scene specific struct?
+    - triangle sampling is really slow? Is it sampling more than one light at a time is slow? 
 - New stuff
     - Tidy up implicit Surfaces
         - add kiss surface (https://mathworld.wolfram.com/KissSurface.html) aka $ x^2 + y^2 = (1-z)x^4 $
