@@ -74,6 +74,7 @@ Render
 
 # TODO's
 - Set up CI and unit tests
+    - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Testing
     - ~~Validate 100% aginst PBR for a single scene~~ I'm pretty close, see NB. Off on the red channel? idk, no more fireflies!
         - ~~Document what is needed to get that level of validation~~
@@ -98,6 +99,7 @@ Render
     - Make sure I am sampling purley over the solid angle. PBRT has this covered in a test suite.
     - ~~Liberal use of `const` in all mutable structs~~ --> revisit once I am typing more concretely
     - `Scene` uses a vector of (abstract) lights. would a tuple of lights be better? Could I use a macro to generate scene specific struct?
+    - triangle sampling is really slow? Is it sampling more than one light at a time is slow? 
 - New stuff
     - Tidy up implicit Surfaces
         - add kiss surface (https://mathworld.wolfram.com/KissSurface.html) aka $ x^2 + y^2 = (1-z)x^4 $
