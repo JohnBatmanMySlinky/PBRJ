@@ -41,6 +41,7 @@ const Reflectance = Val{:Reflectance}
 const Illuminant = Val{:Illuminant}
 const SpectrumType = Union{Reflectance, Illuminant}
 
+include("primes.jl")
 include("objects.jl")
 include("args.jl")
 
@@ -94,6 +95,7 @@ include("distributions.jl")
 include("cameras/camera.jl")
 include("cameras/projective.jl")
 include("samplers2/stratified.jl")
+include("samplers2/low_discrepancy.jl")
 include("reflection/flags.jl")
 include("reflection/math.jl")
 include("reflection/fresnel.jl")
