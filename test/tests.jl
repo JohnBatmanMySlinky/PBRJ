@@ -649,7 +649,7 @@ function get_random_triangle(v_in::Vector{Float64})::Tuple{Bool, RayTracing.Mayb
         3,
         v,
         Int64[1,2,3],
-        RayTracing.Nml3[RayTracing.Nml3(0), RayTracing.Nml3(0), Nml3(0)],
+        RayTracing.Nml3[RayTracing.Nml3(0), RayTracing.Nml3(0), RayTracing.Nml3(0)],
         RayTracing.Pnt2[RayTracing.Pnt2(0,0), RayTracing.Pnt2(1,0), RayTracing.Pnt2(1,1)],
     nothing
     )
@@ -672,13 +672,13 @@ end
 # Monte Carlo estimate of it.
 # From PBRTv4
 @testset "Triangle - Solid Angle Sampling" begin
+    RayTracing.Random.seed!(123789)
     for i in 1:50
         range = 10
         check, tri = get_random_triangle([p_unif(range) for _ in 1:9])
         if !check
             continue
         end
-        @assert false
 
         # Ensure that the reference point isn't too close to the
         # triangle's surface (which makes the Monte Carlo stuff have more
@@ -689,16 +689,18 @@ end
 
         # Compute a reference value using Triangle::Sample()
         count = 64 * 1_024
+        intr = RayTracing.Interaction(pc, 0.0, RayTracing.Vec3(0), RayTracing.Nml3(0))
         tri_sample_estimate = 0
         for j in 1:count
-            u = RayTracing.Pnt2(RayTracing.radical_inverse(0,j), RayTracing.radical_inverse(1, j))
-            ss_p, ss_n, ss_pdf = RayTracing.sample(tri, u)
+            u = RayTracing.Pnt2(RayTracing.radical_inverse(0,UInt64(j)), RayTracing.radical_inverse(1, UInt64(j)))
+            ss_p, ss_n, ss_pdf = RayTracing.sample(tri, intr, u)
             @test ss_pdf > 0.0
             tri_sample_estimate += 1.0 / (count * ss_pdf)
         end
 
         # now compute the subtended solid angle of the triangle in closed from
-        spherical_area = RayTracing.solid_angle(tri, pc)
+        p0, p1, p2 = RayTracing.get_vertices(tri)
+        spherical_area = RayTracing.solid_angle(p0, p1, p2, pc)
         @test error(spherical_area, tri_sample_estimate) < 0.15
     end
 end

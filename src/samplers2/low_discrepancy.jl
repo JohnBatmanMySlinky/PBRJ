@@ -1,5 +1,6 @@
 function radical_inverse(prime_index::Int64, a::UInt64)::Float64
-    base = Primes[prime_index]
+    # JOHN HACK: to keep prime index matching, hiding the offset in here
+    base = PRIMES[prime_index+1]
     # C++ trickery: ~0ull translates to
     # bitwise NOT of a '0' that is 'u'nsigned and 'l'ong 'l'ong aka a typemax!
     limit::UInt64 = typemax(UInt64) / base - base

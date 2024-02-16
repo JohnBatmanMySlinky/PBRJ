@@ -444,7 +444,12 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Fl
 
     if (solid_angle_val < min_spherical_sample_area) || (solid_angle_val > max_spherical_sample_area)
         # Sample shape by area and compute incident direction _wi_
-        return sample(tri, u)
+        ss_p, ss_n, ss_pdf = sample(tri, u)
+        wi = normalize(Vec3(ss_p - intr.p))
+        # JOHN HACK, what do with zero length fail?
+
+        ss_pdf /= abs(dot(ss_n, -wi)) / distance_squared(intr.p, ss_p)
+        return ss_p, ss_n, ss_pdf
     end
 
     # Sample spherical triangle from reference point
@@ -467,7 +472,7 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Fl
     b, tri_pdf = sample_spherical_triangle(p0, p1, p2, intr.p, u)
     # TODO what if pdf 0?
     if tri_pdf == 0.0
-        return Pnt3(0,0,0), Nml3(0,0,0)
+        return Pnt3(0,0,0), Nml3(0,0,0), 0.0
     end
     pdf_val *= tri_pdf
 
