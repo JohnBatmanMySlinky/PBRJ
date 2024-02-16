@@ -799,31 +799,35 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             true,
             nothing
         )
-        # for tri in reverse(ceiling_light)
-        #     alight = DiffuseAreaLight(
-        #         spectrum_from_float(20.0, 20.0, 20.0, Illuminant),
-        #         tri,
-        #         false # NOT two sided
-        #     )
-        #     push!(lights,alight)
-        #     push!(primitives, Primitive(tri, mat_white, alight))
-        # end
-        s = Sphere(
-            ShapeCore(
-                Translate(Pnt3(0, 525, 0)),
-                Inv(Translate(Pnt3(0, 525, 0))),
-                false,
-                false
-            ),
-            25.0
-        )
-        alight = DiffuseAreaLight(
-            spectrum_from_float(200.0, 200.0, 200.0, Illuminant),
-            s,
-            false
-        )
-        push!(lights, alight)
-        push!(primitives, Primitive(s, mat_white, alight))
+        for tri in reverse(ceiling_light)
+            alight = DiffuseAreaLight(
+                spectrum_from_float(20.0, 20.0, 20.0, Illuminant),
+                tri,
+                false # NOT two sided
+            )
+            push!(lights,alight)
+            push!(primitives, Primitive(tri, mat_white, alight))
+        end
+        #######################################
+        ###### FOR VALIDATION USE SPHERE ######
+        #######################################
+        # My triangle sample is using pbrtv4 not v3 so use a spehere to make validating against v3 easier
+        # s = Sphere(
+        #     ShapeCore(
+        #         Translate(Pnt3(0, 525, 0)),
+        #         Inv(Translate(Pnt3(0, 525, 0))),
+        #         false,
+        #         false
+        #     ),
+        #     25.0
+        # )
+        # alight = DiffuseAreaLight(
+        #     spectrum_from_float(200.0, 200.0, 200.0, Illuminant),
+        #     s,
+        #     false
+        # )
+        # push!(lights, alight)
+        # push!(primitives, Primitive(s, mat_white, alight))
 
         box_1_transform = Translate(Pnt3(265, 0, 295)) * RotateY(25.0)
         box_1 = Box(
