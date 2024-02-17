@@ -540,15 +540,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
-        # instantiate an env light
-        # env_light = InfinteLight(
-        #     world_bounds(bvh), 
-        #     RotateY(125.0), 
-        #     spectrum_from_float(1.5), 
-        #     "../ref/sky.exr"
-        # )
-        # push!(lights, env_light)
-
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.25, .25))
 
