@@ -1,6 +1,6 @@
 """
-scene 1: munich re
-scene 2: plastic ball on plane
+scene 1: indoor office ✅
+scene 2: caustic glass ⚠️
 scene 3: AOIntegrator + dragon ✅
 scene 4: cornell box ✅
 scene 5: soft bodies
