@@ -341,19 +341,28 @@ inline uint64_t SobolIntervalToIndex(uint32_t m, uint64_t frame, int64_t px, int
         return frame;
 
     const uint32_t m2 = m << 1;
+    std::cout << "m2: " << m2 << "\n";
     uint64_t index = uint64_t(frame) << m2;
+    std::cout << "index: " << index << "\n";
 
     uint64_t delta = 0;
-    for (int c = 0; frame; frame >>= 1, ++c)
-        if (frame & 1)  // Add flipped column m + c + 1.
+    for (int c = 0; frame; frame >>= 1, ++c) {
+        if (frame & 1) {  // Add flipped column m + c + 1.
             delta ^= VdCSobolMatrices[m - 1][c];
-
+            std::cout << "\tdelta: " << delta << "\n";
+        }
+    }
     // flipped b
     uint64_t b = (((uint64_t)((uint32_t)px) << m) | ((uint32_t)py)) ^ delta;
-
-    for (int c = 0; b; b >>= 1, ++c)
-        if (b & 1)  // Add column 2 * m - c.
+    std::cout << "\tb: " << b << "\n";
+    for (int c = 0; b; b >>= 1, ++c) {
+        if (b & 1) { // Add column 2 * m - c.
+            std::cout << "\tminv: " << m - 1 << ", " << c << "\n";
+            std::cout << "\tminv: " << VdCSobolMatricesInv[m - 1][c] << "\n";
             index ^= VdCSobolMatricesInv[m - 1][c];
+            std::cout << "\tindex: " << index << "\n";
+        }
+    }
 
     return index;
 }

@@ -28,11 +28,11 @@ function sobol_interval_to_index(m::UInt32, frame::UInt64, p::Pnt2)::Int64
     delta::UInt64 = 0
     c = 0
     while frame > 0 # ChatGPT told me it iterates while frame is non-zero
-        frame >>= 1
-        c += 1
-        if (frame & 1) != 0
+        if (frame & 1) > 0
             delta ⊻= VdCSobolMatrices[m-1+1][c+1]
         end
+        frame >>= 1
+        c += 1
     end
 
     # flipped b
@@ -40,11 +40,11 @@ function sobol_interval_to_index(m::UInt32, frame::UInt64, p::Pnt2)::Int64
     b = UInt64((UInt32(Int64(p.x) & typemax(UInt32))) << m) | UInt32(Int64(p.y) & typemax(UInt32)) ⊻ delta
     c = 0
     while b > 0
-        b >>= 1
-        c += 1 
-        if (b & 1) != 0
+        if (b & 1) > 0
             index ⊻= VdCSobolMatricesInv[m-1+1][c+1]
         end
+        b >>= 1
+        c += 1 
     end
     return index
 end
