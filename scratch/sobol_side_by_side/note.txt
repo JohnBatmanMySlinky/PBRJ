@@ -1,0 +1,7 @@
+julia -t 4 RayTracing.jl --scene-number 4 --image-dim 150 --samples-per-pixel 64
+
+Stratified:
+115.450500 seconds (3.33 G allocations: 194.740 GiB, 12.28% gc time, 23.77% compilation time)
+
+Sobol:
+117.193836 seconds (3.34 G allocations: 195.685 GiB, 12.73% gc time, 23.82% compilation time)
