@@ -31,7 +31,7 @@ function sobol_interval_to_index(m::UInt32, frame::UInt64, p::Pnt2)::Int64
         if (frame & 1) > 0
             delta ⊻= VdCSobolMatrices[m-1+1][c+1]
         end
-        frame >>= 1
+        frame >>= 1 # remember kids, incrementing happens last
         c += 1
     end
 
@@ -43,7 +43,7 @@ function sobol_interval_to_index(m::UInt32, frame::UInt64, p::Pnt2)::Int64
         if (b & 1) > 0
             index ⊻= VdCSobolMatricesInv[m-1+1][c+1]
         end
-        b >>= 1
+        b >>= 1 # remember kids, incrementing happens last
         c += 1 
     end
     return index
