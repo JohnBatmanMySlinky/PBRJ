@@ -48,3 +48,28 @@ function sobol_interval_to_index(m::UInt32, frame::UInt64, p::Pnt2)::Int64
     end
     return index
 end
+
+function permutation_element(i::UInt32, l::UInt32, p::Union{UInt, Int})::Int64
+    # JOHN HACK: this will break if l or i > typemax(UInt32)
+    p = UInt32(p & typemax(UInt32)) # PBRT's hash is a uint64_t and PermutationElement does the truncation. we have to do it explicitly.
+    w = l - UInt32(1) # careful on casting
+    w |= w >> 1
+    w |= w >> 2
+    w |= w >> 4
+    w |= w >> 8
+    w |= w >> 16
+    i = __inner_loop(i, p, w) # We don't have a do-while only while-do
+    while i >= l
+        i = __inner_loop(i, p, w)
+    end
+    return (i + p) % l
+end
+
+function mix_bits(v::Union{Int, UInt})::Union{Int, UInt}
+    v ⊻= (v >> 31)
+    v *= 0x7fb5d329728ea185
+    v ⊻= (v >> 27)
+    v *= 0x81dadef4bc2dd44d
+    v ⊻= (v >> 33)
+    return v
+end

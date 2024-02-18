@@ -31,6 +31,7 @@ abstract type Shape end
 abstract type ImplicitSurface <: Shape end
 abstract type Texture end
 abstract type MicrofacetDistribution end
+abstract type Randomizer end
 
 # Defining some global constants
 const Radiance = Val{:Radiance}
@@ -97,6 +98,9 @@ include("cameras/camera.jl")
 include("cameras/projective.jl")
 include("samplers2/stratified.jl")
 include("samplers2/low_discrepancy.jl")
+include("samplers2/randomizers.jl")
+include("samplers2/sobol.jl")
+include("samplers2/sampling.jl")
 include("reflection/flags.jl")
 include("reflection/math.jl")
 include("reflection/fresnel.jl")

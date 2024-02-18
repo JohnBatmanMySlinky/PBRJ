@@ -538,6 +538,8 @@ using Random
 @testset "Low Discrepancy Stuff - sobol_interval_to_index" begin
     # manually verified
     @test RayTracing.sobol_interval_to_index(UInt32(5), UInt64(6), RayTracing.Pnt2(7, 8)) == 6524
+    @test RayTracing.sobol_interval_to_index(UInt32(8), UInt64(7), RayTracing.Pnt2(0, 0)) == 460544
+    @test RayTracing.sobol_interval_to_index(UInt32(25), UInt64(0), RayTracing.Pnt2(36, 36)) == 20100753653760
 end
 
 # Testing no allocations!
