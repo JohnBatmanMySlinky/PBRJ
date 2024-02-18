@@ -19,12 +19,13 @@ mutable struct StratifiedSampler <: AbstractSampler
     end
 end
 
-function start_pixel_sample!(ss::StratifiedSampler, pixel::Pnt2, sample_index::Int64)
+function start_pixel_sample!(ss::StratifiedSampler, pixel::Pnt2, sample_index::Int64, dim::Int64=0)
     # avoiding blowing my foot off here... sometimes this results in an infinite while loop in permutation_element
     @assert sample_index != ss.samples_per_pixel
     ss.pixel = pixel
     ss.sample_index = sample_index
-    ss.dimension = 0
+    ss.dimension = dim
+    # TODO JOHN HACK: nudge rng seed?
 end
 
 function get_1D!(ss::StratifiedSampler)::Float64

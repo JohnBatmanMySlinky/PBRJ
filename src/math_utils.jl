@@ -151,3 +151,14 @@ function count_not_undef(iterable::Vector)::Int64
     end
     return nope
 end
+
+function round_up_pow2(v::Int64)::Int64
+    v -= 1
+    v |= v >> 1
+    v |= v >> 2
+    v |= v >> 4
+    v |= v >> 8
+    v |= v >> 16
+    v |= v >> 32
+    return v + 1
+end
