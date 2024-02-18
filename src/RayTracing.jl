@@ -42,6 +42,7 @@ const Illuminant = Val{:Illuminant}
 const SpectrumType = Union{Reflectance, Illuminant}
 
 include("primes.jl")
+include("samplers2/sobol_matrics.jl")
 include("objects.jl")
 include("args.jl")
 
