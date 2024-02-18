@@ -17,7 +17,7 @@ mutable struct SobolSampler <: AbstractSampler
     end
     return new(
         samples_per_pixel,
-        round_up_pow2(max(full_resolution.x, full_resolution.y)),
+        round_up_pow2(Int64(max(full_resolution.x, full_resolution.y))),
         0,
         randomizer_flag,
         Pnt2(0,0),
@@ -31,8 +31,12 @@ function start_pixel_sample!(ss::SobolSampler, pixel::Pnt2, sample_index::Int64,
     # do i need this?
     @assert sample_index != ss.samples_per_pixel
     ss.pixel = pixel
-    ss.dimension = max(2, dim)
-    ss.sobol_index = sobol_interval_to_index(Int64(floor(log2(ss.scale))), sample_index, pixel)
+    # JOHN HACK: IGNORING THIS. 
+    # PBRT forces dimensions to be 0 and 1 in the get_pixel_sample()
+    # I just use asserts there...
+    # ss.dimension = max(2, dim) 
+    ss.dimension = dim
+    ss.sobol_index = sobol_interval_to_index(UInt32(floor(log2(ss.scale))), UInt64(sample_index), pixel)
 end
 
 function get_1D!(ss::SobolSampler)::Float64
@@ -61,29 +65,30 @@ function get_pixel_2D!(ss::SobolSampler)::Pnt2
     ss.dimension += 1
     @assert ss.dimension == 1
     u2 = sobol_sample(ss, NoRandomizer())
+    ss.dimension += 1
     u = Pnt2(
-        clamp(u1 * ss.scale - pixel.x, 0.0, 1.0-eps()),
-        clamp(u2 * ss.scale - pixel.y, 0.0, 1.0-eps()),
+        clamp(u1 * ss.scale - ss.pixel.x, 0.0, 1.0-eps()),
+        clamp(u2 * ss.scale - ss.pixel.y, 0.0, 1.0-eps()),
     )
     return u
 end
 
 function sample_dimension(ss::SobolSampler)::Float64
-    if ss.randomize_strategy == Int8(0) # RandomizeStrategy::None
+    if ss.randomizer_flag == Int8(0) # RandomizeStrategy::None
         return sobol_sample(ss, NoRandomizer())
     end
 
     hash_val = hash(dimension, seed)
-    if ss.randomize_strategy == Int8(1) # RandomizeStrategy::PermuteDigits
+    if ss.randomizer_flag == Int8(1) # RandomizeStrategy::PermuteDigits
         @assert false
-    elseif ss.randomize_strategy == Int8(2) # RandomizeStrategy::FastOwenScrambler
+    elseif ss.randomizer_flag == Int8(2) # RandomizeStrategy::FastOwenScrambler
         @assert false
-    else ss.randomize_strategy == Int8(3) # RandomizeStrategy::OwenScrambler
+    else ss.randomizer_flag == Int8(3) # RandomizeStrategy::OwenScrambler
         @assert false
     end
 end
 
-function sobol_sample(ss::SobolSampler, rando::Ranomizer)::Float64
+function sobol_sample(ss::SobolSampler, rando::Randomizer)::Float64
     a = ss.sobol_index
     v = UInt32(0)
     i = ss.dimension * SobolMatrixSize
