@@ -529,7 +529,7 @@ end
 @testset "Low Discrepancy Stuff - RadicalInverse" begin
     # manually verified!
     @test isapprox(RayTracing.radical_inverse(0, UInt64(500)), 0.185547, atol=1e-5)
-    @test isapprox(RayTracing.radical_inverse(17, UInt64(500)), 4.69328e-07, atol=1e-5)
+    @test isapprox(RayTracing.radical_inverse(16, UInt64(500)), 0.476874, atol=1e-5)
     @test isapprox(RayTracing.radical_inverse(9, UInt64(12345678)), 0.0608663, atol=1e-5)
     @test isapprox(RayTracing.radical_inverse(8, UInt64(8)), 0.347826, atol=1e-5)
     @test isapprox(RayTracing.radical_inverse(5, UInt64(1)), 0.0769231, atol=1e-5)
