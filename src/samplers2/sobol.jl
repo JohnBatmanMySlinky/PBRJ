@@ -78,11 +78,12 @@ function sample_dimension(ss::SobolSampler)::Float64
         return sobol_sample(ss, NoRandomizer())
     end
 
-    hash_val = hash(dimension, seed)
+    hash_val = hash((ss.dimension, ss.seed)) # JOHN HACK
     if ss.randomizer_flag == Int8(1) # RandomizeStrategy::PermuteDigits
         @assert false
     elseif ss.randomizer_flag == Int8(2) # RandomizeStrategy::FastOwenScrambler
-        @assert false
+        # John Hack truncating this to a UInt32()
+        return sobol_sample(ss, FastOwenRandomizer(UInt32(hash_val & typemax(UInt32))))
     else ss.randomizer_flag == Int8(3) # RandomizeStrategy::OwenScrambler
         @assert false
     end

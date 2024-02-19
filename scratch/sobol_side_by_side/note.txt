@@ -5,3 +5,6 @@ Stratified:
 
 Sobol (No Randomizer):
 117.193836 seconds (3.34 G allocations: 195.685 GiB, 12.73% gc time, 23.82% compilation time)
+
+Sobol (Fast Owen Randomizer):
+114.722044 seconds (3.34 G allocations: 195.740 GiB, 12.67% gc time, 23.26% compilation time)

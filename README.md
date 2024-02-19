@@ -125,7 +125,10 @@ Render
         - ~~for env lights~~
         - ~~for final image~~
     - Move the pbrt-v4's sampler structure
-    - Implement more samplers beyond just stratified sampler
+        - ~~Sobol~~
+        - PaddedSobol
+        - ZSobol
+        - Does it matter what my hash function is?
 - Scene work
     - add lte-orb scene. 
     - Improve office scene 
