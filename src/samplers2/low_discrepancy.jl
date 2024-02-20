@@ -1,3 +1,17 @@
+function sobol_sample(a::Int64, dimension::Int64, rando::Randomizer)::Float64
+    v = UInt32(0)
+    i = dimension * SobolMatrixSize
+    while a != 0
+        if (a & 1) > 0
+            v ⊻= SobolMatrices32[i+1]
+        end
+        a >>= 1
+        i += 1
+    end
+    v = rando(v)
+    return min(v * 0x1p-32f, 1.0-eps())
+end
+
 function radical_inverse(prime_index::Int64, a::UInt64)::Float64
     # JOHN HACK: to keep prime index matching, hiding the offset in here
     base = PRIMES[prime_index+1]

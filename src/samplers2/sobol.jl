@@ -12,9 +12,7 @@ mutable struct SobolSampler <: AbstractSampler
         full_resolution::Pnt2,
         randomizer_flag::Int8,
     )
-    if randomizer_flag > Int8(3)
-        @assert false
-    end
+    @assert randomizer_flag < Int8(4)
     return new(
         samples_per_pixel,
         round_up_pow2(Int64(max(full_resolution.x, full_resolution.y))),
@@ -61,10 +59,10 @@ end
 
 function get_pixel_2D!(ss::SobolSampler)::Pnt2
     @assert ss.dimension == 0
-    u1 = sobol_sample(ss, NoRandomizer())
+    u1 = sobol_sample(ss.sobol_index, ss.dimension, NoRandomizer())
     ss.dimension += 1
     @assert ss.dimension == 1
-    u2 = sobol_sample(ss, NoRandomizer())
+    u2 = sobol_sample(ss.sobol_index, ss.dimension, NoRandomizer())
     ss.dimension += 1
     u = Pnt2(
         clamp(u1 * ss.scale - ss.pixel.x, 0.0, 1.0-eps()),
@@ -75,7 +73,7 @@ end
 
 function sample_dimension(ss::SobolSampler)::Float64
     if ss.randomizer_flag == Int8(0) # RandomizeStrategy::None
-        return sobol_sample(ss, NoRandomizer())
+        return sobol_sample(ss.sobol_index, ss.dimension, NoRandomizer())
     end
 
     hash_val = hash((ss.dimension, ss.seed)) # JOHN HACK
@@ -83,23 +81,8 @@ function sample_dimension(ss::SobolSampler)::Float64
         @assert false
     elseif ss.randomizer_flag == Int8(2) # RandomizeStrategy::FastOwenScrambler
         # John Hack truncating this to a UInt32()
-        return sobol_sample(ss, FastOwenRandomizer(UInt32(hash_val & typemax(UInt32))))
+        return sobol_sample(ss.sobol_index, ss.dimension, FastOwenRandomizer(UInt32(hash_val & typemax(UInt32))))
     else ss.randomizer_flag == Int8(3) # RandomizeStrategy::OwenScrambler
         @assert false
     end
-end
-
-function sobol_sample(ss::SobolSampler, rando::Randomizer)::Float64
-    a = ss.sobol_index
-    v = UInt32(0)
-    i = ss.dimension * SobolMatrixSize
-    while a != 0
-        if (a & 1) > 0
-            v ⊻= SobolMatrices32[i+1]
-        end
-        a >>= 1
-        i += 1
-    end
-    v = rando(v)
-    return min(v * 0x1p-32f, 1.0-eps())
 end
