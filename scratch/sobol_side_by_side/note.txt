@@ -8,3 +8,6 @@ Sobol (No Randomizer):
 
 Sobol (Fast Owen Randomizer):
 114.722044 seconds (3.34 G allocations: 195.740 GiB, 12.67% gc time, 23.26% compilation time)
+
+ZSobol (Fast Owen Randomizer):
+129.935756 seconds (4.10 G allocations: 245.660 GiB, 14.70% gc time, 21.53% compilation time)
