@@ -81,14 +81,6 @@ function get_pixel_2D!(zs::ZSobolSampler)::Pnt2
 end
 
 function get_sample_index(zs::ZSobolSampler)::Int64
-    permutations::Vector{Vector{Int8}} = Vector{Int8}[
-            Int8[0, 1, 2, 3], Int8[0, 1, 3, 2], Int8[0, 2, 1, 3], Int8[0, 2, 3, 1],
-            Int8[0, 3, 2, 1], Int8[0, 3, 1, 2], Int8[1, 0, 2, 3], Int8[1, 0, 3, 2], 
-            Int8[1, 2, 0, 3], Int8[1, 2, 3, 0], Int8[1, 3, 2, 0], Int8[1, 3, 0, 2],
-            Int8[2, 1, 0, 3], Int8[2, 1, 3, 0], Int8[2, 0, 1, 3], Int8[2, 0, 3, 1], 
-            Int8[2, 3, 0, 1], Int8[2, 3, 1, 0], Int8[3, 1, 2, 0], Int8[3, 1, 0, 2],
-            Int8[3, 2, 1, 0], Int8[3, 2, 0, 1], Int8[3, 0, 2, 1], Int8[3, 0, 1, 2]
-    ]
     sample_index = 0
     pow_2_samples = (zs.log_2_samples_per_pixel & 1) > 0
     last_digit = pow_2_samples ? 1 : 0
@@ -97,7 +89,7 @@ function get_sample_index(zs::ZSobolSampler)::Int64
         digit = (zs.morton_index >> digit_shift) & 3
         higher_digits = zs.morton_index >> (digit_shift + 2)
         p = (mix_bits(higher_digits ⊻ (0x55555555 * zs.dimension)) >> 24) % 24
-        digit = permutations[p+1][digit+1]
+        digit = SobolPermutations[p+1][digit+1]
         sample_index |= UInt64(digit) << digit_shift
     end
 
