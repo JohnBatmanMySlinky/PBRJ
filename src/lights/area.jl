@@ -4,6 +4,7 @@ struct DiffuseAreaLight <: Light
     shape::Shape
     area::Float64
     two_sided::Bool
+    medium::Maybe{Medium}
 
     function DiffuseAreaLight(Lemit::Spectrum, shape::Shape, two_sided::Bool)
         return new(
@@ -11,7 +12,8 @@ struct DiffuseAreaLight <: Light
             Lemit,
             shape,
             area(shape),
-            two_sided
+            two_sided,
+            nothing
         )
     end
 end

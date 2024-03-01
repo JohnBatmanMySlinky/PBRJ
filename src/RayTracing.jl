@@ -31,6 +31,7 @@ abstract type Shape end
 abstract type ImplicitSurface <: Shape end
 abstract type Texture end
 abstract type MicrofacetDistribution end
+abstract type AbstractMedium end
 
 # Defining some global constants
 const Radiance = Val{:Radiance}
@@ -68,6 +69,8 @@ const XXX::Spectrum, YYY::Spectrum, ZZZ::Spectrum, rgbRefl2SpectWhite::Spectrum,
     rgbIllum2SpectCyan::Spectrum, rgbIllum2SpectMagenta::Spectrum, rgbIllum2SpectYellow::Spectrum, 
     rgbIllum2SpectRed::Spectrum, rgbIllum2SpectGreen::Spectrum, rgbIllum2SpectBlue::Spectrum = make_spectral_constants()
 
+include("medium/media.jl")
+include("ray.jl")
 include("primitive.jl")
 include("interactions.jl")
 include("transformations.jl")

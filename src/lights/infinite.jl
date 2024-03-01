@@ -8,6 +8,7 @@ struct InfinteLight <: Light
     map::Matrix{RGBA{Float16}}
     world_center::Pnt3
     world_radius::Float64
+    medium::Maybe{Medium}
     
     function InfinteLight(bounds::Bounds3, light_to_world::Transformation, I::Spectrum, map_url::String)
         ident = map_url[end-3:end]
@@ -39,7 +40,8 @@ struct InfinteLight <: Light
             pdf,
             dat,
             world_center,
-            world_radius
+            world_radius,
+            nothing
         )
     end
 end
