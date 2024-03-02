@@ -1,7 +1,12 @@
 struct Primitive
     shape::Shape
-    material::Material
+    material::Maybe{Material}
     area_light::Maybe{Light}
+    mi::MediumInterface
+
+    function Primitive(s::Shape, m::Material, al::Maybe{Light})
+        return new(s, m, al, MediumInterface(nothing))
+    end
 end
 
 #####################################################
@@ -20,6 +25,11 @@ function intersect!(gp::Primitive, ray::AbstractRay, shadow_ray::Bool=false)::Tu
         end
         ray.tMax = t
         interaction.primitive = gp
+        if is_transition_medium(gp.mi)
+            interaction.core.mi = gp.mi
+        else
+            interaction.core.mi = MediumInterface(ray.medium)
+        end
         return true, t, interaction
     end
 end

@@ -8,22 +8,30 @@ mutable struct Interaction
     wo::Vec3
     # surface normal in world coordinates
     n::Nml3
-end
+    mi::MediumInterface
 
-function Interaction()
-    return Interaction(Pnt3(0), 0.0, Vec3(0), Nml3(0))
-end
-function Interaction(r::AbstractRay)::Interaction
-    return Interaction(r.origin, r.t, -r.direction, Nml3(r.direction))
-end
-function Interaction(r::AbstractRay, n::Nml3)::Interaction
-    return Interaction(r.origin, r.t, -r.direction, n)
-end
-# PBRT 2.10 
-# for other types of interacion points where the notation of an outgoing direction doesnt apply
-# ie those found by randomly sampling points on a surface of a shape wo has the value Vec3(0)
-function Interaction(p::Pnt3, t::Float64, n::Nml3)::Interaction
-    return Interaction(p, t, Vec3(0.0), n)
+    function Interaction()
+        return new(Pnt3(0), 0.0, Vec3(0), Nml3(0), MediumInterface(nothing))
+    end
+
+    function Interaction(r::AbstractRay)::Interaction
+        return new(r.origin, r.t, -r.direction, Nml3(r.direction), MediumInterface(nothing))
+    end
+
+    function Interaction(r::AbstractRay, n::Nml3)::Interaction
+        return new(r.origin, r.t, -r.direction, n, MediumInterface(nothing))
+    end
+
+    # PBRT 2.10 
+    # for other types of interacion points where the notation of an outgoing direction doesnt apply
+    # ie those found by randomly sampling points on a surface of a shape wo has the value Vec3(0)
+    function Interaction(p::Pnt3, t::Float64, n::Nml3)::Interaction
+        return new(p, t, Vec3(0.0), n, MediumInterface(nothing))
+    end
+
+    function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3)::Interaction
+        return new(p, t, wo, n, MediumInterface(nothing))
+    end
 end
 
 mutable struct ShadingInteraction
