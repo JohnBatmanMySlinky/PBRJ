@@ -18,12 +18,14 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
             return spectrum_from_float(0.0)
         end
 
-        # JOHN HACK: skipping medium check
+        if !(ray.medium isa Nothing)
+            Tr *= tr(ray.medium, ray, sampler)
+        end
 
         if !check
             break
         end
-        ray = spawn_ray(isect, p1)
+        ray = spawn_ray(isect, vt.p1)
     end
     return Tr
 end

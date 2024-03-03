@@ -861,7 +861,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ),
             50.0
         )
-        push!(primitives, Primitive(sphere, mat_blue, nothing))
+        smoke_mi = MediumInterface(
+            HomogenousMedium(spectrum_from_float(10.0), spectrum_from_float(80.0)),
+            nothing
+        )
+        push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

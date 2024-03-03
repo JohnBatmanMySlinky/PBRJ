@@ -3,10 +3,10 @@ struct Primitive
     material::Maybe{Material}
     area_light::Maybe{Light}
     mi::MediumInterface
+end
 
-    function Primitive(s::Shape, m::Material, al::Maybe{Light})
-        return new(s, m, al, MediumInterface(nothing))
-    end
+function Primitive(s::Shape, m::Maybe{Material}, al::Maybe{Light})
+    return Primitive(s, m, al, MediumInterface(nothing))
 end
 
 #####################################################

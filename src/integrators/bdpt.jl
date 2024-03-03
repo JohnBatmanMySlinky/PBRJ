@@ -255,6 +255,7 @@ function random_walk!(
         return 0
     end
     # decleare variables for forward and reverse probability densities
+    mi = nothing
     bounces = 0
     pdf_fwd = pdf
     pdf_rev = 0.0
@@ -274,61 +275,75 @@ function random_walk!(
             @info "Random walk: intersection\n\tp $(isect.core.p)\n\two $(isect.core.wo)\n\tn $(isect.core.n)\n\tshading n $(isect.shading.n)"
         end
 
+        if !(ray.medium isa Nothing)
+            mi, beta_mult = sample(ray.medium, ray, sampler)
+            beta *= beta_mult
+        end
+
         if is_black(beta)
             @info "Random walk: exited due to Black"
             break
         end
 
-       
-        # JOHN HACK --> no medium no is black so continue
-
         # JOHN HACK --> using indexes
         vertex = bounces+1
         prev = bounces-1+1
 
-        # handle surface interaction for path generation
-        if !check
-            # capture escaped rays when tracing from camera
-            if mode == Radiance
-                path[vertex] = create_light_vertex(EndpointInteraction(ray), beta, pdf_fwd)
-                bounces += 1
+        if !(mi isa Nothing)
+            # record medium interaction in _path_ and compute forward density
+            vertex = create_medium_vertex(mi, beta, pdf_fwd, prev)
+            if bounces + 1 >= max_depth
+                break
             end
-            @info "Random walk: exited due to escaped rays"
-            break
-        end
+            
+            # sample direction and compute reverse density at preceding vertex
+            pdf_fwd, wi = sample_p(mi, -ray.direction, get_2D!(sampler))
+            ray = spawn_ray(mi, wi)
+        else
+            # handle surface interaction for path generation
+            if !check
+                # capture escaped rays when tracing from camera
+                if mode == Radiance
+                    path[vertex] = create_light_vertex(EndpointInteraction(ray), beta, pdf_fwd)
+                    bounces += 1
+                end
+                @info "Random walk: exited due to escaped rays"
+                break
+            end
 
-        # compute scattering functions for mode and skip over medium boundaries
-        compute_scattering!(isect, ray, true, mode)
-        if isect.bsdf isa Nothing
-            ray = spawn_ray(isect.core, ray.direction)
-            continue
-        end
-        
-        # initialize vertex with surface scattering information
-        path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
-        bounces += 1
-        if bounces >= max_depth + path_offset # JOHN HACK
-            @info "Random walk: depth exceeded"
-            break
-        end
+            # compute scattering functions for mode and skip over medium boundaries
+            compute_scattering!(isect, ray, true, mode)
+            if isect.bsdf isa Nothing
+                ray = spawn_ray(isect.core, ray.direction)
+                continue
+            end
+            
+            # initialize vertex with surface scattering information
+            path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
+            bounces += 1
+            if bounces >= max_depth + path_offset # JOHN HACK
+                @info "Random walk: depth exceeded"
+                break
+            end
 
-        # sample BSDF at current vertex and compute reverse probability
-        wo = isect.core.wo
-        wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
-        @info "Random walk:\n\tsampled dir $(wi)\n\tsampled f $(f)\n\tsampled pdfFwd $(pdf_fwd)\n\tsampled_type $(bitstring(UInt8(sampled_type)))"
-        if (pdf_fwd == 0.0) || is_black(f)
-            @info "Random walk: exited due to black or pdf 0"
-            break
+            # sample BSDF at current vertex and compute reverse probability
+            wo = isect.core.wo
+            wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
+            @info "Random walk:\n\tsampled dir $(wi)\n\tsampled f $(f)\n\tsampled pdfFwd $(pdf_fwd)\n\tsampled_type $(bitstring(UInt8(sampled_type)))"
+            if (pdf_fwd == 0.0) || is_black(f)
+                @info "Random walk: exited due to black or pdf 0"
+                break
+            end
+            beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
+            pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
+            if (sampled_type & BSDF_SPECULAR) > 0
+                path[vertex].delta = true
+                pdf_rev = 0.0
+                pdf_fwd = 0.0
+            end
+            beta *= correct_shading_normal(isect, wo, wi, mode)
+            ray = spawn_ray(isect.core, wi)
         end
-        beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
-        pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
-        if (sampled_type & BSDF_SPECULAR) > 0
-            path[vertex].delta = true
-            pdf_rev = 0.0
-            pdf_fwd = 0.0
-        end
-        beta *= correct_shading_normal(isect, wo, wi, mode)
-        ray = spawn_ray(isect.core, wi)
         
         # Compute reverse area density at preceding vertex
         path[prev].pdf_rev = convert_density(path[vertex], pdf_rev, path[prev])
