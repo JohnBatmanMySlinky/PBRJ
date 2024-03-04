@@ -43,6 +43,8 @@ const Reflectance = Val{:Reflectance}
 const Illuminant = Val{:Illuminant}
 const SpectrumType = Union{Reflectance, Illuminant}
 
+const ShadowEpsilon::Float64 = 0.00001
+
 include("primes.jl")
 include("objects.jl")
 include("args.jl")

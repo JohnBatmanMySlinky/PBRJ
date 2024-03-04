@@ -299,7 +299,7 @@ function random_walk!(
             
             # sample direction and compute reverse density at preceding vertex
             pdf_fwd, wi = sample_p(mi.phase, -ray.direction, get_2D!(sampler))
-            ray = spawn_ray(mi, wi)
+            ray = spawn_ray(mi.core, wi)
         else
             # handle surface interaction for path generation
             if !check
