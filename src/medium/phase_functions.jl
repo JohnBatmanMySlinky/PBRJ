@@ -7,6 +7,10 @@ function phase_HG(hg::HenyeyGreenstein, cos_theta::Float64)::Float64
     return (1.0 - hg.g^2) / (denom * sqrt(denom) * 4pi)
 end
 
+function (hg::HenyeyGreenstein)(wo::Vec3, wi::Vec3)::Float64
+    return phase_HG(hg, dot(wo, wi))
+end
+
 function sample_p(hg::HenyeyGreenstein, wo::Vec3, u::Pnt2)::Tuple{Float64, Vec3}
     if abs(hg.g) < 1e-3
         cos_theta = 1.0 - 2.0 * u[0+1]

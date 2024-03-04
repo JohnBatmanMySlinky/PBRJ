@@ -105,16 +105,16 @@ function render(
                 @info "BDPT: Number of real camera vertices: $(num_real_camera_vertices)"
                 @info "BDPT: Number of real light vertices: $(num_real_light_vertices)"
 
-                for iii in 1:num_real_camera_vertices
-                    if camera_vertices[iii].ei isa Nothing
-                        pos = camera_vertices[iii].si.core.p
-                        lig = 1*(camera_vertices[iii].si.primitive.area_light isa Nothing)
-                    else
-                        pos = ""
-                        lig = ""
-                    end
-                    @info "BDPT: Camera Vertex $(iii): $(camera_vertices[iii].type) @ $(pos) $(lig)"
-                end
+                # for iii in 1:num_real_camera_vertices
+                #     if camera_vertices[iii].ei isa Nothing
+                #         pos = camera_vertices[iii].si.core.p
+                #         lig = 1*(camera_vertices[iii].si.primitive.area_light isa Nothing)
+                #     else
+                #         pos = ""
+                #         lig = ""
+                #     end
+                #     @info "BDPT: Camera Vertex $(iii): $(camera_vertices[iii].type) @ $(pos) $(lig)"
+                # end
 
                 # execute all BDPT connection strategies
                 # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
@@ -276,7 +276,7 @@ function random_walk!(
         end
 
         if !(ray.medium isa Nothing)
-            mi, beta_mult = sample(ray.medium, ray, sampler)
+            beta_mult, mi  = sample(ray.medium, ray, sampler)
             beta *= beta_mult
         end
 
@@ -291,13 +291,14 @@ function random_walk!(
 
         if !(mi isa Nothing)
             # record medium interaction in _path_ and compute forward density
-            vertex = create_medium_vertex(mi, beta, pdf_fwd, prev)
-            if bounces + 1 >= max_depth
+            path[vertex] = create_medium_vertex(mi, beta, pdf_fwd, path[prev])
+            bounces += 1
+            if bounces >= max_depth
                 break
             end
             
             # sample direction and compute reverse density at preceding vertex
-            pdf_fwd, wi = sample_p(mi, -ray.direction, get_2D!(sampler))
+            pdf_fwd, wi = sample_p(mi.phase, -ray.direction, get_2D!(sampler))
             ray = spawn_ray(mi, wi)
         else
             # handle surface interaction for path generation

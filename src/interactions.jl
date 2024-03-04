@@ -34,8 +34,12 @@ function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3)::Interaction
     return Interaction(p, t, wo, n, MediumInterface(nothing))
 end
 
-function Interaction(p::Pnt3, t::Float64, wo::Vec3, mi::AbstractMedium)::Interaction
+function Interaction(p::Pnt3, t::Float64, wo::Vec3, mi::MediumInterface)::Interaction
     return Interaction(p, t, wo, Nml3(0), mi)
+end
+
+function Interaction(p::Pnt3, t::Float64, wo::Vec3, m::AbstractMedium)::Interaction
+    return Interaction(p, t, wo, Nml3(0), MediumInterface(m))
 end
 
 mutable struct ShadingInteraction
@@ -154,8 +158,8 @@ struct MediumInteraction
     core::Interaction
     phase::Maybe{AbstractPhaseFunction}
 
-    function MediumInteraction(p::Pnt3, t::Float64, wo::Vec3, mi::AbstractMedium, phase::Maybe{AbstractPhaseFunction})
-        return new(Interaction(p, t, wo, mi), phase)
+    function MediumInteraction(p::Pnt3, t::Float64, wo::Vec3, m::AbstractMedium, phase::Maybe{AbstractPhaseFunction})
+        return new(Interaction(p, t, wo, MediumInterface(m)), phase)
     end
 end
 
@@ -166,13 +170,18 @@ end
 #################
 ### Spawn Ray ###
 #################
-function spawn_ray(p0::SurfaceInteraction, p1::Interaction)::RayDifferential
+function spawn_ray(p0::Union{SurfaceInteraction, MediumInteraction}, p1::Interaction)::RayDifferential
     return spawn_ray(p0.core, p1)
 end
 
 function spawn_ray(interaction::Interaction, direction::Vec3, delta::Float64 = 1e-6)::RayDifferential
     origin = interaction.p .+ delta .* direction
     return RayDifferential(Ray(origin, direction, interaction.t, typemax(Float64), get_medium(interaction, direction)))
+end
+
+function spawn_ray(interaction::MediumInteraction, direction::Vec3, delta::Float64=1e-6)::RayDifferential
+    origin = interaction.core.p .+ delta .* direction
+    return RayDifferential(Ray(origin, direction, interaction.core.t, typemax(Float64), get_medium(interaction.core, direction)))
 end
 
 function spawn_ray(p0::Interaction, p1::Interaction, delta::Float64 = 1e-6,)::RayDifferential
