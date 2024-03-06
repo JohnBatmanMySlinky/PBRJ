@@ -859,10 +859,10 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 false,
                 false
             ),
-            50.0
+            100.0
         )
         smoke_mi = MediumInterface(
-            HomogenousMedium(spectrum_from_float(10.0), spectrum_from_float(80.0)),
+            HomogenousMedium(spectrum_from_float(0.001), spectrum_from_float(0.015)),
             nothing
         )
         push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
