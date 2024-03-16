@@ -303,6 +303,31 @@ function intersect_p(b::Bounds3, ray::AbstractRay, inv_dir::Vec3, dir_is_negativ
     tx_min < ray.tMax && tx_max > 0
 end
 
+function intersect_p(b::Bounds3, ray::AbstractRay)::Tuple{Bool, Float64, Float64}
+    t0 = 0.0
+    t1 = ray.tMax
+    for i in 1:3
+        # update interval for _i_th bounding box slab
+        inv_ray_dir = 1.0 / ray.direction[i]
+        t_near = (b.pMin[i] - ray.origin[i]) * inv_ray_dir
+        t_far = (b.pMax[i] - ray.origin[i]) * inv_ray_dir
+
+        # update parametric interval from slab intersection $t$ values
+        if t_near > t_far
+            t_far, t_near = t_near, t_far
+        end
+
+        # update _t_far_ to ensure robust ray--bounds intersection
+        t_far *= 1.0 + 2.0 * gamma(3)
+        t0 = t_near > t0 ? t_near : t0
+        t1 = t_far < t1 ? t_far : t1
+        if t0 > t1
+            return false, 0.0, 0.0
+        end
+    end
+    return true, t0, t1
+end
+
 function Base.iterate(b::Bounds2, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2, Integer}}
     if i > length(b)
         return nothing

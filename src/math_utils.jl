@@ -151,3 +151,7 @@ function count_not_undef(iterable::Vector)::Int64
     end
     return nope
 end
+
+function gamma(n::Int64)::Float64
+    return (n * eps()) / (1.0 - n * eps())
+end

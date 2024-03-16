@@ -16,5 +16,3 @@ function parse_media(fpath::String)::Tuple{Int64, Int64, Int64, Vector{Float64}}
 
     return nx, ny, nz, d
 end
-
-parse_media("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt")

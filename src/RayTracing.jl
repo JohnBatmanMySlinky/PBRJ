@@ -72,11 +72,13 @@ const XXX::Spectrum, YYY::Spectrum, ZZZ::Spectrum, rgbRefl2SpectWhite::Spectrum,
     rgbIllum2SpectCyan::Spectrum, rgbIllum2SpectMagenta::Spectrum, rgbIllum2SpectYellow::Spectrum, 
     rgbIllum2SpectRed::Spectrum, rgbIllum2SpectGreen::Spectrum, rgbIllum2SpectBlue::Spectrum = make_spectral_constants()
 
-include("medium/media.jl")
+include("medium/media_parser.jl")
+include("medium/media1.jl")
 include("ray.jl")
 include("primitive.jl")
 include("interactions.jl")
 include("transformations.jl")
+include("medium/media2.jl")
 include("math_utils.jl")
 include("rand_utils.jl")
 include("shapes/shape.jl")

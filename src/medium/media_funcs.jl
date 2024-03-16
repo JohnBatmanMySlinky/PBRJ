@@ -54,14 +54,14 @@ function D(gdm::GridDensityMedium, p::Pnt3)::Float64
     if !inside_exclusive(p, sample_bounds)
         return 0.0
     else
-        return gdm.density[(p.z * gdm.ny + p.y) + nx * p.x + 1]
+        return gdm.density[Int((p.z * gdm.ny + p.y) + gdm.nx * p.x + 1)]
     end
 end
 
 function density(gdm::GridDensityMedium, p::Pnt3)::Float64
-    psample = Pnt3(p.x * gdm.nx - 0.5, p.y * gdm.ny - 0.5, p.z * gdm.z - 0.5)
+    psample = Pnt3(p.x * gdm.nx - 0.5, p.y * gdm.ny - 0.5, p.z * gdm.nz - 0.5)
     pfloor = floor.(psample)
-    d = psamples - pfloor
+    d = psample - pfloor
 
     d00 = lerp(d.x, D(gdm, pfloor),               D(gdm, pfloor + Pnt3(1,0,0)))
     d10 = lerp(d.x, D(gdm, pfloor + Pnt3(0,1,0)), D(gdm, pfloor + Pnt3(1,1,0)))
@@ -73,13 +73,16 @@ function density(gdm::GridDensityMedium, p::Pnt3)::Float64
 end
 
 function sample(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Tuple{Spectrum, Maybe{MediumInteraction}}
-    ray = gdm.world_to_medium(Ray(ray_world.origin, normalize(ray_word.direction), 0.0, ray_world.tMax * length_pbrt(ray_world.direction)))
+    ray = gdm.world_to_medium(Ray(ray_world.origin, normalize(ray_world.direction), 0.0, ray_world.tMax * length_pbrt(ray_world.direction)))
+
+    # JOHN HACK
+    mi = nothing
 
     # compute the [t_min, t_max] interval of ray's overlap with the medium bounds
     b = Bounds3(Pnt3(0,0,0), Pnt3(1,1,1))
     check, tmin, tmax = intersect_p(b, ray)
     if !check
-        return Spectrum(1.0), nothing
+        return spectrum_from_float(1.0), mi
     end
 
     t = tmin
@@ -91,8 +94,41 @@ function sample(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::Abstrac
         if density(gdm, at(ray, t)) * gdm.inv_max_density > get_1D!(sampler)
             # populate mi with medium interaction information and return
             mi = MediumInteraction(at(ray_world, t), ray_world.t, -ray_world.direction, gdm, HenyeyGreenstein(gdm.g))
-            return gdm.sigma_s / gdm.sigma_t
+            return gdm.sigma_s / gdm.sigma_t, mi
         end
     end
-    return Spectrum(1.0)
+    return spectrum_from_float(1.0), mi
+end
+
+function tr(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Spectrum
+    ray = gdm.world_to_medium(Ray(ray_world.origin, normalize(ray_world.direction), 0.0, ray_world.tMax * length_pbrt(ray_world.direction)))
+
+    # Compute $[\tmin, \tmax]$ interval of _ray_'s overlap with medium bounds
+    b = Bounds3(Pnt3(0,0,0), Pnt3(1,1,1))
+    check, tmin, tmax = intersect_p(b, ray)
+    if !check
+        return spectrum_from_float(1.0)
+    end
+
+    # Perform ratio tracking to estimate transmittance value
+
+    Tr = 1.0
+    t = tmin
+    while true
+        t -= log(1-get_1D!(sampler)) * gdm.inv_max_density / gdm.sigma_t
+        if t >= tmax
+            break
+        end
+        density_val = density(gdm, at(ray, t))
+        Tr *= 1.0 - max(0.0, density_val * gdm.inv_max_density)
+        rr_threshold = 0.1
+        if Tr < rr_threshold
+            q = max(.05, 1.0 - Tr)
+            if get_1D!(sampler) < q
+                return spectrum_from_float(0.0)
+            end
+            Tr /= 1.0 - q
+        end
+    end
+    return spectrum_from_float(Tr)
 end
