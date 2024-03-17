@@ -1689,130 +1689,14 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         primitives = Primitive[]
         lights = Light[]
 
-        # MATERIALS
-        mat_gray = Matte(
-            ConstantTexture(spectrum_from_float(.75, .75, .75)),
-            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-            nothing
-        )
-        mat_white = Matte(
-            ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-            nothing
-        )
-        mat_red = Matte(
-            ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
-            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-            nothing
-        )
-        mat_blue = Matte(
+
+        # Dummy sphere for now
+        sphere_mat = Matte(
             ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
-        mat_green = Matte(
-            ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
-            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-            nothing
-        )
-        mat_ball = Substrate(
-            ConstantTexture(spectrum_from_float(0.0, .5, .6)), # kd
-            ConstantTexture(spectrum_from_float(.15, .15, .15)), # ks
-            ConstantTexture(spectrum_from_float(.003, .003, .003)), # u
-            ConstantTexture(spectrum_from_float(.003, .003, .003)), # v
-            true, # remap
-            nothing,
-        )
-        mat_metal = Metal()
-
-        # instantiate objects
-        identity_shape_core = ShapeCore(
-            Translate(Pnt3(0)),
-            Translate(Pnt3(0)),
-            false,
-            false
-        )
-        floor = Rectangle(
-            Pnt2(0, 0), 
-            Pnt2(555, 555), 
-            0.0,
-            2, 
-            identity_shape_core,
-            false,
-            nothing
-        )
-        for tri in floor
-            push!(primitives, Primitive(tri, mat_gray, nothing))
-        end
-        ceiling = Rectangle(
-            Pnt2(0, 0), 
-            Pnt2(555, 555), 
-            555.0,
-            2, 
-            ShapeCore(Translate(Pnt3(0)),Translate(Pnt3(0)),true,false),
-            false,
-            nothing
-        )
-        for tri in ceiling
-            push!(primitives, Primitive(tri, mat_gray, nothing))
-        end
-        backwall = Rectangle(
-            Pnt2(0, 0), 
-            Pnt2(555, 555), 
-            555.0,
-            3, 
-            identity_shape_core,
-            true,
-            nothing
-        )
-        for tri in backwall
-            push!(primitives, Primitive(tri, mat_gray, nothing))
-        end
-        leftwall = Rectangle(
-            Pnt2(0, 0), 
-            Pnt2(555, 555), 
-            0.0,
-            1, 
-            identity_shape_core,
-            true,
-            nothing
-        )
-        for tri in leftwall
-            push!(primitives, Primitive(tri, mat_red, nothing))
-        end
-        rightwall = Rectangle(
-            Pnt2(0, 0), 
-            Pnt2(555, 555), 
-            555.0,
-            1, 
-            identity_shape_core,
-            false,
-            nothing
-        )
-        for tri in rightwall
-            push!(primitives, Primitive(tri, mat_green, nothing))
-        end
-
-        ceiling_light = Rectangle(
-            Pnt2(213, 213), 
-            Pnt2(343, 343), 
-            554.0,
-            2, 
-            identity_shape_core,
-            true,
-            nothing
-        )
-        for tri in reverse(ceiling_light)
-            alight = DiffuseAreaLight(
-                spectrum_from_float(20.0, 20.0, 20.0, Illuminant),
-                tri,
-                false # NOT two sided
-            )
-            push!(lights,alight)
-            push!(primitives, Primitive(tri, mat_white, alight))
-        end
-
-        sphere_transform = Translate(Pnt3(75, 75, 75)) * Scale(Vec3(250.0, 250.0, 250.0))
+        sphere_transform = Translate(Pnt3(0.0720194, -3.62456, 4.50187))
         sphere = Sphere(
             ShapeCore(
                 sphere_transform,
@@ -1820,29 +1704,46 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 false,
                 false
             ),
-            2.0
+            0.1
         )
-        # smoke_mi = MediumInterface(
-        #     HomogenousMedium(spectrum_from_float(10.0), spectrum_from_float(90.0)),
-        #     nothing
-        # )
-        smoke_mi = 
-        MediumInterface(
-            GridDensityMedium(
-                spectrum_from_float(10.0),
-                spectrum_from_float(90.0),
-                0.0,
-                sphere_transform,
-                "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
-            ),
-            nothing
-        )
-        push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+        push!(primitives, Primitive(sphere, sphere_mat, nothing))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
+
+        # instantiate an env light
+        env_light = InfinteLight(
+            world_bounds(bvh), 
+            RotateY(125.0), 
+            spectrum_from_float(3.0), 
+            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+        )
+        push!(lights, env_light)
+
+
+        # sphere_transform = Translate(Pnt3(75, 75, 75)) * Scale(Vec3(250.0, 250.0, 250.0))
+        # sphere = Sphere(
+        #     ShapeCore(
+        #         sphere_transform,
+        #         Inv(sphere_transform),
+        #         false,
+        #         false
+        #     ),
+        #     2.0
+        # )
+        # smoke_mi = MediumInterface(
+        #     GridDensityMedium(
+        #         spectrum_from_float(10.0),
+        #         spectrum_from_float(90.0),
+        #         0.0,
+        #         sphere_transform,
+        #         "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
+        #     ),
+        #     nothing
+        # )
+        # push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.1, .1))
@@ -1858,11 +1759,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(278, 278, -800)
-        look_at = Pnt3(278, 278, 0)
-        up = Vec3(0, 1, 0)
+        look_from = Pnt3(0.0715308, -4.17677, 5.33558)
+        look_at = Pnt3(0.0720194, -3.62456, 4.50187)
+        up = Vec3(-0.000323605, 0.833706, 0.552208)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 15.0, film)
 
         # Instantiate a Sampler
         S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
