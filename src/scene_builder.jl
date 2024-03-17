@@ -1690,13 +1690,35 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         lights = Light[]
 
 
-        # Dummy sphere for now
-        sphere_mat = Matte(
-            ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
-            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        # OK box now
+        box_t = Translate(Pnt3(-1.0, 0.0, -1.2))
+        box_sc = ShapeCore(box_t, Inv(box_t), false, false)
+        box = Box(
+            Pnt3(0.1,  0.1,  0.1),
+            Pnt3(1.99, 1.99, 0.8),
+            box_sc,
             nothing
         )
-        sphere_transform = Translate(Pnt3(0.0720194, -3.62456, 4.50187))
+        box_m = Matte(
+            ConstantTexture(spectrum_from_float(0.5)),
+            ConstantTexture(spectrum_from_float(0.0)),
+            nothing
+        )
+        smoke_mi = MediumInterface(
+            GridDensityMedium(
+                spectrum_from_float(10.0),
+                spectrum_from_float(90.0),
+                0.0,
+                box_t,
+                "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
+            ),
+            nothing
+        )
+        for tri in box
+            # push!(primitives, Primitive(tri, nothing, nothing, smoke_mi))
+        end
+
+        sphere_transform = Translate(Pnt3(.045, 1.045, -.75))
         sphere = Sphere(
             ShapeCore(
                 sphere_transform,
@@ -1704,9 +1726,20 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 false,
                 false
             ),
-            0.1
+            1.4
         )
-        push!(primitives, Primitive(sphere, sphere_mat, nothing))
+        smoke_mi = MediumInterface(
+            GridDensityMedium(
+                spectrum_from_float(10.0),
+                spectrum_from_float(90.0),
+                0.0,
+                box_t,
+                "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
+            ),
+            nothing
+        )
+        push!(primitives, Primitive(sphere, nothing, nothing))
+
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -1716,34 +1749,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # instantiate an env light
         env_light = InfinteLight(
             world_bounds(bvh), 
-            RotateY(125.0), 
+            RotateY(0.0), 
             spectrum_from_float(3.0), 
             "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
         )
         push!(lights, env_light)
-
-
-        # sphere_transform = Translate(Pnt3(75, 75, 75)) * Scale(Vec3(250.0, 250.0, 250.0))
-        # sphere = Sphere(
-        #     ShapeCore(
-        #         sphere_transform,
-        #         Inv(sphere_transform),
-        #         false,
-        #         false
-        #     ),
-        #     2.0
-        # )
-        # smoke_mi = MediumInterface(
-        #     GridDensityMedium(
-        #         spectrum_from_float(10.0),
-        #         spectrum_from_float(90.0),
-        #         0.0,
-        #         sphere_transform,
-        #         "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
-        #     ),
-        #     nothing
-        # )
-        # push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.1, .1))
@@ -1760,7 +1770,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # Instantiate a Camera
         look_from = Pnt3(0.0715308, -4.17677, 5.33558)
-        look_at = Pnt3(0.0720194, -3.62456, 4.50187)
+        look_at = Pnt3(0.0720194, -3.62456, 4.60187)
         up = Vec3(-0.000323605, 0.833706, 0.552208)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 15.0, film)

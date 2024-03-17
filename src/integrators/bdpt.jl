@@ -561,7 +561,7 @@ function MIS_weight(
     end
 
     if s==0 && t==3
-        @info "MISWEIGHT: <<a4>> $(camera_vertices[3].pdf_rev) $(camera_vertices[3].si.primitive.area_light isa Nothing)"
+        # @info "MISWEIGHT: <<a4>> $(camera_vertices[3].pdf_rev) $(camera_vertices[3].si.primitive.area_light isa Nothing)"
     end
 
     # Update reverse density of vertex $\pt{}_{t-2}$

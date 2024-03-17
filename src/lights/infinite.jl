@@ -17,6 +17,8 @@ struct InfinteLight <: Light
         else
             @assert false # NOT IMPLEMENTED
         end
+
+        @info "World bounds $(bounds.pMin) - $(bounds.pMax)"
         
         # create im for pdf creation
         width, height = size(dat)
@@ -60,7 +62,8 @@ function le(il::InfinteLight, ray::AbstractRay)::Spectrum
     t = spherical_theta(w) / pi
     new_s = _uv_map(t, x)
     new_t = _uv_map(s, y)
-    l = spectrum_from_float(il.map[new_t, new_s])
+    tmp = il.map[new_t, new_s]
+    l = spectrum_from_float(Float64(tmp.r), Float64(tmp.g), Float64(tmp.b)) * il.I
     return l * il.I
 end
 
