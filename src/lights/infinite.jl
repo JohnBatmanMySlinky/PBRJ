@@ -21,12 +21,15 @@ struct InfinteLight <: Light
         @info "World bounds $(bounds.pMin) - $(bounds.pMax)"
         
         # create im for pdf creation
-        width, height = size(dat)
+        width, height = 2.0 * size(dat)
+        fwdith = 0.5 / min(width, height)
         im = zeros(width, height)
         for v in 1:height
+            vp = (v + 0.5) / height
             sin_theta = sin(pi * (v + 0.5) / height)
             for u in 1:width
-                im[u,v] = Gray(dat[u,v]) * sin_theta
+                up = (u + 0.5) / width
+                im[u,v] = dat[u,v] * sin_theta
             end
         end
         pdf = Distribution2D(im)      
@@ -124,6 +127,7 @@ function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
     # compute direction for infinite light sample ray
     # find uv coordinates in infinite light texture
     uv, map_pdf = sample_continuous(light.pdf, u1)
+    @info "\tInf Light Sampling: $(uv), $(map_pdf)"
     (map_pdf == 0.0) && return spectrum_from_float(0.0), RayDifferential(Ray()), Nml3(0), 0.0, 0.0
 
     theta = uv.y * pi

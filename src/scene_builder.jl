@@ -1741,19 +1741,42 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(sphere, nothing, nothing))
 
 
+        sphere_transform = Translate(Pnt3(0.0720194, -0.52456, 4.60187))
+        sphere = Sphere(
+            ShapeCore(
+                sphere_transform,
+                Inv(sphere_transform),
+                false,
+                false
+            ),
+            .05
+        )
+        alight = DiffuseAreaLight(
+            spectrum_from_float(2_000.0),
+            sphere,
+            false
+        )
+        light_m = Matte(
+            ConstantTexture(spectrum_from_float(1.0)),
+            ConstantTexture(spectrum_from_float(0.0)),
+            nothing
+        )
+        push!(lights, alight)
+        push!(primitives, Primitive(sphere, light_m, alight))
+
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
         # instantiate an env light
-        env_light = InfinteLight(
-            world_bounds(bvh), 
-            RotateY(0.0), 
-            spectrum_from_float(3.0), 
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
-        )
-        push!(lights, env_light)
+        # env_light = InfinteLight(
+        #     world_bounds(bvh), 
+        #     RotateY(0.0), 
+        #     spectrum_from_float(3.0), 
+        #     "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+        # )
+        # push!(lights, env_light)
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.1, .1))

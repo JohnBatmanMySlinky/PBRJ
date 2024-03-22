@@ -91,7 +91,8 @@ function sample(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::Abstrac
         if t >= tmax
             break
         end
-        if density(gdm, at(ray, t)) * gdm.inv_max_density > get_1D!(sampler)
+        density_value = density(gdm, at(ray, t))
+        if density_value * gdm.inv_max_density > get_1D!(sampler)
             # populate mi with medium interaction information and return
             mi = MediumInteraction(at(ray_world, t), ray_world.t, -ray_world.direction, gdm, HenyeyGreenstein(gdm.g))
             return gdm.sigma_s / gdm.sigma_t, mi
@@ -101,7 +102,9 @@ function sample(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::Abstrac
 end
 
 function tr(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Spectrum
+    @info "Medium Tr Time:\n\tRay Entering: $(ray_world)\n"
     ray = gdm.world_to_medium(Ray(ray_world.origin, normalize(ray_world.direction), 0.0, ray_world.tMax * length_pbrt(ray_world.direction)))
+    @info "\tRay Transformed: $(ray)\n"    
 
     # Compute $[\tmin, \tmax]$ interval of _ray_'s overlap with medium bounds
     b = Bounds3(Pnt3(0,0,0), Pnt3(1,1,1))
@@ -120,6 +123,7 @@ function tr(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::AbstractSam
             break
         end
         density_val = density(gdm, at(ray, t))
+        @info "\tRay Density at $(at(ray, t)) is $(density_val)"
         Tr *= 1.0 - max(0.0, density_val * gdm.inv_max_density)
         rr_threshold = 0.1
         if Tr < rr_threshold
