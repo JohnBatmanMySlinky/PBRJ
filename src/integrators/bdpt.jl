@@ -276,6 +276,7 @@ function random_walk!(
         end
 
         if !(ray.medium isa Nothing)
+            @info "MEDIUM BEEN HIT"
             beta_mult, mi  = sample(ray.medium, ray, sampler)
             beta *= beta_mult
         end
