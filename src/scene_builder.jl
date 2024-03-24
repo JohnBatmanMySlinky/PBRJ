@@ -1709,7 +1709,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 spectrum_from_float(10.0),
                 spectrum_from_float(90.0),
                 0.0,
-                Pnt3(0.1, 0.1, 0.1),
+                Pnt3(0.01, 0.01, 0.01),
                 Pnt3(1.99, 1.99, 0.79),
                 box_t,
                 "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
@@ -1735,7 +1735,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 spectrum_from_float(10.0),
                 spectrum_from_float(90.0),
                 0.0,
-                Pnt3(0.1, 0.1, 0.1),
+                Pnt3(0.01, 0.01, 0.01),
                 Pnt3(1.99, 1.99, 0.79),
                 box_t,
                 "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"

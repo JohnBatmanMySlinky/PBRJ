@@ -55,7 +55,7 @@ function D(gdm::GridDensityMedium, p::Pnt3)::Float64
     if !inside_exclusive(p, sample_bounds)
         return 0.0
     else
-        return gdm.density[Int((p.z * gdm.ny + p.y) + gdm.nx * p.x + 1)]
+        return gdm.density[Int((p.z * gdm.ny + p.y) * gdm.nx + p.x + 1)]
     end
 end
 
@@ -89,13 +89,17 @@ function sample(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::Abstrac
         return spectrum_from_float(1.0), mi
     end
 
+    @info "we are within bounds"
+
     t = tmin
     while true
         t -= log(1 - get_1D!(sampler)) * gdm.inv_max_density / gdm.sigma_t
+        # @info "medium sample: $(t)"
         if t >= tmax
             break
         end
         density_value = density(gdm, at(ray, t))
+        # @info "Density at $(at(ray, t)) is $(density_value)"
         if density_value * gdm.inv_max_density > get_1D!(sampler)
             # populate mi with medium interaction information and return
             mi = MediumInteraction(at(ray_world, t), ray_world.t, -ray_world.direction, gdm, HenyeyGreenstein(gdm.g))
