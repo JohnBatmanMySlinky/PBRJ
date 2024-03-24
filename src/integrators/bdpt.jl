@@ -270,9 +270,11 @@ function random_walk!(
 
         COUNTER += 1
         # attempt to create the next subpath verte in *path*
+        @info "Ray current has a medium: $(!(ray.medium isa Nothing))"
         check, t, isect = intersect!(scene.b, ray)
         if check
             @info "Random walk: intersection\n\tp $(isect.core.p)\n\two $(isect.core.wo)\n\tn $(isect.core.n)\n\tshading n $(isect.shading.n)"
+            @info "Isect Medium Interface: INSIDE $(!(isect.core.mi.inside isa Nothing)), OUTSIDE $(!(isect.core.mi.outside isa Nothing))";
         end
 
         if !(ray.medium isa Nothing)
@@ -316,7 +318,9 @@ function random_walk!(
             # compute scattering functions for mode and skip over medium boundaries
             compute_scattering!(isect, ray, true, mode)
             if isect.bsdf isa Nothing
+                @info "Random Walk: No BSDF. Ray $(ray)"
                 ray = spawn_ray(isect.core, ray.direction)
+                @info "Random Walk: No BSDF. Ray $(ray)"
                 continue
             end
             

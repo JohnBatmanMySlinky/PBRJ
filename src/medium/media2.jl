@@ -11,7 +11,7 @@ struct GridDensityMedium <: AbstractMedium
     inv_max_density::Float64
     
     function GridDensityMedium(sigma_a::Spectrum, sigma_s::Spectrum, 
-        g::Float64, nx::Int64, ny::Int64, nz::Int64, 
+        g::Float64, p0::Pnt3, p1::Pnt3, nx::Int64, ny::Int64, nz::Int64, 
         medium_to_world::Transformation, d::Vector{Float64}
     )
         return new(
@@ -21,11 +21,12 @@ struct GridDensityMedium <: AbstractMedium
     end
 
     function GridDensityMedium(sigma_a::Spectrum, sigma_s::Spectrum, 
-        g::Float64, medium_to_world::Transformation, fpath::String
+        g::Float64, p0::Pnt3, p1::Pnt3, medium_to_world::Transformation, fpath::String
     )
+        data_to_medium = Translate(Vec3(p0)) * Scale(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)
         nx, ny, nz, d = parse_media(fpath)
         return new(
-            sigma_a, sigma_s, g, nx, ny, nz, Inv(medium_to_world), 
+            sigma_a, sigma_s, g, nx, ny, nz, Inv(medium_to_world * data_to_medium), 
             d, (sigma_a + sigma_s)[0+1], 1.0 / maximum(d)
         )
     end

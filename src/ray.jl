@@ -76,3 +76,5 @@ function set_direction!(r::AbstractRay, d::Vec3)
 end
 
 check_direction!(r::AbstractRay) = set_direction!(r, r.direction)
+
+Base.show(io::IO, r::AbstractRay) = print(io, "$(r.origin), $(r.direction), $(r.t), $(r.tMax), $(!(r.medium isa Nothing))")

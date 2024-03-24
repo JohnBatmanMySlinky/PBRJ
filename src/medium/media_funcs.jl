@@ -2,6 +2,7 @@
 ### Generic ###
 ###############
 function get_medium(inter::Interaction, w::Vec3)::Maybe{AbstractMedium}
+    @info "\t\t Get Medium: $(w), $(inter.n)"
     return dot(w, inter.n) > 0.0 ? inter.mi.outside : inter.mi.inside
 end
 
@@ -73,7 +74,10 @@ function density(gdm::GridDensityMedium, p::Pnt3)::Float64
 end
 
 function sample(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Tuple{Spectrum, Maybe{MediumInteraction}}
+    @info "Medium Sample Time:\n\tRay Entering: $(ray_world)\n"
+    @info "wtf is this transform: $(gdm.world_to_medium)"
     ray = gdm.world_to_medium(Ray(ray_world.origin, normalize(ray_world.direction), 0.0, ray_world.tMax * length_pbrt(ray_world.direction)))
+    @info "\tRay Transformed: $(ray)\n" 
 
     # JOHN HACK
     mi = nothing

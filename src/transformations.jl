@@ -30,19 +30,35 @@ function Translate(v::Union{Vec3,Pnt3})::Transformation
     return Transformation(m, m_inv)
 end
 
-function Scale(v::Vec3)::Transformation
+function Scale(x::Float64, y::Float64, z::Float64)::Transformation
     m = Mat4([
-        v[1] 0    0    0
-        0    v[2] 0    0
-        0    0    v[3] 0
+        x    0    0    0
+        0    y    0    0
+        0    0    z    0
         0    0    0    1
     ])
 
     m_inv = Mat4([
-        1/v[1] 0      0      0
-        0      1/v[2] 0      0
-        0      0      1/v[3] 0
+        1.0/x  0      0      0
+        0      1.0/y  0      0
+        0      0      1.0/z  0
         0      0      0      1
+    ])
+    return Transformation(m, m_inv)
+end
+function Scale(v::Vec3)::Transformation
+    m = Mat4([
+        v.x  0    0    0
+        0    v.y  0    0
+        0    0    v.z  0
+        0    0    0    1
+    ])
+
+    m_inv = Mat4([
+        1.0/v.x  0        0        0
+        0        1.0/v.y  0        0
+        0        0        1.0/v.z  0
+        0        0        0        1
     ])
     return Transformation(m, m_inv)
 end
