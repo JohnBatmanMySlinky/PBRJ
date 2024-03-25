@@ -135,7 +135,8 @@ Render
     - Move the pbrt-v4's sampler structure
     - Implement more samplers beyond just stratified sampler
 - Scene work
-    - add lte-orb scene. 
+    - Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.
+    - Add lte-orb scene
     - Improve office scene 
         - Add more walls (left wall corner)
         - Add in more scene geometry (baseboards? stairs? elevator?)
