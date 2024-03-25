@@ -134,71 +134,6 @@ const Mat3 = SMatrix{3, 3, Float64}
 const Mat2 = SMatrix{2, 2, Float64}
 
 ################################
-######## Ray ###################
-################################
-mutable struct Ray <: AbstractRay
-    origin::Pnt3
-    direction::Vec3
-    t::Float64
-    tMax::Float64
-end
-
-function Ray()::Ray
-    return Ray(Pnt3(0), Vec3(0), 0.0, typemax(Float64))
-end
-
-function at(r::AbstractRay, t::Float64)::Pnt3
-    return r.origin .+ t .* r.direction
-end
-
-################################
-######## Ray Differentials #####
-################################
-# PBR 2.5.1 
-mutable struct RayDifferential <: AbstractRay
-    origin::Pnt3
-    direction::Vec3
-    t::Float64
-    tMax::Float64
-
-    has_differentials::Bool
-    rx_origin::Pnt3
-    ry_origin::Pnt3
-    rx_direction::Vec3
-    ry_direction::Vec3
-end
-
-# instantiate ray differential from Ray
-# "There is a constructor to create RayDifferentials from Rays. 
-# The constructor sets hasDifferentials to false initially because the neighboring rays, if any, are not known.
-function RayDifferential(r::Ray)::RayDifferential
-    return RayDifferential(
-        r.origin,
-        r.direction,
-        r.t,
-        r.tMax,
-        false,
-        Pnt3(0),
-        Pnt3(0),
-        Vec3(0),
-        Vec3(0)
-    )
-end
-
-function scale_differentials!(r::RayDifferential, s::Float64)
-    r.rx_origin = r.origin + (r.rx_origin - r.origin) * s
-    r.ry_origin = r.origin + (r.ry_origin - r.origin) * s
-    r.rx_direction = r.direction + (r.rx_direction - r.direction) * s
-    r.ry_direction = r.direction + (r.ry_direction - r.direction) * s
-end
-
-function set_direction!(r::AbstractRay, d::Vec3)
-    r.direction = Vec3([i ≈ 0.0 ? 0.0 : i for i in d])
-end
-
-check_direction!(r::AbstractRay) = set_direction!(r, r.direction)
-
-################################
 #### AABB ######################
 ################################
 struct Bounds3
@@ -366,6 +301,31 @@ function intersect_p(b::Bounds3, ray::AbstractRay, inv_dir::Vec3, dir_is_negativ
     (tz_min > tx_min) && (tx_min = tz_min;)
     (tz_max < tx_max) && (tx_max = tz_max;)
     tx_min < ray.tMax && tx_max > 0
+end
+
+function intersect_p(b::Bounds3, ray::AbstractRay)::Tuple{Bool, Float64, Float64}
+    t0 = 0.0
+    t1 = ray.tMax
+    for i in 1:3
+        # update interval for _i_th bounding box slab
+        inv_ray_dir = 1.0 / ray.direction[i]
+        t_near = (b.pMin[i] - ray.origin[i]) * inv_ray_dir
+        t_far = (b.pMax[i] - ray.origin[i]) * inv_ray_dir
+
+        # update parametric interval from slab intersection $t$ values
+        if t_near > t_far
+            t_far, t_near = t_near, t_far
+        end
+
+        # update _t_far_ to ensure robust ray--bounds intersection
+        t_far *= 1.0 + 2.0 * gamma(3)
+        t0 = t_near > t0 ? t_near : t0
+        t1 = t_far < t1 ? t_far : t1
+        if t0 > t1
+            return false, 0.0, 0.0
+        end
+    end
+    return true, t0, t1
 end
 
 function Base.iterate(b::Bounds2, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2, Integer}}

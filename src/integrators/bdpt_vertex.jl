@@ -27,16 +27,16 @@ mutable struct Vertex
     beta::Spectrum
     # John hack, maybe{} instead of unions
     ei::Maybe{EndpointInteraction}
-    # mi::MediumInteraction --> no medium 
+    mi::Maybe{MediumInteraction}
     si::Maybe{SurfaceInteraction}
     delta::Bool
     pdf_fwd::Float64
     pdf_rev::Float64
 
-    function Vertex(type::VertexType, beta::Spectrum, ei::Maybe{EndpointInteraction}, si::Maybe{SurfaceInteraction})
-        @assert !((ei isa Nothing) & (si isa Nothing))
+    function Vertex(type::VertexType, beta::Spectrum, ei::Maybe{EndpointInteraction}, si::Maybe{SurfaceInteraction}, mi::Maybe{MediumInteraction})
+        @assert !((ei isa Nothing) & (si isa Nothing) & (mi isa Nothing))
         return new(
-            type, beta, ei, si, false, 0.0, 0.0
+            type, beta, ei, mi, si, false, 0.0, 0.0
         )
     end
 end
@@ -73,6 +73,7 @@ function create_camera_vertex(camera::Camera, ray::AbstractRay, beta::Spectrum):
         VTCamera,
         beta,
         EndpointInteraction(camera, ray),
+        nothing,
         nothing
     )
 end
@@ -82,6 +83,7 @@ function create_camera_vertex(camera::Camera, it::Interaction, beta::Spectrum)::
         VTCamera,
         beta,
         EndpointInteraction(it, camera),
+        nothing,
         nothing
     )
 end
@@ -91,6 +93,7 @@ function create_light_vertex(light::Light, ray::AbstractRay, n::Nml3, le::Spectr
         VTLight,
         le,
         EndpointInteraction(light, ray, n),
+        nothing,
         nothing
     )
     v.pdf_fwd = pdf
@@ -102,6 +105,7 @@ function create_light_vertex(ei::EndpointInteraction, beta::Spectrum, pdf::Float
         VTLight,
         beta,
         ei,
+        nothing,
         nothing
     )
     v.pdf_fwd = pdf
@@ -113,9 +117,22 @@ function create_surface_vertex(si::SurfaceInteraction, beta::Spectrum, pdf_fwd::
         VTSurface,
         beta, 
         nothing,
-        si
+        si,
+        nothing
     )
     v.pdf_fwd = convert_density(prev, pdf_fwd, v)
+    return v
+end
+
+function create_medium_vertex(mi::MediumInteraction, beta::Spectrum, pdf_val::Float64, prev::Vertex)::Vertex
+    v = Vertex(
+        VTMedium,
+        beta,
+        nothing,
+        nothing,
+        mi
+    )
+    v.pdf_fwd = convert_density(prev, pdf_val, v)
     return v
 end
 
@@ -155,6 +172,8 @@ end
 function p(v::Vertex)::Pnt3
     if v.type == VTSurface
         return v.si.core.p
+    elseif v.type == VTMedium
+        return v.mi.core.p
     else
         return v.ei.interaction.p
     end
@@ -162,6 +181,8 @@ end
 function ng(v::Vertex)::Nml3
     if v.type == VTSurface
         return v.si.core.n
+    elseif v.type == VTMedium
+        return v.mi.core.n
     else
         return v.ei.interaction.n
     end
@@ -169,6 +190,8 @@ end
 function ns(v::Vertex)::Nml3
     if v.type == VTSurface
         return v.si.shading.n
+    elseif v.type == VTMedium
+        return v.mi.core.n
     else
         return v.ei.interaction.n
     end
@@ -176,15 +199,19 @@ end
 function time(v::Vertex)::Float64
     if v.type == VTSurface
         return v.si.core.t
+    elseif v.type == VTMedium
+        return v.mi.core.t
     else
         return v.ei.interaction.t
     end
 end
-function time(I::Union{EndpointInteraction, SurfaceInteraction})::Float64
+function time(I::Union{EndpointInteraction, SurfaceInteraction, MediumInteraction})::Float64
     if I isa SurfaceInteraction
         return I.core.t
     elseif I isa EndpointInteraction
         return I.interaction.t
+    elseif I isa MediumInteraction
+        return I.core.t
     else
         @assert false, "bad stuff"
     end
@@ -205,7 +232,7 @@ function is_connectible(v::Vertex)::Bool
     return false # NOT REACHED
 end
 
-function get_interaction(v::Vertex)::Union{EndpointInteraction, SurfaceInteraction}
+function get_interaction(v::Vertex)::Union{EndpointInteraction, SurfaceInteraction, MediumInteraction}
     if v.type == VTMedium
         return v.mi
     elseif v.type == VTSurface
@@ -215,11 +242,13 @@ function get_interaction(v::Vertex)::Union{EndpointInteraction, SurfaceInteracti
     end
 end
 
-function get_interaction(I::Union{EndpointInteraction, SurfaceInteraction})::Interaction
+function get_interaction(I::Union{EndpointInteraction, SurfaceInteraction, MediumInteraction})::Interaction
     if I isa SurfaceInteraction
         return I.core
     elseif I isa EndpointInteraction
         return I.interaction
+    elseif I isa MediumInteraction
+        return I.core
     else
         @assert false, "bad stuff"
     end
@@ -298,7 +327,7 @@ function pdf(v0::Vertex, scene::Scene, prev::Maybe{Vertex}, next::Vertex)::Float
     elseif v0.type == VTSurface
         pdf_val = compute_pdf(v0.si.bsdf, wp, wn, BSDF_ALL) # JOHN HACK do we need BSDF all?
     elseif v0.type == VTMedium
-        @assert false # un-implemented
+        pdf_val = v0.mi.phase(wp, wn)
     else
         @assert false
     end
@@ -312,7 +341,7 @@ function f(v1::Vertex, v2::Vertex, mode::Type{T})::Spectrum where T <: Transport
     if v1.type == VTSurface
         return v1.si.bsdf(v1.si.core.wo, wi) * correct_shading_normal(v1.si, v1.si.core.wo, wi, mode)
     elseif v1.type == VTMedium
-        @assert false # NOT IMPLEMENTED
+        return spectrum_from_float(v1.mi.phase(v1.mi.core.wo, wi))
     else
         return spectrum_from_float(0.0)
     end

@@ -1,7 +1,7 @@
 # JOHN TODO: adding this file to solve import order of operations.
 # is there a better way?
 
-function sample_wi(camera::PerspectiveCamera, ei::Union{EndpointInteraction, SurfaceInteraction}, u::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt2}
+function sample_wi(camera::PerspectiveCamera, ei::Union{EndpointInteraction, SurfaceInteraction, MediumInteraction}, u::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt2}
     # uniformly sample a lens interaction
     plens = camera.core.lens_radius * random_in_concentric_disk(u)
     plensworld = camera.core.core.camera_to_world(Pnt3(plens.x, plens.y, 0))

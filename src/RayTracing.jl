@@ -31,6 +31,8 @@ abstract type Shape end
 abstract type ImplicitSurface <: Shape end
 abstract type Texture end
 abstract type MicrofacetDistribution end
+abstract type AbstractMedium end
+abstract type AbstractPhaseFunction end
 
 # Defining some global constants
 const Radiance = Val{:Radiance}
@@ -40,6 +42,8 @@ const TransportMode = Union{Radiance, Importance}
 const Reflectance = Val{:Reflectance}
 const Illuminant = Val{:Illuminant}
 const SpectrumType = Union{Reflectance, Illuminant}
+
+const ShadowEpsilon::Float64 = 0.00001
 
 include("primes.jl")
 include("objects.jl")
@@ -68,9 +72,13 @@ const XXX::Spectrum, YYY::Spectrum, ZZZ::Spectrum, rgbRefl2SpectWhite::Spectrum,
     rgbIllum2SpectCyan::Spectrum, rgbIllum2SpectMagenta::Spectrum, rgbIllum2SpectYellow::Spectrum, 
     rgbIllum2SpectRed::Spectrum, rgbIllum2SpectGreen::Spectrum, rgbIllum2SpectBlue::Spectrum = make_spectral_constants()
 
+include("medium/media_parser.jl")
+include("medium/media1.jl")
+include("ray.jl")
 include("primitive.jl")
 include("interactions.jl")
 include("transformations.jl")
+include("medium/media2.jl")
 include("math_utils.jl")
 include("rand_utils.jl")
 include("shapes/shape.jl")
@@ -138,6 +146,8 @@ include("handy_prints.jl")
 include("obj_reader.jl")
 include("scene_builder.jl")
 include("denoising/edge_avoiding_a_trous.jl")
+include("medium/media_funcs.jl")
+include("medium/phase_functions.jl")
 
 # do MIS_weight or nah
 const DO_MIS_WEIGHT::Bool = true

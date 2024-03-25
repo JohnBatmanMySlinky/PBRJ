@@ -123,7 +123,7 @@ end
 function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSample)::Tuple{RayDifferential, Float64}
     p_film = Pnt3(sample.film.x, sample.film.y, 0)
     p_camera = camera.core.raster_to_camera(p_film)
-    ray = RayDifferential(Ray(Pnt3(0), normalize(Vec3(p_camera)), 0, typemax(Float64)))
+    ray = RayDifferential(Ray(Pnt3(0), normalize(Vec3(p_camera)), 0.0, typemax(Float64)))
     @info "p_film: $(p_film), p_camera: $(p_camera), ray: $(ray)"
 
     if camera.core.lens_radius > 0

@@ -30,19 +30,35 @@ function Translate(v::Union{Vec3,Pnt3})::Transformation
     return Transformation(m, m_inv)
 end
 
-function Scale(v::Vec3)::Transformation
+function Scale(x::Float64, y::Float64, z::Float64)::Transformation
     m = Mat4([
-        v[1] 0    0    0
-        0    v[2] 0    0
-        0    0    v[3] 0
+        x    0    0    0
+        0    y    0    0
+        0    0    z    0
         0    0    0    1
     ])
 
     m_inv = Mat4([
-        1/v[1] 0      0      0
-        0      1/v[2] 0      0
-        0      0      1/v[3] 0
+        1.0/x  0      0      0
+        0      1.0/y  0      0
+        0      0      1.0/z  0
         0      0      0      1
+    ])
+    return Transformation(m, m_inv)
+end
+function Scale(v::Vec3)::Transformation
+    m = Mat4([
+        v.x  0    0    0
+        0    v.y  0    0
+        0    0    v.z  0
+        0    0    0    1
+    ])
+
+    m_inv = Mat4([
+        1.0/v.x  0        0        0
+        0        1.0/v.y  0        0
+        0        0        1.0/v.z  0
+        0        0        0        1
     ])
     return Transformation(m, m_inv)
 end
@@ -83,6 +99,61 @@ function RotateZ(theta::Float64)::Transformation
     return Transformation(m, inv(m))
 end
 
+function Rotate(theta::Float64, axis::Vec3)::Transformation
+    a = normalize(axis)
+    sin_theta = sin(deg2rad(theta))
+    cos_theta = cos(deg2rad(theta))
+
+    # this way matches in debug
+    m = Mat4([
+        a.x * a.x + (1 - a.x * a.x) * cos_theta
+        a.x * a.y * (1 - cos_theta) + a.z * sin_theta
+        a.x * a.z * (1 - cos_theta) - a.y * sin_theta
+        0.0
+
+        a.x * a.y * (1 - cos_theta) - a.z * sin_theta        
+        a.y * a.y + (1 - a.y * a.y) * cos_theta
+        a.y * a.z * (1 - cos_theta) + a.x * sin_theta
+        0.0
+
+        a.x * a.z * (1 - cos_theta) + a.y * sin_theta
+        a.y * a.z * (1 - cos_theta) - a.x * sin_theta       
+        a.z * a.z + (1 - a.z * a.z) * cos_theta
+        0.0
+
+        0.0
+        0.0
+        0.0
+        1.0
+    ])
+
+    # backwards?
+    # m = Mat4([
+    #     a.x * a.x + (1 - a.x * a.x) * cos_theta
+    #     a.x * a.y * (1 - cos_theta) - a.z * sin_theta
+    #     a.x * a.z * (1 - cos_theta) + a.y * sin_theta
+    #     0.0
+
+    #     a.x * a.y * (1 - cos_theta) + a.z * sin_theta
+    #     a.y * a.y + (1 - a.y * a.y) * cos_theta
+    #     a.y * a.z * (1 - cos_theta) - a.x * sin_theta       
+    #     0.0
+
+    #     a.x * a.z * (1 - cos_theta) - a.y * sin_theta
+    #     a.y * a.z * (1 - cos_theta) + a.x * sin_theta
+    #     a.z * a.z + (1 - a.z * a.z) * cos_theta
+    #     0.0
+
+    #     0.0
+    #     0.0
+    #     0.0
+    #     1.0
+    # ])
+
+    @info "ROTATE $(m)"
+
+    return Transformation(m, inv(m))
+end
 
 function Perspective(fov::Float64, near::Float64, far::Float64)::Transformation
     a = far / (far - near)
