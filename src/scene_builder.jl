@@ -8,7 +8,7 @@ scene 6:  goursat
 scene 7:  julia logo
 scene 8:  procedural tree
 scene 9:  broken ass orb
-scene 10: maybe a cloud
+scene 10: a cloud
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -1690,36 +1690,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         lights = Light[]
 
 
-        # OK box now
+        # Bounding sphere cause we hate winding order and such
         box_t = Translate(Pnt3(-1.0, 0.0, -1.2))
-        box_sc = ShapeCore(box_t, Inv(box_t), false, false)
-        box = Box(
-            Pnt3(0.1,  0.1,  0.1),
-            Pnt3(1.99, 1.99, 0.8),
-            box_sc,
-            nothing
-        )
-        box_m = Matte(
-            ConstantTexture(spectrum_from_float(0.5)),
-            ConstantTexture(spectrum_from_float(0.0)),
-            nothing
-        )
-        smoke_mi = MediumInterface(
-            GridDensityMedium(
-                spectrum_from_float(10.0),
-                spectrum_from_float(90.0),
-                0.0,
-                Pnt3(0.01, 0.01, 0.01),
-                Pnt3(1.99, 1.99, 0.79),
-                box_t,
-                "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
-            ),
-            nothing
-        )
-        for tri in box
-            # push!(primitives, Primitive(tri, nothing, nothing, smoke_mi))
-        end
-
         sphere_transform = Translate(Pnt3(.045, 1.045, -.75))
         sphere = Sphere(
             ShapeCore(
@@ -1745,6 +1717,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
 
 
+        # Orb light cause we hate environment maps (for now)
         sphere_transform = Translate(Pnt3(0.0720194, -0.52456, 4.60187))
         sphere = Sphere(
             ShapeCore(
@@ -1756,7 +1729,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             .05
         )
         alight = DiffuseAreaLight(
-            spectrum_from_float(2_000.0),
+            spectrum_from_float(5_000.0),
             sphere,
             false
         )
@@ -1773,15 +1746,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
-        # instantiate an env light
-        # env_light = InfinteLight(
-        #     world_bounds(bvh), 
-        #     RotateY(0.0), 
-        #     spectrum_from_float(3.0), 
-        #     "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
-        # )
-        # push!(lights, env_light)
-
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.1, .1))
 
@@ -1797,7 +1761,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # Instantiate a Camera
         look_from = Pnt3(0.0715308, -4.17677, 5.33558)
-        look_at = Pnt3(0.0720194, -3.62456, 4.60187)
+        look_at = Pnt3(0.0720194, -3.57456, 4.60187)
         up = Vec3(-0.000323605, 0.833706, 0.552208)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 15.0, film)
