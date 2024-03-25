@@ -67,6 +67,7 @@ Render
 - Box, cylindar, disk, rectangle, sphere, and triangle shapes
 - Very basic L-system
 - Implicit surfaces: Goursat surface & metaballs
+- Participating mediums (homogenous & grid)
 - RGB & spectral rendering
 - Constant, image, mixed, procedural and mixed textures
 - Logging
@@ -74,6 +75,7 @@ Render
 
 # TODO's
 - General Rotation is fucked. Cloud scene bounding box with rotation dont match. AHHHHHHHH
+    - Maybe not... might have been that hidden `data2medium` transformation. recheck this.
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Testing
@@ -108,7 +110,12 @@ Render
     - Add leafs to l-systems
     - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
 - PBRT Features
-    - Add mediums
+    - Add MipMaps & get infinite area light working correctly. Ooof
+    - ~~Add mediums~~
+         - ~~Homogenous medium~~
+         - ~~Grid medium~~
+         - OpenVDB
+         - Migrate to pbrt v4's medium set up
     - Add bi-linear patches
     - Add sub div surfaces
     - Robustly parse .pbrt scene files
