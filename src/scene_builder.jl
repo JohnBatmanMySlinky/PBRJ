@@ -1,13 +1,13 @@
 """
-scene 1:  munich re
-scene 2:  plastic ball on plane
-scene 3:  dragon
-scene 4:  cornell box
-scene 5:  soft bodies
-scene 6:  goursat
-scene 7:  julia logo
-scene 8:  procedural tree
-scene 9:  broken ass orb
+scene 1: indoor office ✅
+scene 2: caustic glass ⚠️
+scene 3: AOIntegrator + dragon ✅
+scene 4: cornell box ✅
+scene 5: soft bodies
+scene 6: goursat
+scene 7: julia logo
+scene 8: an anemic leafless procedural tree
+scene 9: a broken ass orb
 scene 10: a cloud
 """
 
@@ -541,15 +541,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
-        # instantiate an env light
-        # env_light = InfinteLight(
-        #     world_bounds(bvh), 
-        #     RotateY(125.0), 
-        #     spectrum_from_float(1.5), 
-        #     "../ref/sky.exr"
-        # )
-        # push!(lights, env_light)
-
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.25, .25))
 
@@ -584,66 +575,48 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return I, scene
     elseif parsed_args["scene-number"] == 3
         primitives = Primitive[]
+        primitives2 = Primitive[]
         lights = Light[]
+        lights2 = Light[]
 
         # MATERIALS
-        mat_gray = Matte(
-            ConstantTexture(Vec3(.4, .4, .4)),
-            ConstantTexture(Vec3(0, 0, 0)),
-            nothing
-        )
-
         mat_white = Matte(
-            ConstantTexture(Vec3(1, 1, 1)),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
 
-        orb_translate = RotateZ(-135.0)
-        orb =  parse_obj(
-            "../ref/dragon1.obj",
-            orb_translate,
+        # instantiate objects
+        identity_shape_core = ShapeCore(
+            Translate(Pnt3(0)),
+            Translate(Pnt3(0)),
             false,
-            false,
-            nothing
+            false
         )
-
-        for tri in orb
-            push!(primitives, Primitive(tri, mat_gray, nothing))
-        end
-
-        floor_transform = Translate(Pnt3(0,-40,0))
         floor = Rectangle(
-            Pnt2(-300, -300), 
-            Pnt2(300, 300), 
+            Pnt2(-250, -250), 
+            Pnt2(750, 750), 
             0.0,
             2, 
-            ShapeCore(floor_transform, Inv(floor_transform), false, false),
+            identity_shape_core,
             false,
             nothing
         )
         for tri in floor
-            push!(primitives, Primitive(tri, mat_gray, nothing))
+            push!(primitives, Primitive(tri, mat_white, nothing))
         end
 
-        alight_transform = Translate(Pnt3(0,-40,0))
-        alight = Rectangle(
-            Pnt2(-100, -100), 
-            Pnt2(-100, 100), 
-            150.0,
-            2, 
-            ShapeCore(alight_transform, Inv(alight_transform), false, false),
-            true,
+        dragon_translate = Translate(Pnt3(340, 80, 275)) * RotateY(140.0) * RotateZ(-135.0) * Scale(Vec3(1.5, 1.5, 1.5))
+        dragon =  parse_obj(
+            "../ref/dragon1.obj",
+            dragon_translate,
+            false,
+            false,
             nothing
         )
-        for tri in alight
-            tmp = DiffuseAreaLight(
-                spectrum_from_float(50.0, 50.0, 50.0),
-                tri,
-                false # NOT two sided
-            )
-            push!(lights,tmp)
-            push!(primitives, Primitive(tri, mat_white, tmp))
+
+        for tri in dragon
+            push!(primitives, Primitive(tri, mat_white, nothing))
         end
 
         # instantiate accelerator
@@ -652,12 +625,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         print("Done building BVH\n")
 
         # Instantiate a Filter
-        filter = BoxFilter(Pnt2(.25, .25))
+        filter = BoxFilter(Pnt2(.1, .1))
 
         # Instantiate a Film
         film = Film(
             Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
-            Bounds2(Pnt2(0,0), Pnt2(1,1)),
+            Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
             filter,
             1.0,
             1.0,
@@ -665,14 +638,14 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(200, 200, 200)
-        look_at = Pnt3(-35, 0, -35)
+        look_from = Pnt3(278, 278, -300)
+        look_at = Pnt3(278, 150, 0)
         up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 65.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 
         # Instantiate a Sampler
-        S = StratifiedSampler(parsed_args["samples-per-pixel"], true)
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
         print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
@@ -680,7 +653,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
         
         # Instantiate an Integrator
-        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+        I = AOIntegrator(C, S, true)
+
         return I, scene
     elseif parsed_args["scene-number"] == 4
         primitives = Primitive[]
@@ -873,15 +847,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
-
-        # instantiate an env light
-        # env_light = InfinteLight(
-        #     world_bounds(bvh), 
-        #     Translate(Vec3(0,0,0)), 
-        #     spectrum_from_float(1, 1, 1), 
-        #     "../ref/parking_lot.jpg"
-        # )
-        # push!(lights, env_light)
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.1, .1))

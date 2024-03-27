@@ -1,4 +1,4 @@
-function render(i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator}, scene::Scene, render_pass_flag::UInt8, ::Tuple{Int64,Int64}, ::String)
+function render(i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator}, scene::Scene, ::Tuple{Int64,Int64}, ::String)
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
     sample_extent = diagonal(sample_bounds)
     tile_size = 16
@@ -49,7 +49,8 @@ function render(i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator}, scene
         Threads.unlock(l)
     end
     @time got_film = i.camera.core.core.film
-    save(got_film, render_pass_flag)
+    img = save(got_film)
+    return img
 end
 
 function uniform_sample_one_light(
