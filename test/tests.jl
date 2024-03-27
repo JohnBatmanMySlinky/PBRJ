@@ -526,6 +526,28 @@ end
     end
 end
 
+@testset "Low Discrepancy Stuff - radical_inverse" begin
+    # manually verified!
+    @test isapprox(RayTracing.radical_inverse(0, UInt64(500)), 0.185547, atol=1e-5)
+    @test isapprox(RayTracing.radical_inverse(16, UInt64(500)), 0.476874, atol=1e-5)
+    @test isapprox(RayTracing.radical_inverse(9, UInt64(12345678)), 0.0608663, atol=1e-5)
+    @test isapprox(RayTracing.radical_inverse(8, UInt64(8)), 0.347826, atol=1e-5)
+    @test isapprox(RayTracing.radical_inverse(5, UInt64(1)), 0.0769231, atol=1e-5)
+end
+
+@testset "Low Discrepancy Stuff - sobol_interval_to_index" begin
+    # manually verified
+    @test RayTracing.sobol_interval_to_index(UInt32(5), UInt64(6), RayTracing.Pnt2(7, 8)) == 6524
+    @test RayTracing.sobol_interval_to_index(UInt32(8), UInt64(7), RayTracing.Pnt2(0, 0)) == 460544
+    @test RayTracing.sobol_interval_to_index(UInt32(25), UInt64(0), RayTracing.Pnt2(36, 36)) == 20100753653760
+end
+
+@testset "Low Discrepancy Stuff - reverse_bits_32" begin
+    # manually verified
+    @test RayTracing.reverse_bits_32(UInt32(8)) == 268435456
+    @test RayTracing.reverse_bits_32(UInt32(1944)) == 434110464
+end
+
 # Testing no allocations!
 # This is cool!
 @testset "Testing none of these functions produce allocations" begin

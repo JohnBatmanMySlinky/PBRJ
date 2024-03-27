@@ -24,7 +24,11 @@ float RadicalInverse(int baseIndex, uint64_t a) {
 
 int main() {
     // Write C++ code here
-    std::cout <<  RadicalInverse(0,500);
+    std::cout <<  RadicalInverse(0,500) << "\n";
+    std::cout <<  RadicalInverse(17,500) << "\n";
+    std::cout <<  RadicalInverse(9,12345678) << "\n";
+    std::cout <<  RadicalInverse(8,8) << "\n";
+    std::cout <<  RadicalInverse(5,1) << "\n";
 
     return 0;
 }

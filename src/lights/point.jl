@@ -5,13 +5,16 @@ struct PointLight <: Light
     world_to_light::Transformation
     I::Spectrum
     light_position::Pnt3
+    medium::Maybe{Medium}
+
     function PointLight(light_to_world::Transformation, I::Spectrum)
-        new(
+        return new(
             LightDeltaPosition,
             light_to_world,
             Inv(light_to_world),
             I, 
             light_to_world(Pnt3(0, 0, 0)),
+            nothing
         )
     end
 end

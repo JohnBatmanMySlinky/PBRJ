@@ -5,6 +5,7 @@ struct DistantLight <: Light
     world_radius::Float64
     light_to_world::Transformation
     flags::LightFlags
+    medium::Maybe{Medium}
 
     function DistantLight(L::Spectrum, w_light::Vec3, world_center::Pnt3, world_radius::Float64, light_to_world::Transformation)
         return new(
@@ -13,7 +14,8 @@ struct DistantLight <: Light
             world_center,
             world_radius,
             light_to_world,
-            LightDeltaDirection
+            LightDeltaDirection,
+            nothing
         )
     end
 end
