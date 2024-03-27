@@ -133,7 +133,10 @@ Render
         - ~~for env lights~~
         - ~~for final image~~
     - Move the pbrt-v4's sampler structure
-    - Implement more samplers beyond just stratified sampler
+        - ~~Sobol~~
+        - PaddedSobol
+        - ZSobol
+        - Does it matter what my hash function is?
 - Scene work
     - Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.
     - Add lte-orb scene

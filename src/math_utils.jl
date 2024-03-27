@@ -152,6 +152,34 @@ function count_not_undef(iterable::Vector)::Int64
     return nope
 end
 
+function round_up_pow2(v::Int64)::Int64
+    v -= 1
+    v |= v >> 1
+    v |= v >> 2
+    v |= v >> 4
+    v |= v >> 8
+    v |= v >> 16
+    v |= v >> 32
+    return v + 1
+end
+
+# https://fgiesen.wordpress.com/2009/12/13/decoding-morton-codes/
+# updated to 64 bits.
+function left_shift_2(x::UInt64)::UInt64
+    x &= 0xffffffff
+    x = (x ⊻ (x << 16)) & 0x0000ffff0000ffff
+    x = (x ⊻ (x << 8)) & 0x00ff00ff00ff00ff
+    x = (x ⊻ (x << 4)) & 0x0f0f0f0f0f0f0f0f
+    x = (x ⊻ (x << 2)) & 0x3333333333333333
+    x = (x ⊻ (x << 1)) & 0x5555555555555555
+    return x
+end
+
+function encode_morton_2(x::UInt64, y::UInt64)::UInt64
+    # JOHN HACK: using 64 here?
+    return (left_shift_2(y) << 1) | left_shift_2(x)
+end
+          
 function gamma(n::Int64)::Float64
     return (n * eps()) / (1.0 - n * eps())
 end

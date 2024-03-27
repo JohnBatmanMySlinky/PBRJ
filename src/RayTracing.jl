@@ -31,6 +31,7 @@ abstract type Shape end
 abstract type ImplicitSurface <: Shape end
 abstract type Texture end
 abstract type MicrofacetDistribution end
+abstract type Randomizer end
 abstract type AbstractMedium end
 abstract type AbstractPhaseFunction end
 
@@ -46,6 +47,7 @@ const SpectrumType = Union{Reflectance, Illuminant}
 const ShadowEpsilon::Float64 = 0.00001
 
 include("primes.jl")
+include("samplers2/sobol_matrics.jl")
 include("objects.jl")
 include("args.jl")
 
@@ -104,6 +106,10 @@ include("cameras/camera.jl")
 include("cameras/projective.jl")
 include("samplers2/stratified.jl")
 include("samplers2/low_discrepancy.jl")
+include("samplers2/randomizers.jl")
+include("samplers2/sobol.jl")
+include("samplers2/zsobol.jl")
+include("samplers2/sampling.jl")
 include("reflection/flags.jl")
 include("reflection/math.jl")
 include("reflection/fresnel.jl")

@@ -19,12 +19,13 @@ mutable struct StratifiedSampler <: AbstractSampler
     end
 end
 
-function start_pixel_sample!(ss::StratifiedSampler, pixel::Pnt2, sample_index::Int64)
+function start_pixel_sample!(ss::StratifiedSampler, pixel::Pnt2, sample_index::Int64, dim::Int64=0)
     # avoiding blowing my foot off here... sometimes this results in an infinite while loop in permutation_element
     @assert sample_index != ss.samples_per_pixel
     ss.pixel = pixel
     ss.sample_index = sample_index
-    ss.dimension = 0
+    ss.dimension = dim
+    # TODO JOHN HACK: nudge rng seed?
 end
 
 function get_1D!(ss::StratifiedSampler)::Float64
@@ -48,15 +49,8 @@ function get_2D!(ss::StratifiedSampler)::Pnt2
     return Pnt2((x+dx)/ss.x_samples, (y+dy)/ss.y_samples)
 end
 
-function get_camera_sample!(sampler::StratifiedSampler, p_raster::Pnt2)
-    p_film = p_raster .+ get_2D!(sampler) # 1,2
-    timesample = get_1D!(sampler)         # 3
-    p_lens = get_2D!(sampler)             # 4,5
-    return CameraSample(
-        p_film,
-        p_lens,
-        timesample
-    )
+function get_pixel_2D!(ss::StratifiedSampler)::Pnt2
+    return get_2D!(ss)
 end
 
 function __inner_loop(i::UInt32, p::UInt32, w::UInt32)::UInt32
@@ -79,29 +73,4 @@ function __inner_loop(i::UInt32, p::UInt32, w::UInt32)::UInt32
     i &= w
     i ⊻= i >> 5
     return i
-end
-
-function permutation_element(i::UInt32, l::UInt32, p::Union{UInt, Int})::Int64
-    # JOHN HACK: this will break if l or i > typemax(UInt32)
-    p = UInt32(p & typemax(UInt32)) # PBRT's hash is a uint64_t and PermutationElement does the truncation. we have to do it explicitly.
-    w = l - UInt32(1) # careful on casting
-    w |= w >> 1
-    w |= w >> 2
-    w |= w >> 4
-    w |= w >> 8
-    w |= w >> 16
-    i = __inner_loop(i, p, w) # We don't have a do-while only while-do
-    while i >= l
-        i = __inner_loop(i, p, w)
-    end
-    return (i + p) % l
-end
-
-function mix_bits(v::Union{Int, UInt})::Union{Int, UInt}
-    v ⊻= (v >> 31)
-    v *= 0x7fb5d329728ea185
-    v ⊻= (v >> 27)
-    v *= 0x81dadef4bc2dd44d
-    v ⊻= (v >> 33)
-    return v
 end
