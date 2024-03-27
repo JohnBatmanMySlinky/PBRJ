@@ -179,3 +179,7 @@ function encode_morton_2(x::UInt64, y::UInt64)::UInt64
     # JOHN HACK: using 64 here?
     return (left_shift_2(y) << 1) | left_shift_2(x)
 end
+          
+function gamma(n::Int64)::Float64
+    return (n * eps()) / (1.0 - n * eps())
+end

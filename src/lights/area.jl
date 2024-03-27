@@ -4,6 +4,7 @@ struct DiffuseAreaLight <: Light
     shape::Shape
     area::Float64
     two_sided::Bool
+    medium::Maybe{Medium}
 
     function DiffuseAreaLight(Lemit::Spectrum, shape::Shape, two_sided::Bool)
         return new(
@@ -11,7 +12,8 @@ struct DiffuseAreaLight <: Light
             Lemit,
             shape,
             area(shape),
-            two_sided
+            two_sided,
+            nothing
         )
     end
 end
@@ -70,7 +72,7 @@ function sample_le(light::DiffuseAreaLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tup
 
     n_light, v1, v2 = orthonormal_basis(Vec3(n_light))
     W = w.x * v1 + w.y * v2 + w.z * n_light
-    ray = spawn_ray(Interaction(p_shape, t, n_light, n_light), W)
+    ray = spawn_ray(Interaction(p_shape, t, n_light, Nml3(n_light)), W)
     return L(light, Nml3(W), W), ray, n_light, pdf_pos, pdf_dir
 end
 

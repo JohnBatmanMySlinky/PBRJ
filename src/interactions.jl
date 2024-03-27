@@ -8,22 +8,38 @@ mutable struct Interaction
     wo::Vec3
     # surface normal in world coordinates
     n::Nml3
+    mi::MediumInterface
 end
 
 function Interaction()
-    return Interaction(Pnt3(0), 0.0, Vec3(0), Nml3(0))
+    return Interaction(Pnt3(0), 0.0, Vec3(0), Nml3(0), MediumInterface(nothing))
 end
+
 function Interaction(r::AbstractRay)::Interaction
-    return Interaction(r.origin, r.t, -r.direction, Nml3(r.direction))
+    return Interaction(r.origin, r.t, -r.direction, Nml3(r.direction), MediumInterface(nothing))
 end
+
 function Interaction(r::AbstractRay, n::Nml3)::Interaction
-    return Interaction(r.origin, r.t, -r.direction, n)
+    return Interaction(r.origin, r.t, -r.direction, n, MediumInterface(nothing))
 end
+
 # PBRT 2.10 
 # for other types of interacion points where the notation of an outgoing direction doesnt apply
 # ie those found by randomly sampling points on a surface of a shape wo has the value Vec3(0)
 function Interaction(p::Pnt3, t::Float64, n::Nml3)::Interaction
-    return Interaction(p, t, Vec3(0.0), n)
+    return Interaction(p, t, Vec3(0.0), n, MediumInterface(nothing))
+end
+
+function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3)::Interaction
+    return Interaction(p, t, wo, n, MediumInterface(nothing))
+end
+
+function Interaction(p::Pnt3, t::Float64, wo::Vec3, mi::MediumInterface)::Interaction
+    return Interaction(p, t, wo, Nml3(0), mi)
+end
+
+function Interaction(p::Pnt3, t::Float64, wo::Vec3, m::AbstractMedium)::Interaction
+    return Interaction(p, t, wo, Nml3(0), MediumInterface(m))
 end
 
 mutable struct ShadingInteraction
@@ -134,30 +150,43 @@ function empty_surface_interation()::SurfaceInteraction
     )
 end
 
+###########################
+### Medium Interactions ###
+###########################
+
+struct MediumInteraction
+    core::Interaction
+    phase::Maybe{AbstractPhaseFunction}
+
+    function MediumInteraction(p::Pnt3, t::Float64, wo::Vec3, m::AbstractMedium, phase::Maybe{AbstractPhaseFunction})
+        return new(Interaction(p, t, wo, MediumInterface(m)), phase)
+    end
+end
+
+function is_valid(m::MediumInteraction)::Bool
+    return !(m.phase isa Nothing)
+end
+
 #################
 ### Spawn Ray ###
 #################
-function spawn_ray(p0::SurfaceInteraction, p1::Interaction)::Ray
-    return spawn_ray(p0.core, p1)
+function spawn_ray(interaction::Interaction, direction::Vec3)::RayDifferential
+    o = interaction.p + ShadowEpsilon * direction
+    return RayDifferential(Ray(o, direction, interaction.t, typemax(Float64), get_medium(interaction, direction)))
 end
 
-function spawn_ray(interaction::Interaction, direction::Vec3, delta::Float64 = 1e-6)::RayDifferential
-    origin = interaction.p .+ delta .* direction
-    return RayDifferential(Ray(origin, direction, interaction.t, typemax(Float64)))
+function spawn_ray_to(interaction::Interaction, p2::Pnt3)::RayDifferential
+    d::Vec3 = p2 - interaction.p
+    o = interaction.p + ShadowEpsilon * d
+    return RayDifferential(Ray(o, d, interaction.t, 1.0 - ShadowEpsilon, get_medium(interaction, d)))
 end
 
-function spawn_ray(p0::Interaction, p1::Interaction, delta::Float64 = 1e-6,)::RayDifferential
-    direction = p1.p - p0.p
-    origin = p0.p .+ delta .* direction
-    return RayDifferential(Ray(origin, direction, p0.t, typemax(Float64)))
+function spawn_ray_to(interaction::Interaction, it::Interaction)::RayDifferential
+    o = interaction.p + ShadowEpsilon * (it.p - interaction.p)
+    target = it.p + ShadowEpsilon * (o - it.p)
+    d::Vec3 = target - o
+    return RayDifferential(Ray(o, d, interaction.t, 1.0 - ShadowEpsilon, get_medium(interaction, d)))
 end
-
-function spawn_shadow_ray(p0::Interaction, p1::Interaction, delta::Float64 = 1e-6,)::RayDifferential
-    direction = p1.p - p0.p
-    origin = p0.p .+ delta .* direction
-    return RayDifferential(Ray(origin, direction, p0.t, 1.0-.0001)) # JOHN HACK: this has to be 0, p0.t for s==1 bdpt to work?
-end
-
 
 #########################################
 ## Compute Scattering at interacttion ###

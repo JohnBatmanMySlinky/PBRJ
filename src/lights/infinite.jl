@@ -8,6 +8,7 @@ struct InfinteLight <: Light
     map::Matrix{RGBA{Float16}}
     world_center::Pnt3
     world_radius::Float64
+    medium::Maybe{Medium}
     
     function InfinteLight(bounds::Bounds3, light_to_world::Transformation, I::Spectrum, map_url::String)
         ident = map_url[end-3:end]
@@ -16,14 +17,19 @@ struct InfinteLight <: Light
         else
             @assert false # NOT IMPLEMENTED
         end
+
+        @info "World bounds $(bounds.pMin) - $(bounds.pMax)"
         
         # create im for pdf creation
-        width, height = size(dat)
+        width, height = 2.0 * size(dat)
+        fwdith = 0.5 / min(width, height)
         im = zeros(width, height)
         for v in 1:height
+            vp = (v + 0.5) / height
             sin_theta = sin(pi * (v + 0.5) / height)
             for u in 1:width
-                im[u,v] = Gray(dat[u,v]) * sin_theta
+                up = (u + 0.5) / width
+                im[u,v] = dat[u,v] * sin_theta
             end
         end
         pdf = Distribution2D(im)      
@@ -39,7 +45,8 @@ struct InfinteLight <: Light
             pdf,
             dat,
             world_center,
-            world_radius
+            world_radius,
+            nothing
         )
     end
 end
@@ -58,7 +65,8 @@ function le(il::InfinteLight, ray::AbstractRay)::Spectrum
     t = spherical_theta(w) / pi
     new_s = _uv_map(t, x)
     new_t = _uv_map(s, y)
-    l = spectrum_from_float(il.map[new_t, new_s])
+    tmp = il.map[new_t, new_s]
+    l = spectrum_from_float(Float64(tmp.r), Float64(tmp.g), Float64(tmp.b)) * il.I
     return l * il.I
 end
 
@@ -119,6 +127,7 @@ function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
     # compute direction for infinite light sample ray
     # find uv coordinates in infinite light texture
     uv, map_pdf = sample_continuous(light.pdf, u1)
+    @info "\tInf Light Sampling: $(uv), $(map_pdf)"
     (map_pdf == 0.0) && return spectrum_from_float(0.0), RayDifferential(Ray()), Nml3(0), 0.0, 0.0
 
     theta = uv.y * pi

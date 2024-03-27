@@ -6,6 +6,8 @@ struct SpotLight <: Light
     p_light::Pnt3
     cos_total_width::Float64
     cos_falloff_start::Float64
+    medium::Maybe{Medium}
+
     function SpotLight(light_to_world::Transformation, I::Spectrum, total_width::Float64, falloff_start::Float64)
         new(
             LightDeltaPosition,
@@ -15,6 +17,7 @@ struct SpotLight <: Light
             light_to_world(Pnt3(0,0,0)),
             cos(deg2rad(clamp(total_width, 0, 360))),
             cos(deg2rad(clamp(falloff_start, 0, 360))),
+            nothing
         )
     end
 end
