@@ -3,21 +3,21 @@ struct ResampleWeight
 	weight::Pnt4
 end
 
-struct MIPMap{T} where T <: Union{Spectrum, Float64}
+struct MIPMap
 	do_trilinear::Bool
 	max_anisotropy::Float64
 	image_wrap::Int8
 	resolution::Pnt2
-	pyramid::Vector{T}
+	pyramid::Vector{T} where T <: Union{Spectrum, Float64}
 	weight_lut::Vector{Float64}
-	
+
 	function MipMap(
 		resolution::Pnt2, 
-		data::Vector{T}, 
+		data::Vector{T} where T <: Union{Spectrum, Float64}, 
 		do_trilinear::Bool=false, 
 		max_anisotropy::Float64=8.0, 
 		wrap_mode::Int8=Int8(0)
-	) where T <: Union{Spectrum, Float64}
+	)
 		resampled = false
 		if (!is_power_of_2(resolution.x)) || (!is_power_of_2(resolution.y))
 			resampled = true
@@ -37,7 +37,7 @@ struct MIPMap{T} where T <: Union{Spectrum, Float64}
 						orig_s = s_weights[s+1].first_texel + j
 						if wrap_mode == Int8(0) # repeat
 							orig_s = orig_s % resolution.x
-						else if wrap_mode == Int8(1) # clamp
+						elseif wrap_mode == Int8(1) # clamp
 							orig_s = clamp(orig_s, 0, resolution.x - 1)
 						else
 							@assert false
@@ -58,7 +58,7 @@ struct MIPMap{T} where T <: Union{Spectrum, Float64}
 						offset = t_weights[t+1].first_texel + j
 						if wrap_mode == Int8(0) # repeat
 							offset = offset % resolution.y
-						else if wrap_mode == Int8(1) # clamp
+						elseif wrap_mode == Int8(1) # clamp
 							offset = clamp(offset, 0, resolution.y - 1)
 						else
 							@assert false
@@ -82,11 +82,39 @@ struct MIPMap{T} where T <: Union{Spectrum, Float64}
 		pyramid[1] = resampled ? resampled_image : data
 		
 		for i in 1:levels
+			# Initialize $i$th MIPMap level from $i-1$st level
 			s_res = max(1, u_size(pyramid[i-1+1])/2)
 			t_res = max(1, v_size(pyramid[i-1+1])/2)
-			pyramid[i+1]
+			pyramid[i+1] = zeros(s_res, t_res)
+
+			for t in 0:t_res
+				for s in 0:s_res
+					pyramid[i+1][s,t] = 0.25 * (
+						texel(i - 1, 2 * s    , 2 * t    ) +
+						texel(i - 1, 2 * s + 1, 2 * t    ) +
+						texel(i - 1, 2 * s    , 2 * t + 1) +
+						texel(i - 1, 2 * s + 1, 2 * t + 1)
+					)
+				end
+			end
+		end
+
+		# Initialize EWA filter weights if needed
+		if weight_lut[0+1] == 0.0
+			for i in 1:weight_lut_size
+				alpha = 2.0
+				r2 = i / (weight_lut_size - 1.0)
+				weight_lut[i+1] = -exp(-alpha * r2) - exp(-alpha)
+			end
 		end
 	
-		return new()
+		return new(
+			do_trilinear,
+			max_anisotropy,
+			image_wrap,
+			resolution,
+			pyramid,
+			weight_lut
+		)
 	end
 end
