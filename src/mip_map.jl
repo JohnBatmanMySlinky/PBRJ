@@ -11,7 +11,7 @@ struct MIPMap
 	pyramid::Vector{T} where T <: Union{Spectrum, Float64}
 	weight_lut::Vector{Float64}
 
-	function MipMap(
+	function MIPMap(
 		resolution::Pnt2, 
 		data::Vector{T} where T <: Union{Spectrum, Float64}, 
 		do_trilinear::Bool=false, 
@@ -19,11 +19,19 @@ struct MIPMap
 		wrap_mode::Int8=Int8(0)
 	)
 		resampled = false
-		if (!is_power_of_2(resolution.x)) || (!is_power_of_2(resolution.y))
+		if (!ispow2(Int64(resolution.x))) || (!ispow2(Int64(resolution.y)))
 			resampled = true
 			# Resample image to power-of-two resolution
-			res_pow_2 = Pnt2(round_up_pow_2(resolution.x), round_up_pow_2(resolution.y))
+			res_pow_2 = Pnt2(round_up_pow2(Int64(resolution.x)), round_up_pow2(Int64(resolution.y)))
 			@info "Resampling MIPMap from $(resolution) to $(res_pow_2). Ratio = $((res_pow_2.x * res_pow_2.y)/(resolution.x * resolution.y))"
+
+			i = 0
+			for x in 1:resolution.x
+				for y in 1:resolution.y
+					i += 1
+					@info "MIPMAP: ($(x), $(y)) = $(i) = $(data[i])\n"
+				end
+			end
 			
 			# Resample image in $s$ direction
 			s_weights = resample_weights(resolution.x, res_pow_2.x)
