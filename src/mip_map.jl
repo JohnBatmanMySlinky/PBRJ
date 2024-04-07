@@ -3,6 +3,26 @@ struct ResampleWeight
 	weight::Pnt4
 end
 
+function resample_weights(old_res::Int64, new_res::Int64)::Vector{ResampleWeight}
+	@assert new_res > old_res
+	wt = Vector{ResampleWeight}(undef, new_res)
+	filter_width = 2.0
+	for i in 0:(new_res-1)
+		center = (i + 0.5) * old_res / new_res
+		first_texel = floor((center - filter_width) + 0.5)
+		weight = Pnt4(
+			lanczos((first_texel + 0.0 + 0.5 - center) / filter_width, 2.0),
+			lanczos((first_texel + 1.0 + 0.5 - center) / filter_width, 2.0),
+			lanczos((first_texel + 2.0 + 0.5 - center) / filter_width, 2.0),
+			lanczos((first_texel + 3.0 + 0.5 - center) / filter_width, 2.0),
+		)
+		weight /= sum(weight)
+		wt[i+1] = ResampleWeight(first_texel, weight)
+		@info "ResampleWeights: $(i) $(weight)"
+	end
+	return wt
+end
+
 struct MIPMap
 	do_trilinear::Bool
 	max_anisotropy::Float64
@@ -34,7 +54,7 @@ struct MIPMap
 			end
 			
 			# Resample image in $s$ direction
-			s_weights = resample_weights(resolution.x, res_pow_2.x)
+			s_weights = resample_weights(Int64(resolution.x), Int64(res_pow_2.x))
 			
 			# apply _sweights_ t zoom in $s$ direction
 			for t in 0:resolution.y
