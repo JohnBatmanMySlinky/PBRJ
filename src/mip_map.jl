@@ -1,3 +1,7 @@
+# TODO
+# stop using Int64 all over the place here and do conversion ONCE
+
+
 struct ResampleWeight
 	first_texel::Int64
 	weight::Pnt4
@@ -18,7 +22,7 @@ function resample_weights(old_res::Int64, new_res::Int64)::Vector{ResampleWeight
 		)
 		weight /= sum(weight)
 		wt[i+1] = ResampleWeight(first_texel, weight)
-		@info "ResampleWeights: $(i) $(weight)"
+		@info "ResampleWeights: $(i) $(first_texel) $(weight)"
 	end
 	return wt
 end
@@ -55,13 +59,14 @@ struct MIPMap
 			
 			# Resample image in $s$ direction
 			s_weights = resample_weights(Int64(resolution.x), Int64(res_pow_2.x))
+			resampled_image = Vector{typeof(data[1])}(undef, Int64(res_pow_2.x * res_pow_2.y))
 			
 			# apply _sweights_ t zoom in $s$ direction
-			for t in 0:resolution.y
-				for s in 0:res_pow_2
+			for t in 0:(resolution.y-1)
+				for s in 0:Int64(res_pow_2.x-1)
 					# compute texel $(s,t)$ in $s$-zoomed image
-					resampled_image[t * res_pow_2.x + s + 1] = 0.0
-					for j in 0:4
+					resampled_image[Int64(t * res_pow_2.x + s + 1)] = data[1] * 0.0 # JOHN HACK LOL
+					for j in 0:3
 						orig_s = s_weights[s+1].first_texel + j
 						if wrap_mode == Int8(0) # repeat
 							orig_s = orig_s % resolution.x
@@ -72,11 +77,13 @@ struct MIPMap
 						end
 						
 						if (orig_s >= 0) && (orig_s < resolution.x)
-							resampled_image[t * res_pow_2.x + s + 1] += s_weights[s+1].weight[j+1] * data[t * resolution.x + orig_s + 1]
+							@info "MIPMAP READ: $(t * resolution.x + orig_s) = $(data[Int64(t * resolution.x + orig_s + 1)])"
+							resampled_image[Int64(t * res_pow_2.x + s + 1)] += s_weights[s+1].weight[j+1] * data[Int64(t * resolution.x + orig_s + 1)]
 						end
 					end
 				end
 			end
+			@assert false # enough for today
 			
 			# resample image in $t$ direction
 			t_weights = resample_weights(resolution.y, res_pow_2.y)

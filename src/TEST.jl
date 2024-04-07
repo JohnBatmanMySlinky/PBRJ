@@ -59,5 +59,5 @@ MIPMap(
     data, 
     false, 
     8.0, 
-    Int8(0)
+    Int8(1)
 )
