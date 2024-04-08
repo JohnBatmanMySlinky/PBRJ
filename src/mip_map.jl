@@ -124,6 +124,8 @@ struct MIPMap
 		pyramid[1] = reshape(resampled ? resampled_image : data, (Int64(pyrsize[1].x), Int64(pyrsize[1].y))) # yeehaw
 		# JOHN HACK: this is big brain shit but in the bad way
 
+		@info "PYRAMID TESTING: $(pyramid[1][2+1, 6+1]) $(pyramid[1][6+1, 2+1])"
+
 		for i in 1:(n_levels-1)
 			# Initialize $i$th MIPMap level from $i-1$st level
 			s_res = Int64(max(1, pyrsize[i-1+1].x/2))
