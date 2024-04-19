@@ -71,6 +71,7 @@ function perlin_noise(pn::PerlinNoise, p::Pnt3)::Float64
 end
 
 function (pn::PerlinNoise)(si::SurfaceInteraction)
+    @assert false
     n = (1+perlin_noise(pn, si.core.p))/2
     return Pnt3(n,n,n)
 end

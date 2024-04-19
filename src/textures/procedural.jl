@@ -10,6 +10,7 @@ struct CircleProceduralTexture <: Texture
 end
 
 function (cpt::CircleProceduralTexture)(si::SurfaceInteraction)::Spectrum
+    @assert false
     u, v = si.uv
     if (u-cpt.center[1])^2 + (v-cpt.center[2])^2 <= cpt.radius^2
         return cpt.inside
@@ -28,6 +29,7 @@ struct CornerProceduralTexture <: Texture
 end
 
 function (cpt::CornerProceduralTexture)(si::SurfaceInteraction)::Spectrum
+    @assert false
     u, v = si.uv
 
     if u+v < cpt.threshold
@@ -51,6 +53,7 @@ function Checker3DTexture(a::Spectrum, b::Spectrum)::CheckerTexture
 end
 
 function (ct::Checker3DTexture)(si::SurfaceInteraction)::Spectrum
+    @assert false
     asdf = (trunc(ct.scale.x * si.core.p.x) + trunc(ct.scale.y * si.core.p.y) + trunc(ct.scale.z * si.core.p.z)) % 2 == 0
     if asdf == true
         return ct.a

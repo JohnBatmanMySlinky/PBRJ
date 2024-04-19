@@ -1,7 +1,6 @@
 # TODO
 # stop using Int64 all over the place here and do conversion ONCE
 
-
 struct ResampleWeight
 	first_texel::Int64
 	weight::Pnt4
@@ -163,4 +162,36 @@ struct MIPMap
 			weight_lut
 		)
 	end
+end
+
+function lookup(mipmap::MIPMap, st::Pnt2, dst0::Vec2, dst1::Vec2)
+	if mip_map.do_trilinear
+		width = max(maximum(abs.(dst0)), maximum(abs.(dst1)))
+		return lookup(mipmap, st, width)
+	end
+	# compute ellipse minor and major axes
+	if length_squared(dst0) < length_squared(dst1)
+				dst1, dst0 = dst0, dst1
+	end
+	major_length = length_pbrt(dst0)
+	minor_length = length_pbrt(dst1)
+   
+	# clamp ellipse eccentricity if too large
+	if (minor_length * max_anisotropy < major_length) && (minor_length > 0)
+				scale = major_length / (minor_length * max_anisotropy)
+				dst1 .*= scale
+				minor_length .*= scale
+	end
+	if minor_length == 0.0
+				return triangle(0.0, st)
+	end
+   
+	# chose level of detail for EWA lookup and perform EWA filtering
+	lod = max(0.0, levels() - 1.0 + log2(minor_length)
+	ilod::Int64 = floor(lod)
+	return lerp(lod-ilod, EWA(ilod, st, dst0, dst1), EWA(ilod+1, st, dst0, dst1))
+end
+
+function EWA()
+	@assert false # not implemented
 end
