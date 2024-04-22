@@ -196,3 +196,8 @@ function lanczos(x::Float64, tau::Float64)::Float64
     l = sin(x) / x
     return s * l
 end
+
+function log_2_int(v::UInt32)::Int64
+    # JOHN HACK cant I just do floor(log2(v))+1?
+    return 31 - leading_zeros(v)
+end

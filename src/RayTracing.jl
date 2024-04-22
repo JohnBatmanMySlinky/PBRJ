@@ -51,6 +51,7 @@ include("primes.jl")
 include("samplers2/sobol_matrics.jl")
 include("objects.jl")
 include("args.jl")
+include("math_utils.jl")
 
 ########################
 ### SPECTRUM HACKING ###
@@ -84,7 +85,6 @@ include("interactions.jl")
 include("textures/texture.jl")
 include("transformations.jl")
 include("medium/media2.jl")
-include("math_utils.jl")
 include("rand_utils.jl")
 include("shapes/shape.jl")
 include("shapes/sphere.jl")

@@ -31,7 +31,8 @@ struct MIPMap
 	max_anisotropy::Float64
 	image_wrap::Int8
 	resolution::Pnt2
-	pyramid::Vector{T} where T <: Union{Spectrum, Float64}
+	pyramid::Vector{Matrix{T}} where T <: Union{Spectrum, Float64}
+	pyrsize::Vector{Pnt2}
 	weight_lut::Vector{Float64}
 
 	function MIPMap(
@@ -112,7 +113,7 @@ struct MIPMap
 		end
 		
 		# initialize levels of MIPMap from image
-		n_levels = 1 + Int64(floor(log(maximum(resolution))))
+		n_levels = 1 + log_2_int(UInt32(max(maximum(res_pow_2), maximum(resolution))))
 		@info "N LEVELS: $(n_levels)" 
 
 		pyramid = Vector{Matrix{typeof(data[1])}}(undef, n_levels)
@@ -129,49 +130,94 @@ struct MIPMap
 			# Initialize $i$th MIPMap level from $i-1$st level
 			s_res = Int64(max(1, pyrsize[i-1+1].x/2))
 			t_res = Int64(max(1, pyrsize[i-1+1].y/2))
+			@info "PYR BUILD: $(i), $(s_res), $(t_res)"
 			pyramid[i+1] = zeros(typeof(data[1]), s_res, t_res)
 			pyrsize[i+1] = Pnt2(s_res, t_res)
 
-			for t in 0:t_res
-				for s in 0:s_res
-					pyramid[i+1][s,t] = 0.25 * (
-						texel(i - 1, 2 * s    , 2 * t    ) +
-						texel(i - 1, 2 * s + 1, 2 * t    ) +
-						texel(i - 1, 2 * s    , 2 * t + 1) +
-						texel(i - 1, 2 * s + 1, 2 * t + 1)
+			for t in 0:(t_res-1)
+				for s in 0:(s_res-1)
+					pyramid[i+1][s+1, t+1] = 0.25 * (
+						texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s    , 2 * t    ) +
+						texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s + 1, 2 * t    ) +
+						texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s    , 2 * t + 1) +
+						texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s + 1, 2 * t + 1)
 					)
 				end
 			end
 		end
 
+
+    	weight_lut = zeros(Float64, 128) # JOHN HACK HARDCODING
 		# Initialize EWA filter weights if needed
 		if weight_lut[0+1] == 0.0
-			for i in 1:weight_lut_size
+			for i in 1:(length(weight_lut)-1)
 				alpha = 2.0
-				r2 = i / (weight_lut_size - 1.0)
+				r2 = i / (length(weight_lut) - 1.0)
 				weight_lut[i+1] = -exp(-alpha * r2) - exp(-alpha)
 			end
 		end
-	
+
 		return new(
 			do_trilinear,
 			max_anisotropy,
-			image_wrap,
+			wrap_mode,
 			resolution,
 			pyramid,
+			pyrsize,
 			weight_lut
 		)
 	end
 end
 
-function lookup(mipmap::MIPMap, st::Pnt2, dst0::Vec2, dst1::Vec2)
+function texel(l::Matrix{Spectrum}, size::Pnt2, wrap_mode::Int8, s::Int64, t::Int64)::Spectrum
+	x, y = Int64(size.x), Int64(size.y)
+	# hacky, not fucking with indexing in here. making me do that before texel is called
+	if wrap_mode == Int8(0) # repeat
+		s = s % x
+		t = t % y
+	elseif wrap_mode == Int8(1) # clamp
+		s = clamp(s, 0, x - 1)
+		t = clamp(t, 0, y - 1)
+	elseif wrap_mode == Int8(2) # black
+		black = spectrum_from_float(0.0)
+		if (s < 0) || (s > x) || (t < 0) || (t > y)
+			return black
+		end
+	else
+		@assert false
+	end
+	return l[s + 1, t + 1]
+end
+
+function levels(mipmap::MIPMap)::Int64
+	return length(mipmap.pyramid)
+end
+
+function lookup(mipmap::MIPMap, st::Pnt2, width::Float64)::Spectrum
+	# compute MIPMap level for trilienar filtering
+	level::Float64 = levels(mipmap) - 1.0 + log2(max(width, 1e-8))
+	
+	# preform trilinear interpolation at the appropriate MIPMap level
+	if level < 0
+		return triangle(0, st)
+	elseif level >= levels(mipmap) - 1
+		return texel(levels(mipmap) - 1, 0, 0)
+	else
+		ilevel::Int64 = floor(level)
+		delta = level - ilevel
+		return lerp(delta, triangle(ilevel, st), triangle(ilevel + 1, st))
+	end
+end
+
+function lookup(mipmap::MIPMap, st::Pnt2, dst0::Vec2, dst1::Vec2)::Spectrum
 	if mip_map.do_trilinear
 		width = max(maximum(abs.(dst0)), maximum(abs.(dst1)))
 		return lookup(mipmap, st, width)
 	end
+
 	# compute ellipse minor and major axes
 	if length_squared(dst0) < length_squared(dst1)
-				dst1, dst0 = dst0, dst1
+		dst1, dst0 = dst0, dst1
 	end
 	major_length = length_pbrt(dst0)
 	minor_length = length_pbrt(dst1)
@@ -183,11 +229,11 @@ function lookup(mipmap::MIPMap, st::Pnt2, dst0::Vec2, dst1::Vec2)
 				minor_length .*= scale
 	end
 	if minor_length == 0.0
-				return triangle(0.0, st)
+		return triangle(0.0, st)
 	end
    
 	# chose level of detail for EWA lookup and perform EWA filtering
-	lod = max(0.0, levels() - 1.0 + log2(minor_length)
+	lod = max(0.0, levels(mipmap) - 1.0 + log2(minor_length))
 	ilod::Int64 = floor(lod)
 	return lerp(lod-ilod, EWA(ilod, st, dst0, dst1), EWA(ilod+1, st, dst0, dst1))
 end
