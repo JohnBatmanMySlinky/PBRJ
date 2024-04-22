@@ -19,10 +19,21 @@ end
 
 data = get_data()
 
-RayTracing.MIPMap(
-    RayTracing.Pnt2(7,9), 
-    data, 
-    false, 
-    8.0, 
-    Int8(1)
+# RayTracing.MIPMap(
+#     RayTracing.Pnt2(7,9), 
+#     data, 
+#     false, 
+#     8.0, 
+#     Int8(1)
+# )
+
+
+immy_t = ImageTexture(
+    mapping::AbstractTextureMapping2D, 
+    filename::String,
+    do_trilinear::Bool,
+    max_anisotropy::Float64,
+    wrap_mode::Int8,
+    scale::Float64,
+    do_gamma::Bool
 )
