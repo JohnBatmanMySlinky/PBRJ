@@ -40,7 +40,7 @@ struct MIPMap
 		data::Vector{T} where T <: Union{Spectrum, Float64}, 
 		do_trilinear::Bool=false, 
 		max_anisotropy::Float64=8.0, 
-		wrap_mode::Int8=Int8(0)
+		wrap_mode::Int8=Int8(1)
 	)
 		resampled = false
 		if (!ispow2(Int64(resolution.x))) || (!ispow2(Int64(resolution.y)))
@@ -107,7 +107,7 @@ struct MIPMap
 					end
 				end
 				for t in 0:Int64(res_pow_2.y - 1)
-					resampled_image[Int64(t * res_pow_2.x + s + 1)] = clamp.(work_data[t+1], 0, 1)
+					resampled_image[Int64(t * res_pow_2.x + s + 1)] = clamp.(work_data[t+1], 0, typemax(Float64))
 				end
 			end
 		end
@@ -136,12 +136,14 @@ struct MIPMap
 
 			for t in 0:(t_res-1)
 				for s in 0:(s_res-1)
-					pyramid[i+1][s+1, t+1] = 0.25 * (
-						texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s    , 2 * t    ) +
-						texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s + 1, 2 * t    ) +
-						texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s    , 2 * t + 1) +
-						texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s + 1, 2 * t + 1)
-					)
+					a = texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s    , 2 * t    )
+					b = texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s + 1, 2 * t    )
+					c = texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s    , 2 * t + 1)
+					d = texel(pyramid[i - 1 + 1], pyrsize[i - 1 + 1], wrap_mode, 2 * s + 1, 2 * t + 1)
+					tmp = 0.25 * (a + b + c + d)
+					pyramid[i+1][s+1, t+1] = tmp
+					# @info "\tlil texel test $(a), $(b), $(c), $(d), $(tmp)"
+					@info "\tlil texel test $(tmp)"
 				end
 			end
 		end
