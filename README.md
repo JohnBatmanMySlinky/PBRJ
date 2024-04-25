@@ -74,6 +74,12 @@ Render
 
 
 # TODO's
+- clean up
+    - remove duplicate world_to_X and X_to_world
+    - use more enums?
+    - create a LightCore
+    - textures to use `evaluate()`
+    - go back to `ImageTexture`
 - General Rotation is fucked. Cloud scene bounding box with rotation dont match. AHHHHHHHH
     - Maybe not... might have been that hidden `data2medium` transformation. recheck this.
 - Set up CI and unit tests

@@ -1,55 +1,109 @@
 # PBR 12.6 Infinite Area Lights
-struct InfinteLight <: Light
-    flags::LightFlags
-    light_to_world::Transformation
-    world_to_light::Transformation
-    I::Spectrum
-    pdf::Distribution2D
-    map::Matrix{RGBA{Float16}}
+struct InfiniteLight <: Light
+    Lmap::MIPMap
     world_center::Pnt3
     world_radius::Float64
+    distribution::Distribution2D
+    light_to_world::Transformation
+    world_to_light::Transformation
     medium::Maybe{Medium}
-    
-    function InfinteLight(bounds::Bounds3, light_to_world::Transformation, I::Spectrum, map_url::String)
-        ident = map_url[end-3:end]
+    flags::LightFlags
+
+    function InfiniteLight(light_to_world::Transformation, L::Spectrum, texmap::String)
+        ident = texmap[end-3:end]
         if ident == ".exr"
             dat = OpenEXR.load(map_url)
         else
             @assert false # NOT IMPLEMENTED
         end
-
-        @info "World bounds $(bounds.pMin) - $(bounds.pMax)"
         
-        # create im for pdf creation
-        width, height = 2.0 * size(dat)
-        fwdith = 0.5 / min(width, height)
-        im = zeros(width, height)
-        for v in 1:height
-            vp = (v + 0.5) / height
-            sin_theta = sin(pi * (v + 0.5) / height)
-            for u in 1:width
-                up = (u + 0.5) / width
-                im[u,v] = dat[u,v] * sin_theta
-            end
-        end
-        pdf = Distribution2D(im)      
+        # convert dat to Spectrum
+        # multiply by L::Spectrum
+        # reshape to vector
 
-        # get world radius and world center
+        Lmap = MIPMap(Pnt2(size(dat)), dat)
+
         world_center, world_radius = bounding_sphere(bounds)
 
+        # Initialize sampling PDFs for infinite area light
+        # Compute scalar-valued image img from environment map
+        # create im for pdf creation
+        width, height = size(dat)
+        filter = 1.0 / max(width, height)
+        im = zeros(Float64, (width, height))
+        for v in 0:(height-1)
+            vp = v / height
+            sin_theta = sin(pi * (v + 0.5) / height)
+            for u in 0:(width-1)
+                up = u / width
+                im[u + 1, v + 1] = y(lookup(Lmap, Pnt2(up, vp), filter)) * sin_theta
+            end
+        end
+        distribution = Distribution2D(im) 
         return new(
-            LightInfinite,
-            light_to_world,
-            Inv(light_to_world),
-            I,
-            pdf,
-            dat,
+            Lmap,
             world_center,
             world_radius,
-            nothing
+            distribution,
+            light_to_world,
+            Inv(light_to_world),
+            nothing,
+            LightInfinite
         )
     end
 end
+
+# struct InfinteLight <: Light
+#     flags::LightFlags
+#     light_to_world::Transformation
+#     world_to_light::Transformation
+#     I::Spectrum
+#     pdf::Distribution2D
+#     map::Matrix{RGBA{Float16}}
+#     world_center::Pnt3
+#     world_radius::Float64
+#     medium::Maybe{Medium}
+    
+#     function InfinteLight(bounds::Bounds3, light_to_world::Transformation, I::Spectrum, map_url::String)
+#         ident = map_url[end-3:end]
+#         if ident == ".exr"
+#             dat = OpenEXR.load(map_url)
+#         else
+#             @assert false # NOT IMPLEMENTED
+#         end
+
+#         @info "World bounds $(bounds.pMin) - $(bounds.pMax)"
+        
+#         # create im for pdf creation
+#         width, height = 2.0 * size(dat)
+#         fwdith = 0.5 / min(width, height)
+#         im = zeros(width, height)
+#         for v in 1:height
+#             vp = (v + 0.5) / height
+#             sin_theta = sin(pi * (v + 0.5) / height)
+#             for u in 1:width
+#                 up = (u + 0.5) / width
+#                 im[u,v] = dat[u,v] * sin_theta
+#             end
+#         end
+#         pdf = Distribution2D(im)      
+
+#         # get world radius and world center
+#         world_center, world_radius = bounding_sphere(bounds)
+
+#         return new(
+#             LightInfinite,
+#             light_to_world,
+#             Inv(light_to_world),
+#             I,
+#             pdf,
+#             dat,
+#             world_center,
+#             world_radius,
+#             nothing
+#         )
+#     end
+# end
 
 function power(il::InfinteLight)::Float64
     y, x = size(il.map)
