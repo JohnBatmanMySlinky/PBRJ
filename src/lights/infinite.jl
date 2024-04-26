@@ -9,19 +9,26 @@ struct InfiniteLight <: Light
     medium::Maybe{Medium}
     flags::LightFlags
 
-    function InfiniteLight(light_to_world::Transformation, L::Spectrum, texmap::String)
+    function InfiniteLight(bounds::Bounds3, light_to_world::Transformation, LL::Spectrum, texmap::String)
         ident = texmap[end-3:end]
         if ident == ".exr"
-            dat = OpenEXR.load(map_url)
+            dat = OpenEXR.load(texmap)
         else
             @assert false # NOT IMPLEMENTED
         end
-        
-        # convert dat to Spectrum
-        # multiply by L::Spectrum
-        # reshape to vector
 
-        Lmap = MIPMap(Pnt2(size(dat)), dat)
+        # Convert from colors to Spectrum and adjust by LL
+        L, W = size(dat)
+        dat2 = zeros(Spectrum, L * W)
+        i = 0
+        for l in 1:L
+            for w in 1:W
+                i += 1
+                dat2[i] = Spectrum(dat[l,w].r, dat[l,w].g, dat[l,w].b) * LL
+            end
+        end
+
+        Lmap = MIPMap(Pnt2(L, W), dat2)
 
         world_center, world_radius = bounding_sphere(bounds)
 
@@ -30,7 +37,7 @@ struct InfiniteLight <: Light
         # create im for pdf creation
         width, height = size(dat)
         filter = 1.0 / max(width, height)
-        im = zeros(Float64, (width, height))
+        im = zeros(Float64, width, height)
         for v in 0:(height-1)
             vp = v / height
             sin_theta = sin(pi * (v + 0.5) / height)
@@ -53,7 +60,7 @@ struct InfiniteLight <: Light
     end
 end
 
-# struct InfinteLight <: Light
+# struct InfiniteLight <: Light
 #     flags::LightFlags
 #     light_to_world::Transformation
 #     world_to_light::Transformation
@@ -64,7 +71,7 @@ end
 #     world_radius::Float64
 #     medium::Maybe{Medium}
     
-#     function InfinteLight(bounds::Bounds3, light_to_world::Transformation, I::Spectrum, map_url::String)
+#     function InfiniteLight(bounds::Bounds3, light_to_world::Transformation, I::Spectrum, map_url::String)
 #         ident = map_url[end-3:end]
 #         if ident == ".exr"
 #             dat = OpenEXR.load(map_url)
@@ -105,14 +112,14 @@ end
 #     end
 # end
 
-function power(il::InfinteLight)::Float64
+function power(il::InfiniteLight)::Float64
     y, x = size(il.map)
     u = _uv_map(0.5, x)
     v = _uv_map(0.5, y)
     return pi .* il.world_radius .* il.world_radius .* spectrum_from_float(il.map[v, u]) .* il.I
 end
 
-function le(il::InfinteLight, ray::AbstractRay)::Spectrum
+function le(il::InfiniteLight, ray::AbstractRay)::Spectrum
     y, x = size(il.map)
     w = normalize(il.world_to_light(ray.direction))
     s = spherical_phi(w) / (2pi)
@@ -124,7 +131,7 @@ function le(il::InfinteLight, ray::AbstractRay)::Spectrum
     return l * il.I
 end
 
-function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
+function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     # Find $(u,v)$ sample coordinates in infinite light texture
     uv, map_pdf = sample_continuous(il.pdf, uvu)
     (map_pdf == 0) && return spectrum_from_float(0.0), Vec3(0), 0.0, VisibilityTester(Interaction(), Interaction()), Pnt3(0), Nml3(0)
@@ -158,7 +165,7 @@ function sample_li(il::InfinteLight, interaction::Interaction, uvu::Pnt2)::Tuple
     return radiance, wi, map_pdf, visibility, Pnt3(0,0,0), Nml3(0,0,0)
 end
 
-function pdf_li(il::InfinteLight, isect::SurfaceInteraction, wi::Vec3)::Float64
+function pdf_li(il::InfiniteLight, isect::SurfaceInteraction, wi::Vec3)::Float64
     wi = il.world_to_light(wi)
     theta = spherical_theta(wi)
     phi = spherical_phi(wi)
@@ -177,7 +184,7 @@ end
 #### 16.1.2 BDPT 
 ################
 
-function sample_le(light::InfinteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
+function sample_le(light::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
     # compute direction for infinite light sample ray
     # find uv coordinates in infinite light texture
     uv, map_pdf = sample_continuous(light.pdf, u1)

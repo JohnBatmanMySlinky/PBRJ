@@ -121,8 +121,11 @@ struct MIPMap
 		
 		# Initialize most detailed level of MIPMap
 		pyrsize[1] = resampled ? res_pow_2 : resolution
-		pyramid[1] = reshape(resampled ? resampled_image : data, (Int64(pyrsize[1].x), Int64(pyrsize[1].y))) # yeehaw
 		# JOHN HACK: this is big brain shit but in the bad way
+		# JOHN HACK TODO
+		# if you have a 5x5 matrix mat[5,5] == mat[25] so I can get rid of this reshape! I think!
+		pyramid[1] = reshape(resampled ? resampled_image : data, (Int64(pyrsize[1].x), Int64(pyrsize[1].y))) # yeehaw
+		
 
 		@info "PYRAMID TESTING: $(pyramid[1][2+1, 6+1]) $(pyramid[1][6+1, 2+1])"
 
