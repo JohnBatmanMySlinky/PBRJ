@@ -29,7 +29,7 @@ end
 struct MIPMap
 	do_trilinear::Bool
 	max_anisotropy::Float64
-	image_wrap::Int8
+	wrap_mode::Int8
 	resolution::Pnt2
 	pyramid::Vector{Matrix{T}} where T <: Union{Spectrum, Float64}
 	pyrsize::Vector{Pnt2}
@@ -198,19 +198,33 @@ function levels(mipmap::MIPMap)::Int64
 	return length(mipmap.pyramid)
 end
 
+function triangle(mip_map::MIPMap, level::Int64, st::Pnt2)::Spectrum
+	level = clamp(level, 0, levels(mip_map) - 1)
+	s = st.x * mip_map.pyrsize[level + 1].x - 0.5
+	t = st.y * mip_map.pyrsize[level + 1].y - 0.5
+	s0::Int64 = floor(s)
+	t0::Int64 = floor(t)
+	ds = s - s0
+	dt = t - t0
+	return (1 - ds) * (1 - dt) * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0    , t0) + 
+		   (1 - ds) *       dt * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0    , t0 + 1) + 
+		         ds * (1 - dt) * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0 + 1, t0) + 
+				 ds *       dt * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0 + 1, t0 + 1)
+end
+
 function lookup(mipmap::MIPMap, st::Pnt2, width::Float64)::Spectrum
 	# compute MIPMap level for trilienar filtering
 	level::Float64 = levels(mipmap) - 1.0 + log2(max(width, 1e-8))
 	
 	# preform trilinear interpolation at the appropriate MIPMap level
 	if level < 0
-		return triangle(0, st)
+		return triangle(mip_map, 0, st)
 	elseif level >= levels(mipmap) - 1
-		return texel(levels(mipmap) - 1, 0, 0)
+		return texel(mip_map.pyramid[levels(mipmap) - 1], mip_map.pyrsize[levels(mipmap) - 1], mip_map.wrap_mode, 0, 0)
 	else
 		ilevel::Int64 = floor(level)
 		delta = level - ilevel
-		return lerp(delta, triangle(ilevel, st), triangle(ilevel + 1, st))
+		return lerp(delta, triangle(mipmap, ilevel, st), triangle(mipmap, ilevel + 1, st))
 	end
 end
 
@@ -234,7 +248,7 @@ function lookup(mipmap::MIPMap, st::Pnt2, dst0::Vec2, dst1::Vec2)::Spectrum
 				minor_length .*= scale
 	end
 	if minor_length == 0.0
-		return triangle(0.0, st)
+		return triangle(mip_map, 0.0, st)
 	end
    
 	# chose level of detail for EWA lookup and perform EWA filtering
