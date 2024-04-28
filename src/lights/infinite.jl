@@ -28,7 +28,7 @@ struct InfiniteLight <: Light
             end
         end
 
-        Lmap = MIPMap(Pnt2(L, W), dat2)
+        Lmap = MIPMap(Pnt2(W, L), dat2) # NOTE THE FLIP HERE
 
         world_center, world_radius = bounding_sphere(bounds)
 
@@ -43,7 +43,7 @@ struct InfiniteLight <: Light
             sin_theta = sin(pi * (v + 0.5) / height)
             for u in 0:(width-1)
                 up = u / width
-                im[u + 1, v + 1] = y(lookup(Lmap, Pnt2(up, vp), filter)) * sin_theta
+                im[u + 1, v + 1] = y_spectrum(lookup(Lmap, Pnt2(up, vp), filter)) * sin_theta
             end
         end
         distribution = Distribution2D(im) 

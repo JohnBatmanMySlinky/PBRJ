@@ -21,7 +21,7 @@ function resample_weights(old_res::Int64, new_res::Int64)::Vector{ResampleWeight
 		)
 		weight /= sum(weight)
 		wt[i+1] = ResampleWeight(first_texel, weight)
-		# @info "ResampleWeights: $(i) $(first_texel) $(weight)"
+		@info "ResampleWeights: $(i) $(first_texel) $(weight)"
 	end
 	return wt
 end
@@ -69,6 +69,7 @@ struct MIPMap
 					for j in 0:3
 						orig_s = s_weights[s+1].first_texel + j
 						if wrap_mode == Int8(0) # repeat
+							@assert false
 							orig_s = orig_s % resolution.x
 						elseif wrap_mode == Int8(1) # clamp
 							orig_s = clamp(orig_s, 0, resolution.x - 1)
@@ -77,7 +78,7 @@ struct MIPMap
 						end
 						
 						if (orig_s >= 0) && (orig_s < resolution.x)
-							# @info "MIPMAP READ: $(s), $(t), $(t * resolution.x + orig_s) = $(data[Int64(t * resolution.x + orig_s + 1)])"
+							@info "MIPMAP READ: $(s), $(t), $(t * resolution.x + orig_s) = $(data[Int64(t * resolution.x + orig_s + 1)])"
 							resampled_image[Int64(t * res_pow_2.x + s + 1)] += s_weights[s+1].weight[j+1] * data[Int64(t * resolution.x + orig_s + 1)]
 						end
 					end
@@ -196,6 +197,10 @@ end
 
 function levels(mipmap::MIPMap)::Int64
 	return length(mipmap.pyramid)
+end
+
+function lerp(t::Float64, a::Spectrum, b::Spectrum)::Spectrum
+	return t .* a + (1.0 - t) .* b 
 end
 
 function triangle(mip_map::MIPMap, level::Int64, st::Pnt2)::Spectrum
