@@ -31,6 +31,9 @@ struct InfiniteLight <: Light
         Lmap = MIPMap(Pnt2(W, L), dat2) # NOTE THE FLIP HERE
 
         world_center, world_radius = bounding_sphere(bounds)
+        world_center = Pnt3( 0.0449999571, 1.04499996, -0.75000006 )
+        world_radius = 2.42487
+        @info "Infinite Light center: $(world_center), radius: $(world_radius)"
 
         # Initialize sampling PDFs for infinite area light
         # Compute scalar-valued image img from environment map
@@ -44,6 +47,7 @@ struct InfiniteLight <: Light
             for u in 0:(width-1)
                 up = u / width
                 im[u + 1, v + 1] = y_spectrum(lookup(Lmap, Pnt2(up, vp), filter)) * sin_theta
+                @info "Infinite Light PDF: $(u+1), $(v+1) = $(im[u + 1, v + 1])"
             end
         end
         distribution = Distribution2D(im) 
