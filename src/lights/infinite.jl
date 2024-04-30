@@ -38,7 +38,8 @@ struct InfiniteLight <: Light
         # Initialize sampling PDFs for infinite area light
         # Compute scalar-valued image img from environment map
         # create im for pdf creation
-        width = 2 * Lmap.resolution.x, height = 2 * Lmap.resolution.y
+        width::Int64 = 2 * Lmap.resolution.x
+        height::Int64 = 2 * Lmap.resolution.y
         fwidth = 0.5 / min(width, height)
         im = zeros(Float64, width, height)
         for v in 0:(height-1)
@@ -177,9 +178,12 @@ function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spe
     uv, map_pdf = sample_continuous(il.distribution, u)
     (map_pdf == 0.0) && return spectrum_from_float(0.0), RayDifferential(Ray()), Nml3(0), 0.0, 0.0
 
-    theta = uv.y * pi, phi = uv.x * 2.0 * pi
-    cos_theta = cos(theta), sin_theta = sin(theta)
-    sin_phi = sin(phi), cos_phi = cos(phi)
+    theta = uv.y * pi
+    phi = uv.x * 2.0 * pi
+    cos_theta = cos(theta)
+    sin_theta = sin(theta)
+    sin_phi = sin(phi)
+    cos_phi = cos(phi)
 
     d = -il.light_to_world(Vec3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta))
     nlight = Nml3(d)
@@ -197,7 +201,8 @@ end
 
 function pdf_le(il::InfiniteLight, ray::RayDifferential, n::Nml3)::Tuple{Float64, Float64}
     d = -il.world_to_light(ray.direction)
-    theta = spherical_theta(d), phi = spherical_phi(d)
+    theta = spherical_theta(d)
+    phi = spherical_phi(d)
     uv = Pnt2(phi / 2pi, theta / pi)
     map_pdf = pdf(il.distribution, uv)
     pdf_dir = map_pdf / (2.0 * pi * pi * sin(theta))

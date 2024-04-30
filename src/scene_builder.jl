@@ -1683,33 +1683,38 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
 
         # Orb light cause we hate environment maps (for now)
-        sphere_transform = Translate(Pnt3(0.0720194, -0.52456, 4.60187))
-        sphere = Sphere(
-            ShapeCore(
-                sphere_transform,
-                Inv(sphere_transform),
-                false,
-                false
-            ),
-            .05
-        )
-        alight = DiffuseAreaLight(
-            spectrum_from_float(5_000.0),
-            sphere,
-            false
-        )
-        light_m = Matte(
-            ConstantTexture(spectrum_from_float(1.0)),
-            ConstantTexture(spectrum_from_float(0.0)),
-            nothing
-        )
-        push!(lights, alight)
-        push!(primitives, Primitive(sphere, light_m, alight))
+        # sphere_transform = Translate(Pnt3(0.0720194, -0.52456, 4.60187))
+        # sphere = Sphere(
+        #     ShapeCore(
+        #         sphere_transform,
+        #         Inv(sphere_transform),
+        #         false,
+        #         false
+        #     ),
+        #     .05
+        # )
+        # alight = DiffuseAreaLight(
+        #     spectrum_from_float(5_000.0),
+        #     sphere,
+        #     false
+        # )
+        # light_m = Matte(
+        #     ConstantTexture(spectrum_from_float(1.0)),
+        #     ConstantTexture(spectrum_from_float(0.0)),
+        #     nothing
+        # )
+        # push!(lights, alight)
+        # push!(primitives, Primitive(sphere, light_m, alight))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
+
+        # instantiate the infinite light
+        l_2_w = Translate(Pnt3(0,0,0))
+        light = InfiniteLight(world_bounds(bvh), l_2_w, Spectrum(3.0, 3.0, 3.0), "/home/jmyslinski/random_stuff/PBRJ/scratch/mipmap/hello.exr")
+        push!(lights, light)
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.1, .1))

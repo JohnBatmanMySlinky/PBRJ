@@ -195,8 +195,8 @@ function texel(l::Matrix{Spectrum}, size::Pnt2, wrap_mode::Int8, s::Int64, t::In
 	return l[s + 1, t + 1]
 end
 
-function levels(mipmap::MIPMap)::Int64
-	return length(mipmap.pyramid)
+function levels(mip_map::MIPMap)::Int64
+	return length(mip_map.pyramid)
 end
 
 function lerp(t::Float64, a::Spectrum, b::Spectrum)::Spectrum
@@ -217,26 +217,26 @@ function triangle(mip_map::MIPMap, level::Int64, st::Pnt2)::Spectrum
 				 ds *       dt * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0 + 1, t0 + 1)
 end
 
-function lookup(mipmap::MIPMap, st::Pnt2, width::Float64)::Spectrum
+function lookup(mip_map::MIPMap, st::Pnt2, width::Float64)::Spectrum
 	# compute MIPMap level for trilienar filtering
-	level::Float64 = levels(mipmap) - 1.0 + log2(max(width, 1e-8))
+	level::Float64 = levels(mip_map) - 1.0 + log2(max(width, 1e-8))
 	
 	# preform trilinear interpolation at the appropriate MIPMap level
 	if level < 0
 		return triangle(mip_map, 0, st)
-	elseif level >= levels(mipmap) - 1
-		return texel(mip_map.pyramid[levels(mipmap) - 1], mip_map.pyrsize[levels(mipmap) - 1], mip_map.wrap_mode, 0, 0)
+	elseif level >= levels(mip_map) - 1
+		return texel(mip_map.pyramid[levels(mip_map) - 1 + 1], mip_map.pyrsize[levels(mip_map) - 1 + 1], mip_map.wrap_mode, 0, 0)
 	else
 		ilevel::Int64 = floor(level)
 		delta = level - ilevel
-		return lerp(delta, triangle(mipmap, ilevel, st), triangle(mipmap, ilevel + 1, st))
+		return lerp(delta, triangle(mip_map, ilevel, st), triangle(mip_map, ilevel + 1, st))
 	end
 end
 
-function lookup(mipmap::MIPMap, st::Pnt2, dst0::Vec2, dst1::Vec2)::Spectrum
+function lookup(mip_map::MIPMap, st::Pnt2, dst0::Vec2, dst1::Vec2)::Spectrum
 	if mip_map.do_trilinear
 		width = max(maximum(abs.(dst0)), maximum(abs.(dst1)))
-		return lookup(mipmap, st, width)
+		return lookup(mip_map, st, width)
 	end
 
 	# compute ellipse minor and major axes
@@ -257,7 +257,7 @@ function lookup(mipmap::MIPMap, st::Pnt2, dst0::Vec2, dst1::Vec2)::Spectrum
 	end
    
 	# chose level of detail for EWA lookup and perform EWA filtering
-	lod = max(0.0, levels(mipmap) - 1.0 + log2(minor_length))
+	lod = max(0.0, levels(mip_map) - 1.0 + log2(minor_length))
 	ilod::Int64 = floor(lod)
 	return lerp(lod-ilod, EWA(ilod, st, dst0, dst1), EWA(ilod+1, st, dst0, dst1))
 end
