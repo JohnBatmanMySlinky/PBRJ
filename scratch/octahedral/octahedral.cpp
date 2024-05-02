@@ -114,6 +114,7 @@ class OctahedralVector {
   public:
     // OctahedralVector Public Methods
     // OctahedralVector() = default;
+    OctahedralVector() { x = y = 0; }
     OctahedralVector(Vector3f v) {
         v /= std::abs(v.x) + std::abs(v.y) + std::abs(v.z);
         if (v.z >= 0) {
@@ -141,6 +142,9 @@ class OctahedralVector {
         return Normalize(v);
     };
 
+    // OctahedralVector Private Members
+    uint16_t x, y;
+
   private:
     // OctahedralVector Private Methods
     static float Sign(float v) { return std::copysign(1.f, v); }
@@ -148,17 +152,31 @@ class OctahedralVector {
     static uint16_t Encode(float f) {
         return std::round(Clamp((f + 1) / 2, 0, 1) * 65535.f);
     }
-
-    // OctahedralVector Private Members
-    uint16_t x, y;
 };
+
+
+std::ostream& operator<<(std::ostream &out, Vector3f const& data) {
+    out << "Vec3: [" << data.x << ", " << data.y << ", " << data.z << "]\n";
+    return out;
+}
+
+std::ostream& operator<<(std::ostream &out, OctahedralVector const& data) {
+    out << "OctVec: [" << data.x << ", " << data.y << "]\n";
+    return out;
+}
 
 int main() {
     // Write C++ code here
     Vector3f v;
     v = Vector3f(0.5, 0.6, 0.7);
+    std::cout << v;
 
-    std::cout << "boop";
+    OctahedralVector o;
+    o = OctahedralVector(v);
+    std::cout << o;
+
+    v = o.makevec3();
+    std::cout << v;
 
     return 0;
 };
