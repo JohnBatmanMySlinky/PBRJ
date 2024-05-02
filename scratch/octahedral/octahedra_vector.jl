@@ -43,6 +43,12 @@ function normalize(a::Vec3)
 	return Vec3(a.x / tmp, a.y / tmp, a.z / tmp)
 end
 
+
 v = Vec3(0.5, 0.6, 0.7)
+print("Vec3: $(v)\n")
+
 o = vec3_to_octvec(v)
-print(octvec_to_vec3(o), "\n")
+print("OctVec: $(o)\n")
+
+v = octvec_to_vec3(o)
+print("Vec3: $(v)\n")
