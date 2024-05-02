@@ -74,6 +74,9 @@ Render
 
 
 # TODO's
+- InfiniteAreaLight improvements
+    - OctahedralVector
+    - CompensatedDistribution
 - clean up
     - remove duplicate world_to_X and X_to_world
     - use more enums?
@@ -117,6 +120,8 @@ Render
     - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
 - PBRT Features
     - Add MipMaps & get infinite area light working correctly. Ooof
+	- MIPMap
+	- InfiniteAreaLight
     - ~~Add mediums~~
          - ~~Homogenous medium~~
          - ~~Grid medium~~
