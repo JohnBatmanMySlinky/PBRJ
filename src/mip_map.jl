@@ -167,7 +167,7 @@ struct MIPMap
 			do_trilinear,
 			max_anisotropy,
 			wrap_mode,
-			resolution,
+			pyrsize[1],
 			pyramid,
 			pyrsize,
 			weight_lut
@@ -185,13 +185,13 @@ function texel(l::Matrix{Spectrum}, size::Pnt2, wrap_mode::Int8, s::Int64, t::In
 		s = clamp(s, 0, x - 1)
 		t = clamp(t, 0, y - 1)
 	elseif wrap_mode == Int8(2) # black
-		black = spectrum_from_float(0.0)
 		if (s < 0) || (s > x) || (t < 0) || (t > y)
-			return black
+			return spectrum_from_float(0.0)
 		end
 	else
 		@assert false
 	end
+	# @info "\t\t\tTexcel: ($(s), $(t))"
 	return l[s + 1, t + 1]
 end
 
@@ -211,15 +211,17 @@ function triangle(mip_map::MIPMap, level::Int64, st::Pnt2)::Spectrum
 	t0::Int64 = floor(t)
 	ds = s - s0
 	dt = t - t0
+	# @info "\t\ttriangle: $(level), $(s), $(t), $(s0), $(t0)"
 	return (1 - ds) * (1 - dt) * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0    , t0) + 
 		   (1 - ds) *       dt * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0    , t0 + 1) + 
 		         ds * (1 - dt) * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0 + 1, t0) + 
 				 ds *       dt * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0 + 1, t0 + 1)
 end
 
-function lookup(mip_map::MIPMap, st::Pnt2, width::Float64)::Spectrum
+function lookup(mip_map::MIPMap, st::Pnt2, width::Float64=0.0)::Spectrum
 	# compute MIPMap level for trilienar filtering
 	level::Float64 = levels(mip_map) - 1.0 + log2(max(width, 1e-8))
+	# @info "\tmipmap look up $(level)"
 	
 	# preform trilinear interpolation at the appropriate MIPMap level
 	if level < 0

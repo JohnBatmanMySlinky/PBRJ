@@ -40,6 +40,7 @@ struct InfiniteLight <: Light
         # create im for pdf creation
         width::Int64 = 2 * Lmap.resolution.x
         height::Int64 = 2 * Lmap.resolution.y
+        @info "Infinite Light Sampling Dist ($(width), $(height))"
         fwidth = 0.5 / min(width, height)
         im = zeros(Float64, width, height)
         for v in 0:(height-1)
@@ -48,7 +49,7 @@ struct InfiniteLight <: Light
             for u in 0:(width-1)
                 up = (u + 0.5) / width
                 im[u + 1, v + 1] = y_spectrum(lookup(Lmap, Pnt2(up, vp), fwidth)) * sin_theta
-                @info "Infinite Light PDF: $(u+1), $(v+1) = $(im[u + 1, v + 1])"
+                # @info "Infinite Light PDF: $(u), $(v) = $(im[u + 1, v + 1]) --- up: $(up) vp: $(vp) fwidth: $(fwidth)"
             end
         end
         distribution = Distribution2D(im) 
@@ -195,7 +196,7 @@ function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spe
 
     pdf_dir = sin_theta == 0.0 ? 0.0 : map_pdf / (2 * pi * pi * sin_theta)
     pdf_pos = 1.0 / (pi * il.world_radius * il.world_radius)
-    radiance = spectrum_from_float(lookup(il.Lmpa, uv), Illuminant)
+    radiance = spectrum_from_float(lookup(il.Lmap, uv), Illuminant)
     return radiance, ray, nlight, pdf_dir, pdf_pos
 end
 

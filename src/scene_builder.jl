@@ -1713,7 +1713,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # instantiate the infinite light
         l_2_w = Translate(Pnt3(0,0,0))
-        light = InfiniteLight(world_bounds(bvh), l_2_w, Spectrum(3.0, 3.0, 3.0), "/home/jmyslinski/random_stuff/PBRJ/scratch/mipmap/hello.exr")
+        light = InfiniteLight(world_bounds(bvh), l_2_w, Spectrum(3.0, 3.0, 3.0), "/Users/johnmyslinski/Documents/PBRJ/scratch/mipmap/hello.exr")
         push!(lights, light)
 
         # Instantiate a Filter
