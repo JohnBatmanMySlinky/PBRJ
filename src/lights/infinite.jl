@@ -119,7 +119,7 @@ end
 # end
 
 function power(il::InfiniteLight)::Float64
-    return pi * il.world_radius * il.world_radius * spectrum_from_float(lookup(il.Lmap, Pnt2(0.5, 0.5), 0.5), Illuminant)
+    return pi * il.world_radius * il.world_radius * spectrum_from_float(lookup(il.Lmap, Pnt2(0.5, 0.5), 0.5))
 end
 
 function le(il::InfiniteLight, ray::AbstractRay)::Spectrum
@@ -128,7 +128,7 @@ function le(il::InfiniteLight, ray::AbstractRay)::Spectrum
         spherical_phi(w) / 2pi,
         spherical_theta(w) / pi
     )
-    return spectrum_from_float(lookup(il.Lmap, st), Illuminant)
+    return lookup(il.Lmap, st)
 end
 
 function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
@@ -152,10 +152,16 @@ function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tupl
     # visibility
     visibility = VisibilityTester(
         interaction,
-        Interaction(interaction.p + wi .* 2 * il.world_radius, interaction.t, Nml3(0, 0, 0), il.medium)
+        Interaction(
+            interaction.p + wi .* 2 * il.world_radius, 
+            interaction.t, 
+            Nml3(0, 0, 0), 
+            Vec3(0, 0, 0),
+            MediumInterface(il.medium)
+        )
     )
 
-    radiance = spectrum_from_float(lookup(il.Lmap, uv), Illuminant)
+    radiance = lookup(il.Lmap, uv)
 
     return radiance, wi, map_pdf, visibility, Pnt3(0,0,0), Nml3(0,0,0)
 end
@@ -192,11 +198,11 @@ function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spe
     _, v1, v2 = orthonormal_basis(-d)
     cd = random_in_concentric_disk(u2)
     p_disk = il.world_center + il.world_radius * (cd.x * v1 + cd.y * v2)
-    ray = Ray(p_disk + il.world_radius * -d, d, typemax(Float64), t)
+    ray = RayDifferential(Ray(p_disk + il.world_radius * -d, d, typemax(Float64), t))
 
     pdf_dir = sin_theta == 0.0 ? 0.0 : map_pdf / (2 * pi * pi * sin_theta)
     pdf_pos = 1.0 / (pi * il.world_radius * il.world_radius)
-    radiance = spectrum_from_float(lookup(il.Lmap, uv), Illuminant)
+    radiance = lookup(il.Lmap, uv)
     return radiance, ray, nlight, pdf_dir, pdf_pos
 end
 

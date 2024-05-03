@@ -74,6 +74,7 @@ Render
 
 
 # TODO's
+- wait do I need to be using ::Radiance and ::Reflectance???
 - InfiniteAreaLight improvements
     - OctahedralVector
     - CompensatedDistribution
