@@ -1547,35 +1547,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
 
-        #####################
-        ### an area light ###
-        #####################
-        sc_alight = ShapeCore(
-            Translate(Pnt3(0,0,0)),
-            Inv(Translate(Pnt3(0,0,0))),
-            true,
-            false
-        )
-        tris = construct_triangle_mesh(
-            sc_alight,
-            2,
-            4,
-            Pnt3[Pnt3(-1, 3.204596996, -0.9997209907), Pnt3(1, 3.204596996, -0.9997209907), Pnt3(1, 3.251826048, 0.9997209907), Pnt3(-1, 3.251826048, 0.9997209907)],
-            Int64[1, 2, 3, 1, 3, 4],
-            Nml3[Nml3(0), Nml3(0), Nml3(0), Nml3(0)],
-            Pnt2[Pnt2(0,0), Pnt2(1,0), Pnt2(0,1), Pnt2(1,1)],
-            nothing
-        )
-        for tri in tris
-            alight = DiffuseAreaLight(
-                spectrum_from_float(9.5),
-                tri,
-                false
-            )
-            push!(lights, alight)
-            push!(primitives, Primitive(tri, mat_white, alight))
-        end
-
         ##############
         ### a mesh ###
         ##############
@@ -1619,6 +1590,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         @time bvh = BVH(primitives)
         print("Done building BVH\n")
 
+        # instantiate the infinite light
+        l_2_w = Translate(Pnt3(0,0,0))
+        light = InfiniteLight(world_bounds(bvh), l_2_w, Spectrum(3.0, 3.0, 3.0), "/Users/johnmyslinski/Documents/PBRJ/scratch/mipmap/hello.exr")
+        push!(lights, light)
+
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
 
@@ -1654,7 +1630,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         primitives = Primitive[]
         lights = Light[]
 
-
+        
         # Bounding sphere cause we hate winding order and such
         box_t = Translate(Pnt3(-1.0, 0.0, -1.2))
         sphere_transform = Translate(Pnt3(.045, 1.045, -.75))

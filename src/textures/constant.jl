@@ -3,6 +3,5 @@ struct ConstantTexture <: Texture
 end
 
 function (c::ConstantTexture)(si::SurfaceInteraction)
-    @assert false
     return c.value
 end

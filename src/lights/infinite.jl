@@ -31,8 +31,8 @@ struct InfiniteLight <: Light
         Lmap = MIPMap(Pnt2(W, L), dat2) # NOTE THE FLIP HERE
 
         world_center, world_radius = bounding_sphere(bounds)
-        world_center = Pnt3( 0.0449999571, 1.04499996, -0.75000006 )
-        world_radius = 2.42487
+        # world_center = Pnt3( 0.0449999571, 1.04499996, -0.75000006 )
+        # world_radius = 2.42487
         @info "Infinite Light center: $(world_center), radius: $(world_radius)"
 
         # Initialize sampling PDFs for infinite area light
@@ -162,6 +162,7 @@ function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tupl
     )
 
     radiance = lookup(il.Lmap, uv)
+    radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
 
     return radiance, wi, map_pdf, visibility, Pnt3(0,0,0), Nml3(0,0,0)
 end
@@ -203,6 +204,7 @@ function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spe
     pdf_dir = sin_theta == 0.0 ? 0.0 : map_pdf / (2 * pi * pi * sin_theta)
     pdf_pos = 1.0 / (pi * il.world_radius * il.world_radius)
     radiance = lookup(il.Lmap, uv)
+    radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
     return radiance, ray, nlight, pdf_dir, pdf_pos
 end
 
