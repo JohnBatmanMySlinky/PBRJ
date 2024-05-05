@@ -1741,7 +1741,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         mat_blue = Matte(
-            ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
+            ConstantTexture(spectrum_from_float(2.0, 1.0, 2.0)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
@@ -1751,7 +1751,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ###############
 
         
-        s = Sphere(ShapeCore(Translate(Pnt3(0, 0.025, 0)), Inv(Translate(Pnt3(0, 0.025, 0)))), .05)
+        s = Sphere(ShapeCore(Translate(Pnt3(0, 0.025, 0)), Inv(Translate(Pnt3(0, 0.025, 0)))), .075)
         push!(primitives, Primitive(s, mat_blue, nothing))
 
         floor_transform = Translate(Pnt3(0,0,0))
@@ -1804,7 +1804,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
 
         # Instantiate a Sampler
-        S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
+        S = ZSobolSampler(
+            parsed_args["samples-per-pixel"], 
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), 
+            Int8(2)
+        )
         print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene
