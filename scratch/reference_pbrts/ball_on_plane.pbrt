@@ -1,0 +1,28 @@
+LookAt 300 200 300   0 75 0   0 1 0
+Camera "perspective" "float fov" [40]
+Film "image"  "integer xresolution" [250] "integer yresolution" [250] "string filename" "ball_plane.exr"
+Sampler "stratified" "integer xsamples" [25] "integer ysamples" [25] "bool jitter" "false"
+
+Integrator "bdpt"
+
+WorldBegin
+
+LightSource "infinite" "string mapname" "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+
+# Floor
+AttributeBegin
+Material "matte" "color Kd" [0.4 0.4 0.4]
+Shape 
+    "trianglemesh" 
+    "point P" [-300 0 -300   300 0 300   -300 0 300   300 0 -300] 
+    "integer indices" [0 1 2 0 3 1]
+AttributeEnd
+
+# Sphere
+AttributeBegin
+Translate 0 50 0
+Material "glass"
+Shape "sphere" "float radius" [50]
+AttributeEnd
+
+WorldEnd

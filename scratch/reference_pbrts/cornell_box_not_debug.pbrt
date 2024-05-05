@@ -1,0 +1,100 @@
+LookAt 278 278 -800   278 278 0   0 1 0
+Camera "perspective" "float fov" [40]
+Film "image"  "integer xresolution" [250] "integer yresolution" [250] "string filename" "a_pbrt.exr"
+
+Sampler "random" "integer pixelsamples" [1]
+
+Integrator "bdpt"
+
+WorldBegin
+
+# REFRESHER ON HOW TO TRIANGLE
+# MIN = 213, 213
+# MAX = 343, 343
+# [Pnt3(MIN.x, k, MIN.y), Pnt3(MAX.x, k, MAX.y), Pnt3(MIN.x, k, MAX.y), Pnt3(MAX.x, k, MIN.y)],
+# BE REALLY CAREFUL OF YOUR WINDING ORDER
+# [1,2,3,1,4,2],
+
+# AREA LIGHT
+AttributeBegin
+Material "matte" "color Kd" [1 1 1]
+AreaLightSource "area"  "color L" [200 200 200] "integer nsamples" [80]
+Translate 0 525 0 
+Shape "sphere" "float radius" [25]
+
+AttributeEnd
+
+
+# Floor
+AttributeBegin
+Material "matte" "color Kd" [0.75 0.75 0.75]
+Shape 
+    "trianglemesh" 
+    "point P" [0 0 0   555 0 555   0 0 555   555 0 0] 
+    "integer indices" [0 1 2 0 3 1]
+AttributeEnd
+
+# Ceiling
+AttributeBegin
+Material "matte" "color Kd" [0.75 0.75 0.75]
+Shape 
+    "trianglemesh" 
+    "point P" [0 555 0   555 555 555   0 555 555   555 555 0] 
+    "integer indices" [0 1 2 0 3 1]
+AttributeEnd
+
+# LeftWall
+AttributeBegin
+Material "matte" "color Kd" [0 0 1.0 ]
+Shape 
+    "trianglemesh" 
+    "point P" [0 0 0   0 555 555   0 0 555   0 555 0] 
+    "integer indices" [0 1 2 0 3 1]
+AttributeEnd
+
+# RightWall
+AttributeBegin
+Material "matte" "color Kd" [0 1.0 0 ]
+Shape 
+    "trianglemesh" 
+    "point P" [555 0 0   555 555 555   555 0 555   555 555 0] 
+    "integer indices" [0 1 2 0 3 1]
+AttributeEnd
+
+# BackWall
+AttributeBegin
+Material "matte" "color Kd" [0.75 0.75 0.75]
+Shape 
+    "trianglemesh" 
+    "point P" [0 0 555   555 555 555   0 555 555   555 0 555] 
+    "integer indices" [0 1 2 0 3 1]
+AttributeEnd
+
+# Sphere
+AttributeBegin
+Translate 130 250 65
+Material "matte" "color Kd" [1.0 0 0 ]
+Shape "sphere" "float radius" [50]
+AttributeEnd
+
+# Short Box Definition
+AttributeBegin
+    Material "matte" "color Kd" [.75 .75 .75]
+    Shape "trianglemesh"  "integer indices" [0 2 1 0 3 2 ] "point P" [130.000000 165.000000 65.000000 82.000000 165.000000 225.000000 240.000000 165.000000 272.000000 290.000000 165.000000 114.000000 ] 
+    Shape "trianglemesh"  "integer indices" [0 2 1 0 3 2 ] "point P" [290.000000 0.000000 114.000000 290.000000 165.000000 114.000000 240.000000 165.000000 272.000000 240.000000 0.000000 272.000000 ] 
+    Shape "trianglemesh"  "integer indices" [0 2 1 0 3 2 ] "point P" [130.000000 0.000000 65.000000 130.000000 165.000000 65.000000 290.000000 165.000000 114.000000 290.000000 0.000000 114.000000 ] 
+    Shape "trianglemesh"  "integer indices" [0 2 1 0 3 2 ] "point P" [82.000000 0.000000 225.000000 82.000000 165.000000 225.000000 130.000000 165.000000 65.000000 130.000000 0.000000 65.000000 ] 
+    Shape "trianglemesh"  "integer indices" [0 2 1 0 3 2 ] "point P" [240.000000 0.000000 272.000000 240.000000 165.000000 272.000000 82.000000 165.000000 225.000000 82.000000 0.000000 225.000000 ] 
+AttributeEnd
+
+# Tall Box Definition
+AttributeBegin
+    Material "matte" "color Kd"  [.75 .75 .75]
+    Shape "trianglemesh"  "integer indices" [0 2 1 0 3 2 ] "point P" [423.000000 330.000000 247.000000 265.000000 330.000000 296.000000 314.000000 330.000000 456.000000 472.000000 330.000000 406.000000 ] 
+    Shape "trianglemesh"  "integer indices" [0 2 1 0 3 2 ] "point P" [423.000000 0.000000 247.000000 423.000000 330.000000 247.000000 472.000000 330.000000 406.000000 472.000000 0.000000 406.000000 ] 
+    Shape "trianglemesh"  "integer indices" [0 2 1 0 3 2 ] "point P" [472.000000 0.000000 406.000000 472.000000 330.000000 406.000000 314.000000 330.000000 456.000000 314.000000 0.000000 456.000000 ] 
+    Shape "trianglemesh"  "integer indices" [0 2 1 0 3 2 ] "point P" [314.000000 0.000000 456.000000 314.000000 330.000000 456.000000 265.000000 330.000000 296.000000 265.000000 0.000000 296.000000 ] 
+    Shape "trianglemesh"  "integer indices" [0 2 1 0 3 2 ] "point P" [265.000000 0.000000 296.000000 265.000000 330.000000 296.000000 423.000000 330.000000 247.000000 423.000000 0.000000 247.000000 ] 
+AttributeEnd
+
+WorldEnd
