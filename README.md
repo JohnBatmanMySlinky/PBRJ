@@ -74,6 +74,7 @@ Render
 
 
 # TODO's
+- If infinite area light always uses the same width... whats the value of a mipmp?
 - ShapeCore specification bug. what if you spec only a translate? inverse is wrong!
 - wait do I need to be using ::Radiance and ::Reflectance???
 - InfiniteAreaLight improvements
