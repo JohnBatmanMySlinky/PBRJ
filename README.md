@@ -74,6 +74,7 @@ Render
 
 
 # TODO's
+- ShapeCore specification bug. what if you spec only a translate? inverse is wrong!
 - wait do I need to be using ::Radiance and ::Reflectance???
 - InfiniteAreaLight improvements
     - OctahedralVector

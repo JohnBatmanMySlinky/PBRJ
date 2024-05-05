@@ -5,6 +5,8 @@ struct ShapeCore
     transform_swaps_handedness::Bool
 
     function ShapeCore(
+        # TODO
+        # if you specify just a translate the inverse is WRONG
         object_to_world=Translate(Pnt3(0,0,0)),
         world_to_object=Inv(Translate(Pnt3(0,0,0))),
         reverse_orientation=false,

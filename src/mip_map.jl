@@ -43,6 +43,7 @@ struct MIPMap
 		wrap_mode::Int8=Int8(1)
 	)
 		resampled = false
+		res_pow_2 = Pnt2(0,0)
 		if (!ispow2(Int64(resolution.x))) || (!ispow2(Int64(resolution.y)))
 			resampled = true
 			# Resample image to power-of-two resolution
