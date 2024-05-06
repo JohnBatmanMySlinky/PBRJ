@@ -63,32 +63,18 @@ Render
 - BDPT, ambient occlusion, path & whitted integrators
 - Area, distant, infinite, point, and spot lights
 - Glass, matte, metal, mirror, plastic, and substrate materials
-- Stratified sampling
+- Stratified and sobol sampling 
 - Box, cylindar, disk, rectangle, sphere, and triangle shapes
 - Very basic L-system
 - Implicit surfaces: Goursat surface & metaballs
 - Participating mediums (homogenous & grid)
 - RGB & spectral rendering
 - Constant, image, mixed, procedural and mixed textures
+- Mipmaps
 - Logging
 
 
 # TODO's
-- Copy my `*.pbrt`'s over to here
-- If infinite area light always uses the same width... whats the value of a mipmp?
-- ShapeCore specification bug. what if you spec only a translate? inverse is wrong!
-- wait do I need to be using ::Radiance and ::Reflectance???
-- InfiniteAreaLight improvements
-    - OctahedralVector
-    - CompensatedDistribution
-- clean up
-    - remove duplicate world_to_X and X_to_world
-    - use more enums?
-    - create a LightCore
-    - textures to use `evaluate()`
-    - go back to `ImageTexture`
-- General Rotation is fucked. Cloud scene bounding box with rotation dont match. AHHHHHHHH
-    - Maybe not... might have been that hidden `data2medium` transformation. recheck this.
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Testing
@@ -97,14 +83,13 @@ Render
         - ~~Suffer thru MISWeight & image writing~~
         - write a robust triangle test suite. oof.
             - Write c++ version to double check
-            - copy pbrt's triangle test suite. off.
+            - copy pbrt's triangle test suite. oof.
         - ~~write a fn to clean julia logs and make format close to pbrt lol~~
     - ~~WHERE ARE THE FIREFLIES COMING FROM~~
     - add a sphere with substrate material to test scene
     - add test scene file to repo
     - testing something with an infite env light
-- Re run old scenes and fix up
-- Benchmark suite of scenes, testing materials, lights & integrators
+    - Copy my `*.pbrt`'s over to here
 - Performance
     - Create a simple sample scene in Trace.jl and benchmark. Because my testing is showing no performance benefit from Float32 and Parametric Typing
         - TYPE MORE CONCRETELY, use a NB and copy pxl-th
@@ -118,19 +103,23 @@ Render
     - triangle sampling is really slow? Is it sampling more than one light at a time is slow? 
 - New stuff
     - Tidy up implicit Surfaces
-        - add kiss surface (https://mathworld.wolfram.com/KissSurface.html) aka $ x^2 + y^2 = (1-z)x^4 $
-        - improve goursat scene
+        - Add kiss surface (https://mathworld.wolfram.com/KissSurface.html) aka $ x^2 + y^2 = (1-z)x^4 $
+        - Improve goursat scene
     - Add leafs to l-systems
     - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
 - PBRT Features
-    - Add MipMaps & get infinite area light working correctly. Ooof
-	- MIPMap
-	- InfiniteAreaLight
+    - Work with images better
+	    - ~~MIPMap~~
+            - OctahedralVector
+	    - ~~InfiniteAreaLight~~
+            - CompensatedDistribution
+            - If infinite area light always uses the same width in the lookup... whats the value of a mipmp?
+        - ImageTexture implementation to use MIPMaps
     - ~~Add mediums~~
          - ~~Homogenous medium~~
          - ~~Grid medium~~
          - OpenVDB
-         - Migrate to pbrt v4's medium set up
+         - Migrate to pbrt v4's medium set up (emmissive mediums!)
     - Add bi-linear patches
     - Add sub div surfaces
     - Robustly parse .pbrt scene files
@@ -150,9 +139,10 @@ Render
     - Move the pbrt-v4's sampler structure
         - ~~Sobol~~
         - PaddedSobol
-        - ZSobol
+        - ~~ZSobol~~
         - Does it matter what my hash function is?
 - Scene work
+    - Re run old scenes
     - Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.
     - Add lte-orb scene
     - Improve office scene 
@@ -160,8 +150,13 @@ Render
         - Add in more scene geometry (baseboards? stairs? elevator?)
         - Get reflections in back hallway looking nice and in general floor material
         - Wall material
-- Clean up sloppy stuff
+
+# Clean up 
     - ~~Use y(::Spectrum) and dont hack with mean~~
+    - remove duplicate world_to_X and X_to_world
+    - use more enums?
+    - create a LightCore similar to book
+    - textures to use `evaluate()`
     - Build in rendering passes natively (don't just use 1 spp for rendering passes)
     - Make obj_parser less anemic.
     - Parameterize more stuff
@@ -171,6 +166,10 @@ Render
 # Bugs
 - ~~My world is upside down! Use real pbrt to debug (or pxl-th's)~~
 - Sometimes objects are see through (ie when they have a really bright light behind them)
+- ShapeCore specification bug. what if you spec only a translate? inverse is wrong!
+- Wait do I need to be using ::Radiance and ::Reflectance??? See spectrum
+- General Rotation is fucked. Cloud scene bounding box with rotation dont match. AHHHHHHHH
+    - Maybe not... might have been that hidden `data2medium` transformation. recheck this.
 
 # Ideas
 - ~~Triangles using UInt16 when small enough?~~ I get a very small pay off when I did a quick test.
