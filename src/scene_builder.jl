@@ -1741,7 +1741,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         mat_blue = Matte(
-            ConstantTexture(spectrum_from_float(2.0, 1.0, 2.0)),
+            ConstantTexture(spectrum_from_float(0.2, 1.0, 0.2)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )

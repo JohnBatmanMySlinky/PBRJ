@@ -75,6 +75,7 @@ Render
 
 
 # TODO's
+- RENDER DISNEY CLOUD from PBRTv4
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Testing
@@ -108,6 +109,7 @@ Render
     - Add leafs to l-systems
     - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
 - PBRT Features
+    - Uniform infinite light
     - Work with images better
 	    - ~~MIPMap~~
             - OctahedralVector
