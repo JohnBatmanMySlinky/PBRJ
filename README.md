@@ -109,6 +109,49 @@ Render
     - Add leafs to l-systems
     - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
 - PBRT Features
+    - Float Textures.
+        We could do this as per pxl-th
+        ```
+        const TextureType = Union{Float64, Spectrum}
+        abstract type AbstractTexture end
+        struct ConstantTexture{T <: TextureType} <: Texture
+            value::T
+        end
+        function (c::ConstantTexture{T})(si::SurfaceInteraction)::T where T <: TextureType
+            return c.value
+        end
+        struct MatteMaterial <: Material
+            Kd::Texture  # really this should be spectral
+            sigma::Texture  # really this should be float
+        end
+        ```
+
+        OR since `TextureType` is only a union of 2 we could do
+        ```
+        abstract type Texture end
+        abstract type FloatTexture <: Texture end
+        abstract type SpectrumTexture <: Texture end
+        struct ConstantFloatTexture <: FloatTexture
+            value::Float64
+        end
+        struct ConstantSpectrumTexture <: SpectrumTexture
+            value::Spectrum
+        end
+        struct MatteMaterial{S <: SpectrumTexture, F <: FloatTexture} <: Material
+            Kd::S
+            sigma::F
+        end
+        ```
+
+        With that latter approach... this would be two *instances* of a SpectrumTexture, right?
+        ```
+        struct PlasticMaterial{S <: SpectrumTexture, F <: FloatTexture} <: Material
+            Kd::S
+            Ks::S
+            sigma::F
+        end
+        ```
+
     - Uniform infinite light
     - Work with images better
 	    - ~~MIPMap~~
