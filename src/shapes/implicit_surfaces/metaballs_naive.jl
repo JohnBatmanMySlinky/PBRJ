@@ -13,8 +13,21 @@ struct MetaBalls <: ImplicitSurface
     )
         # TODO 
         # clean and make a simple sphere class
-        centroid = mean(ks)
-        radius = maximum(maximum(Pnt3[abs.(centroid-k) for k in ks]))+R
+
+
+        mi = Pnt3(
+            minimum([k.x for k in ks]),
+            minimum([k.y for k in ks]),
+            minimum([k.z for k in ks]),
+        )
+        ma = Pnt3(
+            maximum([k.x for k in ks]),
+            maximum([k.y for k in ks]),
+            maximum([k.z for k in ks]),
+        )
+        centroid = (mi + ma) ./ 2.0
+        radius = maximum(ma - centroid) + R * 2.5 # JOHN TODO BOUDNING SPHERE IS TOO SMALL IF THIS IS <= 1. So 2.5 it is.
+
         bounding_shere_t = Translate(centroid)
         bounding_sphere_core = ShapeCore(bounding_shere_t, Inv(bounding_shere_t), false, false)
         bounding_sphere = Sphere(bounding_sphere_core, radius)
