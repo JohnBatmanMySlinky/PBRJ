@@ -922,34 +922,35 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         for tri in floor
             push!(primitives, Primitive(tri, mat_gray, nothing))
         end
-        light_scale = 1.5
+        light_location_scale = 1.8
+        light_intensity_scale = 1.3
         spot_light1 = SpotLight(
-            LookAt(light_scale*Pnt3(8, 8, 8), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
-            spectrum_from_float(245.8113403320, 258.6366500854, 200.3887557983 ), 
+            LookAt(light_location_scale * Pnt3(8, 8, 8), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
+            light_intensity_scale * spectrum_from_float(245.8113403320, 258.6366500854, 200.3887557983 ), 
             30.0, 
             5.0
         )
         push!(lights, spot_light1)
 
         spot_light2 = SpotLight(
-            LookAt(light_scale*Pnt3(-10, 5, -10), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
-            spectrum_from_float(200.8113403320, 200.0, 250.3887557983 ), 
+            LookAt(light_location_scale * Pnt3(-10, 5, -10), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
+            light_intensity_scale * spectrum_from_float(200.8113403320, 200.0, 250.3887557983 ), 
             30.0, 
             5.0
         )
         push!(lights, spot_light2)
 
         spot_light3 = SpotLight(
-            LookAt(light_scale*Pnt3(-15, 7, 8), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
-            spectrum_from_float(350.8113403320, 167.6366500854, 297.3887557983 ), 
+            LookAt(light_location_scale * Pnt3(-15, 7, 8), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
+            light_intensity_scale * spectrum_from_float(350.8113403320, 167.6366500854, 297.3887557983 ), 
             30.0, 
             5.0
         )
         push!(lights, spot_light3)
 
         spot_light4 = SpotLight(
-            LookAt(light_scale*Pnt3(5, 20, -5), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
-            spectrum_from_float(260.8113403320, 250.6366500854, 290.3887557983 ), 
+            LookAt(light_location_scale * Pnt3(5, 20, -5), Pnt3(0, 0, 0), Vec3(0,-1,0)), 
+            light_intensity_scale * spectrum_from_float(260.8113403320, 250.6366500854, 290.3887557983 ), 
             30.0, 
             5.0
         )
