@@ -58,7 +58,7 @@ function goursat_bounding_sphere_radius(a::Float64, b::Float64, magic::Float64):
     tmp_solve = (x -> f(a, b, magic, r, x))
 
     # test case 1: the corner
-    r = Ray(Pnt3(0,0,0), Vec3(1.0, 1.0, 1.0), 0, typemax(Float64))
+    r = Ray(Pnt3(0,0,0), Vec3(1.0, 1.0, 1.0), 0.0, typemax(Float64))
     sol1 = find_zeros(tmp_solve, 0.0, 5.0) # a random guess here...
     @assert length(sol1) > 0
 

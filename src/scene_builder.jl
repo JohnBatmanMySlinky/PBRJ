@@ -1,15 +1,15 @@
 """
 scene 1: indoor office ✅
-scene 2: caustic glass ⚠️
+scene 2: caustic glass 🟨
 scene 3: AOIntegrator + dragon ✅
 scene 4: cornell box ✅
-scene 5: soft bodies
-scene 6: goursat
-scene 7: julia logo
-scene 8: an anemic leafless procedural tree
-scene 9: a broken ass orb
-scene 10: a cloud
-scene 11: infinite light show off & material testing
+scene 5: soft bodies ✅
+scene 6: goursat ✅
+scene 7: julia logo ✅
+scene 8: an anemic leafless procedural tree ✅
+scene 9: a broken ass orb 🔴
+scene 10: a cloud ✅
+scene 11: infinite light show off & material testing 🟨
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -1693,7 +1693,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         light = InfiniteLight(
             world_bounds(bvh), 
             l_2_w, 
-            Spectrum(3.0, 3.0, 3.0), 
+            Spectrum(4.0, 4.0, 4.0), 
             "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
         )
         push!(lights, light)

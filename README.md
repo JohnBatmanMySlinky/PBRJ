@@ -54,6 +54,10 @@ Render
 5. Julia logo but with teapots
 
     ![julia_logo](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/julia-logo.png?raw=true)
+
+6. Smoke
+
+    ![smoke](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/smoke.exr?raw=true)
         
 
 # Features Implemented
