@@ -95,7 +95,7 @@ function get_sample_index(zs::ZSobolSampler)::Int64
 
     if (pow_2_samples)
         digit = zs.morton_index & 1
-        sample_index |= digit ⊻ (mix_bits((zs.morton_index >> 1) ^ (0x55555555 * dimension)) & 1)
+        sample_index |= digit ⊻ (mix_bits((zs.morton_index >> 1) ^ (0x55555555 * zs.dimension)) & 1)
     end
     return sample_index
 end

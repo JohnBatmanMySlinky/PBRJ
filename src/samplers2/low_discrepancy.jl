@@ -9,7 +9,7 @@ function sobol_sample(a::Int64, dimension::Int64, rando::Randomizer)::Float64
         i += 1
     end
     v = rando(v)
-    return min(v * 0x1p-32f, 1.0-eps())
+    return min(v * 0x1p-32, 1.0-eps())
 end
 
 function radical_inverse(prime_index::Int64, a::UInt64)::Float64

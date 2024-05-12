@@ -183,3 +183,21 @@ end
 function gamma(n::Int64)::Float64
     return (n * eps()) / (1.0 - n * eps())
 end
+
+function lanczos(x::Float64, tau::Float64)::Float64
+    x = abs(x)
+    if (x < 1.0e-5) 
+        return 1.0
+    elseif (x > 1.0)
+        return 0.0
+    end
+    x *= pi
+    s = sin(x * tau) / (x * tau)
+    l = sin(x) / x
+    return s * l
+end
+
+function log_2_int(v::UInt32)::Int64
+    # JOHN HACK cant I just do floor(log2(v))+1?
+    return 31 - leading_zeros(v)
+end

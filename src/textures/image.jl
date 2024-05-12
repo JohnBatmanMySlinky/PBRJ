@@ -1,52 +1,37 @@
-struct ImageTexture <: Texture
-    data::Matrix{Pnt3}
-    l::Int64
-    w::Int64
-    tile::Pnt2
+# struct TexInfo
+#     filename::String
+#     do_trilinear::Bool
+#     max_anisotropy::Float64
+#     wrap_mode::Int8
+#     scale::Float64
+#     do_gamma::Bool
+# end
 
-    function ImageTexture(path::String, tile::Pnt2=Pnt2(1,1))
-        if lowercase(path[end-3:end]) == ".exr"
-            raw = OpenEXR.load(path)
-        elseif lowercase(path[end-3:end]) in [".png", ".jpg"]
-            raw = load(path)
-        else
-            @assert false "it aint implemented yet"
-        end
-        L, W = size(raw)
-        dat = zeros(Pnt3, L, W)
-        for l in 1:L
-            for w in 1:W
-                c = raw[l,w]
-                dat[l,w] = Pnt3(c.r, c.g, c.b)
-            end
-        end
-        return new(
-            dat,
-            size(dat)[1],
-            size(dat)[2],
-            tile::Pnt2
-        )
-    end
+# struct ImageTexture
+#     mapping::AbstractTextureMapping2D
+#     mipmap::MIPMap
+#     texinfo::TexInfo
 
-    function ImageTexture(val::Pnt3, xdim::Int64, ydim::Int64)
-        dat = zeroes(Pnt3, ydim, xdim)
-        for x in 1:xdim
-            for y in 1:ydim
-                dat[y,x] = val
-            end
-        end
-        return new(dat, y, x, Pnt2(1,1))
-    end
-end
+#     function ImageTexture(
+#         mapping::AbstractTextureMapping2D, 
+#         filename::String,
+#         do_trilinear::Bool,
+#         max_anisotropy::Float64,
+#         wrap_mode::Int8,
+#         scale::Float64,
+#         do_gamma::Bool
+#     )
+#         mipmap = MipMap()
+#         return new(
+#             mapping,
+#             mipmap,
+#             TexInfo(filename, do_trilinear, max_anisotropy, wrap_mode, scale, do_gamma),
+#         )
+#     end
+# end
 
-function (it::ImageTexture)(si::SurfaceInteraction)
-    u, v = si.uv
-    # TODO
-    # fucking bump mapping
-    u = min(do_tile(u, it.tile.x), 1-eps(Float64))
-    v = min(do_tile(v, it.tile.y), 1-eps(Float64))
-
-    L = Int(floor(u*it.l)+1)
-    W = Int(floor(v*it.w)+1)
-    return it.data[L,W]
-end
+# function evaluate(it::ImageTexture, si::SurfaceInteraction)::Spectrum
+#     st, dstdx, dstdy = map(it.mapping, si)
+#     mem = lookup(it.mipmap, st, dstdx, dstdy)
+#     return mem
+# end
