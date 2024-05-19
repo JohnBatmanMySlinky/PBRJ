@@ -26,6 +26,8 @@
 #ifndef NANOVDB_IO_H_HAS_BEEN_INCLUDED
 #define NANOVDB_IO_H_HAS_BEEN_INCLUDED
 
+#define NANOVDB_USE_ZIP
+
 #include "NanoVDB.h"
 #include "GridHandle.h"
 #include "GridChecksum.h"// for updateGridCount
