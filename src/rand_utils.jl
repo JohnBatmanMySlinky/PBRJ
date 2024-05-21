@@ -48,6 +48,10 @@ function cosine_hemisphere_pdf(cos_theta::Float64)::Float64
     return cos_theta / pi
 end
 
+function uniform_sphere_pdf()::Float64
+    return 1.0 / (4.0 * pi)
+end
+
 function uniform_cone_pdf(cos_theta_max::Float64)::Float64
     return 1.0 / (2.0 * pi * (1-cos_theta_max))
 end

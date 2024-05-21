@@ -66,58 +66,6 @@ struct InfiniteLight <: Light
     end
 end
 
-# struct InfiniteLight <: Light
-#     flags::LightFlags
-#     light_to_world::Transformation
-#     world_to_light::Transformation
-#     I::Spectrum
-#     pdf::Distribution2D
-#     map::Matrix{RGBA{Float16}}
-#     world_center::Pnt3
-#     world_radius::Float64
-#     medium::Maybe{Medium}
-    
-#     function InfiniteLight(bounds::Bounds3, light_to_world::Transformation, I::Spectrum, map_url::String)
-#         ident = map_url[end-3:end]
-#         if ident == ".exr"
-#             dat = OpenEXR.load(map_url)
-#         else
-#             @assert false # NOT IMPLEMENTED
-#         end
-
-#         @info "World bounds $(bounds.pMin) - $(bounds.pMax)"
-        
-#         # create im for pdf creation
-#         width, height = 2.0 * size(dat)
-#         fwdith = 0.5 / min(width, height)
-#         im = zeros(width, height)
-#         for v in 1:height
-#             vp = (v + 0.5) / height
-#             sin_theta = sin(pi * (v + 0.5) / height)
-#             for u in 1:width
-#                 up = (u + 0.5) / width
-#                 im[u,v] = dat[u,v] * sin_theta
-#             end
-#         end
-#         pdf = Distribution2D(im)      
-
-#         # get world radius and world center
-#         world_center, world_radius = bounding_sphere(bounds)
-
-#         return new(
-#             LightInfinite,
-#             light_to_world,
-#             Inv(light_to_world),
-#             I,
-#             pdf,
-#             dat,
-#             world_center,
-#             world_radius,
-#             nothing
-#         )
-#     end
-# end
-
 function power(il::InfiniteLight)::Float64
     return pi * il.world_radius * il.world_radius * spectrum_from_float(lookup(il.Lmap, Pnt2(0.5, 0.5), 0.5))
 end
@@ -164,7 +112,7 @@ function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tupl
     radiance = lookup(il.Lmap, uv)
     radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
 
-    return radiance, wi, map_pdf, visibility, Pnt3(0,0,0), Nml3(0,0,0)
+    return radiance, wi, pdf_val, visibility, Pnt3(0,0,0), Nml3(0,0,0)
 end
 
 function pdf_li(il::InfiniteLight, isect::SurfaceInteraction, w::Vec3)::Float64
