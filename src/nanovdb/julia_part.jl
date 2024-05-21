@@ -1,7 +1,7 @@
 # Load the module and generate the functions
 module CppHello
   using CxxWrap
-  @wrapmodule("/Users/johnmyslinski/Documents/openvdb/nanovdb/nanovdb/j_nvdb_build/lib/libtestlib.dylib")
+  @wrapmodule("/Users/johnmyslinski/Documents/PBRJ/src/nanovdb/lib/libtestlib.dylib")
 
   function __init__()
     @initcxx
@@ -9,4 +9,6 @@ module CppHello
 end
 
 # Call greet and show the result
-print(CppHello.magic())
+print("THIS SHOULD BE 5: $(CppHello.greet())\n")
+acc = CppHello.get_accessor()
+print(CppHello.get_value(acc, 99, 0, 0))
