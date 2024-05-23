@@ -9,6 +9,8 @@ module CppHello
 end
 
 # Call greet and show the result
-print("THIS SHOULD BE 5: $(CppHello.greet())\n")
-acc = CppHello.get_accessor()
-print(CppHello.get_value(acc, 99, 0, 0))
+# world = CppHello.World("a", "b")
+# print("$(CppHello.greet_byvalue(world)) - by value\n")
+
+coord = CppHello.Coord(5)
+print("woo hoo $(CppHello.x(coord)[])\n")
