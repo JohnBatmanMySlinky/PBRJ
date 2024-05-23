@@ -17,3 +17,7 @@ print("woo hoo $(CppHello.x(coord)[])\n")
 
 coord = CppHello.Coord(5, 6, 7)
 print("woo hoo $(CppHello.y(coord)[])\n")
+
+
+acc = CppHello.get_accessor_pls()
+print("is it time to cry? $(CppHello.get_value_pls(acc))\n")

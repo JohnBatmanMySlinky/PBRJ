@@ -14,14 +14,36 @@
 //   ~World() { std::cout << "Destroying World with message " << msg << std::endl; }
 // };
 
+#include "IO.h" // this is required to read (and write) NanoVDB files on the host
+/// @note Note This example does NOT depend on OpenVDB (nor CUDA), only NanoVDB.
+nanovdb::DefaultReadAccessor<float> get_accessor_pls()
+{
+    auto handle = nanovdb::io::readGrid("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
+    auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+    if (!grid)
+        throw std::runtime_error("File did not contain a grid with value type float");
+    auto acc = grid->getAccessor(); // create an accessor for fast access to multiple values
+    return acc;
+}
+
+float get_value_pls(nanovdb::DefaultReadAccessor<float> acc)
+{
+    return acc.getValue(nanovdb::Coord(99, 0, 0));
+}
+
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 {
+    mod.add_type<nanovdb::DefaultReadAccessor<float>>("DefaultReadAccessor")
+        .method("get_accessor_pls", &get_accessor_pls)
+        .method("get_value_pls", &get_value_pls);
+
     mod.add_type<nanovdb::Coord>("Coord")
         .constructor<int32_t>()
         .constructor<int32_t, int32_t, int32_t>()
         .method("x", (int32_t (nanovdb::Coord::*)() const) &nanovdb::Coord::x)
         .method("y", (int32_t (nanovdb::Coord::*)() const) &nanovdb::Coord::y)
         .method("z", (int32_t (nanovdb::Coord::*)() const) &nanovdb::Coord::z);
+
 
 
 //   mod.add_type<World>("World")
