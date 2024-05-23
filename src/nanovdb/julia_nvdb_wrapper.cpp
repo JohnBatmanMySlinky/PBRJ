@@ -26,16 +26,36 @@ nanovdb::DefaultReadAccessor<float> get_accessor_pls()
     return acc;
 }
 
-float get_value_pls(nanovdb::DefaultReadAccessor<float> acc)
+const nanovdb::BBox<nanovdb::Vec3d> get_bbox()
 {
-    return acc.getValue(nanovdb::Coord(99, 0, 0));
+    auto handle = nanovdb::io::readGrid("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
+    auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+    return grid->worldBBox();
+}
+
+float get_value_pls(nanovdb::DefaultReadAccessor<float> accessor, nanovdb::Coord coord)
+{
+    return accessor.getValue(coord);
+}
+
+std::tuple<double, double, double> get_bbox_min(nanovdb::BBox<nanovdb::Vec3d> box)
+{
+    nanovdb::Vec3 m = box.min(); 
+    return {m[0], m[1], m[2]};
+}
+std::tuple<double, double, double> get_bbox_max(nanovdb::BBox<nanovdb::Vec3d> box)
+{
+    nanovdb::Vec3 m = box.max(); 
+    return {m[0], m[1], m[2]};
 }
 
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 {
-    mod.add_type<nanovdb::DefaultReadAccessor<float>>("DefaultReadAccessor")
-        .method("get_accessor_pls", &get_accessor_pls)
-        .method("get_value_pls", &get_value_pls);
+
+    mod.add_type<nanovdb::BBox<nanovdb::Vec3d>>("BBox")
+        .method("get_bbox", &get_bbox)
+        .method("get_bbox_max", &get_bbox_max)
+        .method("get_bbox_min", &get_bbox_min);
 
     mod.add_type<nanovdb::Coord>("Coord")
         .constructor<int32_t>()
@@ -44,6 +64,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
         .method("y", (int32_t (nanovdb::Coord::*)() const) &nanovdb::Coord::y)
         .method("z", (int32_t (nanovdb::Coord::*)() const) &nanovdb::Coord::z);
 
+    mod.add_type<nanovdb::DefaultReadAccessor<float>>("DefaultReadAccessor")
+        .method("get_accessor_pls", &get_accessor_pls)
+        .method("get_value_pls", &get_value_pls);
 
 
 //   mod.add_type<World>("World")

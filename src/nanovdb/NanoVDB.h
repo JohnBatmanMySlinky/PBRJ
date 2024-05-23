@@ -3803,7 +3803,7 @@ public:
     ///
     /// @note This method is returning a floating point bounding box and not a CoordBBox. This makes
     ///       it more useful for clipping rays.
-    //__hostdev__ const BBox<CoordType>& indexBBox() const { return this->tree().bbox(); }
+    // __hostdev__ const BBox<CoordType>& indexBBox() const { return this->tree().bbox(); }
 
     /// @brief Return the total number of active voxels in this tree.
     __hostdev__ uint64_t activeVoxelCount() const { return this->tree().activeVoxelCount(); }
