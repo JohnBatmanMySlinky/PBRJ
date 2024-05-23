@@ -16,9 +16,9 @@
 
 #include "IO.h" // this is required to read (and write) NanoVDB files on the host
 /// @note Note This example does NOT depend on OpenVDB (nor CUDA), only NanoVDB.
-nanovdb::DefaultReadAccessor<float> get_accessor_pls()
+nanovdb::DefaultReadAccessor<float> get_accessor_pls(const std::string& fpath)
 {
-    auto handle = nanovdb::io::readGrid("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
+    auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
     auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
     if (!grid)
         throw std::runtime_error("File did not contain a grid with value type float");
@@ -26,9 +26,9 @@ nanovdb::DefaultReadAccessor<float> get_accessor_pls()
     return acc;
 }
 
-const nanovdb::BBox<nanovdb::Vec3d> get_bbox()
+const nanovdb::BBox<nanovdb::Vec3d> get_bbox(const std::string& fpath)
 {
-    auto handle = nanovdb::io::readGrid("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
+    auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
     auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
     return grid->worldBBox();
 }

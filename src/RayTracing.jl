@@ -47,6 +47,7 @@ const SpectrumType = Union{Reflectance, Illuminant}
 
 const ShadowEpsilon::Float64 = 0.00001
 
+include("nanovdb/julia_part.jl")
 include("primes.jl")
 include("samplers2/sobol_matrics.jl")
 include("objects.jl")
@@ -85,6 +86,7 @@ include("interactions.jl")
 include("textures/texture.jl")
 include("transformations.jl")
 include("medium/media2.jl")
+include("medium/media3.jl")
 include("rand_utils.jl")
 include("shapes/shape.jl")
 include("shapes/sphere.jl")

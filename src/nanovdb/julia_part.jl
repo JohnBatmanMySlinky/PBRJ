@@ -1,5 +1,5 @@
 # Load the module and generate the functions
-module CppHello
+module NanoVDB
   using CxxWrap
   @wrapmodule("/Users/johnmyslinski/Documents/PBRJ/src/nanovdb/lib/libtestlib.dylib")
 
@@ -9,24 +9,25 @@ module CppHello
 end
 
 # Call greet and show the result
-# world = CppHello.World("a", "b")
-# print("$(CppHello.greet_byvalue(world)) - by value\n")
-print("=======Coord Test======\n")
-coord = CppHello.Coord(5)
-print("woo hoo $(CppHello.x(coord)[])\n")
-coord = CppHello.Coord(5, 6, 7)
-print("woo hoo $(CppHello.y(coord)[])\n")
+# world = NanoVDB.World("a", "b")
+# print("$(NanoVDB.greet_byvalue(world)) - by value\n")
+# print("=======Coord Test======\n")
+# coord = NanoVDB.Coord(5)
+# print("woo hoo $(NanoVDB.x(coord)[])\n")
+# coord = NanoVDB.Coord(5, 6, 7)
+# print("woo hoo $(NanoVDB.y(coord)[])\n")
 
 
-print("=======Access Test======\n")
-coord = CppHello.Coord(99, 0, 0)
-acc = CppHello.get_accessor_pls()
-print("$(typeof(acc))\n")
-print("is it time to cry? $(CppHello.get_value_pls(acc, coord))\n")
+# print("=======Access Test======\n")
+# coord = NanoVDB.Coord(99, 0, 0)
+# fpath = "/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"
+# acc = NanoVDB.get_accessor_pls(fpath)
+# print("$(typeof(acc))\n")
+# print("is it time to cry? $(NanoVDB.get_value_pls(acc, coord))\n")
 
 
-print("=======BBox Test======\n")
-bbox = CppHello.get_bbox()
-print("$(bbox)\n")
-print("$(CppHello.get_bbox_min(bbox))\n")
-print("$(CppHello.get_bbox_max(bbox))\n")
+# print("=======BBox Test======\n")
+# bbox = NanoVDB.get_bbox(fpath)
+# print("$(bbox)\n")
+# print("$(NanoVDB.get_bbox_min(bbox))\n")
+# print("$(NanoVDB.get_bbox_max(bbox))\n")
