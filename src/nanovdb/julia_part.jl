@@ -14,3 +14,6 @@ end
 
 coord = CppHello.Coord(5)
 print("woo hoo $(CppHello.x(coord)[])\n")
+
+coord = CppHello.Coord(5, 6, 7)
+print("woo hoo $(CppHello.y(coord)[])\n")

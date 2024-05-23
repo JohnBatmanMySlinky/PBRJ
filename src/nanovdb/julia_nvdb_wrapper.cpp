@@ -18,7 +18,10 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 {
     mod.add_type<nanovdb::Coord>("Coord")
         .constructor<int32_t>()
-        .method("x", (int32_t (nanovdb::Coord::*)() const) &nanovdb::Coord::x);
+        .constructor<int32_t, int32_t, int32_t>()
+        .method("x", (int32_t (nanovdb::Coord::*)() const) &nanovdb::Coord::x)
+        .method("y", (int32_t (nanovdb::Coord::*)() const) &nanovdb::Coord::y)
+        .method("z", (int32_t (nanovdb::Coord::*)() const) &nanovdb::Coord::z);
 
 
 //   mod.add_type<World>("World")
