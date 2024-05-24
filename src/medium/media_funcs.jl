@@ -103,9 +103,11 @@ function sample(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::Abstrac
         if density_value * gdm.inv_max_density > get_1D!(sampler)
             # populate mi with medium interaction information and return
             mi = MediumInteraction(at(ray_world, t), ray_world.t, -ray_world.direction, gdm, HenyeyGreenstein(gdm.g))
+            @info "Exiting with $(gdm.sigma_s / gdm.sigma_t)"
             return gdm.sigma_s / gdm.sigma_t, mi
         end
     end
+    @info "Exiting with 1.0"
     return spectrum_from_float(1.0), mi
 end
 
@@ -137,11 +139,13 @@ function tr(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::AbstractSam
         if Tr < rr_threshold
             q = max(.05, 1.0 - Tr)
             if get_1D!(sampler) < q
+                @info "Exiting with 0.0"
                 return spectrum_from_float(0.0)
             end
             Tr /= (1.0 - q)
         end
     end
+    @info "Exiting with $(spectrum_from_float(Tr))"
     return spectrum_from_float(Tr)
 end
 

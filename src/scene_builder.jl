@@ -1717,8 +1717,9 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         light = InfiniteLight(
             world_bounds(bvh), 
             l_2_w, 
-            Spectrum(4.0, 4.0, 4.0), 
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+            Spectrum(3.0, 3.0, 3.0), 
+            # "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+            "/Users/johnmyslinski/Documents/PBRJ/scratch/mipmap/hello.exr"
         )
         push!(lights, light)
 

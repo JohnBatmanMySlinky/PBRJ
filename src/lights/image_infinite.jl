@@ -25,6 +25,7 @@ struct InfiniteLight <: Light
             for w in 1:W
                 i += 1
                 dat2[i] = Spectrum(dat[l,w].r, dat[l,w].g, dat[l,w].b) * LL
+                @info "InfiniteAreaLightCreation: $(i) $(dat[l,w]) $(LL)"
             end
         end
 
@@ -49,10 +50,10 @@ struct InfiniteLight <: Light
             for u in 0:(width-1)
                 up = (u + 0.5) / width
                 im[u + 1, v + 1] = y_spectrum(lookup(Lmap, Pnt2(up, vp), fwidth)) * sin_theta
-                # @info "Infinite Light PDF: $(u), $(v) = $(im[u + 1, v + 1]) --- up: $(up) vp: $(vp) fwidth: $(fwidth)"
+                @info "Infinite Light PDF: $(u), $(v) = $(im[u + 1, v + 1]) = $(lookup(Lmap, Pnt2(up, vp), fwidth)) --- up: $(up) vp: $(vp) fwidth: $(fwidth)"
             end
         end
-        distribution = Distribution2D(im) 
+        distribution = Distribution2D(reshape(im, width, height)) 
         return new(
             Lmap,
             world_center,
@@ -132,6 +133,7 @@ end
 function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
     u = u1
     uv, map_pdf = sample_continuous(il.distribution, u)
+    @info "Sampling Light: UV: $(uv), map_pdf: $(map_pdf)"
     (map_pdf == 0.0) && return spectrum_from_float(0.0), RayDifferential(Ray()), Nml3(0), 0.0, 0.0
 
     theta = uv.y * pi
