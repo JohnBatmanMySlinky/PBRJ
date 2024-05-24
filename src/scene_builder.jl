@@ -1846,9 +1846,15 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         primitives = Primitive[]
         lights = Light[]
 
+        mat_disk = Matte(
+            ConstantTexture(spectrum_from_float(200.0, 200.0, 200.0)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+
         # Bounding sphere cause we hate winding order and such
         box_t = Translate(Pnt3(-1.0, 0.0, -1.2))
-        sphere_transform = Translate(Pnt3(.045, 1.045, -.75))
+        sphere_transform = Translate(Pnt3(-9.984, 73.008, -42.64)) * Scale(Vec3(206.544, 140.4, 254.592))
         sphere = Sphere(
             ShapeCore(
                 sphere_transform,
@@ -1856,11 +1862,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 false,
                 false
             ),
-            1.4
+            1.44224957031
         )
         smoke_mi = MediumInterface(
             NanoVDBMedium(
-                spectrum_from_float(200.0),
+                spectrum_from_float(200.0), # JOHN HACK how do 4 spectrum!
                 spectrum_from_float(400.0),
                 0.877,
                 Pnt3(0.0, 0.0, 0.0),
@@ -1872,6 +1878,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
 
+
+        # a disk too cause why not
+        disk_t = Translate(Pnt3(0, -1000, 0)) * Scale(Vec3(2000, 2000, 2000)) * Rotate(-90.0, Vec3(1, 0, 0))
+        disk = Disk(disk_t, 0.0, 1.0, 0.0, 360.0, false, false)
+        push!(primitives, Primitive(disk, mat_disk, nothing))
+
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
         @time bvh = BVH(primitives)
@@ -1879,13 +1891,16 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # instantiate the infinite light
         l_2_w = Translate(Pnt3(0,0,0))
-        light = InfiniteLight(
+        light = UniformInfiniteLight(
             world_bounds(bvh), 
             l_2_w, 
-            Spectrum(4.0, 4.0, 4.0), 
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+            Spectrum(.03, .07, .23), 
         )
         push!(lights, light)
+
+        world_center, world_radius = bounding_sphere(world_bounds(bvh))
+        dlight = DistantLight(Spectrum(2.6, 2.5, 2.3), Vec3(-0.5826, -0.7660, -0.2717), world_center, world_radius, l_2_w)
+        push!(lights, dlight)
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
@@ -1901,14 +1916,14 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(0.0715308, -4.17677, 5.33558)
-        look_at = Pnt3(0.0720194, -3.57456, 4.60187)
-        up = Vec3(-0.000323605, 0.833706, 0.552208)
+        look_from = Pnt3(648.064, -82.473, -63.856)
+        look_at = Pnt3(6.021, 100.043, -43.679)
+        up = Vec3(0.273, 0.962, -0.009)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 15.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 31.07, film)
 
         # Instantiate a Sampler
-        S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
+        S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))
         print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
         
         # Instantiate Scene

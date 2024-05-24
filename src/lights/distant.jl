@@ -55,7 +55,7 @@ end
 function sample_le(light::DistantLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
     # choose point on disk oriented toward infinite light direction
     w_light, v1, v2 = orthonormal_basis(light.w_light)
-    cd = concentric_sample_disk(u1)
+    cd = random_in_concentric_disk(u1)
     p_disk = light.world_center + light.world_radius + (cd.x * v1 + cd.y * v2)
 
     # set ray origin and direction for infinite light ray
