@@ -154,6 +154,7 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
     @info "Medium Sample Time:\n\tRay Entering: $(ray_world)\n"
     ray = nvm.world_to_medium(Ray(ray_world.origin, normalize(ray_world.direction), 0.0, ray_world.tMax * length_pbrt(ray_world.direction)))
     @info "\tRay Transformed: $(ray)\n" 
+    @info "\tInv Max Density: $(nvm.inv_max_density) :: $(nvm.sigma_s) :: $(nvm.sigma_t)"
 
     # JOHN HACK
     mi = nothing
@@ -163,25 +164,81 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
     if !check
         return spectrum_from_float(1.0), mi
     end
-    @info "we are within bounds"
+    @info "we are within bounds. tmin $(tmin), tmax $(tmax)"
+
+    stupid_lil_adj = tmax - tmin
+    N_SAMPLE_ITER = 0
+    CAP = 100
 
     t = tmin
     while true
-        t -= log(1 - get_1D!(sampler)) * nvm.inv_max_density / nvm.sigma_t
-        # @info "medium sample: $(t)"
+        N_SAMPLE_ITER += 1
+        if N_SAMPLE_ITER > CAP
+            break
+        end
+
+        t -= log(1 - get_1D!(sampler)) * stupid_lil_adj * nvm.inv_max_density / nvm.sigma_t
+        @info "medium sample: $(t)"
         if t >= tmax
             break
         end
         density_value = density(nvm, at(ray, t))
-        # @info "Density at $(at(ray, t)) is $(density_value)"
+        @info "Density at $(at(ray, t)) is $(density_value)"
         if density_value * nvm.inv_max_density > get_1D!(sampler)
             # populate mi with medium interaction information and return
             mi = MediumInteraction(at(ray_world, t), ray_world.t, -ray_world.direction, nvm, HenyeyGreenstein(nvm.g))
+            # print("N_SAMPLE_ITER $(N_SAMPLE_ITER)\n")
             return nvm.sigma_s / nvm.sigma_t, mi
         end
     end
+    # print("N_SAMPLE_ITER $(N_SAMPLE_ITER)\n")
     return spectrum_from_float(1.0), mi
 end
+
+function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Spectrum
+    @info "Medium Tr Time:\n\tRay Entering: $(ray_world)\n"
+    ray = nvm.world_to_medium(Ray(ray_world.origin, normalize(ray_world.direction), 0.0, ray_world.tMax * length_pbrt(ray_world.direction)))
+    @info "\tRay Transformed: $(ray)\n"    
+
+    # Compute $[\tmin, \tmax]$ interval of _ray_'s overlap with medium bounds
+    check, tmin, tmax = intersect_p(nvm.bounds, ray)
+    if !check
+        return spectrum_from_float(1.0)
+    end
+
+    # Perform ratio tracking to estimate transmittance value
+    stupid_lil_adj = tmax - tmin
+    N_SAMPLE_ITER = 0
+    CAP = 100
+
+    Tr = 1.0
+    t = tmin
+    while true
+        N_SAMPLE_ITER += 1
+        if N_SAMPLE_ITER > CAP
+            break
+        end
+        t -= log(1-get_1D!(sampler)) * stupid_lil_adj * nvm.inv_max_density / nvm.sigma_t
+        if t >= tmax
+            break
+        end
+        density_val = density(nvm, at(ray, t))
+        @info "\tRay Density at $(at(ray, t)) is $(density_val)"
+        Tr *= 1.0 - max(0.0, density_val * nvm.inv_max_density)
+        rr_threshold = 0.1
+        if Tr < rr_threshold
+            q = max(.05, 1.0 - Tr)
+            if get_1D!(sampler) < q
+                # print("N_SAMPLE_ITER $(N_SAMPLE_ITER)\n")
+                return spectrum_from_float(0.0)
+            end
+            Tr /= (1.0 - q)
+        end
+    end
+    # print("N_SAMPLE_ITER $(N_SAMPLE_ITER)\n")
+    return spectrum_from_float(Tr)
+end
+
 
 function D(nvm::NanoVDBMedium, p::Pnt3)::Float64
     return NanoVDB.get_value_pls(nvm.accessor, NanoVDB.Coord(Int64(p.x), Int64(p.y), Int64(p.z)))
