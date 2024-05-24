@@ -9,7 +9,7 @@ scene 7: julia logo ✅
 scene 8: an anemic leafless procedural tree ✅
 scene 9: a broken ass orb 🔴
 scene 10: a cloud ✅
-scene 11: infinite light show off & material testing 🟨
+scene 11: infinite light show off & material testing ✅
 scene 12: DISNEY CLOUD
 """
 
