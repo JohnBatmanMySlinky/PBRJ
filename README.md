@@ -81,6 +81,7 @@ Render
 # TODO's
 - RENDER DISNEY CLOUD from PBRTv4
     - implement a Pnt3 but it's Ints not Float to avoid some conversions
+    - implement a pbrtv4 to RGB script
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Testing

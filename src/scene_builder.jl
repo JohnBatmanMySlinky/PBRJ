@@ -1847,7 +1847,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         lights = Light[]
 
         mat_disk = Matte(
-            ConstantTexture(spectrum_from_float(200.0, 200.0, 200.0)),
+            ConstantTexture(spectrum_from_float(1045.1413945275988, 341.8281563112679, 109.37155185817967)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
@@ -1866,8 +1866,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         smoke_mi = MediumInterface(
             NanoVDBMedium(
-                spectrum_from_float(200.0), # JOHN HACK how do 4 spectrum!
-                spectrum_from_float(400.0),
+                spectrum_from_float(1045.1423500316464, 341.7026745140881, 109.35034483082013),
+                spectrum_from_float(1045.1375725114108, 342.33008349998653, 109.45637996761785),
                 0.877,
                 Pnt3(0.0, 0.0, 0.0),
                 Pnt3(1.0, 1.0, 1.0),
