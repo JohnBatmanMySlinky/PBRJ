@@ -149,13 +149,13 @@ function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spe
     _, v1, v2 = orthonormal_basis(-d)
     cd = random_in_concentric_disk(u2)
     p_disk = il.world_center + il.world_radius * (cd.x * v1 + cd.y * v2)
-    ray = RayDifferential(Ray(p_disk + il.world_radius * -d, d, typemax(Float64), t))
+    ray = RayDifferential(Ray(p_disk + il.world_radius * -d, d, t, typemax(Float64)))
 
     pdf_dir = sin_theta == 0.0 ? 0.0 : map_pdf / (2 * pi * pi * sin_theta)
     pdf_pos = 1.0 / (pi * il.world_radius * il.world_radius)
     radiance = lookup(il.Lmap, uv)
     radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
-    return radiance, ray, nlight, pdf_dir, pdf_pos
+    return radiance, ray, nlight, pdf_pos, pdf_dir
 end
 
 function pdf_le(il::InfiniteLight, ray::RayDifferential, n::Nml3)::Tuple{Float64, Float64}
