@@ -14,12 +14,33 @@ struct NanoVDBMedium <: AbstractMedium
         tmp = Inv(medium_to_world * data_to_medium)
         @info "WTF IS THIS TRANSFORM: $(tmp)"
 
+        bbox = NanoVDB.get_bbox(fpath)
+        bboxmin = floor.(NanoVDB.get_bbox_min(bbox))
+        bboxmax = ceil.(NanoVDB.get_bbox_max(bbox))
+        delta = bboxmax - bboxmin
+
         accessor = NanoVDB.get_accessor_pls(fpath)
-        @info "inv max density: $(inv_max_density)"
+        max_density = 0.0
+        resolution = 64
+        for x in 1:resolution
+            for y in 1:resolution
+                for z in 1:resolution
+                    c = NanoVDB.Coord(
+                        Int(x * delta.x / resolution + bboxmin.x),
+                        Int(y * delta.y / resolution + bboxmin.y),
+                        Int(z * delta.z / resolution + bboxmin.z),
+                    )
+                    val = get_value_pls(accessor, c)
+                    max_density = max(max_density, val)
+                end
+            end
+        end
+
+        @info "inv max density: $(1.0/max_density)"
 
         return new(
             sigma_a, sigma_s, g, tmp, 
-            accessor, (sigma_a + sigma_s)[0+1], inv_max_density
+            accessor, (sigma_a + sigma_s)[0+1], 1.0 / max_density
         )
     end
 end

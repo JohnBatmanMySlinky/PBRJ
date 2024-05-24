@@ -139,8 +139,48 @@ function tr(gdm::GridDensityMedium, ray_world::AbstractRay, sampler::AbstractSam
             if get_1D!(sampler) < q
                 return spectrum_from_float(0.0)
             end
-            Tr /= 1.0 - q
+            Tr /= (1.0 - q)
         end
     end
     return spectrum_from_float(Tr)
+end
+
+
+###############
+### NanoVDB ###
+###############
+
+function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Tuple{Spectrum, Maybe{MediumInteraction}}
+    @info "Medium Sample Time:\n\tRay Entering: $(ray_world)\n"
+    ray = gdm.world_to_medium(Ray(ray_world.origin, normalize(ray_world.direction), 0.0, ray_world.tMax * length_pbrt(ray_world.direction)))
+    @info "\tRay Transformed: $(ray)\n" 
+
+    # JOHN HACK
+    mi = nothing
+
+    # compute the [t_min, t_max] interval of ray's overlap with the medium bounds
+    # JOHN HACK SKIPPING FOR NanoVDBMedium
+    # b = Bounds3(Pnt3(0,0,0), Pnt3(1,1,1))
+    # check, tmin, tmax = intersect_p(b, ray)
+    # if !check
+    #     return spectrum_from_float(1.0), mi
+    # end
+    # @info "we are within bounds"
+
+    t = tmin
+    while true
+        t -= log(1 - get_1D!(sampler)) * gdm.inv_max_density / gdm.sigma_t
+        # @info "medium sample: $(t)"
+        if t >= tmax
+            break
+        end
+        density_value = density(gdm, at(ray, t))
+        # @info "Density at $(at(ray, t)) is $(density_value)"
+        if density_value * gdm.inv_max_density > get_1D!(sampler)
+            # populate mi with medium interaction information and return
+            mi = MediumInteraction(at(ray_world, t), ray_world.t, -ray_world.direction, gdm, HenyeyGreenstein(gdm.g))
+            return gdm.sigma_s / gdm.sigma_t, mi
+        end
+    end
+    return spectrum_from_float(1.0), mi
 end
