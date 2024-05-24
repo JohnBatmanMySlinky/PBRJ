@@ -40,7 +40,7 @@ float get_value_pls(nanovdb::DefaultReadAccessor<float> accessor, nanovdb::Coord
 
 std::tuple<double, double, double> get_bbox_min(nanovdb::BBox<nanovdb::Vec3d> box)
 {
-    nanovdb::Vec3 m = box.min(); 
+    nanovdb::Vec3 m = box.min();
     return {m[0], m[1], m[2]};
 }
 std::tuple<double, double, double> get_bbox_max(nanovdb::BBox<nanovdb::Vec3d> box)

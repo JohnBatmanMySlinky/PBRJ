@@ -63,10 +63,10 @@ function sample_le(il::UniformInfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tu
     # choose point on disk oriented toward infinite light direction
     w, v1, v2 = orthonormal_basis(w)
     cd = random_in_concentric_disk(u1)
-    p_disk = il.world_center + il.world_radius + (cd.x * v1 + cd.y * v2)
+    p_disk = il.world_center .+ il.world_radius + (cd.x * v1 + cd.y * v2)
 
     # set ray origin and direction for infinite light ray
-    ray = Ray(p_disk + w.world_radius * w, -Nml3(w), t, typemax(Float64))
+    ray = RayDifferential(Ray(p_disk + il.world_radius * w, -w, t, typemax(Float64)))
     pdf_pos = 1.0 / (pi * il.world_radius^2)
     pdf_dir = uniform_sphere_pdf()
     return il.Lemit, ray, Nml3(ray.direction), pdf_pos, pdf_dir
