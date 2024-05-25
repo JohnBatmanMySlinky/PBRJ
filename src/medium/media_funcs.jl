@@ -170,9 +170,9 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
     end
     @info "we are within bounds. tmin $(tmin), tmax $(tmax)"
 
-    stupid_lil_adj = tmax - tmin
+    stupid_lil_adj = (tmax - tmin) / 100
     N_SAMPLE_ITER = 0
-    CAP = 100
+    CAP = 1_000
 
     t = tmin
     while true
@@ -211,9 +211,9 @@ function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler
     end
 
     # Perform ratio tracking to estimate transmittance value
-    stupid_lil_adj = tmax - tmin
+    stupid_lil_adj = (tmax - tmin) / 100
     N_SAMPLE_ITER = 0
-    CAP = 100
+    CAP = 1_000
 
     Tr = 1.0
     t = tmin

@@ -82,6 +82,11 @@ Render
 - RENDER DISNEY CLOUD from PBRTv4
     - implement a Pnt3 but it's Ints not Float to avoid some conversions
     - implement a pbrtv4 to RGB script
+    - `sample` and `tr` are the issue. steps are too small.
+        - measure how many steps are taken in pbrtv4 or julia on on other cloud to benchmark how many steps are too many steps
+        - validate max density!
+    - SimplePathIntegrator
+    - VolPathIntegrator
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Testing

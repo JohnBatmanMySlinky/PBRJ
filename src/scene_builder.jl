@@ -10,7 +10,7 @@ scene 8: an anemic leafless procedural tree ✅
 scene 9: a broken ass orb 🔴
 scene 10: a cloud ✅
 scene 11: infinite light show off & material testing ✅
-scene 12: DISNEY CLOUD
+scene 12: DISNEY CLOUD 🔴 NanoVDB is NOT BEHAVING
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -1848,13 +1848,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         lights = Light[]
 
         mat_disk = Matte(
-            ConstantTexture(spectrum_from_float(1045.1413945275988, 341.8281563112679, 109.37155185817967)),
+            ConstantTexture(spectrum_from_float(0.2, 0.2, 0.2)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
 
         # Bounding sphere cause we hate winding order and such
-        box_t = Translate(Pnt3(-1.0, 0.0, -1.2))
+        smoke_t = Translate(Pnt3(0.0, 0.0, 0.0))
         sphere_transform = Translate(Pnt3(-9.984, 73.008, -42.64)) * Scale(Vec3(206.544, 140.4, 254.592))
         sphere = Sphere(
             ShapeCore(
@@ -1867,12 +1867,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         smoke_mi = MediumInterface(
             NanoVDBMedium(
-                spectrum_from_float(1045.1423500316464, 341.7026745140881, 109.35034483082013),
-                spectrum_from_float(1045.1375725114108, 342.33008349998653, 109.45637996761785),
+                spectrum_from_float(10.0),
+                spectrum_from_float(90.0),
                 0.877,
                 Pnt3(0.0, 0.0, 0.0),
                 Pnt3(1.0, 1.0, 1.0),
-                box_t,
+                smoke_t,
                 "/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"
             ),
             nothing
@@ -1900,7 +1900,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(lights, light)
 
         world_center, world_radius = bounding_sphere(world_bounds(bvh))
-        dlight = DistantLight(Spectrum(2.6, 2.5, 2.3), Vec3(-0.5826, -0.7660, -0.2717), world_center, world_radius, l_2_w)
+        dlight = DistantLight(Spectrum(2.6, 2.5, 2.3), -Vec3(-0.5826, -0.7660, -0.2717), world_center, world_radius, l_2_w)
         push!(lights, dlight)
 
         # Instantiate a Filter
@@ -1921,7 +1921,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         look_at = Pnt3(6.021, 100.043, -43.679)
         up = Vec3(0.273, 0.962, -0.009)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 31.07, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 21.07, film)
 
         # Instantiate a Sampler
         S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))
