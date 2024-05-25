@@ -13,6 +13,10 @@ julia -t 4 RayTracing.jl \
 --n-spectral-samples 10 \
 --file-name "test.png"
 ```
+## NanoVDB Bindings
+> Don't judge me. It works (well, it will work eventually. probably.)
+
+If you want to use [NanoVDB](https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb), you'll need to `cd src/nanovdb && sh INSTALL.sh`. That should probably work, assuming you're on a mac.
 
 # Scene Specification
 Scenes are specified within `src/scene_builder.jl`.
@@ -81,6 +85,8 @@ Render
     - `sample` and `tr` are the issue. steps are too small.
         - measure how many steps are taken in pbrtv4 or julia on on other cloud to benchmark how many steps are too many steps
         - validate max density!
+    - just cause I am using `DefaultReadAccessorAllocated` doesn't mean I should be.
+    - what is this `SampleFromVoxels.h` ???
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Testing

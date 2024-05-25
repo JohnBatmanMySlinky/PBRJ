@@ -23,11 +23,9 @@ end
 
 # print("=======Access Test======\n")
 # coord = NanoVDB.Coord(99, 0, 0)
-# fpath = "/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"
-# acc = NanoVDB.get_accessor_pls(fpath)
-# print("$(typeof(acc))\n")
-# print("is it time to cry? $(NanoVDB.get_value_pls(acc, coord))\n")
-# @btime NanoVDB.get_value_pls(acc, coord)
+fpath = "/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"
+grid = NanoVDB.get_gridhandle_pls(fpath)
+print(grid)
 
 
 # print("=======BBox Test======\n")

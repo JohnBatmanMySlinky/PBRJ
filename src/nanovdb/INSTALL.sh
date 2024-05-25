@@ -1,3 +1,4 @@
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/Users/johnmyslinski/.julia/artifacts/eb9099719fd3959a5d4f2e7f445657537479e22c /Users/johnmyslinski/Documents/PBRJ/src/nanovdb
+PATH1=$(julia -e 'using CxxWrap; print(CxxWrap.prefix_path())')
+PATH2=$(pwd)
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=$PATH1 $PATH2
 cmake --build . --config Release
-julia julia_part.jl

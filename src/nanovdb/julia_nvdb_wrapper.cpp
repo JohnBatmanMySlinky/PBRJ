@@ -16,14 +16,15 @@
 
 #include "IO.h" // this is required to read (and write) NanoVDB files on the host
 /// @note Note This example does NOT depend on OpenVDB (nor CUDA), only NanoVDB.
-nanovdb::DefaultReadAccessor<float> get_accessor_pls(const std::string& fpath)
+nanovdb::GridHandle<nanovdb::HostBuffer> get_gridhandle_pls(const std::string& fpath)
 {
     auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
-    auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
-    if (!grid)
-        throw std::runtime_error("File did not contain a grid with value type float");
-    auto acc = grid->getAccessor(); // create an accessor for fast access to multiple values
-    return acc;
+    // auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+    // if (!grid)
+    //     throw std::runtime_error("File did not contain a grid with value type float");
+    // auto acc = grid->getAccessor(); // create an accessor for fast access to multiple values
+    // return acc;
+    return handle;
 }
 
 const nanovdb::BBox<nanovdb::Vec3d> get_bbox(const std::string& fpath)
@@ -51,6 +52,7 @@ std::tuple<double, double, double> get_bbox_max(nanovdb::BBox<nanovdb::Vec3d> bo
 
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 {
+    mod.add_type<nanovdb::GridHandle<nanovdb::HostBuffer>>("GridHandle");
 
     mod.add_type<nanovdb::BBox<nanovdb::Vec3d>>("BBox")
         .method("get_bbox", &get_bbox)
@@ -65,7 +67,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
         .method("z", (int32_t (nanovdb::Coord::*)() const) &nanovdb::Coord::z);
 
     mod.add_type<nanovdb::DefaultReadAccessor<float>>("DefaultReadAccessor")
-        .method("get_accessor_pls", &get_accessor_pls)
+        .method("get_gridhandle_pls", &get_gridhandle_pls)
         .method("get_value_pls", &get_value_pls);
 
 
