@@ -59,34 +59,28 @@ Render
 
     ![smoke](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/smoke.exr?raw=true)
         
-
 # Features Implemented
 - BVH accelerator
 - Perspective camera
 - Edge-avoiding a-trous denoising
 - BDPT, ambient occlusion, path & whitted integrators
-- Area, distant, infinite, point, and spot lights
+- Area, distant, image infinite, uniform infinite, point, and spot lights
 - Glass, matte, metal, mirror, plastic, and substrate materials
 - Stratified and sobol sampling 
 - Box, cylindar, disk, rectangle, sphere, and triangle shapes
 - Very basic L-system
 - Implicit surfaces: Goursat surface & metaballs
-- Participating mediums (homogenous & grid)
+- Participating mediums: Homogenous, Grid, and NanoVDB
 - RGB & spectral rendering
 - Constant, image, mixed, procedural and mixed textures
-- Mipmaps
+- MIPMap
 - Logging
-
 
 # TODO's
 - RENDER DISNEY CLOUD from PBRTv4
-    - implement a Pnt3 but it's Ints not Float to avoid some conversions
-    - implement a pbrtv4 to RGB script
     - `sample` and `tr` are the issue. steps are too small.
         - measure how many steps are taken in pbrtv4 or julia on on other cloud to benchmark how many steps are too many steps
         - validate max density!
-    - SimplePathIntegrator
-    - VolPathIntegrator
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Testing
@@ -100,9 +94,10 @@ Render
     - ~~WHERE ARE THE FIREFLIES COMING FROM~~
     - add a sphere with substrate material to test scene
     - add test scene file to repo
-    - testing something with an infite env light
+    - ~~testing something with an infite env light~~ Got smoke.exr looking great!
     - Copy my `*.pbrt`'s over to here
 - Performance
+    - implement a Pnt3 but it's Ints not Float to avoid some conversions
     - Create a simple sample scene in Trace.jl and benchmark. Because my testing is showing no performance benefit from Float32 and Parametric Typing
         - TYPE MORE CONCRETELY, use a NB and copy pxl-th
         - Convert to Float32
@@ -119,8 +114,11 @@ Render
         - Improve goursat scene
     - Add leafs to l-systems
     - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
+    - implement a pbrtv4 to RGB script
 - PBRT Features
-    - Float Textures.
+    - SimplePathIntegrator
+    - VolPathIntegrator
+    - Parameterized Textures: Float & Spectrum
         We could do this as per pxl-th
         ```
         const TextureType = Union{Float64, Spectrum}
@@ -163,7 +161,7 @@ Render
         end
         ```
 
-    - Uniform infinite light
+    - ~~Uniform infinite light~~
     - Work with images better
 	    - ~~MIPMap~~
             - OctahedralVector
@@ -175,7 +173,6 @@ Render
          - ~~Homogenous medium~~
          - ~~Grid medium~~
          - OpenVDB
-         - Migrate to pbrt v4's medium set up (emmissive mediums!)
     - Add bi-linear patches
     - Add sub div surfaces
     - Robustly parse .pbrt scene files
@@ -194,18 +191,19 @@ Render
         - ~~for final image~~
     - Move the pbrt-v4's sampler structure
         - ~~Sobol~~
-        - PaddedSobol
+        - ~~PaddedSobol~~
         - ~~ZSobol~~
         - Does it matter what my hash function is?
 - Scene work
     - Re run old scenes
-    - Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.
+    - ~~Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.~~
     - Add lte-orb scene
     - Improve office scene 
         - Add more walls (left wall corner)
         - Add in more scene geometry (baseboards? stairs? elevator?)
         - Get reflections in back hallway looking nice and in general floor material
         - Wall material
+        - use image texture!
 
 # Clean up 
     - ~~Use y(::Spectrum) and dont hack with mean~~
