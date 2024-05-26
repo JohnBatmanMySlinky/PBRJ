@@ -21,23 +21,7 @@ struct NanoVDBMedium <: AbstractMedium
         delta = bboxmax - bboxmin
 
         accessor = NanoVDB.get_accessor_pls(fpath)
-        max_density = 0.0
-        resolution = 64
-        for x in 1:resolution
-            for y in 1:resolution
-                for z in 1:resolution
-                    c = NanoVDB.Coord(
-                        Int(floor(x * delta.x / resolution + bboxmin.x)), # JOHN HACK
-                        Int(floor(y * delta.y / resolution + bboxmin.y)),
-                        Int(floor(z * delta.z / resolution + bboxmin.z)),
-                    )
-                    val = NanoVDB.get_value_pls(accessor, c)
-                    max_density = max(max_density, val)
-                end
-            end
-        end
-
-        @info "inv max density: $(1.0/max_density)"
+        _, max_density = NanoVDB.get_extrema(fpath)
 
         return new(
             sigma_a, sigma_s, g, tmp, 

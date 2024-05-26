@@ -173,6 +173,7 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
     stupid_lil_adj = (tmax - tmin) / 100
     N_SAMPLE_ITER = 0
     CAP = 1_000
+    # print("Suffering in sampling...\n")
 
     t = tmin
     while true
@@ -214,6 +215,7 @@ function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler
     stupid_lil_adj = (tmax - tmin) / 100
     N_SAMPLE_ITER = 0
     CAP = 1_000
+    # print("Suffering in tr...\n")
 
     Tr = 1.0
     t = tmin

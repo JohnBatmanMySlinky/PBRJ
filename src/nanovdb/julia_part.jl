@@ -21,15 +21,23 @@ end
 # print("woo hoo $(NanoVDB.y(coord)[])\n")
 
 
-# print("=======Access Test======\n")
-# coord = NanoVDB.Coord(99, 0, 0)
+print("=======Access Test======\n")
+coord = NanoVDB.Coord(99, 0, 0)
 fpath = "/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"
-grid = NanoVDB.get_gridhandle_pls(fpath)
-print(grid)
+acc = NanoVDB.get_accessor_pls(fpath)
+print("$(NanoVDB.get_value_pls(acc, coord))\n")
 
 
-# print("=======BBox Test======\n")
-# bbox = NanoVDB.get_bbox(fpath)
-# print("$(bbox)\n")
-# print("$(NanoVDB.get_bbox_min(bbox))\n")
-# print("$(NanoVDB.get_bbox_max(bbox))\n")
+print("=======BBox Test======\n")
+bbox = NanoVDB.get_bbox(fpath)
+print("$(NanoVDB.get_bbox_min(bbox))\n")
+print("$(NanoVDB.get_bbox_max(bbox))\n")
+
+print("=======MaxDensity Test======\n")
+min_density, max_density = NanoVDB.get_extrema(fpath)
+print("$(max_density)\n")
+
+print("=======John Test============\n")
+john = NanoVDB.make_John(fpath)
+print(john)
+
