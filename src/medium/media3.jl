@@ -3,7 +3,7 @@ struct NanoVDBMedium <: AbstractMedium
     sigma_s::Spectrum
     g::Float64
     world_to_medium::Transformation
-    accessor::NanoVDB.DefaultReadAccessorAllocated
+    density_float_grid::NanoVDB.NanoVDBWrapperAllocated
     sigma_t::Float64
     inv_max_density::Float64
     bounds::Bounds3
@@ -15,18 +15,14 @@ struct NanoVDBMedium <: AbstractMedium
         tmp = Inv(medium_to_world * data_to_medium)
         @info "WTF IS THIS TRANSFORM: $(tmp)"
 
-        bbox = NanoVDB.get_bbox(fpath)
-        bboxmin = floor.(Pnt3(NanoVDB.get_bbox_min(bbox)))
-        bboxmax = ceil.(Pnt3(NanoVDB.get_bbox_max(bbox)))
-        delta = bboxmax - bboxmin
-
-        accessor = NanoVDB.get_accessor_pls(fpath)
-        _, max_density = NanoVDB.get_extrema(fpath)
+        density_float_grid = NanoVDB.make_NanoVDBWrapper(fpath)
+        a, b, c, d, e, f = NanoVDB.get_WorldBBox(density_float_grid)
+        _, max_density = NanoVDB.get_extrema(density_float_grid)
 
         return new(
             sigma_a, sigma_s, g, tmp, 
             accessor, (sigma_a + sigma_s)[0+1], 
-            1.0 / max_density, Bounds3(bboxmin, bboxmax)
+            1.0 / max_density, Bounds3(Pnt3(a, b, c), Pnt3(d, e, f))
         )
     end
 end

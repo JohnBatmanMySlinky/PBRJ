@@ -170,34 +170,13 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
     end
     @info "we are within bounds. tmin $(tmin), tmax $(tmax)"
 
-    stupid_lil_adj = (tmax - tmin) / 100
-    N_SAMPLE_ITER = 0
-    CAP = 1_000
-    # print("Suffering in sampling...\n")
-
-    t = tmin
-    while true
-        N_SAMPLE_ITER += 1
-        if N_SAMPLE_ITER > CAP
-            break
-        end
-
-        t -= log(1 - get_1D!(sampler)) * stupid_lil_adj * nvm.inv_max_density / nvm.sigma_t
-        @info "medium sample: $(t)"
-        if t >= tmax
-            break
-        end
-        density_value = density(nvm, at(ray, t))
-        @info "Density at $(at(ray, t)) is $(density_value)"
-        if density_value * nvm.inv_max_density > get_1D!(sampler)
-            # populate mi with medium interaction information and return
-            mi = MediumInteraction(at(ray_world, t), ray_world.t, -ray_world.direction, nvm, HenyeyGreenstein(nvm.g))
-            # print("N_SAMPLE_ITER $(N_SAMPLE_ITER)\n")
-            return nvm.sigma_s / nvm.sigma_t, mi
-        end
+    flag, new_t = sample_NanoVDBWrapper(tmin, tmax, inverse_max_density, sigma_t, ray.origin, ray.direction)
+    if flag
+        return spectrum_from_float(1.0), mi
+    else
+        mi = MediumInteraction(at(ray_world, new_t), ray_world.t, -ray_world.direction, nvm, HenyeyGreenstein(nvm.g))
+        return nvm.sigma_s / nvm.sigma_t, mi
     end
-    # print("N_SAMPLE_ITER $(N_SAMPLE_ITER)\n")
-    return spectrum_from_float(1.0), mi
 end
 
 function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Spectrum
