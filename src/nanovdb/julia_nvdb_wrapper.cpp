@@ -104,6 +104,42 @@ class NanoVDBWrapper {
                     }
                 }
         }
+        std::tuple<bool, float> transmittance_NanoVDBWrapper(
+            float t,
+            float tmax,
+            float inv_max_density,
+            float sigma_t,
+            nanovdb::Vec3 rayo,
+            nanovdb::rayd) {
+                float Tr = 1.0;
+
+                // random number stuff
+                std::random_device rd;  // Will be used to obtain a seed for the random number engine
+                std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
+                std::uniform_real_distribution<> dis(0.0, 1.0); // Define the range [0, 1)
+
+
+                // accessor
+                auto acc = densityFloatGrid->getAccessor();
+
+                while true {
+                    t -= log(1.0 - dis(gen)) * inv_max_density / sigma_t;
+                    if t >= tmax {
+                        return {false, Tr}
+                    }
+                    nanovdb::Coord coord = at(rayo, rayd, t);
+                    float density_value = acc.getValue(coord);
+                    Tr *= 1.0 - max(0.0, density_value * inv_max_density);
+                    float rr_threshold = 0.1;
+                    if Tr < rr_threshold {
+                        q = max(0.05, 1.0 - Tr)
+                        if dis(gen) < q {
+                            return {true, 0.0}
+                        }
+                        Tr /= (1.0 - q)
+                    }
+                }
+            }
     private:
         const nanovdb::FloatGrid* densityFloatGrid = nullptr;
 };
