@@ -60,6 +60,11 @@
 // }
 
 // aight what if i create a dumy class
+
+float at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
+    return rayo + (rayd * t);
+}
+
 class NanoVDBWrapper {
     public:
         NanoVDBWrapper(nanovdb::FloatGrid* densityFloatGrid) : densityFloatGrid(densityFloatGrid) {}
@@ -93,7 +98,7 @@ class NanoVDBWrapper {
                 auto acc = densityFloatGrid->getAccessor();
 
                 while true {
-                    t =- log(1.0 - dis(gen)) * inv_max_density / sigma_t;
+                    t =- std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
                     if t > tmax {
                         return {true, t};
                     }
@@ -104,13 +109,13 @@ class NanoVDBWrapper {
                     }
                 }
         }
-        std::tuple<bool, float> transmittance_NanoVDBWrapper(
+        float transmittance_NanoVDBWrapper(
             float t,
             float tmax,
             float inv_max_density,
             float sigma_t,
-            nanovdb::Vec3 rayo,
-            nanovdb::rayd) {
+            nanovdb::Vec3d rayo,
+            nanovdb::Vec3d rayd) {
                 float Tr = 1.0;
 
                 // random number stuff
@@ -123,18 +128,18 @@ class NanoVDBWrapper {
                 auto acc = densityFloatGrid->getAccessor();
 
                 while true {
-                    t -= log(1.0 - dis(gen)) * inv_max_density / sigma_t;
+                    t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
                     if t >= tmax {
-                        return {false, Tr}
+                        return {true, Tr}
                     }
                     nanovdb::Coord coord = at(rayo, rayd, t);
                     float density_value = acc.getValue(coord);
                     Tr *= 1.0 - max(0.0, density_value * inv_max_density);
                     float rr_threshold = 0.1;
                     if Tr < rr_threshold {
-                        q = max(0.05, 1.0 - Tr)
+                        q = std::max(0.05, 1.0 - Tr)
                         if dis(gen) < q {
-                            return {true, 0.0}
+                            return {false, 0.0}
                         }
                         Tr /= (1.0 - q)
                     }

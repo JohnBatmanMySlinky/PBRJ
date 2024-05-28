@@ -190,37 +190,11 @@ function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler
         return spectrum_from_float(1.0)
     end
 
-    # Perform ratio tracking to estimate transmittance value
-    stupid_lil_adj = (tmax - tmin) / 100
-    N_SAMPLE_ITER = 0
-    CAP = 1_000
-    # print("Suffering in tr...\n")
-
-    Tr = 1.0
-    t = tmin
-    while true
-        N_SAMPLE_ITER += 1
-        if N_SAMPLE_ITER > CAP
-            break
-        end
-        t -= log(1-get_1D!(sampler)) * stupid_lil_adj * nvm.inv_max_density / nvm.sigma_t
-        if t >= tmax
-            break
-        end
-        density_val = density(nvm, at(ray, t))
-        @info "\tRay Density at $(at(ray, t)) is $(density_val)"
-        Tr *= 1.0 - max(0.0, density_val * nvm.inv_max_density)
-        rr_threshold = 0.1
-        if Tr < rr_threshold
-            q = max(.05, 1.0 - Tr)
-            if get_1D!(sampler) < q
-                # print("N_SAMPLE_ITER $(N_SAMPLE_ITER)\n")
-                return spectrum_from_float(0.0)
-            end
-            Tr /= (1.0 - q)
-        end
-    end
-    # print("N_SAMPLE_ITER $(N_SAMPLE_ITER)\n")
+    Tr = transmittance_NanoVDBWrapper(
+        tmin, tmax, 
+        nvm.inv_max_density, nvm.sigma_t, 
+        ray.origin, ray.direction
+    )
     return spectrum_from_float(Tr)
 end
 
