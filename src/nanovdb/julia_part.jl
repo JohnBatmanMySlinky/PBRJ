@@ -1,7 +1,8 @@
 # Load the module and generate the functions
 module NanoVDB
   using CxxWrap
-  @wrapmodule("/Users/johnmyslinski/Documents/PBRJ/src/nanovdb/lib/libtestlib.dylib")
+  # @wrapmodule("/Users/johnmyslinski/Documents/PBRJ/src/nanovdb/lib/libtestlib.dylib")
+  @wrapmodule("/home/jmyslinski/random_stuff/PBRJ/src/nanovdb/lib/libtestlib.dylib")
 
   function __init__()
     @initcxx

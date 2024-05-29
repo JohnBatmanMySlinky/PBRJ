@@ -61,8 +61,13 @@
 
 // aight what if i create a dumy class
 
-float at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
-    return rayo + (rayd * t);
+nanovdb::Vec3d operator*(nanovdb::Vec3d a, float b){
+    return nanovdb::Vec3d(a[0] * b, a[1] * b, a[2] * b);
+}
+
+nanovdb::Coord at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
+    nanovdb::Vec3d tmp = rayo + (rayd * t);
+    return nanovdb::Coord(tmp[0], tmp[1], tmp[2]);
 }
 
 class NanoVDBWrapper {
@@ -96,16 +101,17 @@ class NanoVDBWrapper {
 
                 // accessor
                 auto acc = densityFloatGrid->getAccessor();
+                int CAP = 1000;
 
-                while true {
+                for (int i = 0; i < CAP; i++) {
                     t =- std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
-                    if t > tmax {
+                    if (t > tmax) {
                         return {true, t};
                     }
                     nanovdb::Coord coord = at(rayo, rayd, t);
                     float density_value = acc.getValue(coord);
-                    if densit_value * inv_max_density > dis(gen) {
-                        return {false, t}
+                    if (density_value * inv_max_density > dis(gen)) {
+                        return {false, t};
                     }
                 }
         }
@@ -126,22 +132,23 @@ class NanoVDBWrapper {
 
                 // accessor
                 auto acc = densityFloatGrid->getAccessor();
+                int CAP = 1000;
 
-                while true {
+                for (int i = 0; i < CAP; i++) {
                     t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
-                    if t >= tmax {
-                        return {true, Tr}
+                    if (t >= tmax) {
+                        return Tr;
                     }
                     nanovdb::Coord coord = at(rayo, rayd, t);
                     float density_value = acc.getValue(coord);
-                    Tr *= 1.0 - max(0.0, density_value * inv_max_density);
+                    Tr *= 1.0 - std::max((float)0.0, density_value * inv_max_density);
                     float rr_threshold = 0.1;
-                    if Tr < rr_threshold {
-                        q = std::max(0.05, 1.0 - Tr)
-                        if dis(gen) < q {
-                            return {false, 0.0}
+                    if (Tr < rr_threshold) {
+                        float q = std::max(0.05, 1.0 - Tr);
+                        if (dis(gen) < q) {
+                            return 0.0;
                         }
-                        Tr /= (1.0 - q)
+                        Tr /= (1.0 - q);
                     }
                 }
             }
