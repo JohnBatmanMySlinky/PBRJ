@@ -87,7 +87,7 @@ class NanoVDBWrapper {
             densityFloatGrid->tree().extrema(minDensity, maxDensity);
             return {minDensity, maxDensity};
         }
-        std::tuple<bool, float> sample_NanoVDBWrapper(
+        std::tuple<bool, double> sample_NanoVDBWrapper(
             double t,
             double tmax,
             double inv_max_density,
@@ -107,7 +107,7 @@ class NanoVDBWrapper {
 
                 // accessor
                 auto acc = densityFloatGrid->getAccessor();
-                int CAP = 1000;
+                int CAP = 10000;
 
                 for (int i = 0; i < CAP; i++) {
                     t =- std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
@@ -120,8 +120,9 @@ class NanoVDBWrapper {
                         return {false, t};
                     }
                 }
+                return {true, t};
         }
-        float transmittance_NanoVDBWrapper(
+        double transmittance_NanoVDBWrapper(
             double t,
             double tmax,
             double inv_max_density,
@@ -134,7 +135,7 @@ class NanoVDBWrapper {
             double raydz) {
                 nanovdb::Vec3d rayo = nanovdb::Vec3d(rayox, rayoy, rayoz);
                 nanovdb::Vec3d rayd = nanovdb::Vec3d(raydx, raydy, raydz);
-                float Tr = 1.0;
+                double Tr = 1.0;
 
                 // random number stuff
                 std::random_device rd;  // Will be used to obtain a seed for the random number engine
@@ -144,7 +145,7 @@ class NanoVDBWrapper {
 
                 // accessor
                 auto acc = densityFloatGrid->getAccessor();
-                int CAP = 1000;
+                int CAP = 10000;
 
                 for (int i = 0; i < CAP; i++) {
                     t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
@@ -152,17 +153,18 @@ class NanoVDBWrapper {
                         return Tr;
                     }
                     nanovdb::Coord coord = at(rayo, rayd, t);
-                    float density_value = acc.getValue(coord);
+                    double density_value = acc.getValue(coord);
                     Tr *= 1.0 - std::max(0.0, density_value * inv_max_density);
-                    float rr_threshold = 0.1;
+                    double rr_threshold = 0.1;
                     if (Tr < rr_threshold) {
-                        float q = std::max(0.05, 1.0 - Tr);
+                        double q = std::max(0.05, 1.0 - Tr);
                         if (dis(gen) < q) {
                             return 0.0;
                         }
                         Tr /= (1.0 - q);
                     }
                 }
+                return Tr;
             }
     private:
         const nanovdb::FloatGrid* densityFloatGrid = nullptr;
