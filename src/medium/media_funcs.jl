@@ -170,8 +170,14 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
     end
     @info "we are within bounds. tmin $(tmin), tmax $(tmax)"
 
-    flag, new_t = NanoVDB.sample_NanoVDBWrapper(tmin, tmax, nvm.inv_max_density, nvm.sigma_t, ray.origin, ray.direction)
-    if flag
+    flag, new_t = NanoVDB.sample_NanoVDBWrapper(
+        nvm.density_float_grid,
+        tmin, tmax, 
+        nvm.inv_max_density, nvm.sigma_t, 
+        ray.origin.x, ray.origin.y, ray.origin.z, 
+        ray.direction.x, ray.direction.y, ray.direction.z
+    )
+    if Bool(flag)
         return spectrum_from_float(1.0), mi
     else
         mi = MediumInteraction(at(ray_world, new_t), ray_world.t, -ray_world.direction, nvm, HenyeyGreenstein(nvm.g))
@@ -191,9 +197,11 @@ function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler
     end
 
     Tr = NanoVDB.transmittance_NanoVDBWrapper(
+        nvm.density_float_grid,
         tmin, tmax, 
         nvm.inv_max_density, nvm.sigma_t, 
-        ray.origin, ray.direction
+        ray.origin.x, ray.origin.y, ray.origin.z, 
+        ray.direction.x, ray.direction.y, ray.direction.z
     )
     return spectrum_from_float(Tr)
 end

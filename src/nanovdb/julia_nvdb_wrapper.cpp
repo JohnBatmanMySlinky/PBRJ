@@ -88,12 +88,18 @@ class NanoVDBWrapper {
             return {minDensity, maxDensity};
         }
         std::tuple<bool, float> sample_NanoVDBWrapper(
-            float t, 
-            float tmax, 
-            float inv_max_density, 
-            float sigma_t, 
-            nanovdb::Vec3d rayo, 
-            nanovdb::Vec3d rayd) {
+            double t,
+            double tmax,
+            double inv_max_density,
+            double sigma_t,
+            double rayox,
+            double rayoy,
+            double rayoz,
+            double raydx,
+            double raydy,
+            double raydz) {
+                nanovdb::Vec3d rayo = nanovdb::Vec3d(rayox, rayoy, rayoz);
+                nanovdb::Vec3d rayd = nanovdb::Vec3d(raydx, raydy, raydz);
                 // random number stuff
                 std::random_device rd;  // Will be used to obtain a seed for the random number engine
                 std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
@@ -116,12 +122,18 @@ class NanoVDBWrapper {
                 }
         }
         float transmittance_NanoVDBWrapper(
-            float t,
-            float tmax,
-            float inv_max_density,
-            float sigma_t,
-            nanovdb::Vec3d rayo,
-            nanovdb::Vec3d rayd) {
+            double t,
+            double tmax,
+            double inv_max_density,
+            double sigma_t,
+            double rayox,
+            double rayoy,
+            double rayoz,
+            double raydx,
+            double raydy,
+            double raydz) {
+                nanovdb::Vec3d rayo = nanovdb::Vec3d(rayox, rayoy, rayoz);
+                nanovdb::Vec3d rayd = nanovdb::Vec3d(raydx, raydy, raydz);
                 float Tr = 1.0;
 
                 // random number stuff
@@ -141,7 +153,7 @@ class NanoVDBWrapper {
                     }
                     nanovdb::Coord coord = at(rayo, rayd, t);
                     float density_value = acc.getValue(coord);
-                    Tr *= 1.0 - std::max((float)0.0, density_value * inv_max_density);
+                    Tr *= 1.0 - std::max(0.0, density_value * inv_max_density);
                     float rr_threshold = 0.1;
                     if (Tr < rr_threshold) {
                         float q = std::max(0.05, 1.0 - Tr);
