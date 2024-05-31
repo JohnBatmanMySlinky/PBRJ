@@ -21,7 +21,7 @@ struct NanoVDBMedium <: AbstractMedium
 
         return new(
             sigma_a, sigma_s, g, tmp, 
-            accessor, (sigma_a + sigma_s)[0+1], 
+            density_float_grid, (sigma_a + sigma_s)[0+1], 
             1.0 / max_density, Bounds3(Pnt3(a, b, c), Pnt3(d, e, f))
         )
     end

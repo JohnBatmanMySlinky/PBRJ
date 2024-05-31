@@ -170,7 +170,7 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
     end
     @info "we are within bounds. tmin $(tmin), tmax $(tmax)"
 
-    flag, new_t = sample_NanoVDBWrapper(tmin, tmax, inverse_max_density, sigma_t, ray.origin, ray.direction)
+    flag, new_t = NanoVDB.sample_NanoVDBWrapper(tmin, tmax, nvm.inv_max_density, nvm.sigma_t, ray.origin, ray.direction)
     if flag
         return spectrum_from_float(1.0), mi
     else
@@ -190,7 +190,7 @@ function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler
         return spectrum_from_float(1.0)
     end
 
-    Tr = transmittance_NanoVDBWrapper(
+    Tr = NanoVDB.transmittance_NanoVDBWrapper(
         tmin, tmax, 
         nvm.inv_max_density, nvm.sigma_t, 
         ray.origin, ray.direction
@@ -199,20 +199,20 @@ function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler
 end
 
 
-function D(nvm::NanoVDBMedium, p::Pnt3)::Float64
-    return NanoVDB.get_value_pls(nvm.accessor, NanoVDB.Coord(Int64(p.x), Int64(p.y), Int64(p.z)))
-end
+# function D(nvm::NanoVDBMedium, p::Pnt3)::Float64
+#     return NanoVDB.get_value_pls(nvm.accessor, NanoVDB.Coord(Int64(p.x), Int64(p.y), Int64(p.z)))
+# end
 
-function density(nvm::NanoVDBMedium, p::Pnt3)::Float64
-    psample = Pnt3(p.x - 0.5, p.y - 0.5, p.z - 0.5)
-    pfloor = floor.(psample)
-    d = psample - pfloor
+# function density(nvm::NanoVDBMedium, p::Pnt3)::Float64
+#     psample = Pnt3(p.x - 0.5, p.y - 0.5, p.z - 0.5)
+#     pfloor = floor.(psample)
+#     d = psample - pfloor
 
-    d00 = lerp(d.x, D(nvm, pfloor),               D(nvm, pfloor + Pnt3(1,0,0)))
-    d10 = lerp(d.x, D(nvm, pfloor + Pnt3(0,1,0)), D(nvm, pfloor + Pnt3(1,1,0)))
-    d01 = lerp(d.x, D(nvm, pfloor + Pnt3(0,0,1)), D(nvm, pfloor + Pnt3(1,0,1)))
-    d11 = lerp(d.x, D(nvm, pfloor + Pnt3(0,1,1)), D(nvm, pfloor + Pnt3(1,1,1)))
-    d0  = lerp(d.y, d00, d10)
-    d1  = lerp(d.y, d01, d11)
-    return lerp(d.z, d0, d1)
-end
+#     d00 = lerp(d.x, D(nvm, pfloor),               D(nvm, pfloor + Pnt3(1,0,0)))
+#     d10 = lerp(d.x, D(nvm, pfloor + Pnt3(0,1,0)), D(nvm, pfloor + Pnt3(1,1,0)))
+#     d01 = lerp(d.x, D(nvm, pfloor + Pnt3(0,0,1)), D(nvm, pfloor + Pnt3(1,0,1)))
+#     d11 = lerp(d.x, D(nvm, pfloor + Pnt3(0,1,1)), D(nvm, pfloor + Pnt3(1,1,1)))
+#     d0  = lerp(d.y, d00, d10)
+#     d1  = lerp(d.y, d01, d11)
+#     return lerp(d.z, d0, d1)
+# end

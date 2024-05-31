@@ -186,7 +186,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
     mod.add_type<NanoVDBWrapper>("NanoVDBWrapper")
         .method("make_NanoVDBWrapper", &make_NanoVDBWrapper)
         .method("get_WorldBBox", &NanoVDBWrapper::get_WorldBBox)
-        .method("get_extrema", &NanoVDBWrapper::get_extrema);
+        .method("get_extrema", &NanoVDBWrapper::get_extrema)
+        .method("sample_NanoVDBWrapper", &NanoVDBWrapper::sample_NanoVDBWrapper)
+        .method("transmittance_NanoVDBWrapper", &NanoVDBWrapper::transmittance_NanoVDBWrapper);
 
 
 //   mod.add_type<World>("World")
