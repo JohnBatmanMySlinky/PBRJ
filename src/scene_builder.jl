@@ -1848,8 +1848,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         lights = Light[]
 
         mat_disk = Matte(
-            ConstantTexture(spectrum_from_float(0.2, 0.2, 0.2)),
-            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            ConstantTexture(spectrum_from_float(0.2)),
+            ConstantTexture(spectrum_from_float(0.0)),
             nothing
         )
 
@@ -1867,8 +1867,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         smoke_mi = MediumInterface(
             NanoVDBMedium(
-                spectrum_from_float(10.0),
-                spectrum_from_float(90.0),
+                spectrum_from_float(0.2),
+                spectrum_from_float(4.0),
                 0.877,
                 Pnt3(0.0, 0.0, 0.0),
                 Pnt3(1.0, 1.0, 1.0),
@@ -1878,7 +1878,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
-
 
         # a disk too cause why not
         disk_t = Translate(Pnt3(0, -1000, 0)) * Scale(Vec3(2000, 2000, 2000)) * Rotate(-90.0, Vec3(1, 0, 0))
@@ -1921,7 +1920,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         look_at = Pnt3(6.021, 100.043, -43.679)
         up = Vec3(0.273, 0.962, -0.009)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 21.07, film)
+        C = PerspectiveCamera(Scale(Vec3(-1, 1, 1)) * LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 45.07, film)
 
         # Instantiate a Sampler
         S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))

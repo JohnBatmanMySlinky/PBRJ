@@ -170,6 +170,7 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
     end
     @info "we are within bounds. tmin $(tmin), tmax $(tmax)"
 
+    # print("BEGINNING MEDIA SAMPLING\n")
     flag, new_t = NanoVDB.sample_NanoVDBWrapper(
         nvm.density_float_grid,
         tmin, tmax, 
@@ -177,6 +178,7 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
         ray.origin.x, ray.origin.y, ray.origin.z, 
         ray.direction.x, ray.direction.y, ray.direction.z
     )
+    # print("ENDING MEDIA SAMPLING\n")
     if Bool(flag)
         return spectrum_from_float(1.0), mi
     else
@@ -196,6 +198,7 @@ function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler
         return spectrum_from_float(1.0)
     end
 
+    # print("BEGINNING MEDIA TRANSMITTANCE\n")    
     Tr = NanoVDB.transmittance_NanoVDBWrapper(
         nvm.density_float_grid,
         tmin, tmax, 
@@ -203,6 +206,7 @@ function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler
         ray.origin.x, ray.origin.y, ray.origin.z, 
         ray.direction.x, ray.direction.y, ray.direction.z
     )
+    # print("ENDING MEDIA TRANSMITTANCE\n")
     return spectrum_from_float(Tr)
 end
 
