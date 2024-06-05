@@ -35,3 +35,25 @@ print("World Bounds Orig: ($(old_bounds.pMin), $(old_bounds.pMax))\n")
 print("World Bounds Even'd: ($(new_bounds.pMin), $(new_bounds.pMax))\n")
 print("World Bounds Unit'd: ($(tra_bounds.pMin), $(tra_bounds.pMax))\n")
 print("World Bounds Back: ($(fin_bounds.pMin), $(fin_bounds.pMax))\n")
+
+
+# medium is implicitly [0,1]^3
+# medium_to_world = +3, +3, +3
+# this places the medium in the scene
+
+
+# world ray 
+    # origin: -1, -1.5, -1.2
+    # direction: 3,3,3 - origin
+
+# if you intersect in world, they hit.
+# apply world_to_medium to both. they hit.
+    # however, you only apply world_to_medium to ray
+    # unit cube is specified manually instead of by applying world_to_medium(medium.bounds)
+
+    # now we are in unit cube space. 
+    # now we normalize direction vector to work with nice t's
+    # if we want to interact with NanoVDB we have to convert to NVDB space.
+    # the UnitCube() above is really NanoVDB_to_unit_cube space and what we WOULD apply had we not 
+        # manually specified [0,1]^3
+    # so we should just apply Inv(UnitCube()) to ray to query nanovdb. 
