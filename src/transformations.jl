@@ -182,6 +182,16 @@ function LookAt(pos::Pnt3, look::Pnt3, up::Vec3)::Transformation
     return Transformation(m, inv(m))
 end
 
+function UnitCube(b::Bounds3)::Transformation
+    scale = Scale(Vec3(
+        1.0 ./ (b.pMin - b.pMax)
+    ))
+    translate = Translate(Pnt3(
+        -scale(b).pMin
+    ))
+    return translate * scale
+end
+
 ########################################
 ### Apply Transformations to Things ####
 ########################################
