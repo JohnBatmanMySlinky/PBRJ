@@ -156,7 +156,15 @@ end
 
 function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Tuple{Spectrum, Maybe{MediumInteraction}}
     @info "Medium Sample Time:\n\tRay Entering: $(ray_world)\n"
-    ray = nvm.world_to_medium(Ray(ray_world.origin, normalize(ray_world.direction), 0.0, ray_world.tMax * length_pbrt(ray_world.direction)))
+    ray = nvm.medium_to_unit(
+        nvm.world_to_medium(
+            Ray(
+                ray_world.origin, 
+                normalize(ray_world.direction), 
+                0.0, ray_world.tMax * length_pbrt(ray_world.direction)
+            )
+        )
+    )
     @info "\tRay Transformed: $(ray)\n" 
     @info "\tInv Max Density: $(nvm.inv_max_density) :: $(nvm.sigma_s) :: $(nvm.sigma_t)"
 
@@ -164,12 +172,17 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
     mi = nothing
 
     # compute the [t_min, t_max] interval of ray's overlap with the medium bounds
-    check, tmin, tmax = intersect_p(nvm.bounds, ray)
+    check, tmin, tmax = intersect_p(Bounds3(Pnt3(0,0,0), Pnt3(1,1,1)), ray)
     if !check
         return spectrum_from_float(1.0), mi
     end
     @info "we are within bounds. tmin $(tmin), tmax $(tmax)"
+    print("we are within bounds. tmin $(tmin), tmax $(tmax)\n")
 
+    # john hack - getting this ray into world space
+    ray = Inv(nvm.medium_to_unit)(ray)
+
+    # print("BEGINNING MEDIA SAMPLING\n")
     flag, new_t = NanoVDB.sample_NanoVDBWrapper(
         nvm.density_float_grid,
         tmin, tmax, 
@@ -177,6 +190,7 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
         ray.origin.x, ray.origin.y, ray.origin.z, 
         ray.direction.x, ray.direction.y, ray.direction.z
     )
+    # print("ENDING MEDIA SAMPLING\n")
     if Bool(flag)
         return spectrum_from_float(1.0), mi
     else
@@ -187,7 +201,15 @@ end
 
 function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Spectrum
     @info "Medium Tr Time:\n\tRay Entering: $(ray_world)\n"
-    ray = nvm.world_to_medium(Ray(ray_world.origin, normalize(ray_world.direction), 0.0, ray_world.tMax * length_pbrt(ray_world.direction)))
+    ray = nvm.medium_to_unit(
+        nvm.world_to_medium(
+            Ray(
+                ray_world.origin, 
+                normalize(ray_world.direction), 
+                0.0, ray_world.tMax * length_pbrt(ray_world.direction)
+            )
+        )
+    )
     @info "\tRay Transformed: $(ray)\n"    
 
     # Compute $[\tmin, \tmax]$ interval of _ray_'s overlap with medium bounds
@@ -196,6 +218,9 @@ function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler
         return spectrum_from_float(1.0)
     end
 
+    ray = Inv(nvm.medium_to_unit)(ray)
+
+    # print("BEGINNING MEDIA TRANSMITTANCE\n")    
     Tr = NanoVDB.transmittance_NanoVDBWrapper(
         nvm.density_float_grid,
         tmin, tmax, 
@@ -203,6 +228,7 @@ function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler
         ray.origin.x, ray.origin.y, ray.origin.z, 
         ray.direction.x, ray.direction.y, ray.direction.z
     )
+    # print("ENDING MEDIA TRANSMITTANCE\n")
     return spectrum_from_float(Tr)
 end
 
