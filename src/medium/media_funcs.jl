@@ -187,7 +187,6 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
         ray.origin.x, ray.origin.y, ray.origin.z, 
         ray.direction.x, ray.direction.y, ray.direction.z
     )
-    @assert false
     # print("ENDING MEDIA SAMPLING\n")
     if Bool(flag)
         return spectrum_from_float(1.0), mi

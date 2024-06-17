@@ -19,6 +19,7 @@ end
 
 # print("=======NanoVDBWrapper Test============\n")
 # fpath = "/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"
+# fpath = "/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"
 # coord = NanoVDB.Coord(99, 0, 0)
 # nanovdb_wrapper = NanoVDB.make_NanoVDBWrapper(fpath)
 
@@ -28,6 +29,8 @@ end
 # extremas = NanoVDB.get_extrema(nanovdb_wrapper)
 # print("Extremas: $extremas\n")
 
+
+# print("=======NanoVDBWrapper Util Usage============\n")
 # NanoVDB.grid_to_unit(
 #   "/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb",
 #   "output.txt",
