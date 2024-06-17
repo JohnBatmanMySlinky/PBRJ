@@ -24,3 +24,8 @@ end
 # extremas = NanoVDB.get_extrema(nanovdb_wrapper)
 # print("Extremas: $extremas\n")
 
+# NanoVDB.grid_to_unit(
+#   "/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb",
+#   "output.txt",
+#   20
+# )

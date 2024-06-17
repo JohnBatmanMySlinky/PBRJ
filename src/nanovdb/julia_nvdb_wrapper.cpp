@@ -3,6 +3,8 @@
 
 #include <random>
 #include <string>
+#include <iostream>
+#include <fstream>
 
 #include "jlcxx/jlcxx.hpp"
 
@@ -67,7 +69,11 @@ nanovdb::Vec3d operator*(nanovdb::Vec3d a, float b){
 
 nanovdb::Coord at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
     nanovdb::Vec3d tmp = rayo + (rayd * t);
-    return nanovdb::Coord(tmp[0], tmp[1], tmp[2]);
+    return nanovdb::Coord(
+        static_cast<int>(tmp[0]), 
+        static_cast<int>(tmp[1]), 
+        static_cast<int>(tmp[2])
+    );
 }
 
 class NanoVDBWrapper {
@@ -111,7 +117,7 @@ class NanoVDBWrapper {
                 // int CAP = 100000;
                 // int i = 0;
 
-                while (true) {
+                for (int i=0; i<5; i++) {
                     // i += 1;
                     // if (i > CAP){
                     //     return {true, t};
@@ -122,7 +128,9 @@ class NanoVDBWrapper {
                         return {true, t};
                     }
                     nanovdb::Coord coord = at(rayo, rayd, t);
+                    std::cout << "well the coord is: " << coord.x() << ", " << coord.y() << ", " << coord.z() << std::endl;
                     float density_value = acc.getValue(coord);
+                    std::cout << "Density at " << coord << " is " << density_value << std::endl;
                     if (density_value * inv_max_density > dis(gen)) {
                         return {false, t};
                     }
@@ -161,8 +169,7 @@ class NanoVDBWrapper {
                     // if (i > CAP){
                     //     return Tr;
                     // }
-                    // t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
-                    t -= std::log(1.0 - 0.5) * inv_max_density / sigma_t;
+                    t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
                     if (t >= tmax) {
                         return Tr;
                     }
@@ -184,6 +191,50 @@ class NanoVDBWrapper {
         const nanovdb::FloatGrid* densityFloatGrid = nullptr;
 };
 
+int grid_to_unit(const std::string& in_path, const std::string& out_path, int steps){
+	// open grid
+	// auto handle = nanovdb::io::readGrid("/Users/jmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb");
+    auto handle = nanovdb::io::readGrid(in_path);
+	auto* grid = handle.grid<float>();
+    auto acc = grid->getAccessor();
+
+	// open out file
+	std::ofstream outFile(out_path);
+    outFile << std::fixed;
+
+	// get world bounds
+	const nanovdb::BBox<nanovdb::Vec3d> box = grid->worldBBox();
+
+	// calc step size
+	float ma, mi, stepsize;
+	ma = std::max({box.max()[0], box.max()[1], box.max()[2]});
+	mi = std::min({box.min()[0], box.min()[1], box.min()[2]});
+	stepsize = (ma - mi) / (float)steps;
+
+	// iterate over 'voxels'
+	for (int z=0; z<steps; z++){
+		for (int y=0; y<steps; y++){
+			for (int x=0; x<steps; x++){
+				nanovdb::Coord coord = nanovdb::Coord(
+                    mi + (x * stepsize), 
+                    mi + (y * stepsize), 
+                    mi + (z * stepsize)
+                );
+                double density_value = acc.getValue(coord);
+                outFile << density_value << " ";
+			}
+		}
+	}
+
+	// close file
+	outFile.close();
+
+	// boop
+	std::cout << "boop\n";
+	return 0;
+}
+
+
 NanoVDBWrapper make_NanoVDBWrapper(const std::string& fpath) {
     auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
     auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
@@ -192,6 +243,7 @@ NanoVDBWrapper make_NanoVDBWrapper(const std::string& fpath) {
 
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 {
+    mod.method("grid_to_unit", &grid_to_unit);
 
     mod.add_type<nanovdb::BBox<nanovdb::Vec3d>>("BBox");
         // .method("get_bbox", &get_bbox)

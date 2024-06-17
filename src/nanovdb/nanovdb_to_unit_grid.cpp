@@ -5,7 +5,7 @@
 
 int main(){
 	// open grid
-	auto handle = nanovdb::io::readGrid("/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb");
+	auto handle = nanovdb::io::readGrid("/Users/jmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb");
 	auto* grid = handle.grid<float>();
 
 	// open out file

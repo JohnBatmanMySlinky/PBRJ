@@ -25,7 +25,7 @@ struct InfiniteLight <: Light
             for w in 1:W
                 i += 1
                 dat2[i] = Spectrum(dat[l,w].r, dat[l,w].g, dat[l,w].b) * LL
-                @info "InfiniteAreaLightCreation: $(i) $(dat[l,w]) $(LL)"
+                # @info "InfiniteAreaLightCreation: $(i) $(dat[l,w]) $(LL)"
             end
         end
 
@@ -50,7 +50,7 @@ struct InfiniteLight <: Light
             for u in 0:(width-1)
                 up = (u + 0.5) / width
                 im[u + 1, v + 1] = y_spectrum(lookup(Lmap, Pnt2(up, vp), fwidth)) * sin_theta
-                @info "Infinite Light PDF: $(u), $(v) = $(im[u + 1, v + 1]) = $(lookup(Lmap, Pnt2(up, vp), fwidth)) --- up: $(up) vp: $(vp) fwidth: $(fwidth)"
+                # @info "Infinite Light PDF: $(u), $(v) = $(im[u + 1, v + 1]) = $(lookup(Lmap, Pnt2(up, vp), fwidth)) --- up: $(up) vp: $(vp) fwidth: $(fwidth)"
             end
         end
         distribution = Distribution2D(reshape(im, width, height)) 
