@@ -115,6 +115,8 @@ class NanoVDBWrapper {
                 std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
                 std::uniform_real_distribution<> dis(0.0, 1.0); // Define the range [0, 1)
                 std::cout << "Ray: " << rayo << " : " << rayd << std::endl;
+                std::cout << "\tInverseDensity " << inv_max_density << ", sigma_t: " << sigma_t << std::endl;
+
 
                 // accessor
                 auto acc = densityFloatGrid->getAccessor();
@@ -128,7 +130,7 @@ class NanoVDBWrapper {
                     //     return {true, t};
                     // }
                     // t =- std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
-                    t =- std::log(1.0 - 0.5) * inv_max_density / sigma_t;
+                    t -= std::log(1.0 - 0.5) * inv_max_density / sigma_t;
                     if (t > tmax) {
                         return {true, t};
                     }
