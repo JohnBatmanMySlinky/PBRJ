@@ -178,6 +178,7 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
 
     # john hack - getting this ray into world space
     ray = Inv(nvm.medium_to_unit)(ray)
+    @info "\tRay NanoVDB Space: $(ray)\n" 
 
     # print("BEGINNING MEDIA SAMPLING\n")
     flag, new_t = NanoVDB.sample_NanoVDBWrapper(
@@ -187,6 +188,7 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
         ray.origin.x, ray.origin.y, ray.origin.z, 
         ray.direction.x, ray.direction.y, ray.direction.z
     )
+    @assert false
     # print("ENDING MEDIA SAMPLING\n")
     if Bool(flag)
         return spectrum_from_float(1.0), mi

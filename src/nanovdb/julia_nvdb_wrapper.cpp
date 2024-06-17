@@ -69,11 +69,7 @@ nanovdb::Vec3d operator*(nanovdb::Vec3d a, float b){
 
 nanovdb::Coord at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
     nanovdb::Vec3d tmp = rayo + (rayd * t);
-    return nanovdb::Coord(
-        static_cast<int>(tmp[0]), 
-        static_cast<int>(tmp[1]), 
-        static_cast<int>(tmp[2])
-    );
+    return nanovdb::Coord(tmp[0], tmp[1], tmp[2]);
 }
 
     
@@ -118,6 +114,7 @@ class NanoVDBWrapper {
                 std::random_device rd;  // Will be used to obtain a seed for the random number engine
                 std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
                 std::uniform_real_distribution<> dis(0.0, 1.0); // Define the range [0, 1)
+                std::cout << "Ray: " << rayo << " : " << rayd << std::endl;
 
                 // accessor
                 auto acc = densityFloatGrid->getAccessor();
@@ -136,9 +133,8 @@ class NanoVDBWrapper {
                         return {true, t};
                     }
                     nanovdb::Coord coord = at(rayo, rayd, t);
-                    std::cout << "well the coord is: " << coord.x() << ", " << coord.y() << ", " << coord.z() << std::endl;
                     float density_value = acc.getValue(coord);
-                    std::cout << "Density at " << coord << " is " << density_value << std::endl;
+                    std::cout << "Density at " << coord << " at " << t << " is " << density_value << std::endl;
                     if (density_value * inv_max_density > dis(gen)) {
                         return {false, t};
                     }
