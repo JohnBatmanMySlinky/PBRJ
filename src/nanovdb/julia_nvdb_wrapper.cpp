@@ -263,14 +263,14 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
     //     .method("get_extrema", &get_extrema);
 
 
+
     mod.add_type<NanoVDBWrapper>("NanoVDBWrapper")
-        .method("make_NanoVDBWrapper", &make_NanoVDBWrapper)
         .method("get_WorldBBox", &NanoVDBWrapper::get_WorldBBox)
         .method("get_extrema", &NanoVDBWrapper::get_extrema)
         .method("sample_NanoVDBWrapper", &NanoVDBWrapper::sample_NanoVDBWrapper)
         .method("transmittance_NanoVDBWrapper", &NanoVDBWrapper::transmittance_NanoVDBWrapper);
 
-
+    mod.method("make_NanoVDBWrapper", &make_NanoVDBWrapper);
 //   mod.add_type<World>("World")
 //     .constructor<const std::string&>()
 //     // .constructor<jlcxx::cxxint_t>(jlcxx::finalize_policy::no) // no finalizer

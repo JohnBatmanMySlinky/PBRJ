@@ -1,8 +1,12 @@
 # Load the module and generate the functions
 module NanoVDB
   using CxxWrap
-  @wrapmodule("/Users/johnmyslinski/Documents/PBRJ/src/nanovdb/lib/libtestlib.dylib")
-  # @wrapmodule("/home/jmyslinski/random_stuff/PBRJ/src/nanovdb/lib/libtestlib.dylib")
+  if Sys.isapple()
+    @wrapmodule(() -> joinpath("/Users/johnmyslinski/Documents/PBRJ/src/nanovdb/lib", "libtestlib"))
+  else
+    @wrapmodule(() -> joinpath("/home/jmyslinski/random_stuff/PBRJ/src/nanovdb/lib", "libtestlib"))
+  end
+  
 
   function __init__()
     @initcxx
