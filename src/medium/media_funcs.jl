@@ -179,8 +179,6 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
     # john hack - getting this ray into world space
     ray = Inv(nvm.medium_to_unit)(ray)
 
-    print("segfault time\n")
-
     # print("BEGINNING MEDIA SAMPLING\n")
     flag, new_t = NanoVDB.sample_NanoVDBWrapper(
         nvm.density_float_grid,

@@ -78,7 +78,7 @@ nanovdb::Coord at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
 
 class NanoVDBWrapper {
     public:
-        NanoVDBWrapper(nanovdb::FloatGrid* densityFloatGrid) : densityFloatGrid(densityFloatGrid) {}
+        NanoVDBWrapper(const nanovdb::FloatGrid* densityFloatGrid) : densityFloatGrid(densityFloatGrid) {}
         ~NanoVDBWrapper() {
             std::cout << "OOPS\n";
         }
