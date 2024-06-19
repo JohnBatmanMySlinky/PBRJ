@@ -106,7 +106,8 @@ class NanoVDBWrapper {
             double raydx,
             double raydy,
             double raydz) {
-                auto handle = nanovdb::io::readGrid("/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
+                // auto handle = nanovdb::io::readGrid("/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
+                auto handle = nanovdb::io::readGrid("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
                 auto* densityFloatGrid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
                 nanovdb::Vec3d rayo = nanovdb::Vec3d(rayox, rayoy, rayoz);
                 nanovdb::Vec3d rayd = nanovdb::Vec3d(raydx, raydy, raydz);
@@ -124,13 +125,14 @@ class NanoVDBWrapper {
                 // int CAP = 100000;
                 // int i = 0;
 
-                for (int i=0; i<5; i++) {
+                for (int i=0; i<100; i++) {
                     // i += 1;
                     // if (i > CAP){
                     //     return {true, t};
                     // }
                     // t =- std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
                     t -= std::log(1.0 - 0.5) * inv_max_density / sigma_t;
+                    std::cout << "medium sample: " << t << std::endl;
                     if (t > tmax) {
                         return {true, t};
                     }
@@ -154,7 +156,8 @@ class NanoVDBWrapper {
             double raydx,
             double raydy,
             double raydz) {
-                auto handle = nanovdb::io::readGrid("/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
+                // auto handle = nanovdb::io::readGrid("/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
+                auto handle = nanovdb::io::readGrid("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file                auto* densityFloatGrid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
                 auto* densityFloatGrid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
                 nanovdb::Vec3d rayo = nanovdb::Vec3d(rayox, rayoy, rayoz);
                 nanovdb::Vec3d rayd = nanovdb::Vec3d(raydx, raydy, raydz);
