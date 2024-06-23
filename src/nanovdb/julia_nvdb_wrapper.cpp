@@ -82,8 +82,8 @@ class NanoVDBWrapper {
         }
         std::tuple<float, float, float, float, float, float> get_WorldBBox() {
             auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
-            auto* densityFloatGrid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
-            const nanovdb::BBox<nanovdb::Vec3d> box = densityFloatGrid->worldBBox();
+            auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+            const nanovdb::BBox<nanovdb::Vec3d> box = grid->worldBBox();
             nanovdb::Vec3 mi = box.min();
             nanovdb::Vec3 ma = box.max();
             return {mi[0], mi[1], mi[2], ma[0], ma[1], ma[2]};
@@ -91,9 +91,15 @@ class NanoVDBWrapper {
         std::tuple<float, float> get_extrema() {
             float minDensity, maxDensity;
             auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
-            auto* densityFloatGrid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
-            densityFloatGrid->tree().extrema(minDensity, maxDensity);
+            auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+            grid->tree().extrema(minDensity, maxDensity);
             return {minDensity, maxDensity};
+        }
+        void init(){
+            // auto handle = nanovdb::io::readGrid("/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
+            auto handle = nanovdb::io::readGrid("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file                auto* densityFloatGrid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+            auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+            densityFloatGrid = grid;
         }
         std::tuple<bool, double> sample_NanoVDBWrapper(
             double t,
@@ -106,43 +112,42 @@ class NanoVDBWrapper {
             double raydx,
             double raydy,
             double raydz) {
-                // auto handle = nanovdb::io::readGrid("/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
-                auto handle = nanovdb::io::readGrid("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
-                auto* densityFloatGrid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
                 nanovdb::Vec3d rayo = nanovdb::Vec3d(rayox, rayoy, rayoz);
                 nanovdb::Vec3d rayd = nanovdb::Vec3d(raydx, raydy, raydz);
                 // random number stuff
                 std::random_device rd;  // Will be used to obtain a seed for the random number engine
                 std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
                 std::uniform_real_distribution<> dis(0.0, 1.0); // Define the range [0, 1)
-                std::cout << "Ray: " << rayo << " : " << rayd << std::endl;
-                std::cout << "\tInverseDensity " << inv_max_density << ", sigma_t: " << sigma_t << std::endl;
-
+                // std::cout << "Ray: " << rayo << " : " << rayd << std::endl;
+                // std::cout << "\tInverseDensity " << inv_max_density << ", sigma_t: " << sigma_t << std::endl;
 
                 // accessor
                 auto acc = densityFloatGrid->getAccessor();
                 // double adj = tmax - t;
-                // int CAP = 100000;
-                // int i = 0;
+                int CAP = 100000;
+                int i = 0;
 
-                for (int i=0; i<250; i++) {
-                    // i += 1;
-                    // if (i > CAP){
-                    //     return {true, t};
-                    // }
-                    // t =- std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
+                while (true) {
+                    i += 1;
+                    if (i > CAP){
+                        std::cout << "   oopsie" << std::endl;
+                        break;
+                    }
+                    // t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
                     t -= std::log(1.0 - 0.5) * inv_max_density / sigma_t;
-                    std::cout << "medium sample: " << t << std::endl;
+                    // std::cout << "medium sample: " << t << std::endl;
                     if (t > tmax) {
-                        return {true, t};
+                        break;
                     }
                     nanovdb::Coord coord = at(rayo, rayd, t);
                     float density_value = acc.getValue(coord);
-                    std::cout << "Density at " << coord << " at " << t << " is " << density_value << std::endl;
+                    // std::cout << "Density at " << coord << " at " << t << " is " << density_value << std::endl;
                     if (density_value * inv_max_density > dis(gen)) {
+                        // std::cout << "Sampled Medium # times: " << i << std::endl;
                         return {false, t};
                     }
                 }
+                // std::cout << "Sampled Medium # times: " << i << std::endl;
                 return {true, t};
         }
         double transmittance_NanoVDBWrapper(
@@ -156,9 +161,6 @@ class NanoVDBWrapper {
             double raydx,
             double raydy,
             double raydz) {
-                // auto handle = nanovdb::io::readGrid("/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
-                auto handle = nanovdb::io::readGrid("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file                auto* densityFloatGrid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
-                auto* densityFloatGrid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
                 nanovdb::Vec3d rayo = nanovdb::Vec3d(rayox, rayoy, rayoz);
                 nanovdb::Vec3d rayd = nanovdb::Vec3d(raydx, raydy, raydz);
                 double Tr = 1.0;
@@ -168,21 +170,22 @@ class NanoVDBWrapper {
                 std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
                 std::uniform_real_distribution<> dis(0.0, 1.0); // Define the range [0, 1)
 
-
                 // accessor
                 auto acc = densityFloatGrid->getAccessor();
                 // double adj = tmax - t;
-                // int CAP = 100000;
-                // int i = 0;
+                int CAP = 1000;
+                int i = 0;
 
                 while (true) {
-                    // i += 1;
-                    // if (i > CAP){
-                    //     return Tr;
-                    // }
-                    t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
+                    i += 1;
+                    if (i > CAP){
+                        std::cout << "   oopsie" << std::endl;
+                        break;
+                    }
+                    // t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
+                    t -= std::log(1.0 - 0.5) * inv_max_density / sigma_t;
                     if (t >= tmax) {
-                        return Tr;
+                        break;
                     }
                     nanovdb::Coord coord = at(rayo, rayd, t);
                     double density_value = acc.getValue(coord);
@@ -191,15 +194,18 @@ class NanoVDBWrapper {
                     if (Tr < rr_threshold) {
                         double q = std::max(0.05, 1.0 - Tr);
                         if (dis(gen) < q) {
+                            // std::cout << "Transmittance Medium # times: " << i << std::endl;
                             return 0.0;
                         }
                         Tr /= (1.0 - q);
                     }
                 }
+                // std::cout << "Transmittance Medium # times: " << i << std::endl;
                 return Tr;
             }
     private:
         const std::string& fpath;
+        nanovdb::FloatGrid* densityFloatGrid = nullptr;
 };
 
 int grid_to_unit(const std::string& in_path, const std::string& out_path, int steps){
@@ -279,7 +285,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
         .method("get_WorldBBox", &NanoVDBWrapper::get_WorldBBox)
         .method("get_extrema", &NanoVDBWrapper::get_extrema)
         .method("sample_NanoVDBWrapper", &NanoVDBWrapper::sample_NanoVDBWrapper)
-        .method("transmittance_NanoVDBWrapper", &NanoVDBWrapper::transmittance_NanoVDBWrapper);
+        .method("transmittance_NanoVDBWrapper", &NanoVDBWrapper::transmittance_NanoVDBWrapper)
+        .method("init", &NanoVDBWrapper::init);
 
     mod.method("make_NanoVDBWrapper", &make_NanoVDBWrapper);
 //   mod.add_type<World>("World")

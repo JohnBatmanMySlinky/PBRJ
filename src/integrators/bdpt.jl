@@ -33,6 +33,16 @@ function render(
     print("Utilizing $(Threads.nthreads()) threads\n\n")
     # the multi-threaded loop
     Threads.@threads for k in 0:total_tiles
+        # this is a bullshit ass hack
+        for wtf in 1:length(scene.b.primitives)
+            if !(scene.b.primitives[wtf].mi.inside isa Nothing)
+                NanoVDB.init(scene.b.primitives[wtf].mi.inside.density_float_grid)
+            end
+            if !(scene.b.primitives[wtf].mi.outside isa Nothing)
+                NanoVDB.init(scene.b.primitives[wtf].mi.outside.density_float_grid)
+            end
+        end
+
         # Render a single tile using BDPT
         x, y = k % width, k ÷ width
         tile = Pnt2(x, y)

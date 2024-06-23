@@ -188,12 +188,13 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
         ray.origin.x, ray.origin.y, ray.origin.z, 
         ray.direction.x, ray.direction.y, ray.direction.z
     )
-    @assert false
     # print("ENDING MEDIA SAMPLING\n")
     if Bool(flag)
+        @info "Exiting with 1.0\n"
         return spectrum_from_float(1.0), mi
     else
         mi = MediumInteraction(at(ray_world, new_t), ray_world.t, -ray_world.direction, nvm, HenyeyGreenstein(nvm.g))
+        @info "Exiting with $(nvm.sigma_s / nvm.sigma_t)\n"
         return nvm.sigma_s / nvm.sigma_t, mi
     end
 end
@@ -219,7 +220,6 @@ function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler
     end
 
     @info "we are within bounds - $(tmin), $(tmax)\n"
-    @assert false
 
     ray = Inv(nvm.medium_to_unit)(ray)
 
