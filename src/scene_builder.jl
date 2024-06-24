@@ -1945,7 +1945,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 Pnt3(0.0, 0.0, 0.0),
                 Pnt3(1.0, 1.0, 1.0),
                 box_t,
-                "/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"
+                jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
             ),
             nothing
         )
@@ -1962,7 +1962,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             world_bounds(bvh), 
             l_2_w, 
             Spectrum(3.0, 3.0, 3.0), 
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
         )
         push!(lights, light)
 

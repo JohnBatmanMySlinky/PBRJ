@@ -47,6 +47,7 @@ const SpectrumType = Union{Reflectance, Illuminant}
 
 const ShadowEpsilon::Float64 = 0.00001
 
+include("utils.py")
 include("nanovdb/julia_part.jl")
 include("primes.jl")
 include("samplers2/sobol_matrics.jl")
