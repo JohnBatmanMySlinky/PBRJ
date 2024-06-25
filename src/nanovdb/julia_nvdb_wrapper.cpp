@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
+#include <regex>
 
 #include "jlcxx/jlcxx.hpp"
 
@@ -63,6 +64,45 @@
 
 // aight what if i create a dumy class
 
+std::string getOS(){
+#if defined(__MACH__) || defined(__APPLE__)
+	return "macOS";
+#elif defined(__linux__)
+	return "Linux";
+#else
+	return "Windows";
+#endif
+}
+std::string jmfp(const std::string& fp) {
+	bool sys_apple = getOS() == "macOS";
+	bool sys_linux = getOS() == "linux";
+
+	if (!(sys_apple || sys_linux)) {
+		std::cerr << "get off windows" << std::endl;
+		throw std::runtime_error("Unsupported OS");
+	}
+
+	bool fp_apple = fp.find("Users") != std::string::npos;
+	bool fp_linux = fp.find("home") != std::string::npos;
+
+	if (!(fp_apple || fp_linux)) {
+		std::cerr << "bad input string in cpp" << std::endl;
+		throw std::runtime_error("Bad input string");
+	}
+	
+	std::string result_fp = fp;
+	if (fp_apple && sys_linux) {
+		result_fp = std::regex_replace(result_fp, std::regex("Users"), "home");
+		result_fp = std::regex_replace(result_fp, std::regex("johnmyslinski"), "jmyslinski");
+		result_fp = std::regex_replace(result_fp, std::regex("Documents"), "random_stuff"); 
+	} else if (fp_linux && sys_apple) {
+		result_fp = std::regex_replace(result_fp, std::regex("home"), "Users");
+		result_fp = std::regex_replace(result_fp, std::regex("jmyslinski"), "johnmyslinski");
+		result_fp = std::regex_replace(result_fp, std::regex("random_stuff"), "Documents");
+	}
+	return fp;
+}
+
 nanovdb::Vec3d operator*(nanovdb::Vec3d a, float b){
     return nanovdb::Vec3d(a[0] * b, a[1] * b, a[2] * b);
 }
@@ -71,8 +111,6 @@ nanovdb::Coord at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
     nanovdb::Vec3d tmp = rayo + (rayd * t);
     return nanovdb::Coord(tmp[0], tmp[1], tmp[2]);
 }
-
-    
 
 class NanoVDBWrapper {
     public:
@@ -97,7 +135,7 @@ class NanoVDBWrapper {
         }
         void init(){
             // auto handle = nanovdb::io::readGrid("/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
-            auto handle = nanovdb::io::readGrid("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file                auto* densityFloatGrid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+            auto handle = nanovdb::io::readGrid(jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")); // reads first grid from file                
             auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
             densityFloatGrid = grid;
         }
