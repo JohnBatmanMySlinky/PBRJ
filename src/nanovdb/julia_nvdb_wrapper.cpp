@@ -100,7 +100,7 @@ std::string jmfp(const std::string& fp) {
 		result_fp = std::regex_replace(result_fp, std::regex("jmyslinski"), "johnmyslinski");
 		result_fp = std::regex_replace(result_fp, std::regex("random_stuff"), "Documents");
 	}
-	return fp;
+	return result_fp;
 }
 
 nanovdb::Vec3d operator*(nanovdb::Vec3d a, float b){
