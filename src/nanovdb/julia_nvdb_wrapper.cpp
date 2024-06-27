@@ -67,15 +67,15 @@
 std::string getOS(){
 #if defined(__MACH__) || defined(__APPLE__)
 	return "macOS";
-#elif defined(__linux__)
-	return "Linux";
+#elif defined(__unix__)
+	return "Unix";
 #else
 	return "Windows";
 #endif
 }
 std::string jmfp(const std::string& fp) {
 	bool sys_apple = getOS() == "macOS";
-	bool sys_linux = getOS() == "linux";
+	bool sys_linux = getOS() == "Unix";
 
 	if (!(sys_apple || sys_linux)) {
 		std::cerr << "get off windows" << std::endl;

@@ -7,8 +7,8 @@ function jmfp(fp::String)
 		@assert false
 	end
 	
-	fp_apple = "Users" in fp
-	fp_linux = "home" in fp
+	fp_apple = occursin("Users", fp)
+	fp_linux = occursin("home", fp)
 
 	if !(fp_apple || fp_linux)
 		print("bad input string\n")
@@ -25,5 +25,5 @@ function jmfp(fp::String)
 		fp = replace(fp, "jmyslinski", "johnmyslinski")
 		fp = replace(fp, "random_stuff" => "Documents")
 	end
-	return rp
+	return fp
 end
