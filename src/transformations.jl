@@ -184,7 +184,7 @@ end
 
 function UnitCube(b::Bounds3)::Transformation
     scale = Scale(Vec3(
-        1.0 ./ (b.pMin - b.pMax)
+        -1.0 ./ (b.pMin - b.pMax)
     ))
     translate = Translate(Pnt3(
         -scale(b).pMin

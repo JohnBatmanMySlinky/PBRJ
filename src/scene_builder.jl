@@ -1926,7 +1926,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         lights = Light[]
 
         # Bounding sphere cause we hate winding order and such
-        box_t = Translate(Pnt3(-0.5, -1.0, 0))
+        box_t = Translate(Pnt3(-0.5, -.5, 0))
         sphere_transform = Translate(Pnt3(0, 0, 0))
         sphere = Sphere(
             ShapeCore(
@@ -1935,7 +1935,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 false,
                 false
             ),
-            5.0
+            2.0
         )
         smoke_mi = MediumInterface(
             NanoVDBMedium(

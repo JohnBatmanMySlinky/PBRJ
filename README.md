@@ -82,11 +82,10 @@ Render
 
 # TODO's
 - RENDER DISNEY CLOUD from PBRTv4
-    - `sample` and `tr` are the issue. steps are too small.
-        - measure how many steps are taken in pbrtv4 or julia on on other cloud to benchmark how many steps are too many steps
-        - validate max density!
-    - just cause I am using `DefaultReadAccessorAllocated` doesn't mean I should be.
-    - what is this `SampleFromVoxels.h` ???
+    - why is my coloring and view wrong...
+    - Remove prints
+    - Work with coord directly
+    - Document export to DensityGridMedium
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Testing
