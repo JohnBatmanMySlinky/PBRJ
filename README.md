@@ -1,7 +1,7 @@
 # PBRJ
 Physically Based Rendering - in Julia
 
-An implementation of [Physically Based Rendering: From Theory to Implementation](https://www.pbr-book.org/) in the Julia programming language.
+An implementation of [Physically Based Rendering: From Theory to Implementation](https://www.pbr-book.org/) in the Julia programming language. Based off the 3rd edition, but with some 4th edition sprinkled in.
 
 # Usage
 Example command line usage. See `src/args.jl` for a full specification of command line options.
@@ -14,9 +14,9 @@ julia -t 4 RayTracing.jl \
 --file-name "test.png"
 ```
 ## NanoVDB Bindings
-> Don't judge me. It works (well, it will work eventually. probably.)
+> These bindings are super hacky, to put it lightly. Don't judge me. It works (kinda).
 
-If you want to use [NanoVDB](https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb), you'll need to `cd src/nanovdb && sh INSTALL.sh`. That should probably work, assuming you're on a mac.
+If you want to use [NanoVDB](https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb), you'll need to `cd src/nanovdb && sh INSTALL.sh`. Given you're on a mac, that'll probably work...
 
 # Scene Specification
 Scenes are specified within `src/scene_builder.jl`.
@@ -64,21 +64,22 @@ Render
     ![smoke](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/smoke.exr?raw=true)
         
 # Features Implemented
-- BVH accelerator
-- Perspective camera
-- Edge-avoiding a-trous denoising
-- BDPT, ambient occlusion, path & whitted integrators
-- Area, distant, image infinite, uniform infinite, point, and spot lights
-- Glass, matte, metal, mirror, plastic, and substrate materials
-- Stratified and sobol sampling 
-- Box, cylindar, disk, rectangle, sphere, and triangle shapes
-- Very basic L-system
-- Implicit surfaces: Goursat surface & metaballs
+- Accelerators: BVH
+- Cameras: Perspective
+- Integrators: BDPT, ambient occlusion, path, and whitted
+- Lights: Area, distant, image infinite, uniform infinite, point, and spot
+- Materials: Glass, matte, metal, mirror, plastic, and substrate materials
+- Samplers: Stratified, z-sobol, and sobol
+- Shapes: Box, cylindar, disk, rectangle, sphere, and triangle
+    - Very very very very basic L-system
+    - Implicit surfaces: Goursat surface & metaballs
 - Participating mediums: Homogenous, Grid, and NanoVDB
-- RGB & spectral rendering
-- Constant, image, mixed, procedural and mixed textures
-- MIPMap
-- Logging
+- RGB and spectral rendering
+- Textures: Constant, image, mixed, procedural and mixed
+- Other Stuff
+    - MIPMap
+    - Logging
+    - Edge-avoiding a-trous denoising
 
 # TODO's
 - RENDER DISNEY CLOUD from PBRTv4
