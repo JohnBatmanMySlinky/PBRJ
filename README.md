@@ -86,6 +86,10 @@ Render
     - why is my coloring and view wrong...
     - Remove prints
     - Work with coord directly
+    - pass Vecs b/w julia and c++
+    - clean up c++ code
+    - finish interpolation
+    - do rng better?
     - Document export to DensityGridMedium
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
