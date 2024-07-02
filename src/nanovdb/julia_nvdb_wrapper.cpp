@@ -107,16 +107,15 @@ nanovdb::Vec3d operator*(nanovdb::Vec3d a, float b){
     return nanovdb::Vec3d(a[0] * b, a[1] * b, a[2] * b);
 }
 
-nanovdb::Coord at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
-    nanovdb::Vec3d tmp = rayo + (rayd * t);
-    return nanovdb::Coord(tmp[0], tmp[1], tmp[2]);
+nanovdb::Vec3d at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
+    return rayo + (rayd * t);
 }
 
 class NanoVDBWrapper {
     public:
         NanoVDBWrapper(const std::string& fpath) : fpath(fpath) {}
         ~NanoVDBWrapper() {
-            std::cout << "OOPS\n";
+            std::cout << "NanoVDBWrapper - Destructed\n";
         }
         std::tuple<float, float, float, float, float, float> get_WorldBBox() {
             auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
@@ -177,8 +176,16 @@ class NanoVDBWrapper {
                     if (t > tmax) {
                         break;
                     }
-                    nanovdb::Coord coord = at(rayo, rayd, t);
-                    float density_value = acc.getValue(coord);
+                    nanovdb::Vec3d p = at(rayo, rayd, t);
+                    nanovdb::Coord pfloor = nanovdb::Coord(p.x, p.y, p.z);
+                    nanovdb::Vec3d delta = nanovdb::Vec3d(p.x - pfloor.x, p.y - pfloor.y, p.z - pfloor.z);
+                    d00 = lerp(delta[0], acc.getValue(pfloor),                         acc.getValue(pfloor + nanovdb::Coord(1,0,0)));
+                    d10 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,1,0)), acc.getValue(pfloor + nanovdb::Coord(1,1,0)));
+                    d01 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,0,1)), acc.getValue(pfloor + nanovdb::Coord(1,0,1)));
+                    d11 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,1,1)), acc.getValue(pfloor + nanovdb::Coord(1,1,1)));
+                    d0 = lerp(delta[1], d00, d10);
+                    d0 = lerp(delta[1], d01, d11);
+                    density_value = lerp(delta[2], d0, d1);
                     // std::cout << "Density at " << coord << " at " << t << " is " << density_value << std::endl;
                     if (density_value * inv_max_density > dis(gen)) {
                         // std::cout << "Sampled Medium # times: " << i << std::endl;
@@ -285,7 +292,7 @@ int grid_to_unit(const std::string& in_path, const std::string& out_path, int st
 	outFile.close();
 
 	// boop
-	std::cout << "boop\n";
+	// std::cout << "boop\n";
 	return 0;
 }
 
