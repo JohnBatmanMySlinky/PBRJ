@@ -82,6 +82,7 @@ Render
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- combine `scratch/` and `src/notebooks`
 - RENDER DISNEY CLOUD from PBRTv4
     - why is my coloring and view wrong...
     - Remove prints
