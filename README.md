@@ -85,6 +85,7 @@ Render
 - combine `scratch/` and `src/notebooks`
 - RENDER DISNEY CLOUD from PBRTv4
     - why is my coloring and view wrong...
+        - edit pbrtv4 to have a hard coded ray-medium intersection within rander::Li
     - Remove prints
     - Work with coord directly
     - pass Vecs b/w julia and c++
