@@ -111,6 +111,10 @@ nanovdb::Vec3d at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
     return rayo + (rayd * t);
 }
 
+float lerp(float t, float a, float b){
+    return a + t * (b - a);
+}
+
 class NanoVDBWrapper {
     public:
         NanoVDBWrapper(const std::string& fpath) : fpath(fpath) {}
@@ -176,16 +180,21 @@ class NanoVDBWrapper {
                     if (t > tmax) {
                         break;
                     }
+                    // nanovdb::Vec3d p = at(rayo, rayd, t);
+                    // nanovdb::Coord pfloor = nanovdb::Coord(p[0], p[1], p[2]);
+                    // nanovdb::Vec3d delta = nanovdb::Vec3d(p[0] - pfloor[0], p[1] - pfloor[1], p[2] - pfloor[2]);
+                    // float d00 = lerp(delta[0], acc.getValue(pfloor),                         acc.getValue(pfloor + nanovdb::Coord(1,0,0)));
+                    // float d10 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,1,0)), acc.getValue(pfloor + nanovdb::Coord(1,1,0)));
+                    // float d01 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,0,1)), acc.getValue(pfloor + nanovdb::Coord(1,0,1)));
+                    // float d11 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,1,1)), acc.getValue(pfloor + nanovdb::Coord(1,1,1)));
+                    // float d0 = lerp(delta[1], d00, d10);
+                    // float d1 = lerp(delta[1], d01, d11);
+                    // float density_value = lerp(delta[2], d0, d1);
+
                     nanovdb::Vec3d p = at(rayo, rayd, t);
-                    nanovdb::Coord pfloor = nanovdb::Coord(p.x, p.y, p.z);
-                    nanovdb::Vec3d delta = nanovdb::Vec3d(p.x - pfloor.x, p.y - pfloor.y, p.z - pfloor.z);
-                    d00 = lerp(delta[0], acc.getValue(pfloor),                         acc.getValue(pfloor + nanovdb::Coord(1,0,0)));
-                    d10 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,1,0)), acc.getValue(pfloor + nanovdb::Coord(1,1,0)));
-                    d01 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,0,1)), acc.getValue(pfloor + nanovdb::Coord(1,0,1)));
-                    d11 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,1,1)), acc.getValue(pfloor + nanovdb::Coord(1,1,1)));
-                    d0 = lerp(delta[1], d00, d10);
-                    d0 = lerp(delta[1], d01, d11);
-                    density_value = lerp(delta[2], d0, d1);
+                    nanovdb::Coord pfloor = nanovdb::Coord(p[0], p[1], p[2]);
+                    double density_value = acc.getValue(pfloor);
+
                     // std::cout << "Density at " << coord << " at " << t << " is " << density_value << std::endl;
                     if (density_value * inv_max_density > dis(gen)) {
                         // std::cout << "Sampled Medium # times: " << i << std::endl;
@@ -232,8 +241,21 @@ class NanoVDBWrapper {
                     if (t >= tmax) {
                         break;
                     }
-                    nanovdb::Coord coord = at(rayo, rayd, t);
-                    double density_value = acc.getValue(coord);
+                    // nanovdb::Vec3d p = at(rayo, rayd, t);
+                    // nanovdb::Coord pfloor = nanovdb::Coord(p[0], p[1], p[2]);
+                    // nanovdb::Vec3d delta = nanovdb::Vec3d(p[0] - pfloor[0], p[1] - pfloor[1], p[2] - pfloor[2]);
+                    // float d00 = lerp(delta[0], acc.getValue(pfloor),                         acc.getValue(pfloor + nanovdb::Coord(1,0,0)));
+                    // float d10 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,1,0)), acc.getValue(pfloor + nanovdb::Coord(1,1,0)));
+                    // float d01 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,0,1)), acc.getValue(pfloor + nanovdb::Coord(1,0,1)));
+                    // float d11 = lerp(delta[0], acc.getValue(pfloor + nanovdb::Coord(0,1,1)), acc.getValue(pfloor + nanovdb::Coord(1,1,1)));
+                    // float d0 = lerp(delta[1], d00, d10);
+                    // float d1 = lerp(delta[1], d01, d11);
+                    // float density_value = lerp(delta[2], d0, d1);
+
+                    nanovdb::Vec3d p = at(rayo, rayd, t);
+                    nanovdb::Coord pfloor = nanovdb::Coord(p[0], p[1], p[2]);
+                    double density_value = acc.getValue(pfloor);
+
                     Tr *= 1.0 - std::max(0.0, density_value * inv_max_density);
                     double rr_threshold = 0.1;
                     if (Tr < rr_threshold) {

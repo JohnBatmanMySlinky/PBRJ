@@ -90,7 +90,7 @@ Render
     - Work with coord directly
     - pass Vecs b/w julia and c++
     - clean up c++ code
-    - finish interpolation
+    - ~~finish interpolation~~
     - do rng better?
     - Document export to DensityGridMedium
 - Set up CI and unit tests
