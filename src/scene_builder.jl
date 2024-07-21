@@ -1925,9 +1925,16 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         primitives = Primitive[]
         lights = Light[]
 
+        # materials
+        mat_gray = Matte(
+            ConstantTexture(spectrum_from_float(0.6, 0.6, 0.6)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+
         # Bounding sphere cause we hate winding order and such
-        box_t = Translate(Pnt3(-0.5, -.5, 0))
-        sphere_transform = Translate(Pnt3(0, 0, 0))
+        box_t = Translate(Pnt3(0, 0, 0))
+        sphere_transform = Translate(Pnt3(-9.984, 73.008, -42.64)) * Scale(Vec3(206.544, 140.4, 254.592))
         sphere = Sphere(
             ShapeCore(
                 sphere_transform,
@@ -1935,21 +1942,23 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 false,
                 false
             ),
-            2.0
+            0.44224957031
         )
-        smoke_mi = MediumInterface(
-            NanoVDBMedium(
-                spectrum_from_float(10.0),
-                spectrum_from_float(90.0),
-                0.0,
-                Pnt3(0.0, 0.0, 0.0),
-                Pnt3(1.0, 1.0, 1.0),
-                box_t,
-                jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
-            ),
-            nothing
-        )
-        push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+        push!(primitives, Primitive(sphere, mat_gray, nothing))
+        # JOHN TODO FLOAT SCALE = 4
+        # smoke_mi = MediumInterface(
+        #     NanoVDBMedium(
+        #         spectrum_from_float(10.0),
+        #         spectrum_from_float(90.0),
+        #         0.877,
+        #         Pnt3(0.0, 0.0, 0.0),
+        #         Pnt3(1.0, 1.0, 1.0),
+        #         box_t,
+        #         jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
+        #     ),
+        #     nothing
+        # )
+        # push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -1958,11 +1967,10 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # instantiate the infinite light
         l_2_w = Translate(Pnt3(0,0,0))
-        light = InfiniteLight(
+        light = UniformInfiniteLight(
             world_bounds(bvh), 
             l_2_w, 
-            Spectrum(3.0, 3.0, 3.0), 
-            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
+            Spectrum(0.36, 0.84, 2.76), 
         )
         push!(lights, light)
 
@@ -1980,11 +1988,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(0.0715308, 1.17677, 5.33558)
-        look_at = Pnt3(0, 0, 0)
-        up = Vec3(-0.000323605, 0.833706, 0.552208)
+        look_from = Pnt3(648.064, -82.473, -63.856)
+        look_at = Pnt3(6.021, 100.043, -43.679)
+        up = Vec3(0.273, 0.962, -0.009)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 25.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 31.07, film)
 
         # Instantiate a Sampler
         S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])

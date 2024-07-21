@@ -156,13 +156,15 @@ end
 
 function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Tuple{Spectrum, Maybe{MediumInteraction}}
     @info "Medium Sample Time:\n\tRay Entering: $(ray_world)\n"
-    ray = nvm.world_to_medium(
+    ray = nvm.medium_to_unit(
+        nvm.world_to_medium(
             Ray(
                 ray_world.origin, 
                 normalize(ray_world.direction), 
                 0.0, ray_world.tMax * length_pbrt(ray_world.direction)
             )
         )
+    )
     @info "\tRay Transformed: $(ray)\n" 
     @info "\tInv Max Density: $(nvm.inv_max_density) :: $(nvm.sigma_s) :: $(nvm.sigma_t)"
 
