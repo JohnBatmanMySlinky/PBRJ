@@ -1944,21 +1944,21 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ),
             0.44224957031
         )
-        push!(primitives, Primitive(sphere, mat_gray, nothing))
+        # push!(primitives, Primitive(sphere, mat_gray, nothing))
         # JOHN TODO FLOAT SCALE = 4
-        # smoke_mi = MediumInterface(
-        #     NanoVDBMedium(
-        #         spectrum_from_float(10.0),
-        #         spectrum_from_float(90.0),
-        #         0.877,
-        #         Pnt3(0.0, 0.0, 0.0),
-        #         Pnt3(1.0, 1.0, 1.0),
-        #         box_t,
-        #         jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
-        #     ),
-        #     nothing
-        # )
-        # push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+        smoke_mi = MediumInterface(
+            NanoVDBMedium(
+                spectrum_from_float(10.0),
+                spectrum_from_float(90.0),
+                0.877,
+                Pnt3(0.0, 0.0, 0.0),
+                Pnt3(1.0, 1.0, 1.0),
+                box_t,
+                jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
+            ),
+            nothing
+        )
+        push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

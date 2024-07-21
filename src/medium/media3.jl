@@ -23,6 +23,7 @@ struct NanoVDBMedium <: AbstractMedium
         _, max_density = NanoVDB.get_extrema(density_float_grid)
 
         b = Bounds3(Pnt3(a, b, c), Pnt3(d, e, f))
+        @info "World Medium Bounds: $(b)"
         medium_to_unit = UnitCube(b)
 
         return new(
