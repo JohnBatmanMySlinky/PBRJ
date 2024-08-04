@@ -1942,7 +1942,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 false,
                 false
             ),
-            0.44224957031
+            1.44224957031
         )
         # push!(primitives, Primitive(sphere, mat_gray, nothing))
         # JOHN TODO FLOAT SCALE = 4
@@ -1992,7 +1992,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         look_at = Pnt3(6.021, 100.043, -43.679)
         up = Vec3(0.273, 0.962, -0.009)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 31.07, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 41.07, film)
 
         # Instantiate a Sampler
         S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])

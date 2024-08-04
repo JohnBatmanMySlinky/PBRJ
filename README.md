@@ -84,12 +84,15 @@ Render
 # TODO's
 - combine `scratch/` and `src/notebooks`
 - RENDER DISNEY CLOUD from PBRTv4
-    - my transforms and world / medium / unit spae are fucked
-    - why is pbrtv4's "eye" transform baked in???
+    - ~~my transforms and world / medium / unit spae are fucked~~ is it?
+    - ~~why is pbrtv4's "eye" transform baked in???~~ read the user manual mayhaps
+    - FOV seems off and I get black corners
     - Remove prints
     - Work with coord directly
     - pass Vecs b/w julia and c++
     - clean up c++ code
+    - pbrt has a sigma scale
+    - remove p0 and p1
     - ~~finish interpolation~~
     - do rng better?
     - Document export to DensityGridMedium

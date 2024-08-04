@@ -182,8 +182,6 @@ function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSam
     ray = Inv(nvm.medium_to_unit)(ray)
     @info "\tRay NanoVDB Space: $(ray)\n" 
 
-    @assert false
-
     # print("BEGINNING MEDIA SAMPLING\n")
     flag, new_t = NanoVDB.sample_NanoVDBWrapper(
         nvm.density_float_grid,

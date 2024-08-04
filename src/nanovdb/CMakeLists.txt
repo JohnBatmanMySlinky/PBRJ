@@ -6,6 +6,9 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 else()
   set(CMAKE_MACOSX_RPATH 1)
 endif()
+
+SET(CMAKE_OSX_ARCHITECTURES "arm64")
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 find_package(JlCxx)
