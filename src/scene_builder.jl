@@ -1951,9 +1951,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 spectrum_from_float(10.0),
                 spectrum_from_float(90.0),
                 0.877,
-                Pnt3(0.0, 0.0, 0.0),
-                Pnt3(1.0, 1.0, 1.0),
-                box_t,
+                1.0,
                 jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
             ),
             nothing

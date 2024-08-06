@@ -157,12 +157,10 @@ end
 function sample(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Tuple{Spectrum, Maybe{MediumInteraction}}
     @info "Medium Sample Time:\n\tRay Entering: $(ray_world)\n"
     ray = nvm.medium_to_unit(
-        nvm.world_to_medium(
-            Ray(
-                ray_world.origin, 
-                normalize(ray_world.direction), 
-                0.0, ray_world.tMax * length_pbrt(ray_world.direction)
-            )
+        Ray(
+            ray_world.origin, 
+            normalize(ray_world.direction), 
+            0.0, ray_world.tMax * length_pbrt(ray_world.direction)
         )
     )
     @info "\tRay Transformed: $(ray)\n" 
@@ -204,12 +202,10 @@ end
 function tr(nvm::NanoVDBMedium, ray_world::AbstractRay, sampler::AbstractSampler)::Spectrum
     @info "Medium Tr Time:\n\tRay Entering: $(ray_world)\n"
     ray = nvm.medium_to_unit(
-        nvm.world_to_medium(
-            Ray(
-                ray_world.origin, 
-                normalize(ray_world.direction), 
-                0.0, ray_world.tMax * length_pbrt(ray_world.direction)
-            )
+        Ray(
+            ray_world.origin, 
+            normalize(ray_world.direction), 
+            0.0, ray_world.tMax * length_pbrt(ray_world.direction)
         )
     )
     @info "\tRay Transformed: $(ray)\n"    

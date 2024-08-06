@@ -155,6 +155,7 @@ function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSamp
         camera.core.core.shutter_closed,
     )
     ray = camera.core.core.camera_to_world(ray)
+    # ray.has_differentials = true
     return ray, 1.0
 end
 

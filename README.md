@@ -91,8 +91,8 @@ Render
     - Work with coord directly
     - pass Vecs b/w julia and c++
     - clean up c++ code
-    - pbrt has a sigma scale
-    - remove p0 and p1
+    - ~~pbrt has a sigma scale~~
+    - ~~remove p0 and p1~~
     - ~~finish interpolation~~
     - do rng better?
     - Document export to DensityGridMedium
