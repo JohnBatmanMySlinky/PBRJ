@@ -180,6 +180,7 @@ function render(
         Threads.unlock(l)
     end
     got_film = i.camera.core.core.film
+    @info "FILM before save: $(got_film)" 
     img = save(got_film, 1.0/i.sampler.samples_per_pixel)
     return img
 end

@@ -85,19 +85,23 @@ function RGB_to_XYZ(s::Spectrum)::XYZPBRT
 end
 
 function to_XYZ(s::Spectrum)::XYZPBRT
-    x = 0.0
-    y = 0.0
-    z = 0.0
-    for i in 1:nSpectralSamples
-        x += XXX[i] * s[i]
-        y += YYY[i] * s[i]
-        z += ZZZ[i] * s[i]
+    if length(s) == 3
+        return RGB_to_XYZ(s)
+    else
+        x = 0.0
+        y = 0.0
+        z = 0.0
+        for i in 1:nSpectralSamples
+            x += XXX[i] * s[i]
+            y += YYY[i] * s[i]
+            z += ZZZ[i] * s[i]
+        end
+        scale = (sampledLambdaEnd - sampledLambdaStart) / (CIE_Y_integral * nSpectralSamples)
+        x *= scale
+        y *= scale
+        z *= scale
+        return XYZPBRT(x, y, z)
     end
-    scale = (sampledLambdaEnd - sampledLambdaStart) / (CIE_Y_integral * nSpectralSamples)
-    x *= scale
-    y *= scale
-    z *= scale
-    return XYZPBRT(x, y, z)
 end
 
 function make_spectral_constants()::Tuple{Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum, Spectrum}

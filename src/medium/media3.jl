@@ -19,7 +19,6 @@ struct NanoVDBMedium <: AbstractMedium
         sigma_s *= scale
         density_float_grid = NanoVDB.make_NanoVDBWrapper(fpath)
         a, b, c, d, e, f = NanoVDB.get_WorldBBox(density_float_grid)
-        print("youll never see this\n")
         _, max_density = NanoVDB.get_extrema(density_float_grid)
 
         b = Bounds3(Pnt3(a, b, c), Pnt3(d, e, f))
