@@ -130,6 +130,10 @@ function render(
                 #     @info "BDPT: Camera Vertex $(iii): $(camera_vertices[iii].type) @ $(pos) $(lig)"
                 # end
 
+                for iii in 1:num_real_camera_vertices
+                    @info "BDPT: Camera Vertex Hacky but OK $(iii): $(camera_vertices[iii].type) $(p(camera_vertices[iii]))"
+                end
+
                 # execute all BDPT connection strategies
                 # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
                 for t in 1:n_camera
@@ -207,7 +211,7 @@ function generate_camera_subpath!(
     scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
 
     # generate first vertex on camera subpath and start random walk
-    path[1] = create_camera_vertex(camera, ray, beta)
+    path[0+1] = create_camera_vertex(camera, ray, beta)
     pdf_pos, pdf_dir = pdf_we(camera, ray)
     @info "Starting camera subpath.\n\tRay $(ray.origin) $(ray.direction)\n\tbeta $(beta)\n\t pdfPos $(pdf_pos)\n\tpdfDir $(pdf_dir) "
     return random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1)
@@ -318,12 +322,15 @@ function random_walk!(
             pdf_fwd, wi = sample_p(mi.phase, -ray.direction, get_2D!(sampler))
             pdf_rev = pdf_fwd # DONT FORGET THIS
             ray = spawn_ray(mi.core, wi)
+            @info "Random Walk: New Ray Spawned: $(ray)" 
         else
             # handle surface interaction for path generation
             if !check
                 # capture escaped rays when tracing from camera
                 if mode == Radiance
+                    @info "Random walk: Capture escaped rays when tracing from the camera - RADIANCE"
                     path[vertex] = create_light_vertex(EndpointInteraction(ray), beta, pdf_fwd)
+                    @info "HAHA: $(p(path[vertex])) $(ray)"
                     bounces += 1
                 end
                 @info "Random walk: exited due to escaped rays"
@@ -407,6 +414,7 @@ function connect_BDPT(
         """
         pt = camera_vertices[t-1+1]
         if is_light(pt)
+            @info "Vignette De Bugging: We Here"
             L = le(pt, scene, camera_vertices[t-2+1]) * pt.beta
         end
     elseif t == 1

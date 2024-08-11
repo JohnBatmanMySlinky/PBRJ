@@ -34,6 +34,10 @@ function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3)::Interaction
     return Interaction(p, t, wo, n, MediumInterface(nothing))
 end
 
+function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3, m::Maybe{AbstractMedium})::Interaction
+    return Interaction(p, t, wo, n, MediumInterface(m))
+end
+
 function Interaction(p::Pnt3, t::Float64, wo::Vec3, mi::MediumInterface)::Interaction
     return Interaction(p, t, wo, Nml3(0), mi)
 end

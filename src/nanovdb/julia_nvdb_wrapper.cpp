@@ -165,13 +165,13 @@ class NanoVDBWrapper {
                 // accessor
                 auto acc = densityFloatGrid->getAccessor();
                 // double adj = tmax - t;
-                int CAP = 100000;
+                int CAP = 1000000;
                 int i = 0;
 
                 while (true) {
                     i += 1;
                     if (i > CAP){
-                        // std::cout << "   oopsie" << std::endl;
+                        std::cout << "   oopsie" << std::endl;
                         break;
                     }
                     t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
@@ -227,13 +227,13 @@ class NanoVDBWrapper {
                 // accessor
                 auto acc = densityFloatGrid->getAccessor();
                 // double adj = tmax - t;
-                int CAP = 1000;
+                int CAP = 1000000;
                 int i = 0;
 
                 while (true) {
                     i += 1;
                     if (i > CAP){
-                        // std::cout << "   oopsie" << std::endl;
+                        std::cout << "   oopsie" << std::endl;
                         break;
                     }
                     t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;

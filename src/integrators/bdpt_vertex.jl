@@ -50,7 +50,7 @@ function EndpointInteraction()::EndpointInteraction
     return EndpointInteraction(Interaction(), nothing, nothing)
 end
 function EndpointInteraction(ray::AbstractRay)::EndpointInteraction
-    return EndpointInteraction(Interaction(ray), nothing, nothing)
+    return EndpointInteraction(Interaction(at(ray,1.0), ray.t, ray.direction, Nml3(-ray.direction), ray.medium), nothing, nothing)
 end
 function EndpointInteraction(camera::Camera, ray::AbstractRay)::EndpointInteraction
     return EndpointInteraction(Interaction(ray), camera, nothing)
@@ -258,15 +258,21 @@ end
 ################################## Sampling
 function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
     !is_light(v1) && (return spectrum_from_float(0.0))
+    @info "\t\tV1 is a light"
     w = p(v2) - p(v1)
-    (dot(w,w) == 0.0) && (return spectrum_from_float(0.0))
+    @info "\t\tw: $(w)"
+    (length_squared(Vec3(w)) == 0.0) && (return spectrum_from_float(0.0))
+    @info "\t\tw length gt 0"
     w = Vec3(normalize(w))
     if is_infinite_light(v1)
+        @info "\t\tV1 is an infinite light"
         # return emitted radiance for infinite light sources
         LL = spectrum_from_float(0.0)
         for light in scene.lights
             if is_infinite_light(light)
-                LL += le(light, Ray(p(v1), -w, time(v1), typemax(Float64)))
+                tmp = le(light, Ray(p(v1), -w, time(v1), typemax(Float64)))
+                @info "\tInf Light Sampling: $(tmp)"
+                LL += tmp
             end
         end
         return LL

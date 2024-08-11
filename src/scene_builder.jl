@@ -1927,7 +1927,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         # materials
         mat_gray = Matte(
-            ConstantTexture(spectrum_from_float(0.6, 0.6, 0.6)),
+            ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
@@ -1945,13 +1945,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             1.44224957031
         )
         # push!(primitives, Primitive(sphere, mat_gray, nothing))
-        # JOHN TODO FLOAT SCALE = 4
+
         smoke_mi = MediumInterface(
             NanoVDBMedium(
                 spectrum_from_float(10.0),
                 spectrum_from_float(90.0),
                 0.877,
-                1.0,
+                4.0,
                 jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
             ),
             nothing
@@ -1972,6 +1972,28 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         push!(lights, light)
 
+        wb = world_bounds(bvh)
+        world_center, world_radius = bounding_sphere(wb)
+        light = DistantLight(
+            Spectrum(2.6, 2.5, 2.3),
+            Vec3(-0.5826, -0.7660, -0.2717),
+            world_center,
+            world_radius,
+            l_2_w
+        )
+        push!(lights, light)
+
+        # instantiate the infinite light
+        # l_2_w = Translate(Pnt3(0,0,0))
+        # light = InfiniteLight(
+        #     world_bounds(bvh), 
+        #     l_2_w, 
+        #     Spectrum(3.0, 3.0, 3.0), 
+        #     "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+        # )
+        # push!(lights, light)
+
+
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
 
@@ -1990,7 +2012,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         look_at = Pnt3(6.021, 100.043, -43.679)
         up = Vec3(0.273, 0.962, -0.009)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 41.07, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 46.07, film)
 
         # Instantiate a Sampler
         S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
