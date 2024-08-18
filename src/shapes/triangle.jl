@@ -77,7 +77,7 @@ end
 # PBR 3.6.1
 # "The Triangle shape is one of the shapes that can compute a better world space bound than can be found by transforming its 
 # object space bounding box to world space. Its world space bound can be directly computed from the world space vertices."
-function ObjectBounds(tri::Triangle)
+function ObjectBounds(tri::Triangle)::Bounds3
     # TODO
     # triangles have their vertices already in world space so go backwards because
     # results of this function are transformed back
