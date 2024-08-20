@@ -118,3 +118,78 @@ end
         blp.mesh.p[blp.mesh.indices[blp.i + 2]],
         blp.mesh.p[blp.mesh.indices[blp.i + 3]]
 end
+
+function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
+    p00, p10, p01, p11 = get_p(blp)
+    #  Find quadratic coefficients for distance from ray to $u$ iso-lines
+    a = dot(cross(p10 - p00, p01 - p11), ray.direction)
+    c = dot(cross(p00 - ray.origin, ray.ddirection), p01 - p00)
+    b = dot(cross(p10 - ray..origin, ray.direction), p11 - p10) - (a + c)
+
+    #  Solve quadratic for bilinear patch $u$ intersection
+    exists, u1, u2 = solve_quadratic(a, b, c)
+    if !exists
+        return false, nothing, nothing
+    end
+
+    # Find epsilon _eps_ to ensure that candidate $t$ is greater than zero
+    eps = gamma(10) * (max(abs.(ray.o)) + 
+        max(abs.(ray.d)) + 
+        max(abs.(p00)) + 
+        max(abs.(p10)) + 
+        max(abs.(p01)) + 
+        max(abs.(p11)))
+
+    # Compute $v$ and $t$ for the first $u$ intersection
+    t = ray.tMax
+    u, v = 0.0, 0.0
+    if (0.0 <= u1 && u1 <= 1.0)
+        #  Precompute common terms for $v$ and $t$ computation
+        uo::Pnt3 = lerp(u1, p00, p10)
+        ud::Vec3 = lerp(u1, p01, p11) - uo
+        deltao::Vec3 = uo - ray.o
+        perp::Vec3 = cross(ray.d, ud)
+        p2 = length_squared(perp)
+
+        # Compute matrix determinants for $v$ and $t$ numerators
+        v1 = Determinant(SquareMatrix<3>(deltao.x, ray.d.x, perp.x, deltao.y, ray.d.y, perp.y, deltao.z, ray.d.z, perp.z))
+        t1 = Determinant(SquareMatrix<3>(deltao.x, ud.x, perp.x, deltao.y, ud.y, perp.y, deltao.z, ud.z, perp.z))
+
+        #  Set _u_, _v_, and _t_ if intersection is valid
+        if (t1 > p2 * eps && 0 <= v1 && v1 <= p2)
+            u = u1;
+            v = v1 / p2;
+            t = t1 / p2;
+        end
+    end
+
+    # Compute $v$ and $t$ for the second $u$ intersection
+    if (0 <= u2 && u2 <= 1 && u2 != u1)
+        uo::Pnt3 = lerp(u2, p00, p10)
+        ud::Vec3 = lerp(u2, p01, p11) - uo
+        deltao::Vec3 = uo - ray.o
+        perp::Vec3 = cross(ray.d, ud)
+        p2 = length_squared(perp)
+        v2 = Determinant(SquareMatrix<3>(deltao.x, ray.d.x, perp.x, deltao.y, ray.d.y, perp.y, deltao.z, ray.d.z, perp.z))
+        t2 = Determinant(SquareMatrix<3>(deltao.x, ud.x, perp.x, deltao.y, ud.y, perp.y, deltao.z, ud.z, perp.z))
+        t2 /= p2
+        if (0.0 <= v2 && v2 <= p2 && t > t2 && t2 > eps)
+            t = t2
+            u = u2
+            v = v2 / p2
+        end
+    end
+
+    # TODO: reject hits with sufficiently small t that we're not sure.
+    # Check intersection $t$ against _tMax_ and possibly return intersection
+    if (t >= tMax)
+        return false, nothing, nothing
+    end
+    
+    # OK construct intersection from 
+    # https://github.com/mmp/pbrt-v4/blob/39e01e61f8de07b99859df04b271a02a53d9aeb2/src/pbrt/shapes.h#L1396
+end
+
+function intersect_p(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Bool
+    
+end
