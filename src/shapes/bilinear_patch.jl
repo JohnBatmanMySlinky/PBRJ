@@ -120,6 +120,122 @@ end
 end
 
 function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
+    check, uv, t = intersect_bilinear_patch(blp, ray)
+    if !check
+        return false, nothing, nothing
+    end
+
+    p00, p10, p01, p11 = get_p(blp)
+    
+    # The barrier between function calls in pbrt-v4
+
+    p::Pnt3 = lerp(u, Lerp(v, p00, p01), lerp(v, p10, p11))
+    dpdu::Vec3 = lerp(v, p10, p11) - lerp(v, p00, p01)
+    dpdv::Vec3 = lerp(u, p01, p11) - lerp(u, p00, p10)
+
+    # Compute $(s,t)$ texture coordinates at bilinear patch $(u,v)$
+    st = Pnt2(u, v)
+    duds = 1.0, dudt = 0.0, dvds = 0.0, dvdt = 1.0
+
+    if !(blp.mesh.uv isa Nothing)
+        # Compute texture coordinates for bilinear patch intersection point
+        uv00, uv10, uv01, uv11 = get_uvs(blp)
+        st = lerp(uv.x, lerp(uv.y, uv00, uv01), lerp(uv.y, uv10, uv11))
+
+        # Update bilinear patch $\dpdu$ and $\dpdv$ accounting for $(s,t)$
+        # Compute partial derivatives of $(u,v)$ with respect to $(s,t)$
+        dstdu::Vec2 = lerp(uv.y, uv10, uv11) - lerp(uv.y, uv00, uv01)
+        dstdv::Vec2 = lerp(uv.x, uv01, uv11) - lerp(uv.x, uv00, uv10)
+        duds = abs(dstdu.x) < 1e-8 ? 0.0 : 1.0 / dstdu.x
+        dvds = abs(dstdv.x) < 1e-8 ? 0.0 : 1.0 / dstdv.x
+        dudt = abs(dstdu.y) < 1e-8 ? 0.0 : 1.0 / dstdu.y
+        dvdt = abs(dstdv.y) < 1e-8 ? 0.0 : 1.0 / dstdv.y
+
+        # Compute partial derivatives of $\pt{}$ with respect to $(s,t)$
+        dpds::Vec3 = dpdu * duds + dpdv * dvds
+        dpdt::Vec3 = dpdu * dudt + dpdv * dvdt
+
+        # Set _dpdu_ and _dpdv_ to updated partial derivatives
+        if (cross(dpds, dpdt) != Vec3(0, 0, 0))
+            if (dot(cross(dpdu, dpdv), cross(dpds, dpdt)) < 0.0)
+                dpdt = -dpdt
+            # @assert dot(normalize(cross(dpdu, dpdv)), normalize(cross(dpds, dpdt))) > -1e-3
+            dpdu = dpds
+            dpdv = dpdt
+        end
+    end
+
+    # Find partial derivatives $\dndu$ and $\dndv$ for bilinear patch
+    d2Pduu = Vec3(0, 0, 0)
+    d2Pdvv = Vec3(0, 0, 0)
+    d2Pduv::Vec3 = (p00 - p01) + (p11 - p10)
+    # Compute coefficients for fundamental forms
+    E = dot(dpdu, dpdu)
+    F = dot(dpdu, dpdv)
+    G = dot(dpdv, dpdv)
+    n::Vec3 = normalize(cross(dpdu, dpdv))
+    e = dot(n, d2Pduu)
+    f = dot(n, d2Pduv)
+    g = dot(n, d2Pdvv)
+
+    # Compute $\dndu$ and $\dndv$ from fundamental form coefficients
+    EGF2 = difference_of_products(E, G, F, F)
+    invEGF2 = (EGF2 == 0.0) ? 0.0 : 1.0 / EGF2
+    dndu::Nml3 = (f * F - e * G) * invEGF2 * dpdu + (e * F - f * E) * invEGF2 * dpdv
+    dndv::Nml3 = (g * F - f * G) * invEGF2 * dpdu + (f * F - g * E) * invEGF2 * dpdv
+
+    # Update $\dndu$ and $\dndv$ to account for $(s,t)$ parameterization
+    dnds = dndu * duds + dndv * dvds
+    dndt = dndu * dudt + dndv * dvdt
+    dndu = dnds
+    dndv = dndt
+
+    # Initialize bilinear patch intersection point error _pError_
+    pAbsSum::Pnt3 = abs.(p00) + abs.(p01) + abs.(p10) + abs.(p11)
+
+    # Initialize _SurfaceInteraction_ for bilinear patch intersection
+    flipNormal = blp.core.reverse_orientation ^ blp.core.swap_handedness
+    isect = SurfaceInteraction(
+        p, 
+        st, 
+        wo, 
+        dpdu, 
+        dpdv, 
+        dndu, 
+        dndv,
+        time, 
+        flipNormal, 
+        faceIndex
+    )
+
+    # Compute bilinear patch shading normal if necessary
+    if !(blp.mesh.n isa Nothing)
+        # Compute shading normals for bilinear patch intersection point
+        n00, n10, n01, n11 = get_n(blp)
+        ns::Nml3 = lerp(uv.x, lerp(uv.y, n00, n01), lerp(uv.y, n10, n11))
+        if (length_squared(ns) > 0.0)
+            ns = normalize(ns)
+            # Set shading geometry for bilinear patch intersection
+            dndu::Nml3 = lerp(uv.y, n10, n11) - lerp(uv.y, n00, n01)
+            dndv::Nml3 = lerp(uv.x, n01, n11) - lerp(uv.x, n00, n10)
+            # Update $\dndu$ and $\dndv$ to account for $(s,t)$ parameterization
+            dnds::Nml3 = dndu * duds + dndv * dvds
+            dndt::Nml3 = dndu * dudt + dndv * dvdt
+            dndu = dnds
+            dndv = dndt
+
+            set_shading_geomerty!(isect, dpdu, dpdv, dndus, dndvs, true)
+        end
+    end
+    return true, time, isect
+end
+
+function intersect_p(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Bool
+    check, _, _ = intersect_bilinear_patch(blp, ray)
+    return check
+end
+
+function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Pnt2, Float64}
     p00, p10, p01, p11 = get_p(blp)
     #  Find quadratic coefficients for distance from ray to $u$ iso-lines
     a = dot(cross(p10 - p00, p01 - p11), ray.direction)
@@ -185,103 +301,4 @@ function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bo
     if (t >= ray.tMax)
         return false, nothing, nothing
     end
-    
-    # OK construct intersection from 
-    # https://github.com/mmp/pbrt-v4/blob/39e01e61f8de07b99859df04b271a02a53d9aeb2/src/pbrt/shapes.h#L1396
-
-    p::Pnt3 = lerp(u, Lerp(v, p00, p01), lerp(v, p10, p11))
-    dpdu::Vec3 = lerp(v, p10, p11) - lerp(v, p00, p01)
-    dpdv::Vec3 = lerp(u, p01, p11) - lerp(u, p00, p10)
-
-    # Compute $(s,t)$ texture coordinates at bilinear patch $(u,v)$
-    st = Pnt2(u, v)
-    duds = 1.0, dudt = 0.0, dvds = 0.0, dvdt = 1.0
-
-    if !(blp.mesh.uv isa Nothing)
-        # Compute texture coordinates for bilinear patch intersection point
-        uv00, uv10, uv01, uv11 = get_uvs(blp)
-        st = lerp(uv.x, lerp(uv.y, uv00, uv01), lerp(uv.y, uv10, uv11))
-
-        # Update bilinear patch $\dpdu$ and $\dpdv$ accounting for $(s,t)$
-        # Compute partial derivatives of $(u,v)$ with respect to $(s,t)$
-        dstdu::Vec2 = lerp(uv.y, uv10, uv11) - lerp(uv.y, uv00, uv01)
-        dstdv::Vec2 = lerp(uv.x, uv01, uv11) - lerp(uv.x, uv00, uv10)
-        duds = abs(dstdu.x) < 1e-8f ? 0 : 1 / dstdu.x
-        dvds = abs(dstdv.x) < 1e-8f ? 0 : 1 / dstdv.x
-        dudt = abs(dstdu.y) < 1e-8f ? 0 : 1 / dstdu.y
-        dvdt = abs(dstdv.y) < 1e-8f ? 0 : 1 / dstdv.y
-
-        # Compute partial derivatives of $\pt{}$ with respect to $(s,t)$
-        dpds::Vec3 = dpdu * duds + dpdv * dvds
-        dpdt::Vec3 = dpdu * dudt + dpdv * dvdt
-
-        # Set _dpdu_ and _dpdv_ to updated partial derivatives
-        if (cross(dpds, dpdt) != Vec3(0, 0, 0))
-            if (dot(cross(dpdu, dpdv), cross(dpds, dpdt)) < 0.0)
-                dpdt = -dpdt
-            # @assert dot(normalize(cross(dpdu, dpdv)), normalize(cross(dpds, dpdt))) > -1e-3
-            dpdu = dpds
-            dpdv = dpdt
-        end
-    end
-
-    # Find partial derivatives $\dndu$ and $\dndv$ for bilinear patch
-    Vector3f d2Pduu(0, 0, 0), d2Pdvv(0, 0, 0);
-    Vector3f d2Pduv = (p00 - p01) + (p11 - p10);
-    # Compute coefficients for fundamental forms
-    Float E = Dot(dpdu, dpdu), F = Dot(dpdu, dpdv), G = Dot(dpdv, dpdv);
-    Vector3f n = Normalize(Cross(dpdu, dpdv));
-    Float e = Dot(n, d2Pduu), f = Dot(n, d2Pduv), g = Dot(n, d2Pdvv);
-
-    # Compute $\dndu$ and $\dndv$ from fundamental form coefficients
-    Float EGF2 = DifferenceOfProducts(E, G, F, F);
-    Float invEGF2 = (EGF2 == 0) ? Float(0) : 1 / EGF2;
-    Normal3f dndu =
-        Normal3f((f * F - e * G) * invEGF2 * dpdu + (e * F - f * E) * invEGF2 * dpdv);
-    Normal3f dndv =
-        Normal3f((g * F - f * G) * invEGF2 * dpdu + (f * F - g * E) * invEGF2 * dpdv);
-
-    # Update $\dndu$ and $\dndv$ to account for $(s,t)$ parameterization
-    Normal3f dnds = dndu * duds + dndv * dvds;
-    Normal3f dndt = dndu * dudt + dndv * dvdt;
-    dndu = dnds;
-    dndv = dndt;
-
-    # Initialize bilinear patch intersection point error _pError_
-    Point3f pAbsSum = Abs(p00) + Abs(p01) + Abs(p10) + Abs(p11);
-    Vector3f pError = gamma(6) * Vector3f(pAbsSum);
-
-    # Initialize _SurfaceInteraction_ for bilinear patch intersection
-    int faceIndex = mesh->faceIndices ? mesh->faceIndices[blpIndex] : 0;
-    bool flipNormal = mesh->reverseOrientation ^ mesh->transformSwapsHandedness;
-    SurfaceInteraction isect(Point3fi(p, pError), st, wo, dpdu, dpdv, dndu, dndv,
-                             time, flipNormal, faceIndex);
-
-    # Compute bilinear patch shading normal if necessary
-    if (mesh->n) {
-        # Compute shading normals for bilinear patch intersection point
-        Normal3f n00 = mesh->n[v[0]], n10 = mesh->n[v[1]];
-        Normal3f n01 = mesh->n[v[2]], n11 = mesh->n[v[3]];
-        Normal3f ns = Lerp(uv[0], Lerp(uv[1], n00, n01), Lerp(uv[1], n10, n11));
-        if (LengthSquared(ns) > 0) {
-            ns = Normalize(ns);
-            # Set shading geometry for bilinear patch intersection
-            Normal3f dndu = Lerp(uv[1], n10, n11) - Lerp(uv[1], n00, n01);
-            Normal3f dndv = Lerp(uv[0], n01, n11) - Lerp(uv[0], n00, n10);
-            # Update $\dndu$ and $\dndv$ to account for $(s,t)$ parameterization
-            Normal3f dnds = dndu * duds + dndv * dvds;
-            Normal3f dndt = dndu * dudt + dndv * dvdt;
-            dndu = dnds;
-            dndv = dndt;
-
-            Transform r = RotateFromTo(Vector3f(Normalize(isect.n)), Vector3f(ns));
-            isect.SetShadingGeometry(ns, r(dpdu), r(dpdv), dndu, dndv, true);
-        }
-    }
-
-    return isect;
-end
-
-function intersect_p(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Bool
-    
 end
