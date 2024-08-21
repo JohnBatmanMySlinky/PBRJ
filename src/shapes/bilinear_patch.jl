@@ -40,22 +40,50 @@ struct BilinearPatch <: Shape
     i::Int64
     area::Float64
     min_spherical_sample_area::Float64
+end
 
-    function BilinearPatch(core::ShapeCore, mesh::BilinearPatchMesh, i::Int64)
+function BilinearPatchGenerator(
+    core::ShapeCore,
+    n_patches::Int64,
+    n_vertices::Int64,
+    indices::Vector{Int64},
+    p::Vector{Pnt3},
+    n::Maybe{Vector{Nml3}},
+    uv::Maybe{Vector{Pnt2}},
+    alpha_mask::Maybe{Texture},
+)::Vector{BilinearPatch}
+    mesh = BilinearPatchMesh(
+        core.object_to_world,
+        n_patches,
+        n_vertices,
+        indices,
+        p,
+        n,
+        uv,
+        alpha_mask,
+    )
+
+    patches = BilinearPatch[]
+    for i in 0:n_patches
         # Store area of bilinear patch in area
         # Get bilinear patch vertices in p00, p01, p10, and p11
-        p00 = mesh.p[mesh.indices[i+0]]
-        p10 = mesh.p[mesh.indices[i+1]]
-        p01 = mesh.p[mesh.indices[i+2]]
-        p11 = mesh.p[mesh.indices[i+3]]
+        p00 = mesh.p[mesh.indices[i+0+1]]
+        p10 = mesh.p[mesh.indices[i+1+1]]
+        p01 = mesh.p[mesh.indices[i+2+1]]
+        p11 = mesh.p[mesh.indices[i+3+1]]
         if is_rectangle(p00, p10, p10, p11)
             area = distance(p00, p01) * distance(p00, p10)
         else
             # TODO implement!
             @assert false
         end
-        new(core, mesh, i*4+1, area, 1e-4)
+
+        patch = BilinearPatch(core, mesh, i*4+1, area, 1e-4)
+
+        push!(patches, patch)
     end
+
+    return patches
 end
 
 function ObjectBounds(blp::BilinearPatch)::Bounds3
