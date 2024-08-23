@@ -64,14 +64,14 @@ function BilinearPatchGenerator(
     )
 
     patches = BilinearPatch[]
-    for i in 0:n_patches
+    for i in 0:(n_patches-1)
         # Store area of bilinear patch in area
         # Get bilinear patch vertices in p00, p01, p10, and p11
-        p00 = mesh.p[mesh.indices[i+0+1]]
-        p10 = mesh.p[mesh.indices[i+1+1]]
-        p01 = mesh.p[mesh.indices[i+2+1]]
-        p11 = mesh.p[mesh.indices[i+3+1]]
-        if is_rectangle(p00, p10, p10, p11)
+        p00 = mesh.p[mesh.indices[i+0+1]+1]
+        p10 = mesh.p[mesh.indices[i+1+1]+1]
+        p01 = mesh.p[mesh.indices[i+2+1]+1]
+        p11 = mesh.p[mesh.indices[i+3+1]+1]
+        if is_rectangle(p00, p10, p01, p11)
             area = distance(p00, p01) * distance(p00, p10)
         else
             # TODO implement!
@@ -82,7 +82,7 @@ function BilinearPatchGenerator(
 
         push!(patches, patch)
     end
-
+    @assert length(patches) == n_patches
     return patches
 end
 
@@ -93,14 +93,13 @@ function ObjectBounds(blp::BilinearPatch)::Bounds3
     # ugh
     p00, p10, p01, p11 = blp.core.world_to_object.(get_p(blp))
     # TODO why must I do this
-    buffer = Float64[0, 0, 0, 0]
-    for i in 1:4
+    buffer = Float64[0, 0, 0]
+    for i in 1:3
         if p00[i] == p10[i] == p01[i] == p11[i]
             buffer[i] = .0001
         end
     end
-    return 
-        world_bounds(
+    return world_bounds(
             world_bounds(
                     Bounds3(p0-buffer, p0+buffer), 
                     Bounds3(p1-buffer, p1+buffer)
@@ -126,8 +125,10 @@ function is_rectangle(p00::Pnt3, p10::Pnt3, p01::Pnt3, p11::Pnt3)::Bool
     # Check if planar vertices form a rectangle>> 
     p_center = Pnt3(p00 + p01 + p10 + p11) / 4.0
     d2 = Float64[
-        distance_squared(p00, p_center), distance_squared(p01, p_center), 
-        distance_squared(p10, p_center), distance_squared(p11, p_center)
+        distance_squared(p00, p_center), 
+        distance_squared(p01, p_center), 
+        distance_squared(p10, p_center), 
+        distance_squared(p11, p_center)
     ]
     for i in 1:3
         if abs(d2[i+1] - d2[0+1]) / d2[0+1] > 1e-4
@@ -142,11 +143,11 @@ function area(blp::BilinearPatch)::Float64
 end
 
 @inline function get_p(blp::BilinearPatch)::Tuple{Pnt3, Pnt3, Pnt3, Pnt3}
-    return 
-        blp.mesh.p[blp.mesh.indices[blp.i + 0]], 
-        blp.mesh.p[blp.mesh.indices[blp.i + 1]], 
-        blp.mesh.p[blp.mesh.indices[blp.i + 2]],
-        blp.mesh.p[blp.mesh.indices[blp.i + 3]]
+    return (blp.mesh.p[blp.mesh.indices[blp.i + 0] + 1],
+        blp.mesh.p[blp.mesh.indices[blp.i + 1] + 1], 
+        blp.mesh.p[blp.mesh.indices[blp.i + 2] + 1], 
+        blp.mesh.p[blp.mesh.indices[blp.i + 3] + 1]
+    )
 end
 
 function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
@@ -165,7 +166,10 @@ function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bo
 
     # Compute $(s,t)$ texture coordinates at bilinear patch $(u,v)$
     st = Pnt2(u, v)
-    duds = 1.0, dudt = 0.0, dvds = 0.0, dvdt = 1.0
+    duds = 1.0
+    dudt = 0.0
+    dvds = 0.0
+    dvdt = 1.0
 
     if !(blp.mesh.uv isa Nothing)
         @assert false # don't be here
@@ -293,10 +297,10 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
     u, v = 0.0, 0.0
     if (0.0 <= u1 && u1 <= 1.0)
         #  Precompute common terms for $v$ and $t$ computation
-        uo::Pnt3 = lerp(u1, p00, p10)
-        ud::Vec3 = lerp(u1, p01, p11) - uo
-        deltao::Vec3 = uo - ray.o
-        perp::Vec3 = cross(ray.d, ud)
+        uo = lerp(u1, p00, p10)
+        ud = lerp(u1, p01, p11) - uo
+        deltao = uo - ray.o
+        perp = cross(ray.d, ud)
         p2 = length_squared(perp)
 
         # Compute matrix determinants for $v$ and $t$ numerators
@@ -313,10 +317,10 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
 
     # Compute $v$ and $t$ for the second $u$ intersection
     if (0 <= u2 && u2 <= 1 && u2 != u1)
-        uo::Pnt3 = lerp(u2, p00, p10)
-        ud::Vec3 = lerp(u2, p01, p11) - uo
-        deltao::Vec3 = uo - ray.o
-        perp::Vec3 = cross(ray.d, ud)
+        uo = lerp(u2, p00, p10)
+        ud = lerp(u2, p01, p11) - uo
+        deltao = uo - ray.o
+        perp = cross(ray.d, ud)
         p2 = length_squared(perp)
         v2 = Determinant(SquareMatrix<3>(deltao.x, ray.d.x, perp.x, deltao.y, ray.d.y, perp.y, deltao.z, ray.d.z, perp.z))
         t2 = Determinant(SquareMatrix<3>(deltao.x, ud.x, perp.x, deltao.y, ud.y, perp.y, deltao.z, ud.z, perp.z))

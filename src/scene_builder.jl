@@ -1893,7 +1893,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             1,
             4,
             Int64[0, 1, 2, 3],
-            Pnt3[Pnt3(0, 0, 0), Pnt3(0, 0, 555), Pnt3(555, 0, 0), Pnt3(555, 0, 555)],
+            Pnt3[Pnt3(0, 0, 0), Pnt3(555, 0, 0), Pnt3(0, 0, 555), Pnt3(555, 0, 555)],
             nothing,
             nothing,
             nothing,
