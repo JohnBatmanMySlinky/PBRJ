@@ -101,12 +101,12 @@ function ObjectBounds(blp::BilinearPatch)::Bounds3
     end
     return world_bounds(
             world_bounds(
-                    Bounds3(p0-buffer, p0+buffer), 
-                    Bounds3(p1-buffer, p1+buffer)
+                    Bounds3(p00-buffer, p00+buffer), 
+                    Bounds3(p10-buffer, p10+buffer)
                 ), 
             world_bounds(
-                Bounds3(p2-buffer, p2+buffer),
-                Bounds3(p3-buffer, p3+buffer)
+                Bounds3(p01-buffer, p01+buffer),
+                Bounds3(p11-buffer, p11+buffer)
             )
         )
 end
@@ -271,12 +271,12 @@ function intersect_p(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Bool
     return check
 end
 
-function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Pnt2, Float64}
+function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Pnt2}, Maybe{Float64}}
     p00, p10, p01, p11 = get_p(blp)
     #  Find quadratic coefficients for distance from ray to $u$ iso-lines
     a = dot(cross(p10 - p00, p01 - p11), ray.direction)
-    c = dot(cross(p00 - ray.origin, ray.ddirection), p01 - p00)
-    b = dot(cross(p10 - ray..origin, ray.direction), p11 - p10) - (a + c)
+    c = dot(cross(p00 - ray.origin, ray.direction), p01 - p00)
+    b = dot(cross(p10 - ray.origin, ray.direction), p11 - p10) - (a + c)
 
     #  Solve quadratic for bilinear patch $u$ intersection
     exists, u1, u2 = solve_quadratic(a, b, c)
@@ -285,30 +285,30 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
     end
 
     # Find epsilon _eps_ to ensure that candidate $t$ is greater than zero
-    eps = gamma(10) * (max(abs.(ray.o)) + 
-        max(abs.(ray.d)) + 
-        max(abs.(p00)) + 
-        max(abs.(p10)) + 
-        max(abs.(p01)) + 
-        max(abs.(p11)))
+    eps = gamma(10) * (maximum(abs.(ray.origin)) + 
+        maximum(abs.(ray.direction)) + 
+        maximum(abs.(p00)) + 
+        maximum(abs.(p10)) + 
+        maximum(abs.(p01)) + 
+        maximum(abs.(p11)))
 
     # Compute $v$ and $t$ for the first $u$ intersection
     t = ray.tMax
     u, v = 0.0, 0.0
-    if (0.0 <= u1 && u1 <= 1.0)
+    if ((0.0 <= u1) && (u1 <= 1.0))
         #  Precompute common terms for $v$ and $t$ computation
         uo = lerp(u1, p00, p10)
         ud = lerp(u1, p01, p11) - uo
-        deltao = uo - ray.o
-        perp = cross(ray.d, ud)
+        deltao = uo - ray.origin
+        perp = cross(ray.direction, ud)
         p2 = length_squared(perp)
 
         # Compute matrix determinants for $v$ and $t$ numerators
-        v1 = Determinant(SquareMatrix<3>(deltao.x, ray.d.x, perp.x, deltao.y, ray.d.y, perp.y, deltao.z, ray.d.z, perp.z))
-        t1 = Determinant(SquareMatrix<3>(deltao.x, ud.x, perp.x, deltao.y, ud.y, perp.y, deltao.z, ud.z, perp.z))
+        v1 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
+        t1 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
 
         #  Set _u_, _v_, and _t_ if intersection is valid
-        if (t1 > p2 * eps && 0 <= v1 && v1 <= p2)
+        if ((t1 > p2 * eps) && (0.0 <= v1) && (v1 <= p2))
             u = u1
             v = v1 / p2
             t = t1 / p2
@@ -316,14 +316,14 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
     end
 
     # Compute $v$ and $t$ for the second $u$ intersection
-    if (0 <= u2 && u2 <= 1 && u2 != u1)
+    if ((0.0 <= u2) && (u2 <= 1.0) && (u2 != u1))
         uo = lerp(u2, p00, p10)
         ud = lerp(u2, p01, p11) - uo
-        deltao = uo - ray.o
-        perp = cross(ray.d, ud)
+        deltao = uo - ray.origin
+        perp = cross(ray.direction, ud)
         p2 = length_squared(perp)
-        v2 = Determinant(SquareMatrix<3>(deltao.x, ray.d.x, perp.x, deltao.y, ray.d.y, perp.y, deltao.z, ray.d.z, perp.z))
-        t2 = Determinant(SquareMatrix<3>(deltao.x, ud.x, perp.x, deltao.y, ud.y, perp.y, deltao.z, ud.z, perp.z))
+        v2 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
+        t2 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
         t2 /= p2
         if (0.0 <= v2 && v2 <= p2 && t > t2 && t2 > eps)
             t = t2
@@ -337,4 +337,5 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
     if (t >= ray.tMax)
         return false, nothing, nothing
     end
+    return true, uv, t
 end
