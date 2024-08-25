@@ -1901,119 +1901,103 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         for patch in floor
             push!(primitives, Primitive(patch, mat_gray, nothing))
         end
-        ceiling = Rectangle(
-            Pnt2(0, 0), 
-            Pnt2(555, 555), 
-            555.0,
-            2, 
-            ShapeCore(Translate(Pnt3(0)),Translate(Pnt3(0)),true,false),
-            false,
-            nothing
-        )
-        for tri in ceiling
-            push!(primitives, Primitive(tri, mat_gray, nothing))
-        end
-        backwall = Rectangle(
-            Pnt2(0, 0), 
-            Pnt2(555, 555), 
-            555.0,
-            3, 
+        ceiling = BilinearPatchGenerator(
             identity_shape_core,
-            true,
-            nothing
+            1,
+            4,
+            Int64[0, 1, 2, 3],
+            Pnt3[Pnt3(0, 555, 0), Pnt3(555, 555, 0), Pnt3(0, 555, 555), Pnt3(555, 555, 555)],
+            nothing,
+            nothing,
+            nothing,
         )
-        for tri in backwall
-            push!(primitives, Primitive(tri, mat_gray, nothing))
+        for patch in ceiling
+            push!(primitives, Primitive(patch, mat_gray, nothing))
         end
-        leftwall = Rectangle(
-            Pnt2(0, 0), 
-            Pnt2(555, 555), 
-            0.0,
-            1, 
+        backwall = BilinearPatchGenerator(
             identity_shape_core,
-            true,
-            nothing
+            1,
+            4,
+            Int64[0, 1, 2, 3],
+            Pnt3[Pnt3(0, 0, 555), Pnt3(555, 0, 555), Pnt3(0, 555, 555), Pnt3(555, 555, 555)],
+            nothing,
+            nothing,
+            nothing,
         )
-        for tri in leftwall
-            push!(primitives, Primitive(tri, mat_red, nothing))
+        for patch in backwall
+            push!(primitives, Primitive(patch, mat_gray, nothing))
         end
-        rightwall = Rectangle(
-            Pnt2(0, 0), 
-            Pnt2(555, 555), 
-            555.0,
-            1, 
+        leftwall = BilinearPatchGenerator(
             identity_shape_core,
-            false,
-            nothing
+            1,
+            4,
+            Int64[0, 1, 2, 3],
+            Pnt3[Pnt3(0, 0, 0), Pnt3(0, 555, 0), Pnt3(0, 0, 555), Pnt3(0, 555, 555)],
+            nothing,
+            nothing,
+            nothing,
         )
-        for tri in rightwall
-            push!(primitives, Primitive(tri, mat_green, nothing))
+        for patch in leftwall
+            push!(primitives, Primitive(patch, mat_blue, nothing))
         end
-        
-        sphere_transform = Translate(Pnt3(130,250,65))
-        sphere = Sphere(
-            ShapeCore(
-                sphere_transform,
-                Inv(sphere_transform),
-                false,
-                false
-            ),
-            100.0
+        rightwall = BilinearPatchGenerator(
+            identity_shape_core,
+            1,
+            4,
+            Int64[0, 1, 2, 3],
+            Pnt3[Pnt3(555, 0, 0), Pnt3(555, 555, 0), Pnt3(555, 0, 555), Pnt3(555, 555, 555)],
+            nothing,
+            nothing,
+            nothing,
         )
+        for patch in rightwall
+            push!(primitives, Primitive(patch, mat_green, nothing))
+        end
 
         # COOL LIGHTS: Back wall left to right
-        MA = 555.0
-        MI = 0.0
-        flip = 1.0
+        MA = 555
+        tmp1 = 0.25
+        tmp2 = 0.85
         width = 0.03
-        alpha_mask = nothing
-        bwx = Pnt2(0.25, 0.85)
-        BW_L1 = construct_triangle_mesh(
+        backwall_light1 = BilinearPatchGenerator(
             identity_shape_core,
-            2,
+            1,
             4,
-            [Pnt3(MA * (bwx.x+width), MI, MA-0.01), Pnt3(MA * bwx.y, MA, MA-0.01), Pnt3(MA * bwx.x, MI, MA-0.01), Pnt3(MA * (bwx.y+width), MA, MA-0.01)],
-            # BE REALLY CAREFUL OF YOUR WINDING ORDER
-            [1,2,3,1,4,2],
-            [Nml3(0,0,0)*flip, Nml3(0,0,0)*flip, Nml3(0,0,0)*flip, Nml3(0,0,0)*flip],
-            [Pnt2(0,0), Pnt2(1,1), Pnt2(0,1), Pnt2(1,0)],
-            alpha_mask
+            Int64[0, 1, 2, 3],
+            Pnt3[Pnt3(MA*tmp1, 0, MA*.99), Pnt3(MA*(tmp1+width), 0, MA*.99), Pnt3(MA*tmp2, MA, MA*.99), Pnt3(MA*(tmp2+width), MA, MA*.99)],
+            nothing,
+            nothing,
+            nothing,
         )
-        for tri in reverse(BW_L1)
+        for patch in backwall_light1
             alight = DiffuseAreaLight(
                 spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
-                tri,
+                patch,
                 false # NOT two sided
             )
-            push!(lights,alight)
-            push!(primitives, Primitive(tri, mat_white, alight))
+            push!(lights, alight)
+            push!(primitives, Primitive(patch, mat_white, alight))
         end
 
-        # COOL LIGHTS: Ceiling right to left
-        MA = 555.0
-        MI = 0.0
-        flip = 1.0
-        alpha_mask = nothing
-        cx = Pnt2(0.0, 0.85)
-        C_L1 = construct_triangle_mesh(
+        tmp3 = 0.0
+        ceiling_light1 = BilinearPatchGenerator(
             identity_shape_core,
-            2,
+            1,
             4,
-            [Pnt3(MA * (cx.x+width), MA, MI), Pnt3(MA*cx.y, MA, MA), Pnt3(MA*cx.x, MA, MI), Pnt3(MA*(cx.y+width), MA, MA)],
-            # BE REALLY CAREFUL OF YOUR WINDING ORDER
-            [1,2,3,1,4,2],
-            [Nml3(0,0,0)*flip, Nml3(0,0,0)*flip, Nml3(0,0,0)*flip, Nml3(0,0,0)*flip],
-            [Pnt2(0,0), Pnt2(1,1), Pnt2(0,1), Pnt2(1,0)],
-            alpha_mask
+            Int64[0, 1, 2, 3],
+            Pnt3[Pnt3(MA*tmp3, MA*.99, 0), Pnt3(MA*(tmp3+width), MA*.99, 0), Pnt3(MA*tmp2, MA*.99, MA), Pnt3(MA*(tmp2+width), MA*.99, MA)],
+            nothing,
+            nothing,
+            nothing,
         )
-        for tri in reverse(C_L1)
+        for patch in ceiling_light1
             alight = DiffuseAreaLight(
                 spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
-                tri,
+                patch,
                 false # NOT two sided
             )
-            push!(lights,alight)
-            push!(primitives, Primitive(tri, mat_white, alight))
+            push!(lights, alight)
+            push!(primitives, Primitive(patch, mat_white, alight))
         end
 
         # instantiate accelerator

@@ -74,8 +74,25 @@ function BilinearPatchGenerator(
         if is_rectangle(p00, p10, p01, p11)
             area = distance(p00, p01) * distance(p00, p10)
         else
-            # TODO implement!
-            @assert false
+            # Compute approximate area of bilinear patch
+            na = 3
+            p = zeros(Pnt3, na+1, na+1)
+            for i in 0:(na-1)
+                u = Float64(i) / Float64(na)
+                for j in 0:(na-1)
+                    v = Float64(j) / Float64(na)
+                    p[i+1, j+1] += lerp(u, lerp(v, p00, p01), lerp(v, p10, p11))
+                end
+            end
+            area = 0.0
+            for i in 0:(na-1-1)
+                for j in 0:(na-1-1)
+                    area += 0.5 * length_pbrt(Vec3(cross(
+                        p[i + 1 + 1, j + 1 + 1] - p[i + 1, j + 1],
+                        p[i + 1 + 1, j + 1] - p[i + 1, j + 1 + 1]
+                    )))
+                end
+            end
         end
 
         patch = BilinearPatch(core, mesh, i*4+1, area, 1e-4)
@@ -156,11 +173,12 @@ function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bo
         return false, nothing, nothing
     end
 
+    u, v = uv
     p00, p10, p01, p11 = get_p(blp)
     
     # The barrier between function calls in pbrt-v4
 
-    p::Pnt3 = lerp(u, Lerp(v, p00, p01), lerp(v, p10, p11))
+    p::Pnt3 = lerp(u, lerp(v, p00, p01), lerp(v, p10, p11))
     dpdu::Vec3 = lerp(v, p10, p11) - lerp(v, p00, p01)
     dpdv::Vec3 = lerp(u, p01, p11) - lerp(u, p00, p10)
 
@@ -229,18 +247,19 @@ function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bo
     pAbsSum::Pnt3 = abs.(p00) + abs.(p01) + abs.(p10) + abs.(p11)
 
     # Initialize _SurfaceInteraction_ for bilinear patch intersection
-    flipNormal = blp.core.reverse_orientation ^ blp.core.swap_handedness
-    isect = SurfaceInteraction(
+    flipNormal = blp.core.reverse_orientation ⊻ blp.core.transform_swaps_handedness
+    isect = InstantiateSurfaceInteraction(
         p, 
+        t,
+        -ray.direction, 
         st, 
-        wo, 
         dpdu, 
         dpdv, 
         dndu, 
         dndv,
-        time, 
-        flipNormal, 
-        faceIndex
+        blp, 
+        nothing,
+        nothing
     )
 
     # Compute bilinear patch shading normal if necessary
@@ -263,7 +282,7 @@ function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bo
         #     set_shading_geomerty!(isect, dpdu, dpdv, dndus, dndvs, true)
         # end
     end
-    return true, time, isect
+    return true, t, isect
 end
 
 function intersect_p(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Bool
@@ -337,5 +356,150 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
     if (t >= ray.tMax)
         return false, nothing, nothing
     end
-    return true, uv, t
+    return true, Pnt2(u,v), t
+end
+
+function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
+    p00, p10, p01, p11 = get_p(blp)
+
+    # Sample bilinear patch parametric $(u,v)$ coordinates
+    pdf_val = 1.0
+    uv = Pnt2(0.0, 0.0)
+    # if (mesh->imageDistribution)
+    if false
+        @assert false
+        # sample uv from image dist
+    elseif !is_rectangle(p00, p10, p01, p11)
+        # Sample patch $(u,v)$ with approximate uniform area sampling
+        # Initialize _w_ array with differential area at bilinear patch corners
+        w = Vec4(
+            length_pbrt(Vec3(cross(p10 - p00, p01 - p00))), 
+            length_pbrt(Vec3(cross(p10 - p00, p11 - p10))),
+            length_pbrt(Vec3(cross(p01 - p00, p11 - p01))), 
+            length_pbrt(Vec3(cross(p11 - p10, p11 - p01)))
+        )
+
+        uv = sample_bilinear(u, w)
+        pdf_val = bilinear_pdf(uv, w)
+
+    else
+        uv = u
+    end
+
+    # Compute bilinear patch geometric quantities at sampled $(u,v)$
+    # Compute $\pt{}$, $\dpdu$, and $\dpdv$ for sampled $(u,v)$
+    pu0 = lerp(uv[1+1], p00, p01)
+    pu1 = lerp(uv[1+1], p10, p11)
+    p = lerp(uv[0+1], pu0, pu1)
+    dpdu::Vec3 = pu1 - pu0
+    dpdv::Vec3 = lerp(uv[0+1], p01, p11) - lerp(uv[0+1], p00, p10)
+    if (length_squared(dpdu) == 0.0 || length_squared(dpdv) == 0.0)
+        return Pnt3(), Nml3(), 0.0
+    end
+
+    st = uv
+    if !(blp.mesh.uv isa Nothing)
+        @assert false # NOT DONE 
+        # // Compute texture coordinates for bilinear patch intersection point
+        # uv00 = mesh->uv[v[0]], uv10 = mesh->uv[v[1]];
+        # Point2f uv01 = mesh->uv[v[2]], uv11 = mesh->uv[v[3]];
+        # st = Lerp(uv[0], Lerp(uv[1], uv00, uv01), Lerp(uv[1], uv10, uv11));
+    end
+    # Compute surface normal for sampled bilinear patch $(u,v)$
+    n = Nml3(normalize(cross(dpdu, dpdv)))
+    # Flip normal at sampled $(u,v)$ if necessary
+    if !(blp.mesh.n isa Nothing)
+        @assert false # TODO NOT DONE
+        # Normal3f n00 = mesh->n[v[0]], n10 = mesh->n[v[1]];
+        # Normal3f n01 = mesh->n[v[2]], n11 = mesh->n[v[3]];
+        # Normal3f ns = Lerp(uv[0], Lerp(uv[1], n00, n01), Lerp(uv[1], n10, n11));
+        # n = FaceForward(n, ns);
+    elseif blp.core.reverse_orientation ⊻ blp.core.transform_swaps_handedness
+        n = -n
+    end
+
+    # Compute _pError_ for sampled bilinear patch $(u,v)$
+    # Point3f pAbsSum = Abs(p00) + Abs(p01) + Abs(p10) + Abs(p11);
+    # Vector3f pError = gamma(6) * Vector3f(pAbsSum);
+
+    # Return _ShapeSample_ for sampled bilinear patch point
+    return p, n, pdf_val / length_pbrt(cross(dpdu, dpdv))
+end
+
+function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Float64} 
+    # Get bilinear patch vertices in _p00_, _p01_, _p10_, and _p11_
+    p00, p10, p01, p11 = get_p(blp)
+
+    # Sample bilinear patch with respect to solid angle from reference point
+    v00::Vec3 = normalize(p00 - intr.p)
+    v10::Vec3 = normalize(p10 - intr.p)
+    v01::Vec3 = normalize(p01 - intr.p)
+    v11::Vec3 = normalize(p11 - intr.p)
+    # if (!is_rectangle(p00, p10, p01, p11) || mesh->imageDistribution || SphericalQuadArea(v00, v10, v11, v01) <= MinSphericalSampleArea) {
+    if (!is_rectangle(p00, p10, p01, p11) || spherical_quad_area(v00, v10, v11, v01) <= blp.min_spherical_sample_area)
+        # Sample shape by area and compute incident direction _wi_
+        ss_p, ss_n, ss_pdf = sample(blp, u)
+        wi::Vec3 = ss_p - intr.p
+        if (length_squared(wi) == 0.0)
+            return Pnt3(), Nml3(), 0.0
+        end
+        wi = normalize(wi)
+
+        # Convert area sampling PDF in _ss_ to solid angle measure
+        ss_pdf /= abs(dot(ss_n, -wi)) / distance_squared(intr.p, ss_p);
+        # if (IsInf(ss->pdf))
+        #     return {};
+        return ss_p, ss_n, ss_pdf
+    end
+
+    # Sample direction to rectangular bilinear patch
+    pdf_val = 1.0
+    # Warp uniform sample _u_ to account for incident $\cos\theta$ factor
+    if (intr.n != Nml3(0, 0, 0))
+        # Compute $\cos\theta$ weights for rectangle seen from reference point
+        w = Vec4(
+            max(0.01, abs(dot(v00, intr.n))),
+            max(0.01, abs(dot(v10, intr.n))),
+            max(0.01, abs(dot(v01, intr.n))),
+            max(0.01, abs(dot(v11, intr.n)))
+        )
+
+        u = sample_bilinear(u, w)
+        pdf_val *= bilinear_pdf(u, w)
+    end
+
+    # Sample spherical rectangle at reference point
+    eu::Vec3 = p10 - p00
+    ev::Vec3 = p01 - p00
+    p, quad_pdf = sample_spherical_rectangle(intr.p, p00, eu, ev, u)
+    pdf_val *= quad_pdf
+
+    # Compute $(u,v)$ and surface normal for sampled point on rectangle
+    uv = Pnt2(
+        dot(p - p00, eu) / distance_squared(p10, p00),
+        dot(p - p00, ev) / distance_squared(p01, p00)
+    )
+    n = Nml3(normalize(cross(eu, ev)))
+    # Flip normal at sampled $(u,v)$ if necessary
+    if !(blp.mesh.n isa Nothing)
+        @assert false # TODO DO THIS
+        # Normal3f n00 = mesh->n[v[0]], n10 = mesh->n[v[1]];
+        # Normal3f n01 = mesh->n[v[2]], n11 = mesh->n[v[3]];
+        # Normal3f ns = Lerp(uv[0], Lerp(uv[1], n00, n01), Lerp(uv[1], n10, n11));
+        # n = FaceForward(n, ns);
+    elseif blp.core.reverse_orientation ⊻ blp.core.transform_swaps_handedness
+        n = -n
+    end
+
+    # Compute $(s,t)$ texture coordinates for sampled $(u,v)$
+    st = uv
+    if !(blp.mesh.uv isa Nothing)
+        @assert false # TODO DO THIS
+        # Compute texture coordinates for bilinear patch intersection point
+        # Point2f uv00 = mesh->uv[v[0]], uv10 = mesh->uv[v[1]];
+        # Point2f uv01 = mesh->uv[v[2]], uv11 = mesh->uv[v[3]];
+        # st = Lerp(uv[0], Lerp(uv[1], uv00, uv01), Lerp(uv[1], uv10, uv11));
+    end
+
+    return p, n, pdf_val
 end

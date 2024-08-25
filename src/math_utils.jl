@@ -77,7 +77,7 @@ function lerp(t::Float64, a::Float64, b::Float64)::Float64
 end
 
 function lerp(t::Float64, a::Pnt3, b::Pnt3)::Pnt3
-    return a + t * (b - a)
+    return a .+ t .* (b - a)
 end
 
 function spherical_phi(v::Vec3)::Float64

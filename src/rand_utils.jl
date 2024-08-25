@@ -167,3 +167,95 @@ function sample_spherical_triangle(v1::Pnt3, v2::Pnt3, v3::Pnt3, p::Pnt3, u::Pnt
     end
     return Pnt3(1.0 - b1 - b2, b1, b2), pdf_val
 end
+
+function spherical_quad_area(a::Vec3, b::Vec3, c::Vec3, d::Vec3)::Float64
+    axb::Vec3 = cross(a, b)
+    bxc::Vec3 = cross(b, c)
+    cxd::Vec3 = cross(c, d)
+    dxa::Vec3 = cross(d, a)
+    @assert length_squared(axb) > 0.0
+    @assert length_squared(bxc) > 0.0
+    @assert length_squared(cxd) > 0.0
+    @assert length_squared(dxa) > 0.0
+    axb = normalize(axb)
+    bxc = normalize(bxc)
+    cxd = normalize(cxd)
+    dxa = normalize(dxa)
+
+    alpha = angle_between(dxa, -axb)
+    beta = angle_between(axb, -bxc)
+    gamma = angle_between(bxc, -cxd)
+    delta = angle_between(cxd, -dxa)
+
+    return abs(alpha + beta + gamma + delta - 2.0 * pi)
+end
+
+function sample_spherical_rectangle(p_ref::Pnt3, s::Pnt3, ex::Vec3, ey::Vec3, u::Pnt2)::Tuple{Pnt3, Float64}
+    # Compute local reference frame and transform rectangle coordinates
+    exl = length_pbrt(ex)
+    eyl = length_pbrt(ey)
+    x = ex / exl
+    y = ey / eyl
+    z = cross(x, y)
+    v = s - p_ref
+    d_local = Vec3(dot(v,x), dot(v,y), dot(v,z))
+    z0 = d_local.z
+
+    # flip 'z' to make it point against 'Q'
+    if (z0 > 0)
+        z = -z
+        z0 *= -1.0
+    end
+    x0 = d_local.x
+    y0 = d_local.y
+    x1 = x0 + exl
+    y1 = y0 + eyl
+
+    # Find plane normals to rectangle edges and compute internal angles
+    v00 = Vec3(x0, y0, z0)
+    v01 = Vec3(x0, y1, z0)
+    v10 = Vec3(x1, y0, z0)
+    v11 = Vec3(x1, y1, z0)
+    n0 = normalize(cross(v00, v10))
+    n1 = normalize(cross(v10, v11))
+    n2 = normalize(cross(v11, v01)) 
+    n3 = normalize(cross(v01, v00))
+    g0 = angle_between(-n0, n1)
+    g1 = angle_between(-n1, n2)
+    g2 = angle_between(-n2, n3)
+    g3 = angle_between(-n3, n0)
+
+    # Compute spherical rectangle solid angle and PDF
+    solid_angle = g0 + g1 + g2 + g3 - 2.0 * pi
+    if (solid_angle <= 0)
+        pdf_val = 0.0
+        return Pnt3(s + u[0+1] * ex + u[1+1] * ey), pdf_val
+    end
+    pdf_val = max(0.0, 1.0 / solid_angle)
+    if solid_angle < 1e-3
+        return Pnt3(s + u[0+1] * ex + u[1+1] * ey), solid_angle
+    end
+
+    # Sample _cu_ for spherical rectangle sample
+    b0 = n0.z
+    b1 = n2.z
+    au = u[0+1] * (g0 + g1 - 2 * pi) + (u[0+1] - 1) * (g2 + g3)
+    fu = (cos(au) * b0 - b1) / sin(au)
+    cu = copysign(1.0 / sqrt(fu^2 + b0^2), fu)
+    cu = clamp(cu, -(1.0-eps()), 1.0-eps())
+
+    # Find _xu_ along $x$ edge for spherical rectangle sample
+    xu = -(cu * z0) / safe_sqrt(1 - cu^2)
+    xu = clamp(xu, x0, x1)
+
+    # Find _xv_ along $y$ edge for spherical rectangle sample
+    dd = sqrt(xu^2 + z0^2);
+    h0 = y0 / sqrt(dd^2 + y0^2);
+    h1 = y1 / sqrt(dd^2 + y1^2);
+    hv = h0 + u[1+1] * (h1 - h0)
+    hvsq = hv^2
+    yv = (hvsq < 1 - 1e-6) ? (hv * dd) / sqrt(1.0 - hvsq) : y1
+
+    # Return spherical triangle sample in original coordinate system
+    return p_ref + Vec3(xu * x + yv * y + z0 * z), pdf_val
+end
