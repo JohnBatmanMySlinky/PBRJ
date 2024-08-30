@@ -1881,6 +1881,15 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         mat_metal = Metal()
 
+        mat_concrete = Substrate(
+            ImageTexture("../ref/Substance_Graph_BaseColor.jpg"), # kd
+            ConstantTexture(Pnt3(.15, .15, .15)), # ks
+            ConstantTexture(Pnt3(.003, .003, .003)), # u
+            ConstantTexture(Pnt3(.003, .003, .003)), # v
+            true, # remap
+            ImageTexture("../ref/Substance_Graph_Height.jpg"), # kd
+        )
+
         # Room Constants
         HEIGHT = 500.0
         DEPTH = 1000.0
@@ -1926,7 +1935,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing,
         )
         for patch in floor
-            push!(primitives, Primitive(patch, mat_gray, nothing))
+            push!(primitives, Primitive(patch, mat_concrete, nothing))
         end
         ceiling = BilinearPatchGenerator(
             identity_shape_core,
