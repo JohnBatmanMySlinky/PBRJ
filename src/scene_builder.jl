@@ -1881,7 +1881,29 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         mat_metal = Metal()
 
-        # instantiate objects
+        # Room Constants
+        HEIGHT = 500.0
+        DEPTH = 1000.0
+        WIDTH = 750.0
+        MIN = 0.0
+
+        L_WIDTH = 0.015
+        L_BUFFER = 0.995
+
+        L1_BOTTOM = 0.25
+        L1_MIDDLE = 0.85
+        L1_TOP = 0.1
+
+        L2_BOTTOM = 0.35
+        L2_MIDDLE = 0.15
+        L2_TOP = 0.65
+
+        L3_BOTTOM = 0.6
+        L3_MIDDLE = 0.35
+        L3_TOP = 0.7
+        
+
+        # Walls
         identity_shape_core = ShapeCore(
             Translate(Pnt3(0)),
             Translate(Pnt3(0)),
@@ -1893,7 +1915,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             1,
             4,
             Int64[0, 1, 2, 3],
-            Pnt3[Pnt3(0, 0, 0), Pnt3(555, 0, 0), Pnt3(0, 0, 555), Pnt3(555, 0, 555)],
+            Pnt3[
+                Pnt3(MIN,   MIN, MIN), 
+                Pnt3(WIDTH, MIN, MIN),
+                Pnt3(MIN,   MIN, DEPTH), 
+                Pnt3(WIDTH, MIN, DEPTH)
+            ],
             nothing,
             nothing,
             nothing,
@@ -1906,7 +1933,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             1,
             4,
             Int64[0, 1, 2, 3],
-            Pnt3[Pnt3(0, 555, 0), Pnt3(555, 555, 0), Pnt3(0, 555, 555), Pnt3(555, 555, 555)],
+            Pnt3[
+                Pnt3(MIN,   HEIGHT, MIN),
+                Pnt3(WIDTH, HEIGHT, MIN),
+                Pnt3(MIN,   HEIGHT, DEPTH),
+                Pnt3(WIDTH, HEIGHT, DEPTH)
+            ],
             nothing,
             nothing,
             nothing,
@@ -1919,7 +1951,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             1,
             4,
             Int64[0, 1, 2, 3],
-            Pnt3[Pnt3(0, 0, 555), Pnt3(555, 0, 555), Pnt3(0, 555, 555), Pnt3(555, 555, 555)],
+            Pnt3[
+                Pnt3(MIN,   MIN,    DEPTH),
+                Pnt3(WIDTH, MIN,    DEPTH),
+                Pnt3(MIN,   HEIGHT, DEPTH),
+                Pnt3(WIDTH, HEIGHT, DEPTH)],
             nothing,
             nothing,
             nothing,
@@ -1932,7 +1968,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             1,
             4,
             Int64[0, 1, 2, 3],
-            Pnt3[Pnt3(0, 0, 0), Pnt3(0, 555, 0), Pnt3(0, 0, 555), Pnt3(0, 555, 555)],
+            Pnt3[
+                Pnt3(MIN, MIN,    MIN),
+                Pnt3(MIN, HEIGHT, MIN),
+                Pnt3(MIN, MIN,    DEPTH),
+                Pnt3(MIN, HEIGHT, DEPTH)
+            ],
             nothing,
             nothing,
             nothing,
@@ -1945,7 +1986,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             1,
             4,
             Int64[0, 1, 2, 3],
-            Pnt3[Pnt3(555, 0, 0), Pnt3(555, 555, 0), Pnt3(555, 0, 555), Pnt3(555, 555, 555)],
+            Pnt3[
+                Pnt3(WIDTH, MIN,    MIN),
+                Pnt3(WIDTH, HEIGHT, MIN),
+                Pnt3(WIDTH, MIN,    DEPTH),
+                Pnt3(WIDTH, HEIGHT, DEPTH)
+            ],
             nothing,
             nothing,
             nothing,
@@ -1954,17 +2000,18 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(patch, mat_green, nothing))
         end
 
-        # COOL LIGHTS: Back wall left to right
-        MA = 555
-        tmp1 = 0.25
-        tmp2 = 0.85
-        width = 0.03
+        # Light1
         backwall_light1 = BilinearPatchGenerator(
             identity_shape_core,
             1,
             4,
             Int64[0, 1, 2, 3],
-            Pnt3[Pnt3(MA*tmp1, 0, MA*.99), Pnt3(MA*(tmp1+width), 0, MA*.99), Pnt3(MA*tmp2, MA, MA*.99), Pnt3(MA*(tmp2+width), MA, MA*.99)],
+            Pnt3[
+                Pnt3(WIDTH*L1_BOTTOM,           MIN,    DEPTH*L_BUFFER), 
+                Pnt3(WIDTH*(L1_BOTTOM+L_WIDTH), MIN,    DEPTH*L_BUFFER), 
+                Pnt3(WIDTH*L1_MIDDLE,           HEIGHT, DEPTH*L_BUFFER), 
+                Pnt3(WIDTH*(L1_MIDDLE+L_WIDTH), HEIGHT, DEPTH*L_BUFFER)
+            ],
             nothing,
             nothing,
             nothing,
@@ -1978,19 +2025,122 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(lights, alight)
             push!(primitives, Primitive(patch, mat_white, alight))
         end
-
-        tmp3 = 0.0
         ceiling_light1 = BilinearPatchGenerator(
             identity_shape_core,
             1,
             4,
             Int64[0, 1, 2, 3],
-            Pnt3[Pnt3(MA*tmp3, MA*.99, 0), Pnt3(MA*(tmp3+width), MA*.99, 0), Pnt3(MA*tmp2, MA*.99, MA), Pnt3(MA*(tmp2+width), MA*.99, MA)],
+            Pnt3[
+                Pnt3(WIDTH*L1_TOP,              HEIGHT*L_BUFFER,     MIN), 
+                Pnt3(WIDTH*(L1_TOP+L_WIDTH),    HEIGHT*L_BUFFER,     MIN), 
+                Pnt3(WIDTH*L1_MIDDLE,           HEIGHT*L_BUFFER,     DEPTH), 
+                Pnt3(WIDTH*(L1_MIDDLE+L_WIDTH), HEIGHT*L_BUFFER,     DEPTH)
+            ],
             nothing,
             nothing,
             nothing,
         )
         for patch in ceiling_light1
+            alight = DiffuseAreaLight(
+                spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
+                patch,
+                false # NOT two sided
+            )
+            push!(lights, alight)
+            push!(primitives, Primitive(patch, mat_white, alight))
+        end
+
+        # Light2
+        backwall_light2 = BilinearPatchGenerator(
+            identity_shape_core,
+            1,
+            4,
+            Int64[0, 1, 2, 3],
+            Pnt3[
+                Pnt3(WIDTH*L2_BOTTOM,           MIN,    DEPTH*L_BUFFER), 
+                Pnt3(WIDTH*(L2_BOTTOM+L_WIDTH), MIN,    DEPTH*L_BUFFER), 
+                Pnt3(WIDTH*L2_MIDDLE,           HEIGHT, DEPTH*L_BUFFER), 
+                Pnt3(WIDTH*(L2_MIDDLE+L_WIDTH), HEIGHT, DEPTH*L_BUFFER)
+            ],
+            nothing,
+            nothing,
+            nothing,
+        )
+        for patch in backwall_light2
+            alight = DiffuseAreaLight(
+                spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
+                patch,
+                false # NOT two sided
+            )
+            push!(lights, alight)
+            push!(primitives, Primitive(patch, mat_white, alight))
+        end
+        ceiling_light2 = BilinearPatchGenerator(
+            identity_shape_core,
+            1,
+            4,
+            Int64[0, 1, 2, 3],
+            Pnt3[
+                Pnt3(WIDTH*L2_TOP,              HEIGHT*L_BUFFER,     MIN), 
+                Pnt3(WIDTH*(L2_TOP+L_WIDTH),    HEIGHT*L_BUFFER,     MIN), 
+                Pnt3(WIDTH*L2_MIDDLE,           HEIGHT*L_BUFFER,     DEPTH), 
+                Pnt3(WIDTH*(L2_MIDDLE+L_WIDTH), HEIGHT*L_BUFFER,     DEPTH)
+            ],
+            nothing,
+            nothing,
+            nothing,
+        )
+        for patch in ceiling_light2
+            alight = DiffuseAreaLight(
+                spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
+                patch,
+                false # NOT two sided
+            )
+            push!(lights, alight)
+            push!(primitives, Primitive(patch, mat_white, alight))
+        end
+
+        # Light3
+        backwall_light3 = BilinearPatchGenerator(
+            identity_shape_core,
+            1,
+            4,
+            Int64[0, 1, 2, 3],
+            Pnt3[
+                Pnt3(WIDTH,                     HEIGHT*L3_BOTTOM,           DEPTH*L_BUFFER), 
+                Pnt3(WIDTH,                     HEIGHT*(L3_BOTTOM+L_WIDTH), DEPTH*L_BUFFER), 
+                Pnt3(WIDTH*L3_MIDDLE,           HEIGHT,                     DEPTH*L_BUFFER), 
+                Pnt3(WIDTH*(L3_MIDDLE+L_WIDTH), HEIGHT,                     DEPTH*L_BUFFER)
+            ],
+            nothing,
+            nothing,
+            nothing,
+        )
+        for patch in backwall_light3
+            alight = DiffuseAreaLight(
+                spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
+                patch,
+                false # NOT two sided
+            )
+            push!(lights, alight)
+            push!(primitives, Primitive(patch, mat_white, alight))
+        end
+        ceiling_light3 = BilinearPatchGenerator(
+            identity_shape_core,
+            1,
+            4,
+            Int64[0, 1, 2, 3],
+            Pnt3[
+                Pnt3(WIDTH,                     HEIGHT*L_BUFFER,     DEPTH*L3_TOP), 
+                Pnt3(WIDTH,                     HEIGHT*L_BUFFER,     DEPTH*(L3_TOP+L_WIDTH)), 
+                Pnt3(WIDTH*L3_MIDDLE,           HEIGHT*L_BUFFER,     DEPTH), 
+                Pnt3(WIDTH*(L3_MIDDLE+L_WIDTH), HEIGHT*L_BUFFER,     DEPTH)
+            ],
+            nothing,
+            nothing,
+            nothing,
+        )
+        for patch in ceiling_light3
             alight = DiffuseAreaLight(
                 spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
                 patch,
@@ -2006,7 +2156,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         print("Done building BVH\n")
 
         # Instantiate a Filter
-        filter = BoxFilter(Pnt2(.5, .5))
+        filter = LanczosSincFilter(Pnt2(0.5, 0.5), 3.0)
 
         # Instantiate a Film
         film = Film(
