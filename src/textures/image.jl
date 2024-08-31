@@ -15,11 +15,11 @@ struct ImageTexture <: Texture
     function ImageTexture(
         mapping::AbstractTextureMapping2D, 
         filename::String,
-        do_trilinear::Bool,
-        max_anisotropy::Float64,
-        wrap_mode::Int8,
-        scale::Float64,
-        do_gamma::Bool
+        do_trilinear::Bool=false,
+        max_anisotropy::Float64=8.0,
+        wrap_mode::Int8=Int8(0), # REPEAT, BLACK, CLAMP
+        scale::Float64=1.0,
+        do_gamma::Bool=false
     )
         dat2, L, W = read_image(filename, scale)
 

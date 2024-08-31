@@ -1882,12 +1882,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         mat_metal = Metal()
 
         mat_concrete = Substrate(
-            ImageTexture("../ref/Substance_Graph_BaseColor.jpg"), # kd
+            ImageTexture(UVMapping2D(), "../ref/Marble_Gray_001_COLOR.jpg"), # kd
             ConstantTexture(Pnt3(.15, .15, .15)), # ks
             ConstantTexture(Pnt3(.003, .003, .003)), # u
             ConstantTexture(Pnt3(.003, .003, .003)), # v
             true, # remap
-            ImageTexture("../ref/Substance_Graph_Height.jpg"), # kd
+            nothing # bump
+            # ImageTexture(UVMapping2D(), "../ref/Substance_Graph_Height.jpg"), # bump
         )
 
         # Room Constants
