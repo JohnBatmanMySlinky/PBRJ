@@ -1871,21 +1871,16 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
-        mat_black = Matte(
+        mat_black = Plastic(
             ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
-            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-            nothing
-        )
-        mat_ball = Substrate(
-            ConstantTexture(spectrum_from_float(0.0, .5, .6)), # kd
-            ConstantTexture(spectrum_from_float(.15, .15, .15)), # ks
-            ConstantTexture(spectrum_from_float(.003, .003, .003)), # u
-            ConstantTexture(spectrum_from_float(.003, .003, .003)), # v
-            true, # remap
+            ConstantTexture(spectrum_from_float(0.2, 0.2, 0.2)),
+            ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
             nothing,
+            true,
         )
-        mat_metal = Metal()
-
+        mat_black_shiny = Mirror(
+            ConstantTexture(spectrum_from_float(0.95, 0.95, 0.95))
+        )
         mat_concrete = Substrate(
             ImageTexture(UVMapping2D(), "../ref/Marble_Gray_001_COLOR.jpg"), # kd
             ConstantTexture(Pnt3(.15, .15, .15)), # ks
@@ -1909,6 +1904,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         FLOOR_TRIM_HEIGHT = HEIGHT * 0.05
         FLOOR_TRIM_DEPTH = 1.0
 
+        CEILING_STUFF_CENTER = WIDTH * 0.5
+
         L_WIDTH = 0.015
         L_BUFFER = 0.9995
 
@@ -1924,14 +1921,29 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         L3_MIDDLE = 0.35
         L3_TOP = 0.7
         
-
-        # Top Bottom Back Walls
+        # Identity shape core
         identity_shape_core = ShapeCore(
             Translate(Pnt3(0)),
             Translate(Pnt3(0)),
             false,
             false
         )
+
+        # Ceiling stuffs
+        lil_ball_t = Translate(Pnt3(CEILING_STUFF_CENTER, HEIGHT, DEPTH * 0.9))
+        lil_ball = Sphere(
+            ShapeCore(
+                lil_ball_t,
+                Inv(lil_ball_t),
+                false,
+                false
+            ),
+            50.0
+        )
+        push!(primitives, Primitive(lil_ball, mat_black_shiny, nothing))
+
+
+        # Top Bottom Back Walls
         floor = BilinearPatchGenerator(
             identity_shape_core,
             1,

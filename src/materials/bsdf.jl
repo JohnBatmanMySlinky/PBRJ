@@ -102,37 +102,37 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
 
     # TODO when to update sampled type
     sampled_type = bxdf.type
-    wi, f_val, pdf, sampled_type_tmp = sample_f(bxdf, wo, u_remapped)
+    wi, f_val, pdf_val, sampled_type_tmp = sample_f(bxdf, wo, u_remapped)
     if !(sampled_type_tmp isa Nothing)
         sampled_type = sampled_type_tmp
     end
     # @info "For wo: $(wo), sampled f: $(f_val), pdf: $(pdf), ratio = $((pdf > 0.0) ? (f_val / pdf) : spectrum_from_float(0.0)), wi: $(wi), sampled_type: $(bitstring(sampled_type))"
 
-    pdf == 0 && return (Vec3(0), spectrum_from_float(0.0), 0, BSDF_NONE)
+    pdf_val == 0 && return (Vec3(0), spectrum_from_float(0.0), 0, BSDF_NONE)
 
     wi_world = local_to_world(b, wi)
     # Compute overall PDF with all matching BxDFs.
     if !(bxdf.type & BSDF_SPECULAR != 0) && matching_components > 1
         for i in 1:b.n_bxdfs
             if b.bxdfs[i] != bxdf && b.bxdfs[i] & type
-                pdf += compute_pdf(b.bxdfs[i], wo, wi)
+                pdf_val += compute_pdf(b.bxdfs[i], wo, wi)
             end
         end
     end
-    matching_components > 1 && (pdf /= matching_components)
+    matching_components > 1 && (pdf_val /= matching_components)
     # Compute value of BSDF for sampled direction.
     if !(bxdf.type & BSDF_SPECULAR != 0)
         reflect = (dot(wi_world, b.ng) * dot(wo_world, b.ng)) > 0
-        f_val = spectrum_from_float(0.0)
+        f_val::Spectrum = spectrum_from_float(0.0, 0.0, 0.0)
         for i in 1:b.n_bxdfs
             bxdf = b.bxdfs[i]
             if ((bxdf & type) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0))))
-                f_val += f(bxdf, wo, wi)
+                f_val::Spectrum += f(bxdf, wo, wi)
             end
         end
     end
-    @info "Overall f: $(f_val), pdf: $(pdf), ratio: $((pdf > 0.0) ? (f_val / pdf) : spectrum_from_float(0.0))"
-    return wi_world, f_val, pdf, sampled_type
+    @info "Overall f: $(f_val), pdf_val: $(pdf_val), ratio: $((pdf > 0.0) ? (f_val / pdf_val) : spectrum_from_float(0.0))"
+    return wi_world, f_val, pdf_val, sampled_type
 end
 
 function compute_pdf(b::BSDF, wo_world::Vec3, wi_world::Vec3, flags::UInt8,)::Float64

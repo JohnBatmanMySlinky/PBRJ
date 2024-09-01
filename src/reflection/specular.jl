@@ -24,7 +24,7 @@ end
 
 
 # 8.2.4 Fresnel Specular
-function sample_f(s::SpecularReflection{S, F}, wo::Vec3, ::Pnt2,)::Tuple{Vec3, Float64, Spectrum, Maybe{UInt8}} where {S <: Spectrum, F <: Fresnel}
+function sample_f(s::SpecularReflection{S, F}, wo::Vec3, ::Pnt2,)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}} where {S <: Spectrum, F <: Fresnel}
     wi = Vec3(-wo[1], -wo[2], wo[3])
-    return wi, 1, s.fresnel(cos_theta(wi)) .* s.r / abs(cos_theta(wi)), nothing
+    return wi, s.fresnel(cos_theta(wi)) .* s.r / abs(cos_theta(wi)), 1.0, nothing
 end
