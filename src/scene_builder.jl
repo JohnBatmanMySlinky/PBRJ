@@ -1841,6 +1841,23 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate an Integrator
         I = BDPTIntegrator(C, S, parsed_args["max-depth"])
         return I, scene
+    elseif parsed_args["scene-number"] == 99
+	pyr_spec = Float64[0.75^0, 0.75^1, 0.75^2, 0.75^3]
+	pyramid = Sphere[]
+
+	base_t = Translate(Pnt3(0, 5, 0))
+
+	for i in 1:length(pyr_spec)
+	    if i == 1
+		height = 0.0
+	    else
+    	        height = -sqrt((pyr_spec[i-1]+pyr_spec[i])^2 - pyr_spec[i]^2)
+	    end
+	    level_t = Translate(Pnt3(0, height, 0))
+
+	    # oh buddy this has to be recursive!!!
+	end
+
     else
         @assert false
     end
