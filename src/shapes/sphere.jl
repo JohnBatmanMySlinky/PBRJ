@@ -32,7 +32,7 @@ struct Sphere <: Shape
             2pi
         )
     end
-    function Sphere(tr::Transform, radius::Float64)
+    function Sphere(tr::Transformation, radius::Float64)
         new(
             ShapeCore(tr, Inv(tr), false, false),
             radius,
