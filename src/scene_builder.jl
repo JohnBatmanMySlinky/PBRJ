@@ -1842,22 +1842,113 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         I = BDPTIntegrator(C, S, parsed_args["max-depth"])
         return I, scene
     elseif parsed_args["scene-number"] == 99
-	pyr_spec = Float64[0.75^0, 0.75^1, 0.75^2, 0.75^3]
-	pyramid = Sphere[]
+        function recursive_pyramid_build!(
+            sphere_vec::Vector{RayTracing.Sphere},
+            tr::RayTracing.Transformation,
+            r_vec::Vector{Float64},
+            depth::Int64,
+            max_depth::Int64
+        )
+            @assert RayTracing.length(r_vec) == max_depth # mis-specification
+            @assert RayTracing.length(sphere_vec) == 0 ? depth == 1 : true # first iteration must have depth == 1
+        
+            if length(sphere_vec) == 0
+                push!(sphere_vec, RayTracing.Sphere(base_t, r_vec[1]))
+                depth += 1
+            end
+           
+            while depth <= max_depth
+                # print("iteration: $(depth)/$(max_depth)\n")
+                # print("currently we have $(length(sphere_vec)) Sphere(s) in the pyramid\n\n\n")
+                for xz in RayTracing.Pnt2[
+                        RayTracing.Pnt2( 1,  1),
+                        RayTracing.Pnt2(-1,  1),
+                        RayTracing.Pnt2( 1, -1),
+                        RayTracing.Pnt2(-1, -1)
+                    ]
+                    height = -sqrt((r_vec[depth-1] + r_vec[depth])^2 - r_vec[depth]^2)
+                    offset = RayTracing.Translate(RayTracing.Pnt3(xz.x * r_vec[depth], height, xz.y * r_vec[depth]))
+                    push!(sphere_vec, RayTracing.Sphere(tr * offset, r_vec[depth]))
+                    recursive_pyramid_build!(sphere_vec, tr * offset, r_vec, depth + 1, max_depth)
+                end
+                break
+            end
+        end
 
-	base_t = Translate(Pnt3(0, 5, 0))
+        base_t = RayTracing.Translate(RayTracing.Pnt3(0,0,0))
+        max_depth = 4
+        r = 0.75
+        r_vec = Float64[r^(i-1) for i in 1:max_depth]
+        spheres = RayTracing.Sphere[]
+        recursive_pyramid_build!(
+            spheres,
+            base_t,
+            r_vec,
+            1,
+            4
+        )
 
-	for i in 1:length(pyr_spec)
-	    if i == 1
-		height = 0.0
-	    else
-    	        height = -sqrt((pyr_spec[i-1]+pyr_spec[i])^2 - pyr_spec[i]^2)
-	    end
-	    level_t = Translate(Pnt3(0, height, 0))
+        primitives = Primitive[]
+        mat_gray = Matte(
+            ConstantTexture(spectrum_from_float(0.6, 0.6, 0.6)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        for sphere in spheres
+            push!(primitives, Primitive(sphere, mat_gray, nothing))
+        end
 
-	    # oh buddy this has to be recursive!!!
-	end
+        # instantiate accelerator
+        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives)
+        print("Done building BVH\n")
 
+        # instantiate the infinite light
+        l_2_w = Translate(Pnt3(0,0,0))
+        light = InfiniteLight(
+            world_bounds(bvh), 
+            l_2_w, 
+            Spectrum(3.0, 3.0, 3.0), 
+            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+        )
+        lights = Light[]
+        push!(lights, light)
+
+        # Instantiate a Filter
+        filter = BoxFilter(Pnt2(.5, .5))
+
+        # Instantiate a Film
+        film = Film(
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+            Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
+            filter,
+            1.0,
+            1.0,
+            parsed_args["file-name"]
+        )
+
+        # Instantiate a Camera
+        look_from = Pnt3(-.3, .5, -.5)
+        look_at = Pnt3(0, 0.0, 0)
+        up = Vec3(0, 1, 0)
+        screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
+
+        # Instantiate a Sampler
+        S = ZSobolSampler(
+            parsed_args["samples-per-pixel"], 
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), 
+            Int8(2)
+        )
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+
+        # Instantiate Scene
+        print("There are " * num2str(length(lights)) * " lights in the scene\n")
+        scene = Scene(lights, bvh)
+
+        # Instantiate an Integrator
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+        return I, scene
     else
         @assert false
     end
