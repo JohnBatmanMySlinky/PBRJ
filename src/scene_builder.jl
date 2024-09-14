@@ -1842,42 +1842,9 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         I = BDPTIntegrator(C, S, parsed_args["max-depth"])
         return I, scene
     elseif parsed_args["scene-number"] == 99
-        function recursive_pyramid_build!(
-            sphere_vec::Vector{RayTracing.Sphere},
-            tr::RayTracing.Transformation,
-            r_vec::Vector{Float64},
-            depth::Int64,
-            max_depth::Int64
-        )
-            @assert RayTracing.length(r_vec) == max_depth # mis-specification
-            @assert RayTracing.length(sphere_vec) == 0 ? depth == 1 : true # first iteration must have depth == 1
-        
-            if length(sphere_vec) == 0
-                push!(sphere_vec, RayTracing.Sphere(base_t, r_vec[1]))
-                depth += 1
-            end
-           
-            while depth <= max_depth
-                # print("iteration: $(depth)/$(max_depth)\n")
-                # print("currently we have $(length(sphere_vec)) Sphere(s) in the pyramid\n\n\n")
-                for xz in RayTracing.Pnt2[
-                        RayTracing.Pnt2( 1,  1),
-                        RayTracing.Pnt2(-1,  1),
-                        RayTracing.Pnt2( 1, -1),
-                        RayTracing.Pnt2(-1, -1)
-                    ]
-                    height = -sqrt((r_vec[depth-1] + r_vec[depth])^2 - r_vec[depth]^2)
-                    offset = RayTracing.Translate(RayTracing.Pnt3(xz.x * r_vec[depth], height, xz.y * r_vec[depth]))
-                    push!(sphere_vec, RayTracing.Sphere(tr * offset, r_vec[depth]))
-                    recursive_pyramid_build!(sphere_vec, tr * offset, r_vec, depth + 1, max_depth)
-                end
-                break
-            end
-        end
-
         base_t = RayTracing.Translate(RayTracing.Pnt3(0,0,0))
         max_depth = 4
-        r = 0.75
+        r = 0.5
         r_vec = Float64[r^(i-1) for i in 1:max_depth]
         spheres = RayTracing.Sphere[]
         recursive_pyramid_build!(
@@ -1908,7 +1875,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         light = InfiniteLight(
             world_bounds(bvh), 
             l_2_w, 
-            Spectrum(3.0, 3.0, 3.0), 
+            Spectrum(5.0, 5.0, 5.0), 
             "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
         )
         lights = Light[]
@@ -1928,8 +1895,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(-.3, .5, -.5)
-        look_at = Pnt3(0, 0.0, 0)
+        look_from = Pnt3(-10, 4, -10)
+        look_at = Pnt3(0, 0, 0)
         up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
         C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
