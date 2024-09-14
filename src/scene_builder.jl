@@ -10,6 +10,7 @@ scene 8: an anemic leafless procedural tree ✅
 scene 9: a broken ass orb 🔴
 scene 10: a cloud ✅
 scene 11: infinite light show off & material testing 🟨
+scene 99: sphere-a-mid 🟨 (it works just not complete yet)
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
