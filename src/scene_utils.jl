@@ -8,7 +8,8 @@ function recursive_pyramid_build!(
     @assert length(r_vec) == max_depth # mis-specification
     @assert length(sphere_vec) == 0 ? depth == 1 : true # first iteration must have depth == 1
 
-    OVERLAP_FACTOR = 0.85
+    HEIGHT_FACTOR = 0.5
+    SPREAD_FACTOR = 1.3
 
     if length(sphere_vec) == 0
         push!(sphere_vec, Sphere(tr, r_vec[1]))
@@ -24,8 +25,12 @@ function recursive_pyramid_build!(
                 Pnt2(1, -1),
                 Pnt2(-1, -1)
             ]
-            height = -sqrt((r_vec[depth-1] + r_vec[depth])^2 - r_vec[depth]^2) * OVERLAP_FACTOR
-            offset = Translate(Pnt3(xz.x * r_vec[depth], height, xz.y * r_vec[depth]))
+            height = -sqrt((r_vec[depth-1] + r_vec[depth])^2 - r_vec[depth]^2)
+            offset = Translate(Pnt3(
+                xz.x * r_vec[depth] * SPREAD_FACTOR, 
+                height * HEIGHT_FACTOR, 
+                xz.y * r_vec[depth] * SPREAD_FACTOR
+            ))
             push!(sphere_vec, Sphere(tr * offset, r_vec[depth]))
             recursive_pyramid_build!(sphere_vec, tr * offset, r_vec, depth + 1, max_depth)
         end
