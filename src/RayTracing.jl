@@ -157,6 +157,7 @@ include("scene_builder.jl")
 include("denoising/edge_avoiding_a_trous.jl")
 include("medium/media_funcs.jl")
 include("medium/phase_functions.jl")
+include("scene_utils.jl")
 
 # do MIS_weight or nah
 const DO_MIS_WEIGHT::Bool = true
