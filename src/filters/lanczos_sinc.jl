@@ -1,10 +1,10 @@
 struct LanczosSincFilter <: Filter
     radius::Pnt2
     tau::Float64
+end
 
-    function LanczosSincFilter()
-        return new(Pnt2(4,4), 3.0)
-    end
+function LanczosSincFilter()
+    return LanczosSincFilter(Pnt2(4,4), 3.0)
 end
 
 function (f::LanczosSincFilter)(p::Pnt2)::Float64

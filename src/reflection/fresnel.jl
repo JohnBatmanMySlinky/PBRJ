@@ -79,7 +79,7 @@ struct FresnelNoOp <: Fresnel
 end
 
 function (f::FresnelNoOp)(::Float64)
-    return spectrum_from_float(1,1,1)
+    return spectrum_from_float(1.0, 1.0, 1.0)
 end
 
 
