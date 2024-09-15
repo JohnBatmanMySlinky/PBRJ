@@ -11,6 +11,7 @@ struct Distribution1D
         for i = 2:(N+1)
             cdf[i] = cdf[i-1] + func[i-1] / N
         end
+        # print("$(func)\n\n")
         func_int = cdf[N+1]
         if func_int == 0
             for i = 1:(N+1)
@@ -56,6 +57,7 @@ struct Distribution2D
             bw = dat
             nv, nu = size(bw)
         else
+            @assert false
             bw = ones(Float64, size(dat))
             nv, nu = size(bw)
             for row = 1:nv
@@ -70,8 +72,10 @@ struct Distribution2D
 
         conditional = Distribution1D[]
         marginal_func = Float64[]
-        for i = 1:nv
-            push!(conditional, Distribution1D(bw[i,:]))
+        for i = 1:nu
+            push!(conditional, Distribution1D(bw[:,i]))
+        end
+        for i = 1:nu
             push!(marginal_func, conditional[i].func_int)
         end
         return new(
@@ -84,6 +88,8 @@ end
 function sample_continuous(d::Distribution2D, uv::Pnt2)::Tuple{Pnt2, Float64}
     d1, pdf_val1, offset1 = sample_continuous(d.marginal, uv.y)
     d0, pdf_val0, _ = sample_continuous(d.conditional[offset1], uv.x)
+    # print("\tpMarginal $(d1)\n")
+    # print("\tpConditionalV $(d0)\n")
     @assert (d0 < 1) && (d1 < 1)
     return Pnt2(d0, d1), pdf_val0 * pdf_val1
 

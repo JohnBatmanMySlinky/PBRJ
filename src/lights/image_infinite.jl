@@ -33,10 +33,10 @@ struct InfiniteLight <: Light
             for u in 0:(width-1)
                 up = (u + 0.5) / width
                 im[u + 1, v + 1] = y_spectrum(lookup(Lmap, Pnt2(up, vp), fwidth)) * sin_theta
-                # @info "Infinite Light PDF: $(u), $(v) = $(im[u + 1, v + 1]) --- up: $(up) vp: $(vp) fwidth: $(fwidth)"
+                # @info "Infinite Light PDF: $(u), $(v) = $(im[u + 1, v + 1]) = $(lookup(Lmap, Pnt2(up, vp), fwidth)) --- up: $(up) vp: $(vp) fwidth: $(fwidth)"
             end
         end
-        distribution = Distribution2D(im) 
+        distribution = Distribution2D(reshape(im, width, height)) 
         return new(
             Lmap,
             world_center,
@@ -49,58 +49,6 @@ struct InfiniteLight <: Light
         )
     end
 end
-
-# struct InfiniteLight <: Light
-#     flags::LightFlags
-#     light_to_world::Transformation
-#     world_to_light::Transformation
-#     I::Spectrum
-#     pdf::Distribution2D
-#     map::Matrix{RGBA{Float16}}
-#     world_center::Pnt3
-#     world_radius::Float64
-#     medium::Maybe{Medium}
-    
-#     function InfiniteLight(bounds::Bounds3, light_to_world::Transformation, I::Spectrum, map_url::String)
-#         ident = map_url[end-3:end]
-#         if ident == ".exr"
-#             dat = OpenEXR.load(map_url)
-#         else
-#             @assert false # NOT IMPLEMENTED
-#         end
-
-#         @info "World bounds $(bounds.pMin) - $(bounds.pMax)"
-        
-#         # create im for pdf creation
-#         width, height = 2.0 * size(dat)
-#         fwdith = 0.5 / min(width, height)
-#         im = zeros(width, height)
-#         for v in 1:height
-#             vp = (v + 0.5) / height
-#             sin_theta = sin(pi * (v + 0.5) / height)
-#             for u in 1:width
-#                 up = (u + 0.5) / width
-#                 im[u,v] = dat[u,v] * sin_theta
-#             end
-#         end
-#         pdf = Distribution2D(im)      
-
-#         # get world radius and world center
-#         world_center, world_radius = bounding_sphere(bounds)
-
-#         return new(
-#             LightInfinite,
-#             light_to_world,
-#             Inv(light_to_world),
-#             I,
-#             pdf,
-#             dat,
-#             world_center,
-#             world_radius,
-#             nothing
-#         )
-#     end
-# end
 
 function power(il::InfiniteLight)::Float64
     return pi * il.world_radius * il.world_radius * spectrum_from_float(lookup(il.Lmap, Pnt2(0.5, 0.5), 0.5))
@@ -148,7 +96,7 @@ function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tupl
     radiance = lookup(il.Lmap, uv)
     radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
 
-    return radiance, wi, map_pdf, visibility, Pnt3(0,0,0), Nml3(0,0,0)
+    return radiance, wi, pdf_val, visibility, Pnt3(0,0,0), Nml3(0,0,0)
 end
 
 function pdf_li(il::InfiniteLight, isect::SurfaceInteraction, w::Vec3)::Float64
@@ -168,6 +116,7 @@ end
 function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
     u = u1
     uv, map_pdf = sample_continuous(il.distribution, u)
+    @info "Sampling Light: UV: $(uv), map_pdf: $(map_pdf)"
     (map_pdf == 0.0) && return spectrum_from_float(0.0), RayDifferential(Ray()), Nml3(0), 0.0, 0.0
 
     theta = uv.y * pi
@@ -183,13 +132,13 @@ function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spe
     _, v1, v2 = orthonormal_basis(-d)
     cd = random_in_concentric_disk(u2)
     p_disk = il.world_center + il.world_radius * (cd.x * v1 + cd.y * v2)
-    ray = RayDifferential(Ray(p_disk + il.world_radius * -d, d, typemax(Float64), t))
+    ray = RayDifferential(Ray(p_disk + il.world_radius * -d, d, t, typemax(Float64)))
 
     pdf_dir = sin_theta == 0.0 ? 0.0 : map_pdf / (2 * pi * pi * sin_theta)
     pdf_pos = 1.0 / (pi * il.world_radius * il.world_radius)
     radiance = lookup(il.Lmap, uv)
     radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
-    return radiance, ray, nlight, pdf_dir, pdf_pos
+    return radiance, ray, nlight, pdf_pos, pdf_dir
 end
 
 function pdf_le(il::InfiniteLight, ray::RayDifferential, n::Nml3)::Tuple{Float64, Float64}

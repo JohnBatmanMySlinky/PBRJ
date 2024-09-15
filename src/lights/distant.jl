@@ -55,12 +55,18 @@ end
 function sample_le(light::DistantLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
     # choose point on disk oriented toward infinite light direction
     w_light, v1, v2 = orthonormal_basis(light.w_light)
-    cd = concentric_sample_disk(u1)
-    p_disk = light.world_center + light.world_radius + (cd.x * v1 + cd.y * v2)
+    cd = random_in_concentric_disk(u1)
+    p_disk = light.world_center .+ light.world_radius + (cd.x * v1 + cd.y * v2)
 
     # set ray origin and direction for infinite light ray
-    ray = Ray(p_disk + w.world_radius * w_light, -light.w_light, t, typemax(Float64))
+    ray = RayDifferential(Ray(p_disk + light.world_radius * w_light, -light.w_light, t, typemax(Float64)))
     pdf_pos = 1/ (pi * light.world_radius^2)
     pdf_dir = 1.0
     return light.L, ray, Nml3(ray.direction), pdf_pos, pdf_dir
+end
+
+function pdf_le(light::DistantLight, ray::AbstractRay, n::Nml3)::Tuple{Float64, Float64}
+    pdf_pos = 1.0 / (pi * light.world_radius^2)
+    pdf_dir = 0.0
+    return pdf_pos, pdf_dir
 end

@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "pbrj"
+version = "0.1.0"
+description = "\"pyenv for hacking around\""
+authors = ["John Myslinski <jbmyslinski@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+numpy = "^2.0.1"
+matplotlib = "^3.9.1"
+ipykernel = "^6.29.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

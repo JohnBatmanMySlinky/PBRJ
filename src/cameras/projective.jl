@@ -146,7 +146,7 @@ function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSamp
         ray.rx_origin = ray.origin
         ray.ry_origin = ray.origin
         ray.rx_direction = normalize(Vec3(p_camera) + camera.dx_camera)
-        ray.rx_direction = normalize(Vec3(p_camera) + camera.dy_camera)
+        ray.ry_direction = normalize(Vec3(p_camera) + camera.dy_camera)
     end
 
     ray.t = lerp(
@@ -155,6 +155,7 @@ function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSamp
         camera.core.core.shutter_closed,
     )
     ray = camera.core.core.camera_to_world(ray)
+    # ray.has_differentials = true
     return ray, 1.0
 end
 

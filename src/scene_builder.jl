@@ -9,9 +9,15 @@ scene 7: julia logo ✅
 scene 8: an anemic leafless procedural tree ✅
 scene 9: a broken ass orb 🔴
 scene 10: a cloud ✅
+<<<<<<< HEAD
+scene 11: infinite light show off & material testing ✅
+scene 12: DISNEY CLOUD GRID! ✅
+scene 13: DISNEY CLOUD ✅
+=======
 scene 11: infinite light show off & material testing 🟨
 scene 14: elevator hallway 🟨
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
+>>>>>>> main
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -1718,8 +1724,9 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         light = InfiniteLight(
             world_bounds(bvh), 
             l_2_w, 
-            Spectrum(4.0, 4.0, 4.0), 
+            Spectrum(3.0, 3.0, 3.0), 
             "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+            # "/Users/johnmyslinski/Documents/PBRJ/scratch/mipmap/hello.exr"
         )
         push!(lights, light)
 
@@ -1842,6 +1849,188 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         
         # Instantiate an Integrator
         I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+        return I, scene
+    elseif parsed_args["scene-number"] == 12
+        primitives = Primitive[]
+        lights = Light[]
+
+        # Bounding sphere cause we hate winding order and such
+        box_t = Translate(Pnt3(-0.5, -1.0, 0))
+        sphere_transform = Translate(Pnt3(0, 0, 0))
+        sphere = Sphere(
+            ShapeCore(
+                sphere_transform,
+                Inv(sphere_transform),
+                false,
+                false
+            ),
+            5.0
+        )
+        smoke_mi = MediumInterface(
+            GridDensityMedium(
+                spectrum_from_float(10.0),
+                spectrum_from_float(90.0),
+                0.0,
+                Pnt3(0.0, 0.0, 0.0),
+                Pnt3(1.0, 1.0, 1.0),
+                box_t,
+                "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render_cloud.pbrt"
+            ),
+            nothing
+        )
+        push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+
+        # instantiate accelerator
+        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives)
+        print("Done building BVH\n")
+
+        # instantiate the infinite light
+        l_2_w = Translate(Pnt3(0,0,0))
+        light = InfiniteLight(
+            world_bounds(bvh), 
+            l_2_w, 
+            Spectrum(3.0, 3.0, 3.0), 
+            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+        )
+        push!(lights, light)
+
+        # Instantiate a Filter
+        filter = BoxFilter(Pnt2(.5, .5))
+
+        # Instantiate a Film
+        film = Film(
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+            Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
+            filter,
+            1.0,
+            1.0,
+            parsed_args["file-name"]
+        )
+
+        # Instantiate a Camera
+        look_from = Pnt3(0.0715308, 1.17677, 5.33558)
+        look_at = Pnt3(0, 0, 0)
+        up = Vec3(-0.000323605, 0.833706, 0.552208)
+        screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 25.0, film)
+
+        # Instantiate a Sampler
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+        
+        # Instantiate Scene
+        print("There are " * num2str(length(lights)) * " lights in the scene\n")
+        scene = Scene(lights, bvh)
+        
+        # Instantiate an Integrator
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+
+        return I, scene
+    elseif parsed_args["scene-number"] == 13
+        primitives = Primitive[]
+        lights = Light[]
+
+        # materials
+        mat_gray = Matte(
+            ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+
+        # Bounding sphere cause we hate winding order and such
+        box_t = Translate(Pnt3(0, 0, 0))
+        sphere_transform = Translate(Pnt3(-9.984, 73.008, -42.64)) * Scale(Vec3(206.544, 140.4, 254.592))
+        sphere = Sphere(
+            ShapeCore(
+                sphere_transform,
+                Inv(sphere_transform),
+                false,
+                false
+            ),
+            1.44224957031
+        )
+        # push!(primitives, Primitive(sphere, mat_gray, nothing))
+
+        smoke_mi = MediumInterface(
+            NanoVDBMedium(
+                spectrum_from_float(10.0),
+                spectrum_from_float(90.0),
+                0.877,
+                4.0,
+                jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
+            ),
+            nothing
+        )
+        push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+
+        # instantiate accelerator
+        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives)
+        print("Done building BVH\n")
+
+        # instantiate the infinite light
+        l_2_w = Translate(Pnt3(0,0,0))
+        light = UniformInfiniteLight(
+            world_bounds(bvh), 
+            l_2_w, 
+            Spectrum(0.36, 0.84, 2.76), 
+        )
+        push!(lights, light)
+
+        wb = world_bounds(bvh)
+        world_center, world_radius = bounding_sphere(wb)
+        light = DistantLight(
+            Spectrum(2.6, 2.5, 2.3),
+            Vec3(-0.5826, -0.7660, -0.2717),
+            world_center,
+            world_radius,
+            l_2_w
+        )
+        push!(lights, light)
+
+        # instantiate the infinite light
+        # l_2_w = Translate(Pnt3(0,0,0))
+        # light = InfiniteLight(
+        #     world_bounds(bvh), 
+        #     l_2_w, 
+        #     Spectrum(3.0, 3.0, 3.0), 
+        #     "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+        # )
+        # push!(lights, light)
+
+
+        # Instantiate a Filter
+        filter = BoxFilter(Pnt2(.5, .5))
+
+        # Instantiate a Film
+        film = Film(
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+            Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
+            filter,
+            1.0,
+            1.0,
+            parsed_args["file-name"]
+        )
+
+        # Instantiate a Camera
+        look_from = Pnt3(648.064, -82.473, -63.856)
+        look_at = Pnt3(6.021, 100.043, -43.679)
+        up = Vec3(0.273, 0.962, -0.009)
+        screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 46.07, film)
+
+        # Instantiate a Sampler
+        S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+        
+        # Instantiate Scene
+        print("There are " * num2str(length(lights)) * " lights in the scene\n")
+        scene = Scene(lights, bvh)
+        
+        # Instantiate an Integrator
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+
         return I, scene
     elseif parsed_args["scene-number"] == 14
         primitives = Primitive[]

@@ -21,7 +21,7 @@ function resample_weights(old_res::Int64, new_res::Int64)::Vector{ResampleWeight
 		)
 		weight /= sum(weight)
 		wt[i+1] = ResampleWeight(first_texel, weight)
-		@info "ResampleWeights: $(i) $(first_texel) $(weight)"
+		# @info "ResampleWeights: $(i) $(first_texel) $(weight)"
 	end
 	return wt
 end
@@ -79,7 +79,7 @@ struct MIPMap
 						end
 						
 						if (orig_s >= 0) && (orig_s < resolution.x)
-							@info "MIPMAP READ: $(s), $(t), $(t * resolution.x + orig_s) = $(data[Int64(t * resolution.x + orig_s + 1)])"
+							# @info "MIPMAP READ: $(s), $(t), $(t * resolution.x + orig_s) = $(data[Int64(t * resolution.x + orig_s + 1)])"
 							resampled_image[Int64(t * res_pow_2.x + s + 1)] += s_weights[s+1].weight[j+1] * data[Int64(t * resolution.x + orig_s + 1)]
 						end
 					end
@@ -103,7 +103,7 @@ struct MIPMap
 						end
 						
 						if (offset >= 0) && (offset < resolution.y)
-							@info "MIPMAP READ: $(s), $(t), $(offset * res_pow_2.x + s) = $(resampled_image[Int64(offset * res_pow_2.x + s + 1)])"
+							# @info "MIPMAP READ: $(s), $(t), $(offset * res_pow_2.x + s) = $(resampled_image[Int64(offset * res_pow_2.x + s + 1)])"
 							work_data[t+1] += t_weights[t+1].weight[j+1] * resampled_image[Int64(offset * res_pow_2.x + s + 1)]
 						end
 					end
@@ -129,13 +129,13 @@ struct MIPMap
 		pyramid[1] = reshape(resampled ? resampled_image : data, (Int64(pyrsize[1].x), Int64(pyrsize[1].y))) # yeehaw
 		
 
-		@info "PYRAMID TESTING: $(pyramid[1][2+1, 6+1]) $(pyramid[1][6+1, 2+1])"
+		# @info "PYRAMID TESTING: $(pyramid[1][2+1, 6+1]) $(pyramid[1][6+1, 2+1])"
 
 		for i in 1:(n_levels-1)
 			# Initialize $i$th MIPMap level from $i-1$st level
 			s_res = Int64(max(1, pyrsize[i-1+1].x/2))
 			t_res = Int64(max(1, pyrsize[i-1+1].y/2))
-			@info "PYR BUILD: $(i), $(s_res), $(t_res)"
+			# @info "PYR BUILD: $(i), $(s_res), $(t_res)"
 			pyramid[i+1] = zeros(typeof(data[1]), s_res, t_res)
 			pyrsize[i+1] = Pnt2(s_res, t_res)
 
@@ -148,7 +148,7 @@ struct MIPMap
 					tmp = 0.25 * (a + b + c + d)
 					pyramid[i+1][s+1, t+1] = tmp
 					# @info "\tlil texel test $(a), $(b), $(c), $(d), $(tmp)"
-					@info "\tlil texel test $(tmp)"
+					# @info "\tlil texel test $(tmp)"
 				end
 			end
 		end

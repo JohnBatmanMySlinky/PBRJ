@@ -1,7 +1,7 @@
 # PBRJ
 Physically Based Rendering - in Julia
 
-An implementation of [Physically Based Rendering: From Theory to Implementation](https://www.pbr-book.org/) in the Julia programming language.
+An implementation of [Physically Based Rendering: From Theory to Implementation](https://www.pbr-book.org/) in the Julia programming language. Based off the 3rd edition, but with some 4th edition sprinkled in.
 
 # Usage
 Example command line usage. See `src/args.jl` for a full specification of command line options.
@@ -13,6 +13,10 @@ julia -t 4 RayTracing.jl \
 --n-spectral-samples 10 \
 --file-name "test.png"
 ```
+## NanoVDB Bindings
+> These bindings are super hacky, to put it lightly. Don't judge me. It works (kinda).
+
+If you want to use [NanoVDB](https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb), you'll need to `cd src/nanovdb && sh INSTALL.sh`. Given you're on a mac, that'll probably work...
 
 # Scene Specification
 Scenes are specified within `src/scene_builder.jl`.
@@ -59,27 +63,36 @@ Render
 
     ![smoke](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/smoke.exr?raw=true)
         
-
 # Features Implemented
-- BVH accelerator
-- Perspective camera
-- Edge-avoiding a-trous denoising
-- BDPT, ambient occlusion, path & whitted integrators
-- Area, distant, infinite, point, and spot lights
-- Glass, matte, metal, mirror, plastic, and substrate materials
-- Stratified and sobol sampling 
-- Box, cylindar, disk, rectangle, sphere, and triangle shapes
-- Very basic L-system
-- Implicit surfaces: Goursat surface & metaballs
-- Participating mediums (homogenous & grid)
-- RGB & spectral rendering
-- Constant, image, mixed, procedural and mixed textures
-- Mipmaps
-- Logging
-
+- Accelerators: BVH
+- Cameras: Perspective
+- Integrators: BDPT, ambient occlusion, path, and whitted
+- Lights: Area, distant, image infinite, uniform infinite, point, and spot
+- Materials: Glass, matte, metal, mirror, plastic, and substrate materials
+- Samplers: Stratified, z-sobol, and sobol
+- Shapes: Box, cylindar, disk, rectangle, sphere, and triangle
+    - Very very very very basic L-system
+    - Implicit surfaces: Goursat surface & metaballs
+- Participating mediums: Homogenous, Grid, and NanoVDB
+- RGB and spectral rendering
+- Textures: Constant, image, mixed, procedural and mixed
+- Other Stuff
+    - MIPMap
+    - Logging
+    - Edge-avoiding a-trous denoising
 
 # TODO's
+- combine `scratch/` and `src/notebooks`
 - RENDER DISNEY CLOUD from PBRTv4
+    - ~~my transforms and world / medium / unit spae are fucked~~ is it?
+    - ~~why is pbrtv4's "eye" transform baked in???~~ read the user manual mayhaps
+    - ~~FOV seems off and I get black corners~~
+    - clean up c++ code
+    - ~~pbrt has a sigma scale~~
+    - ~~remove p0 and p1~~
+    - ~~finish interpolation~~
+    - do rng better?
+    - Document export to DensityGridMedium
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Testing
@@ -93,9 +106,10 @@ Render
     - ~~WHERE ARE THE FIREFLIES COMING FROM~~
     - add a sphere with substrate material to test scene
     - add test scene file to repo
-    - testing something with an infite env light
+    - ~~testing something with an infite env light~~ Got smoke.exr looking great!
     - Copy my `*.pbrt`'s over to here
 - Performance
+    - implement a Pnt3 but it's Ints not Float to avoid some conversions
     - Create a simple sample scene in Trace.jl and benchmark. Because my testing is showing no performance benefit from Float32 and Parametric Typing
         - TYPE MORE CONCRETELY, use a NB and copy pxl-th
         - Convert to Float32
@@ -112,8 +126,11 @@ Render
         - Improve goursat scene
     - Add leafs to l-systems
     - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
+    - implement a pbrtv4 to RGB script
 - PBRT Features
-    - Float Textures.
+    - SimplePathIntegrator
+    - VolPathIntegrator
+    - Parameterized Textures: Float & Spectrum
         We could do this as per pxl-th
         ```
         const TextureType = Union{Float64, Spectrum}
@@ -156,7 +173,7 @@ Render
         end
         ```
 
-    - Uniform infinite light
+    - ~~Uniform infinite light~~
     - Work with images better
 	    - ~~MIPMap~~
             - OctahedralVector
@@ -168,7 +185,6 @@ Render
          - ~~Homogenous medium~~
          - ~~Grid medium~~
          - OpenVDB
-         - Migrate to pbrt v4's medium set up (emmissive mediums!)
     - Add bi-linear patches
     - Add sub div surfaces
     - Robustly parse .pbrt scene files
@@ -187,18 +203,19 @@ Render
         - ~~for final image~~
     - Move the pbrt-v4's sampler structure
         - ~~Sobol~~
-        - PaddedSobol
+        - ~~PaddedSobol~~
         - ~~ZSobol~~
         - Does it matter what my hash function is?
 - Scene work
     - Re run old scenes
-    - Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.
+    - ~~Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.~~
     - Add lte-orb scene
     - Improve office scene 
         - Add more walls (left wall corner)
         - Add in more scene geometry (baseboards? stairs? elevator?)
         - Get reflections in back hallway looking nice and in general floor material
         - Wall material
+        - use image texture!
 
 # Clean up 
     - ~~Use y(::Spectrum) and dont hack with mean~~
