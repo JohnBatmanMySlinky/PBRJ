@@ -2451,17 +2451,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # Instantiate a Filter
         filter = LanczosSincFilter(Pnt2(0.5, 0.5), 3.0)
 
-        # instantiate the infinite light
-        l_2_w = Translate(Pnt3(0,0,0))
-        light = InfiniteLight(
-            world_bounds(bvh), 
-            l_2_w, 
-            Spectrum(5.0, 5.0, 5.0), 
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
-        )
-        lights = Light[]
-        push!(lights, light)
-
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
 
