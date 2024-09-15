@@ -250,13 +250,13 @@ function lookup(mip_map::MIPMap, st::Pnt2, dst0::Vec2, dst1::Vec2)::Spectrum
 	minor_length = length_pbrt(dst1)
    
 	# clamp ellipse eccentricity if too large
-	if (minor_length * max_anisotropy < major_length) && (minor_length > 0)
-				scale = major_length / (minor_length * max_anisotropy)
-				dst1 .*= scale
-				minor_length .*= scale
+	if (minor_length * mip_map.max_anisotropy < major_length) && (minor_length > 0)
+		scale = major_length / (minor_length * mip_map.max_anisotropy)
+		dst1 .*= scale
+		minor_length .*= scale
 	end
 	if minor_length == 0.0
-		return triangle(mip_map, 0.0, st)
+		return triangle(mip_map, 0, st)
 	end
    
 	# chose level of detail for EWA lookup and perform EWA filtering

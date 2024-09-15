@@ -30,11 +30,11 @@ function distance_squared(p1::Pnt3, p2::Pnt3)::Float64
     return dot(p, p)
 end
 
-function length_squared(v::Vec3)::Float64
+function length_squared(v::Union{Vec3, Vec2})::Float64
     return sum(v.^2)
 end
 
-function length_pbrt(v::Vec3)::Float64
+function length_pbrt(v::Union{Vec3, Vec2})::Float64
     return sqrt(length_squared(v))
 end
 
@@ -74,6 +74,10 @@ end
 
 function lerp(t::Float64, a::Float64, b::Float64)::Float64
     return a + t * (b - a)
+end
+
+function lerp(t::Float64, a::Pnt3, b::Pnt3)::Pnt3
+    return a .+ t .* (b - a)
 end
 
 function spherical_phi(v::Vec3)::Float64
