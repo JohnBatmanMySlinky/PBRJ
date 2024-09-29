@@ -109,6 +109,7 @@ Render
     - ~~testing something with an infite env light~~ Got smoke.exr looking great!
     - Copy my `*.pbrt`'s over to here
 - Performance
+    - add an array of materials. store the index instead of the material in the primitive.
     - implement a Pnt3 but it's Ints not Float to avoid some conversions
     - Create a simple sample scene in Trace.jl and benchmark. Because my testing is showing no performance benefit from Float32 and Parametric Typing
         - TYPE MORE CONCRETELY, use a NB and copy pxl-th
