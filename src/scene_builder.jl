@@ -52,12 +52,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         mat_concrete = Substrate(
-            ImageTexture(UVMapping2D(), "/home/jmyslinski/random_stuff/PBRJ/ref/Substance_Graph_BaseColor.jpg"), # kd
+            ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_BaseColor.jpg")), # kd
             ConstantTexture(Pnt3(.15, .15, .15)), # ks
             ConstantTexture(Pnt3(.003, .003, .003)), # u
             ConstantTexture(Pnt3(.003, .003, .003)), # v
             true, # remap
-            ImageTexture(UVMapping2D(), "/home/jmyslinski/random_stuff/PBRJ/ref/Substance_Graph_Height.jpg"), # kd
+            ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_Height.jpg")), # kd
         )
 
         ###################################
