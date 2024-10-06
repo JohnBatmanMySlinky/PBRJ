@@ -38,7 +38,7 @@ function parse_commandline()::Dict
         "--light-distribution-strategy"
             help = "strategy for sampling lights"
             arg_type = String
-            default = "uniform" # or centroid_distance
+            default = "uniform" # power, centroid_distance, spatial
         "--file-name"
             help = "name of file"
             arg_type = String

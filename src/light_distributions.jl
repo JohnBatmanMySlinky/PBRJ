@@ -29,7 +29,7 @@ struct StaticLightDistribution <: AbstractLightDistribution
             )
         elseif name == "power"
             return new(
-                Distribution1D([mean(power(l) for l in scene.lights)])
+                Distribution1D([y_spectrum(power(l)) for l in scene.lights])
             )
         else
             @assert false
@@ -46,9 +46,9 @@ struct VoxelLightDistribution <: AbstractLightDistribution
     function VoxelLightDistribution(name::String, scene::Scene, N_voxels::Int64, n_shadow_rays::Int64)
         sampler = IndependentSampler()
         wbounds = RayTracing.world_bounds(scene.b)
-        voxel_size = calc_voxel_size(wbounds, N_voxels)
+        voxel_size = Int64(calc_voxel_size(wbounds, N_voxels))
         X, Y, Z = Int64.(floor.((wbounds.pMax - wbounds.pMin)/voxel_size) .+1)
-        voxel_dist = create_voxels_distribution(scene, sampler, X, Y, Z, n_shadow_rays)
+        voxel_dist = create_voxels_distribution(scene, sampler, voxel_size, X, Y, Z, n_shadow_rays)
 
         return new(
             voxel_dist, wbounds.pMin, voxel_size
@@ -112,6 +112,7 @@ end
 function create_voxels_distribution(
     scene::RayTracing.Scene,
     sampler::RayTracing.AbstractSampler,
+    voxel_size::Int64,
     voxel_x_dim::Int64,
     voxel_y_dim::Int64,
     voxel_z_dim::Int64,
@@ -124,8 +125,8 @@ function create_voxels_distribution(
                 light_samples = zeros(Float64, length(scene.lights))
 
                 # TODO: how to cull voxels functionally outside of the scene
-                lcorner = RayTracing.Pnt3(x-1, y-1, z-1) .* size
-                center = lcorner .+ size/2
+                lcorner = RayTracing.Pnt3(x-1, y-1, z-1) .* voxel_size
+                center = lcorner .+ voxel_size/2
                 # TODO: account for mediums
                 voxel_isect = RayTracing.Interaction()
                 voxel_isect.p = center
@@ -197,13 +198,12 @@ function LightDistribution(
     name::String, scene::Scene, 
     weight_for_infinites::Float64=0.10, 
     N_voxels::Int64=4^3,
-    n_shadow_rays::int64=3
+    n_shadow_rays::Int64=3
 )::AbstractLightDistribution
     if (name == "uniform") || (name == "power")
         return StaticLightDistribution(name, scene)
 
     elseif name == "spatial"
-        @assert false, "spatial light distribution isn't implemented yet"
         return VoxelLightDistribution(name, scene, N_voxels, n_shadow_rays)
 
     elseif name == "centroid_distance"
