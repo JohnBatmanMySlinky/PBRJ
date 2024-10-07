@@ -1,4 +1,9 @@
-function render(i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator}, scene::Scene, ::Tuple{Int64,Int64}, ::String)
+function render(
+    i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator}, 
+    scene::Scene, 
+    ::Tuple{Int64,Int64}, 
+    ::Dict 
+)
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
     sample_extent = diagonal(sample_bounds)
     tile_size = 16

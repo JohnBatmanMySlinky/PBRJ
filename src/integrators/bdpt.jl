@@ -8,12 +8,18 @@ end
 function render(
     i::BDPTIntegrator, 
     scene::Scene, 
+    parsed_args::Dict, 
     bdpt_pass::Tuple{Int64, Int64}=(-1,-1),
-    light_dist_strat::String="uniform", 
 )::Array{RGB}
     # create light sampling light_distribution
     # JOHN HACK --> hard coding uniform dist
-    light_distr_generator = LightDistribution(light_dist_strat, scene)
+    light_distr_generator = LightDistribution(
+        parsed_args["light-distribution-strategy"], 
+        scene,
+        parsed_args["weight-for-infinites"], 
+        parsed_args["n-voxels"], 
+        parsed_args["n-shadow-rays"], 
+    )
 
     # partition the image into tiles
     sample_bounds = get_sample_bounds(i.camera.core.core.film)

@@ -42,6 +42,7 @@ struct VoxelLightDistribution <: AbstractLightDistribution
     voxels::Dict{Tuple{Int64, Int64, Int64}, Distribution1D}
     pMin::Pnt3
     voxel_size::Int64
+    dummy_dist::Distribution1D
 
     function VoxelLightDistribution(name::String, scene::Scene, N_voxels::Int64, n_shadow_rays::Int64)
         sampler = IndependentSampler()
@@ -50,8 +51,10 @@ struct VoxelLightDistribution <: AbstractLightDistribution
         X, Y, Z = Int64.(floor.((wbounds.pMax - wbounds.pMin)/voxel_size) .+1)
         voxel_dist = create_voxels_distribution(scene, sampler, voxel_size, X, Y, Z, n_shadow_rays)
 
+        dummy_dist = Distribution1D(ones(Float64, length(scene.lights)))
+
         return new(
-            voxel_dist, wbounds.pMin, voxel_size
+            voxel_dist, wbounds.pMin, voxel_size, dummy_dist
         )
     end
 end
@@ -223,7 +226,7 @@ end
 
 function lookup(vld::VoxelLightDistribution, p::Pnt3)::Distribution1D
     distance_from_pmin = Int64.(floor.((p - vld.pMin)/vld.voxel_size) .+ 1)
-    return vld.voxels[(distance_from_pmin.x, distance_from_pmin.y, distance_from_pmin.z)]
+    return get(vld.voxels, [(distance_from_pmin.x, distance_from_pmin.y, distance_from_pmin.z)], vld.dummy_dist)
 end
 
 function lookup(ld::DistanceLightDistribution, p::Pnt3)::Distribution1D

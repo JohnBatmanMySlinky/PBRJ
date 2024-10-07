@@ -206,8 +206,8 @@ function render_scene(parsed_args::Dict)
         image = render(
             I, 
             scene, 
-            bdpt_pass,
-            parsed_args["light-distribution-strategy"], 
+            parsed_args,
+            bdpt_pass
         )
         if I.camera.core.core.film isa PassFilm
             for i in 1:5
