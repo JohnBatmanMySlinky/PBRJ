@@ -43,7 +43,7 @@ function CreateCurve(
     segments = zeros(n_segments, Curve)
     for i in 0:(n_segments-1)
         u_min::Float64 = i / n_segments
-        u_max::Float64 = (1+1) / n_segments
+        u_max::Float64 = (i+1) / n_segments
         segments[i] = Curve(common, u_min, u_max)
     end
 return segments
