@@ -5,6 +5,11 @@ function parse_points(s::String)::FieldVector{4, Pnt3}
 end
 
 function parse_curve(fname::String, core::ShapeCore)
+    # HARDCODING
+    width = 1.0
+    degree = 3
+    basis = "bezier"
+    curve_type = "flat"
     curves = Curve[]
     open(fname) do f
         while !eof(f)
