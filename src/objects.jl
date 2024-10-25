@@ -245,6 +245,13 @@ function expand(b::Bounds3, delta::Float64)::Bounds3
     )
 end
 
+function overlaps(b1::Bounds3, b2::Bounds3)::Bool
+    x = (b1.pMax.x >= b2.pMin.x) && (b1.pMin.x <= b2.pMax.x)
+    y = (b1.pMax.y >= b2.pMin.y) && (b1.pMin.y <= b2.pMax.y)
+    z = (b1.pMax.z >= b2.pMin.z) && (b1.pMin.z <= b2.pMax.z)
+    return x && y && z
+end
+
 # should only be using the intersect_p below!!!
 # function intersect_p(b::Bounds3, r::AbstractRay)::Bool
 #     tmin = 0
