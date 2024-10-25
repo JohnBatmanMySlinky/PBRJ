@@ -105,7 +105,7 @@ function intersect_ray(c::Curve, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Ma
     curve_bounds = expand(world_bounds(Bounds3(cp[0+1], cp[1+1]), Bounds3(cp[2+1], cp[3+1])), 0.5 * max_width)
     ray_bounds = Bounds3(
         Pnt3(0),
-        Pnt3(0, 0, length_pbrt(ray.d) * ray.tMax)
+        Pnt3(0, 0, length_pbrt(ray.direction) * ray.tMax)
     )
     if !overlaps(ray_bounds, curve_bounds)
         return false, nothing, nothing
