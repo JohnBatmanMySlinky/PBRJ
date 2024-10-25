@@ -49,7 +49,7 @@ function CreateCurve(
     type::String, n::Maybe{SVector{2, Nml3}}, split_depth::Int64
 )::Array{Curve}
     common = CurveCommon(type, c, w0, w1, n)
-    n_segments = 1  split_depth
+    n_segments = 1 << split_depth
     segments = Curve[]
     for i in 0:(n_segments-1)
         u_min::Float64 = i / n_segments
