@@ -238,6 +238,13 @@ function bounding_sphere(b::Bounds3)::Tuple{Pnt3, Float64}
     return center, radius
 end
 
+function expand(b::Bounds3, delta::Float64)::Bounds3
+    return Bounds3(
+        b.pMin - Pnt3(delta, delta, delta),
+        b.pMax + Pnt3(delta, delta, delta),
+    )
+end
+
 # should only be using the intersect_p below!!!
 # function intersect_p(b::Bounds3, r::AbstractRay)::Bool
 #     tmin = 0

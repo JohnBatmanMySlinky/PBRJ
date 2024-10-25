@@ -2780,7 +2780,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             world_bounds(bvh), 
             l_2_w, 
             Spectrum(3.0, 3.0, 3.0), 
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
         )
         push!(lights, light)
 

@@ -81,13 +81,13 @@ function parse_curves(fname::String, core::ShapeCore)::Array{Curve}
             continue
         end
 
-        println("STATUS: $s --> $N_widths: $widths, $N_points: $c")
+        # println("STATUS: $s --> $N_widths: $widths, $N_points: $c")
 
 
         if (N_widths == 2) & (N_points == 1)
             curve = CreateCurve(core, c, widths[0+1], widths[1+1], curve_type, nothing, split_depth)
-            println(curve)
-            println("\n\n")
+            # println(curve.common)
+            # println("\n\n")
             append!(curves, curve)
             N_widths = 0
             N_points = 0
