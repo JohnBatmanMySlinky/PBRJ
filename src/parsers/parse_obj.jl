@@ -104,6 +104,13 @@ function parse_obj(
         end
     end
 
+    # if no Normals found, add dummy UVs
+    if length(normals) == 0
+        for i in 1:length(vertices)
+            push!(normals, Nml3(0,1,0))
+        end
+    end
+
     return construct_triangle_mesh(
         ShapeCore(object_to_world, Inv(object_to_world), reverse_orientation, transform_swaps_handedness), 
         length(indices)÷3,  # n_triangles

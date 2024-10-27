@@ -14,6 +14,7 @@ scene 12: DISNEY CLOUD GRID! ✅
 scene 13: DISNEY CLOUD ✅
 scene 14: elevator hallway 🟨
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
+scene 100: Furry Bunny from pbrt-v4
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -2747,8 +2748,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     elseif parsed_args["scene-number"] == 100
         primitives = Primitive[]
         lights = Light[]
-        mat_gray = Matte(
-            ConstantTexture(spectrum_from_float(0.6, 0.6, 0.6)),
+        mat_gray = Matte(            
+            ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        mat_bunny = Matte(            
+            ConstantTexture(spectrum_from_float(0.35, 0.31, 0.3)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
@@ -2764,10 +2770,59 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunny-fur-curves-small.pbrt"),
             identity_shape_core
         )
-
         for curve in curves
             push!(primitives, Primitive(curve, mat_gray, nothing))
         end
+
+        bunny_t = Translate(Pnt3(-.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
+        bunny = parse_obj(
+            jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunnymesh.obj"),
+            bunny_t,
+            false,
+            false,
+            nothing
+        )
+        for tri in bunny
+            push!(primitives, Primitive(tri, mat_bunny, nothing))
+        end
+
+        # ground
+        ground_t = Translate(Pnt3(0, 0, -5))
+        ground = BilinearPatchGenerator(
+            ShapeCore(ground_t, Inv(ground_t), false, false),
+            1, 4,
+            Int64[0, 1, 2, 3],
+            Pnt3[Pnt3(-10, 0, -10), Pnt3(10, 0, -10), Pnt3(10, 0, 10), Pnt3(-10, 0, 10)],
+            nothing, nothing, nothing
+        )
+        for each in ground
+            push!(primitives, Primitive(each, mat_gray, nothing))
+        end
+
+        #backstop
+        blp_t = Translate(Pnt3(0, 1, 0))
+        blp = BilinearPatchGenerator(
+            ShapeCore(blp_t, Inv(blp_t), false, false),
+            1, 4, 
+            Int64[0, 1, 2, 3],
+            Pnt3[Pnt3(-10, 0, -2), Pnt3(10, 0, -2), Pnt3(-10, 10, -2), Pnt3(10, 10, -2)],
+            nothing, nothing, nothing
+        )
+        for each in blp
+            push!(primitives, Primitive(each, mat_gray, nothing))
+        end
+        cyl_t = Translate(Pnt3(0, 1, -1)) * Rotate(-90.0, Vec3(1, 0, 0)) * Rotate(90.0, Vec3(0, 1, 0))
+        cyl = Cylindar(
+            cyl_t,
+            1.0,
+            -10.0,
+            10.0,
+            90.0,
+            false,
+            false
+        )
+        push!(primitives, Primitive(cyl, mat_gray, nothing))
+
             
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -2798,11 +2853,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         # Instantiate a Camera
-        look_from = Pnt3(-10, 5, -10)
-        look_at = centroid(world_bounds(bvh))
+        look_from = Pnt3(0, 2, 5)
+        look_at = Pnt3(.02, .47, 0)
         up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 18.0, film)
 
         # Instantiate a Sampler
         S = ZSobolSampler(
