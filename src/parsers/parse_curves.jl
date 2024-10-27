@@ -33,10 +33,18 @@ function parse_width(s::String)::Float64
 end
 
 function parse_points(s::String)::SVector{4, Pnt3}
+    s = replace(s, " -0 " => " -0.0 ")
+    s = replace(s, " 0 " => " 0.0 ")
+
     matches = collect(eachmatch(r"[-+]?\d*\.\d+", s))
 
     # Convert the matched strings to Float64 and store them in an array
     ps = parse.(Float64, [m.match for m in matches])
+
+    if length(ps) != 12
+        print("$ps : $s")
+        @assert false
+    end
 
     return SVector(
         Pnt3(ps[1], ps[2], ps[3]), 
@@ -68,6 +76,7 @@ function parse_curves(fname::String, core::ShapeCore)::Array{Curve}
     widths = Float64[]
     N_widths = 0
     N_points = 0
+    N_parsed = 0
     c = SVector(Pnt3(0), Pnt3(0), Pnt3(0), Pnt3(0))
     for s in processed_content
         # read current line
@@ -85,6 +94,8 @@ function parse_curves(fname::String, core::ShapeCore)::Array{Curve}
 
 
         if (N_widths == 2) & (N_points == 1)
+            N_parsed += 1
+            # print("$N_parsed ")
             curve = CreateCurve(core, c, widths[0+1], widths[1+1], curve_type, nothing, split_depth)
             # println(curve.common)
             # println("\n\n")

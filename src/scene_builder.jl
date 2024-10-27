@@ -2767,14 +2767,14 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
 
         curves = parse_curves(
-            jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunny-fur-curves-small.pbrt"),
+            jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunny-fur-curves.pbrt"),
             identity_shape_core
         )
         for curve in curves
             push!(primitives, Primitive(curve, mat_gray, nothing))
         end
 
-        bunny_t = Translate(Pnt3(-.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
+        bunny_t = Translate(Pnt3(0, -.033, 0)) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
         bunny = parse_obj(
             jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunnymesh.obj"),
             bunny_t,
@@ -2857,7 +2857,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         look_at = Pnt3(.02, .47, 0)
         up = Vec3(0, 1, 0)
         screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 18.0, film)
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 20.0, film)
 
         # Instantiate a Sampler
         S = ZSobolSampler(
