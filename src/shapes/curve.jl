@@ -79,7 +79,7 @@ end
 
 function intersect_ray(c::Curve, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # Transform Ray to curve’s object space 
-    ray = c.core.world_to_object(r)
+    ray = c.core.object_to_world(r)
 
     # Get object-space control points for curve segment, cpObj 
     cp_obj = cubic_bezier_control_points(c.common.cp_obj, c.u_min, c.u_max)

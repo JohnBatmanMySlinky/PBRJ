@@ -2759,16 +2759,17 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
 
+        curves_t = Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
         identity_shape_core = ShapeCore(
-            Translate(Pnt3(0)),
-            Translate(Pnt3(0)),
+            curves_t,
+            Inv(curves_t),
             false,
             false
         )
 
         curves = parse_curves(
             jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunny-fur-curves.pbrt"),
-            identity_shape_core
+            identity_shape_core 
         )
         for curve in curves
             push!(primitives, Primitive(curve, mat_gray, nothing))
