@@ -79,7 +79,7 @@ end
 
 function intersect_ray(c::Curve, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # Transform Ray to curve’s object space 
-    ray = c.core.object_to_world(r)
+    ray = c.core.world_to_object(r)
 
     # Get object-space control points for curve segment, cpObj 
     cp_obj = cubic_bezier_control_points(c.common.cp_obj, c.u_min, c.u_max)
@@ -89,7 +89,7 @@ function intersect_ray(c::Curve, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Ma
     if length_squared(dx) == 0.0
         _, dx, dy = orthonormal_basis(ray.direction)
     end
-    ray_from_object = LookAt(ray.origin, ray.origin + ray.direction, dx)
+    ray_from_object = Inv(LookAt(ray.origin, ray.origin + ray.direction, dx))
     cp = SVector(
         ray_from_object(cp_obj[0+1]),
         ray_from_object(cp_obj[1+1]),
@@ -108,7 +108,13 @@ function intersect_ray(c::Curve, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Ma
         Pnt3(0, 0, length_pbrt(ray.direction) * ray.tMax)
     )
     if !overlaps(ray_bounds, curve_bounds)
-        print("ray_bounds: $ray_bounds, curve_bounds: $curve_bounds\n")
+        print("r: $r\n")
+        print("ray: $ray\n")
+        print("cp_obj: $cp_obj")
+        print("ray_from_object: $ray_from_object\n")
+        print("cp: $cp\n")     
+        print("curve_bounds: $curve_bounds\n")
+        print("ray_bounds: $ray_bounds\n")
         return false, nothing, nothing
     end
 
@@ -129,7 +135,7 @@ function intersect_ray(c::Curve, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Ma
     max_depth = 0
     if L0 > 0.0
         eps = max(c.common.width.x, c.common.width.y) * .05
-        r0::Int64 = log_2_int(1.41421356237 * 6.0 * L0 / (8.0 * eps)) / 2
+        r0::Int64 = log_2_int(UInt32(round(1.41421356237 * 6.0 * L0 / (8.0 * eps)))) / 2
         max_depth = clamp(r0, 0, 10)
     end
 
