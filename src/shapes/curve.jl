@@ -135,7 +135,10 @@ function intersect_ray(c::Curve, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Ma
     max_depth = 0
     if L0 > 0.0
         eps = max(c.common.width.x, c.common.width.y) * .05
-        r0::Int64 = log_2_int(UInt32(round(1.41421356237 * 6.0 * L0 / (8.0 * eps)))) / 2
+        print("log_2_int input: $(1.41421356237 * 6.0 * L0 / (8.0 * eps))\n")
+        # JOHN HACK is floor OK?
+        r0::Int64 = log_2_int(UInt32(floor(1.41421356237 * 6.0 * L0 / (8.0 * eps)))) / 2 
+        print("log_2_int output: $r0\n")
         max_depth = clamp(r0, 0, 10)
     end
 
