@@ -75,11 +75,11 @@ function recursive_intersect(
     object_from_ray::Transformation,
     u0::Float64,
     u1::Float64,
-    depth::Int64
+    depth::Int64,
+    DO_SI::Bool
 )::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     print("Recursion began with depth: $depth\n")
     ray_length = length_pbrt(ray.direction)
-    si = nothing
     if depth > 0
         # split curve segment into subsegments and test for intersection
         cp_split = subdivide_cubic_bezier(cp)
@@ -110,9 +110,9 @@ function recursive_intersect(
             end
 
             # recursively test ray-segment intersection
-            check, t, inter = recursive_intersect(c, ray, cps, object_from_ray, u[seg+1], u[seg+1+1], depth-1)
+            check, t, inter = recursive_intersect(c, ray, cps, object_from_ray, u[seg+1], u[seg+1+1], depth-1, DO_SI)
 
-            if hit && !(inter isa Nothing)
+            if check && !(inter isa Nothing)
                 return true, 0.0, inter
             end
         end
@@ -157,37 +157,39 @@ function recursive_intersect(
         end
 
         # Test intersection point against curve width
-        pc, dpcdw = evaluate_cubic_bezier(cp, clamp(w, 0, 1))
-        pt_curve_distance_2 = sqr(pc.x) + sqr(pc.y)
+        pc, dpcdw = evaluate_cubic_bezier_deriv(cp, clamp(w, 0, 1))
+        pt_curve_distance_2 = pc.x^2 + pc.y^2
+        print("pt_curve_distance_2: $pt_curve_distance_2\n")
 
-        if pt_curve_distance_2 > sqr(pc.x) * 0.25
+        if pt_curve_distance_2 > hit_width * 0.25
             print("boop failed curve dist 2\n")
             return false, nothing, nothing
         end
         if (pc.z < 0) || (pc.z > ray_length * ray.tMax)
-            print("boop failed curve dist 2\n")
+            print("boop failed curve dist 2 other\n")
             return false, nothing, nothing
         end
 
-        if !(si isa Nothing)
+        if DO_SI
             # Initialize _ShapeIntersection_ for curve intersection
             # Compute _tHit_ for curve intersection
             # FIXME: this tHit isn't quite right for ribbons...
             t_hit = pc.z / ray_length
-            if !(si isa Nothing)
-                if t_hit > t
-                    print("boop failed t\n")
-                    return false, nothing, nothing
-                end
-            end
+            # MASSIVE JOHN HACK THIS WILL BITE YOU
+            # if !(si isa Nothing)
+            #     if t_hit > t
+            #         print("boop failed t\n")
+            #         return false, nothing, nothing
+            #     end
+            # end
             # Initialize _SurfaceInteraction_ _intr_ for curve intersection
             # Compute $v$ coordinate of curve intersection point
             pt_curve_dist = sqrt(pt_curve_distance_2)
             edge_func = dpcdw.x * -pc.y + pc.x * dpcdw.y
-            v = (edge_func > 0) ? 0.5f + pt_curve_dist / hit_width : 0.5 - pt_curve_dist / hit_width
+            v = (edge_func > 0) ? 0.5 + pt_curve_dist / hit_width : 0.5 - pt_curve_dist / hit_width
 
             # Compute $\dpdu$ and $\dpdv$ for curve intersection
-            _, dpdu = evaluate_cubic_bezier(cp, u)
+            _, dpdu = evaluate_cubic_bezier_deriv(cp, u)
             if c.common.type == "ribbon"
                 @assert false
             else
@@ -202,7 +204,7 @@ function recursive_intersect(
 
             flip_normal = c.core.reverse_orientation ⊻ c.core.transform_swaps_handedness
             pi = at(ray, t_hit) 
-            intr = SurfaceInteraction(pi, Pnt2(u,v), -ray.direction, dpdu, dpdv, Nml3(0), Nml3(0), ray.time, flip_normal)
+            intr = SurfaceInteraction(pi, ray.t, -ray.direction,Pnt2(u,v),  dpdu, dpdv, Nml3(0), Nml3(0),  flip_normal)
             intr = c.core.object_from_world(intr)
             @assert false
             return true, t_hit, intr
@@ -213,7 +215,7 @@ function recursive_intersect(
     return true, nothing, nothing 
 end
 
-function intersect_ray(c::Curve, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
+function intersect_ray(c::Curve, r::AbstractRay, DO_SI::Bool)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # Transform Ray to curve’s object space 
     ray = c.core.world_to_object(r)
 
@@ -279,14 +281,14 @@ function intersect_ray(c::Curve, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Ma
     end
 
     # Recursively test for ray–curve intersection
-    return recursive_intersect(c, ray, cp, Inv(ray_from_object), c.u_min, c.u_max, max_depth)
+    return recursive_intersect(c, ray, cp, Inv(ray_from_object), c.u_min, c.u_max, max_depth, DO_SI)
 end
 
 function intersect(c::Curve, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
-    return intersect_ray(c, r)
+    return intersect_ray(c, r, true)
 end
 
 function intersect_p(c::Curve, r::AbstractRay)::Bool
-    check, _, _ = intersect_ray(c, r)
+    check, _, _ = intersect_ray(c, r, false)
     return check
 end
