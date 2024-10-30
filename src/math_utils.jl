@@ -240,3 +240,16 @@ function blossom_cubic_bezier(cp::SVector{4, Pnt3}, u0::Float64, u1::Float64, u2
     )
     return lerp(u2, b[0+1], b[1+1])
 end
+
+
+function subdivide_cubic_bezier(cp::SVector{4, Pnt3})::SVector{7, Pnt3}
+    return SVector(
+        cp[0+1],
+        (cp[0+1] + cp[1+1]) / 2,
+        (cp[0+1] + 2 * cp[1+1] + cp[2+1]) / 4,
+        (cp[0+1] + 3 * cp[1+1] + 3 * cp[2+1] + cp[3+1]) / 8,
+        (cp[1+1] + 2 * cp[2+1] + cp[3+1]) / 4,
+        (cp[2+1] + cp[3+1]) / 2,
+        cp[3+1]
+    )
+end
