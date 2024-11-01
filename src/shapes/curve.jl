@@ -80,6 +80,7 @@ function recursive_intersect(
 )::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     print("Recursion began with depth: $depth\n")
     ray_length = length_pbrt(ray.direction)
+    inter = nothing
     if depth > 0
         # split curve segment into subsegments and test for intersection
         cp_split = subdivide_cubic_bezier(cp)
@@ -110,16 +111,15 @@ function recursive_intersect(
             end
 
             # recursively test ray-segment intersection
-            check, t, inter = recursive_intersect(c, ray, cps, object_from_ray, u[seg+1], u[seg+1+1], depth-1, DO_SI)
+            check, t_hit, inter = recursive_intersect(c, ray, cps, object_from_ray, u[seg+1], u[seg+1+1], depth-1, DO_SI)
 
-            if check && !(inter isa Nothing)
-                return true, 0.0, inter
+            if check && (inter isa Nothing)
+                return true, t_hit, nothing # when would we retrun true, nothing, nothing?
             end
         end
-        if !(si isa Nothing)
+        if DO_SI && !(inter isa Nothing)
             return true, 0.0, inter
         else
-            print("boop ok dud ray\n")
             return false, nothing, nothing
         end
     else
@@ -182,6 +182,7 @@ function recursive_intersect(
             #         return false, nothing, nothing
             #     end
             # end
+
             # Initialize _SurfaceInteraction_ _intr_ for curve intersection
             # Compute $v$ coordinate of curve intersection point
             pt_curve_dist = sqrt(pt_curve_distance_2)
@@ -203,10 +204,16 @@ function recursive_intersect(
             end
 
             flip_normal = c.core.reverse_orientation ⊻ c.core.transform_swaps_handedness
-            pi = at(ray, t_hit) 
-            intr = SurfaceInteraction(pi, ray.t, -ray.direction,Pnt2(u,v),  dpdu, dpdv, Nml3(0), Nml3(0),  flip_normal)
-            intr = c.core.object_from_world(intr)
-            @assert false
+            point = at(ray, t_hit) 
+            intr = InstantiateSurfaceInteraction(
+                point, ray.t, -ray.direction,
+                Pnt2(u,v),  
+                dpdu, dpdv, 
+                Nml3(0), Nml3(0),
+                c,
+                nothing,
+                nothing)
+            intr = c.core.object_to_world(intr)
             return true, t_hit, intr
         end
     end
