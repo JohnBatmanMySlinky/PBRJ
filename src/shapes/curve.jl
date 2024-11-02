@@ -126,7 +126,9 @@ function recursive_intersect(
         # intersect ray with curve segment
         # test ray against sgement endpoint boundaries
         # test sample point against tangent perpendicular at curve start
+        println("cp: $cp")
         edge = (cp[1+1].y - cp[0+1].y) * -cp[0+1].y + cp[0+1].x * (cp[0+1].x - cp[1+1].x)
+        println("edge start: $edge")
         if edge < 0
             print("boop failed edge1\n")
             return false, nothing, nothing
@@ -134,6 +136,7 @@ function recursive_intersect(
 
         # test sample point against tangent perpendicular at curve end
         edge = (cp[2+1].y - cp[3+1].y) * -cp[3+1].y + cp[3+1].x * (cp[3+1].x - cp[2+1].x)
+        println("edge end: $edge")
         if edge < 0
             print("boop failed edge2\n")
             return false, nothing, nothing
@@ -141,12 +144,15 @@ function recursive_intersect(
 
         # find line $w$ that gives minimum distane to sample point
         segment_dir = Vec2(cp[3+1].x, cp[3+1].y) - Vec2(cp[0+1].x, cp[0+1].y)
+        println("segment_dir: $segment_dir")
         denom = length_squared(segment_dir)
+        println("denom: $denom")
         if denom == 0.0
             print("boop failed seg dir")
             return false, nothing, nothing
         end
         w = dot(-Vec2(cp[0+1].x, cp[0+1].y), segment_dir) / denom
+        println("w: $w")
 
         # Compute $u$ coordinate of curve intersection point and _hitWidth_
         u = clamp(lerp(w, u0, u1), u0, u1)
@@ -160,6 +166,7 @@ function recursive_intersect(
         pc, dpcdw = evaluate_cubic_bezier_deriv(cp, clamp(w, 0, 1))
         pt_curve_distance_2 = pc.x^2 + pc.y^2
         print("pt_curve_distance_2: $pt_curve_distance_2\n")
+        print("dpcdw: $dpcdw\n")
 
         if pt_curve_distance_2 > hit_width * 0.25
             print("boop failed curve dist 2\n")
@@ -190,17 +197,21 @@ function recursive_intersect(
             v = (edge_func > 0) ? 0.5 + pt_curve_dist / hit_width : 0.5 - pt_curve_dist / hit_width
 
             # Compute $\dpdu$ and $\dpdv$ for curve intersection
-            _, dpdu = evaluate_cubic_bezier_deriv(cp, u)
+            _, dpdu = evaluate_cubic_bezier_deriv(c.common.cp_obj, u)
+            println("dpdu: $dpdu")
             if c.common.type == "ribbon"
                 @assert false
             else
                 # Compute curve $\dpdv$ for flat and cylinder curves
                 dpdu_plane = Inv(object_from_ray)(dpdu)
+                println("dpdu_plane: $dpdu_plane")
                 dpdv_plane = normalize(Vec3(-dpdu_plane.y, dpdu_plane.x, 0)) * hit_width
+                println("dpdv_plane: $dpdv_plane")
                 if c.common.type == "cylindar"
                     @assert false
                 end
                 dpdv = object_from_ray(dpdv_plane)
+                println("dpdv: $dpdv")
             end
 
             flip_normal = c.core.reverse_orientation ⊻ c.core.transform_swaps_handedness

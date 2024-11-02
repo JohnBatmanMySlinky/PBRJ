@@ -268,8 +268,8 @@ function evaluate_cubic_bezier_deriv(cp::SVector{4, Pnt3}, u::Float64)::Tuple{Pn
         lerp(u, cp1[0+1], cp1[1+1]), 
         lerp(u, cp1[1+1], cp1[2+1])
     )
-    if length_squared(Vec3(cp2[1+1] - cp2[0+1])) < 0
-        deriv = (cp2[1+1] - cp2[0+1]) * 3.0
+    if length_squared(Vec3(cp2[1+1] - cp2[0+1])) > 0
+        deriv = 3.0 * (cp2[1+1] - cp2[0+1])
     else
         deriv = cp[3+1] - cp[0+1]
     end
