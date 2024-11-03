@@ -2753,6 +2753,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
+        mat_curves = Matte(            
+            ConstantTexture(spectrum_from_float(0.15, 0.21, 1.0)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
         mat_bunny = Matte(            
             ConstantTexture(spectrum_from_float(0.35, 0.31, 0.3)),
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
@@ -2772,7 +2777,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             fur_shape_core 
         )
         for curve in curves
-            push!(primitives, Primitive(curve, mat_gray, nothing))
+            push!(primitives, Primitive(curve, mat_curves, nothing))
         end
 
         bunny_t = Translate(Pnt3(0, -.033, 0)) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
