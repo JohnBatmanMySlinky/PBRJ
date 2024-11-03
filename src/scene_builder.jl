@@ -2764,7 +2764,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
 
-        curves_t = Inv(Translate(RayTracing.Pnt3(0,2,5))) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
+        curves_t = Inv(Translate(Pnt3(0,2,5))) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
         fur_shape_core = ShapeCore(
             curves_t,
             Inv(curves_t),
