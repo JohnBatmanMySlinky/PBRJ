@@ -2772,13 +2772,13 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false
         )
 
-        curves = parse_curves(
-            jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunny-fur-curves.pbrt"),
-            fur_shape_core 
-        )
-        for curve in curves
-            push!(primitives, Primitive(curve, mat_curves, nothing))
-        end
+        # curves = parse_curves(
+        #     jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunny-fur-curves.pbrt"),
+        #     fur_shape_core 
+        # )
+        # for curve in curves
+        #     push!(primitives, Primitive(curve, mat_curves, nothing))
+        # end
 
         bunny_t = Translate(Pnt3(0, -.033, 0)) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
         bunny = parse_obj(
@@ -2788,9 +2788,9 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             nothing
         )
-        # for tri in bunny
-        #     push!(primitives, Primitive(tri, mat_bunny, nothing))
-        # end
+        for tri in bunny
+            push!(primitives, Primitive(tri, mat_bunny, nothing))
+        end
 
         # ground
         ground_t = Translate(Pnt3(0, 0, -5))
@@ -2878,7 +2878,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         scene = Scene(lights, bvh)
 
         # Instantiate an Integrator
-        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+        I = SimpleIntegrator(C, S)
         return I, scene
     else
         @assert false

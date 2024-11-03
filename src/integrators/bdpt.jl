@@ -78,15 +78,15 @@ function render(
                         check, t, interaction, = intersect!(scene.b, ray)
                         if !check
                             L = to_XYZ(spectrum_from_float(0.0))
-                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].albedo = L
-                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].depth = L
-                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].normal = L
-                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].position = L
+                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].albedo = L
+                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].depth = L
+                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].normal = L
+                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].position = L
                         else
-                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].albedo = to_XYZ(interaction.primitive.material.Kd(interaction))
-                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].depth = to_XYZ(spectrum_from_float(t))
-                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].normal = to_XYZ(spectrum_from_float(interaction.shading.n...))
-                            i.camera.core.core.film.pixels[Int(pixel.y), Int(pixel.x)].position = to_XYZ(spectrum_from_float(interaction.core.p...))
+                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].albedo = to_XYZ(interaction.primitive.material.Kd(interaction))
+                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].depth = to_XYZ(spectrum_from_float(t))
+                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].normal = to_XYZ(spectrum_from_float(interaction.shading.n...))
+                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].position = to_XYZ(spectrum_from_float(interaction.core.p...))
                         end
                     end
                 end

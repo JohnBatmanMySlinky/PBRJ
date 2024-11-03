@@ -1,8 +1,8 @@
 function render(
-    i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator}, 
+    i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator, SimpleIntegrator}, 
     scene::Scene, 
-    ::Tuple{Int64,Int64}, 
-    ::Dict 
+    ::Dict{String, Any},
+    ::Tuple{Int64,Int64}  
 )
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
     sample_extent = diagonal(sample_bounds)
@@ -36,7 +36,7 @@ function render(
                 L = spectrum_from_float(0.0)
 
                 if w > 0
-                    L = li(i.cos_sample, ray, scene, 0, sampler)
+                    L = li(i, ray, scene, 0, sampler)
                 end
 
                 if any(isnan.(L))
