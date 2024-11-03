@@ -2788,9 +2788,9 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             nothing
         )
-        for tri in bunny
-            push!(primitives, Primitive(tri, mat_bunny, nothing))
-        end
+        # for tri in bunny
+        #     push!(primitives, Primitive(tri, mat_bunny, nothing))
+        # end
 
         # ground
         ground_t = Translate(Pnt3(0, 0, -5))

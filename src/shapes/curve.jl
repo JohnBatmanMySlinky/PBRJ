@@ -118,7 +118,7 @@ function recursive_intersect(
             end
         end
         if DO_SI && !(inter isa Nothing)
-            return true, 0.0, inter
+            return true, t_hit, inter
         else
             return false, nothing, nothing
         end
