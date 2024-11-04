@@ -1,0 +1,1 @@
+nohup python script.py > script.log 2>&1 &
