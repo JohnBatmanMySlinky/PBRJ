@@ -2781,17 +2781,17 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(curve, mat_curves, nothing))
         end
 
-        bunny_t = Translate(Pnt3(0, -.033, 0)) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
-        bunny = parse_obj(
-            jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunnymesh.obj"),
-            bunny_t,
-            false,
-            false,
-            nothing
-        )
-        for tri in bunny
-            push!(primitives, Primitive(tri, mat_bunny, nothing))
-        end
+        # bunny_t = Translate(Pnt3(0, -.231, 0)) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
+        # bunny = parse_obj(
+        #     jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunnymesh.obj"),
+        #     bunny_t,
+        #     false,
+        #     false,
+        #     nothing
+        # )
+        # for tri in bunny
+        #     push!(primitives, Primitive(tri, mat_bunny, nothing))
+        # end
 
         # ground
         ground_t = Translate(Pnt3(0, 0, -5))
