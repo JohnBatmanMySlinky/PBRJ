@@ -1777,9 +1777,9 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         ###############
         ### a thing ###
-        ###############
+        ###############       
 
-        
+
         s = Sphere(ShapeCore(Translate(Pnt3(0, 0.025, 0)), Inv(Translate(Pnt3(0, 0.025, 0)))), .075)
         push!(primitives, Primitive(s, mat_blue, nothing))
 
@@ -1808,7 +1808,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             world_bounds(bvh), 
             l_2_w, 
             Spectrum(3.0, 3.0, 3.0), 
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
         )
         push!(lights, light)
 
