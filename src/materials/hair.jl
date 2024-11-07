@@ -58,6 +58,5 @@ function compute_scattering_functions!(
 	
 	# offset along width
 	h = -1.0 + 2.0 * si.uv.y
-	hair_bsdf = HairBSDF(h, e, sig_a, bm, bn, a)
-	si.bsdf = hair_bsdf
+	si.bsdf = HairBSDF(h, e, sig_a, bm, bn, a)
 end
