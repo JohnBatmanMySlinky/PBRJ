@@ -1,22 +1,22 @@
-struct HairMaterial
-	sigma_a::Maybe{Spectrum}     # spectrum
-	color::Maybe{Spectrum}       # spectrum
-	eumelanin::Maybe{Spectrum}   # float
-	pheomelanin::Maybe{Spectrum} # float
-	eta::Maybe{Spectrum}         # float
-	beta_m::Maybe{Spectrum}      # float
-	beta_n::Maybe{Spectrum}      # float
-	alpha::Maybe{Spectrum}       # float
+struct HairMaterial <: Material
+	sigma_a::Maybe{Texture}     # spectrum
+	color::Maybe{Texture}       # spectrum
+	eumelanin::Maybe{Texture}   # float
+	pheomelanin::Maybe{Texture} # float
+	eta::Maybe{Texture}         # float
+	beta_m::Maybe{Texture}      # float
+	beta_n::Maybe{Texture}      # float
+	alpha::Maybe{Texture}       # float
 	
 	function HairMaterial(
-		sigma_a::Maybe{Spectrum},
-		color::Maybe{Spectrum},
-		eumelanin::Maybe{Spectrum},
-		pheomelanin::Maybe{Spectrum},
-		eta::Maybe{Spectrum},
-		beta_m::Maybe{Spectrum},
-		beta_n::Maybe{Spectrum},
-		alpha::Maybe{Spectrum}
+		sigma_a::Maybe{Texture},
+		color::Maybe{Texture},
+		eumelanin::Maybe{Texture},
+		pheomelanin::Maybe{Texture},
+		eta::Maybe{Texture},
+		beta_m::Maybe{Texture},
+		beta_n::Maybe{Texture},
+		alpha::Maybe{Texture}
 	)
 		if !(sigma_a isa Nothing)
 			@assert (color isa Nothing) & (eumelanin isa Nothing) & (pheomelanin isa Nothing)
@@ -25,26 +25,36 @@ struct HairMaterial
 		elseif !(eumelanin isa Nothing) | !(pheomelanin isa Nothing)
 			@assert (sigma_a isa Nothing) & (color isa Nothing)
 		end
+
+		if eta isa Nothing
+			eta = ConstantTextureFloat(1.55)
+		end
+		if beta_m isa Nothing
+			beta_m = ConstantTextureFloat(0.3)
+		end
+		if beta_n isa Nothing
+			beta_n = ConstantTextureFloat(0.3)
+		end
+		if alpha isa Nothing
+			alpha = ConstantTextureFloat(2.0)
+		end
 		
-		return new(color, eumelanin, pheomelanin, eta, beta_m, beta_n, alpha)
+		return new(sigma_a, color, eumelanin, pheomelanin, eta, beta_m, beta_n, alpha)
 	end
 end
 
-function compute_scattering_functions!(
-	hm::HairMaterial,
-	si::SurfaceInteraction, 
-	mode::TransportMode, 
-	allow_multiple_lobes::Bool=false
-)
+function (hm::HairMaterial)(si::SurfaceInteraction, ::Bool=false, ::Type{T}=Radiance) where T <: TransportMode
 	bm = hm.beta_m(si)
 	bn = hm.beta_n(si)
 	a = hm.alpha(si)
 	e = hm.eta(si)
+
+	si.bsdf = BSDF(si, e)
 	
 	if !(hm.sigma_a isa Nothing)
-		sig_a = clamp(hm.sigma_a(si))
+		sig_a = clamp.(hm.sigma_a(si), 0.0, 1.0)
 	elseif !(hm.color isa Nothing)
-		c = clamp(hm.sigma_a(si))
+		c = clamp.(hm.color(si), 0.0, 1.0)
 		sig_a = sigma_a_from_reflectance(c, bn)
 	else
 		has_eumelanin = !(hm.eumelanin isa Nothing)
@@ -58,5 +68,20 @@ function compute_scattering_functions!(
 	
 	# offset along width
 	h = -1.0 + 2.0 * si.uv.y
-	si.bsdf = HairBSDF(h, e, sig_a, bm, bn, a)
+	add!(si.bsdf, HairBSDF(h, e, sig_a, bm, bn, a))
+end
+
+function sigma_a_from_concentration(ce::Float64, cp::Float64)::Spectrum
+	eumelaninSigmaA = SVector(0.419, 0.697, 1.37)
+    pheomelaninSigmaA = SVector(0.187, 0.4, 1.05)
+	return spectrum_from_RGB(
+		ce * eumelaninSigmaA[1] + cp * pheomelaninSigmaA[1],
+		ce * eumelaninSigmaA[2] + cp * pheomelaninSigmaA[2],
+		ce * eumelaninSigmaA[3] + cp * pheomelaninSigmaA[3],
+	)
+end
+
+function sigma_a_from_reflectance(c::Spectrum, beta_n::Float64)::Spectrum
+	tmp = (5.969 - 0.215 * beta_n + 2.532 * beta_n^2 - 10.73 * beta_n^3 + 5.574 * beta_n^4 + 0.245 * beta_n^5)
+	return (log.(c) ./ tmp).^2
 end

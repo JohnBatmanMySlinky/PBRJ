@@ -2763,6 +2763,16 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
             nothing
         )
+        mat_hair = HairMaterial(
+            nothing,       # sigma_a
+            ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),         # color
+            nothing,     # eumelanin
+            nothing,   # pheomelanin
+            nothing,           # eta
+            ConstantTextureFloat(0.5),        # beta_m
+            ConstantTextureFloat(0.5),        # beta_n
+            nothing          # alpha
+        )
 
         # curves_t = Inv(Translate(Pnt3(0,2,5))) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
         curves_t = Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
@@ -2775,10 +2785,11 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         curves = parse_curves(
             jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunny-fur-curves.pbrt"),
-            fur_shape_core 
+            fur_shape_core,
+            10
         )
         for curve in curves
-            push!(primitives, Primitive(curve, mat_curves, nothing))
+            push!(primitives, Primitive(curve, mat_hair, nothing))
         end
 
         # bunny_t = Translate(Pnt3(0, -.231, 0)) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)

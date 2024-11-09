@@ -54,7 +54,7 @@ function parse_points(s::String)::SVector{4, Pnt3}
     )
 end
 
-function parse_curves(fname::String, core::ShapeCore)::Array{Curve}
+function parse_curves(fname::String, core::ShapeCore, DOWNSAMPLE::Int64=0)::Array{Curve}
     # HARDCODING
     # SUPER ANEMIC
     # ONLY WORKS FOR BUNNY
@@ -99,7 +99,13 @@ function parse_curves(fname::String, core::ShapeCore)::Array{Curve}
             curve = CreateCurve(core, c, widths[0+1], widths[1+1], curve_type, nothing, split_depth)
             # println(curve.common)
             # println("\n\n")
-            append!(curves, curve)
+            if DOWNSAMPLE > 0
+                if N_parsed % DOWNSAMPLE == 0
+                    append!(curves, curve)
+                end
+            else
+                append!(curves, curve)
+            end
             N_widths = 0
             N_points = 0
             widths = Float64[]               
