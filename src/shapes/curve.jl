@@ -78,13 +78,13 @@ function recursive_intersect(
     depth::Int64,
     DO_SI::Bool
 )::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
-    @info "Recursion began with depth: $depth\n"
+    # @info "Recursion began with depth: $depth\n"
     ray_length = length_pbrt(ray.direction)
     inter = nothing
     if depth > 0
         # split curve segment into subsegments and test for intersection
         cp_split = subdivide_cubic_bezier(cp)
-        @info "SD cubic bezier $cp_split\n"
+        # @info "SD cubic bezier $cp_split\n"
         u = SVector(u0, (u0+u1)/2.0, u1)
         for seg in 0:1
             # check ray against curve segment's bounding box
@@ -93,7 +93,7 @@ function recursive_intersect(
                 lerp(u[seg+1+1], c.common.width.x, c.common.width.y)
             )
             cps = SVector(cp_split[3*seg+1], cp_split[3*seg+2], cp_split[3*seg+3], cp_split[3*seg+4])
-            @info "cps $cps\n"
+            # @info "cps $cps\n"
             curve_bounds = world_bounds(
                 Bounds3(cps[0+1], cps[1+1]),
                 Bounds3(cps[2+1], cps[3+1]),
@@ -103,9 +103,9 @@ function recursive_intersect(
                 Pnt3(0),
                 Pnt3(0, 0, ray_length * ray.tMax)
             )
-            @info "recursive A: curveBounds: $curve_bounds\n"
-            @info "recursive A: rayBounds: $ray_bounds\n"
-            @info "do they overlap? $(!overlaps(ray_bounds, curve_bounds))\n"
+            # @info "recursive A: curveBounds: $curve_bounds\n"
+            # @info "recursive A: rayBounds: $ray_bounds\n"
+            # @info "do they overlap? $(!overlaps(ray_bounds, curve_bounds))\n"
             if !overlaps(ray_bounds, curve_bounds)
                 continue
             end
@@ -126,33 +126,33 @@ function recursive_intersect(
         # intersect ray with curve segment
         # test ray against sgement endpoint boundaries
         # test sample point against tangent perpendicular at curve start
-        @info "cp: $cp\n"
+        # @info "cp: $cp\n"
         edge = (cp[1+1].y - cp[0+1].y) * -cp[0+1].y + cp[0+1].x * (cp[0+1].x - cp[1+1].x)
-        @info "edge start: $edge\n"
+        # @info "edge start: $edge\n"
         if edge < 0
-            @info "boop failed edge1\n"
+            # @info "boop failed edge1\n"
             return false, nothing, nothing
         end
 
         # test sample point against tangent perpendicular at curve end
         edge = (cp[2+1].y - cp[3+1].y) * -cp[3+1].y + cp[3+1].x * (cp[3+1].x - cp[2+1].x)
-        @info "edge end: $edge\n"
+        # @info "edge end: $edge\n"
         if edge < 0
-            @info "boop failed edge2\n"
+            # @info "boop failed edge2\n"
             return false, nothing, nothing
         end
 
         # find line $w$ that gives minimum distane to sample point
         segment_dir = Vec2(cp[3+1].x, cp[3+1].y) - Vec2(cp[0+1].x, cp[0+1].y)
-        @info "segment_dir: $segment_dir\n"
+        # @info "segment_dir: $segment_dir\n"
         denom = length_squared(segment_dir)
-        @info "denom: $denom\n"
+        # @info "denom: $denom\n"
         if denom == 0.0
-            @info "boop failed seg dir\n"
+            # @info "boop failed seg dir\n"
             return false, nothing, nothing
         end
         w = dot(-Vec2(cp[0+1].x, cp[0+1].y), segment_dir) / denom
-        @info "w: $w\n"
+        # @info "w: $w\n"
 
         # Compute $u$ coordinate of curve intersection point and _hitWidth_
         u = clamp(lerp(w, u0, u1), u0, u1)
@@ -165,15 +165,15 @@ function recursive_intersect(
         # Test intersection point against curve width
         pc, dpcdw = evaluate_cubic_bezier_deriv(cp, clamp(w, 0, 1))
         pt_curve_distance_2 = pc.x^2 + pc.y^2
-        @info "pt_curve_distance_2: $pt_curve_distance_2\n"
-        @info "dpcdw: $dpcdw\n"
+        # @info "pt_curve_distance_2: $pt_curve_distance_2\n"
+        # @info "dpcdw: $dpcdw\n"
 
-        if pt_curve_distance_2 > hit_width * 0.25
-            @info "boop failed curve dist 2\n"
+        if pt_curve_distance_2 > hit_width^2 * 0.25
+            # @info "boop failed curve dist 2\n"
             return false, nothing, nothing
         end
         if (pc.z < 0) || (pc.z > ray_length * ray.tMax)
-            @info "boop failed curve dist 2 other\n"
+            # @info "boop failed curve dist 2 other\n"
             return false, nothing, nothing
         end
 
@@ -198,20 +198,20 @@ function recursive_intersect(
 
             # Compute $\dpdu$ and $\dpdv$ for curve intersection
             _, dpdu = evaluate_cubic_bezier_deriv(c.common.cp_obj, u)
-            @info "dpdu: $dpdu\n"
+            # @info "dpdu: $dpdu\n"
             if c.common.type == "ribbon"
                 @assert false
             else
                 # Compute curve $\dpdv$ for flat and cylinder curves
                 dpdu_plane = Inv(object_from_ray)(dpdu)
-                @info "dpdu_plane: $dpdu_plane\n"
+                # @info "dpdu_plane: $dpdu_plane\n"
                 dpdv_plane = normalize(Vec3(-dpdu_plane.y, dpdu_plane.x, 0)) * hit_width
-                @info "dpdv_plane: $dpdv_plane\n"
+                # @info "dpdv_plane: $dpdv_plane\n"
                 if c.common.type == "cylindar"
                     @assert false
                 end
                 dpdv = object_from_ray(dpdv_plane)
-                @info "dpdv: $dpdv\n"
+                # @info "dpdv: $dpdv\n"
             end
 
             flip_normal = c.core.reverse_orientation ⊻ c.core.transform_swaps_handedness
@@ -264,13 +264,13 @@ function intersect_ray(c::Curve, r::AbstractRay, DO_SI::Bool)::Tuple{Bool, Maybe
         Pnt3(0, 0, length_pbrt(ray.direction) * ray.tMax)
     )
     if !overlaps(ray_bounds, curve_bounds)
-        @info "r: $r\n"
-        @info "ray: $ray\n"
-        @info "cp_obj: $cp_obj"
-        @info "ray_from_object: $ray_from_object\n"
-        @info "cp: $cp\n"
-        @info "curve_bounds: $curve_bounds\n"
-        @info "ray_bounds: $ray_bounds\n"
+        # @info "r: $r\n"
+        # @info "ray: $ray\n"
+        # @info "cp_obj: $cp_obj"
+        # @info "ray_from_object: $ray_from_object\n"
+        # @info "cp: $cp\n"
+        # @info "curve_bounds: $curve_bounds\n"
+        # @info "ray_bounds: $ray_bounds\n"
         return false, nothing, nothing
     end
 
@@ -291,10 +291,10 @@ function intersect_ray(c::Curve, r::AbstractRay, DO_SI::Bool)::Tuple{Bool, Maybe
     max_depth = 0
     if L0 > 0.0
         eps = max(c.common.width.x, c.common.width.y) * .05
-        @info "log_2_int input: $(1.41421356237 * 6.0 * L0 / (8.0 * eps))\n"
+        # @info "log_2_int input: $(1.41421356237 * 6.0 * L0 / (8.0 * eps))\n"
         # JOHN HACK is floor OK? double floor? So ugly...
         r0::Int64 = floor(log_2_int(UInt32(floor(1.41421356237 * 6.0 * L0 / (8.0 * eps)))) / 2)
-        @info "log_2_int output: $r0\n"
+        # @info "log_2_int output: $r0\n"
         max_depth = clamp(r0, 0, 10)
     end
 
@@ -303,7 +303,8 @@ function intersect_ray(c::Curve, r::AbstractRay, DO_SI::Bool)::Tuple{Bool, Maybe
 end
 
 function intersect(c::Curve, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
-    return intersect_ray(c, r, true)
+    check, t, inter = intersect_ray(c, r, true)
+    return check, t, inter
 end
 
 function intersect_p(c::Curve, r::AbstractRay)::Bool
