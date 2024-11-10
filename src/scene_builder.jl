@@ -1951,8 +1951,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         smoke_mi = MediumInterface(
             NanoVDBMedium(
-                spectrum_from_float(10.0),
-                spectrum_from_float(90.0),
+                spectrum_from_float(1.0),
+                spectrum_from_float(800.0),
                 0.877,
                 4.0,
                 jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
@@ -1960,6 +1960,25 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+
+        # The disk
+        disk_t = Translate(Pnt3(0, -1000, 0)) * Scale(2000.0, 2000.0, 2000.0) * Rotate(-90.0, Vec3(1, 0, 0))
+        disk = Disk(
+            disk_t, 
+            0.0,
+            1.0, 
+            0.0,
+            360.0,
+            false,
+            false
+        )
+        mat_disk = Matte(
+            ConstantTexture(spectrum_from_float(0.3, 0.3, 0.3)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        push!(primitives, Primitive(disk, mat_disk, nothing))
+
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -1971,10 +1990,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         light = UniformInfiniteLight(
             world_bounds(bvh), 
             l_2_w, 
-            Spectrum(0.36, 0.84, 2.76), 
+            # Spectrum(0.03, 0.07, 0.23), 
+            Spectrum(0.3, 0.7, 2.3), 
         )
         push!(lights, light)
 
+        # Distnat Light
         wb = world_bounds(bvh)
         world_center, world_radius = bounding_sphere(wb)
         light = DistantLight(
@@ -1985,17 +2006,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             l_2_w
         )
         push!(lights, light)
-
-        # instantiate the infinite light
-        # l_2_w = Translate(Pnt3(0,0,0))
-        # light = InfiniteLight(
-        #     world_bounds(bvh), 
-        #     l_2_w, 
-        #     Spectrum(3.0, 3.0, 3.0), 
-        #     "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
-        # )
-        # push!(lights, light)
-
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
