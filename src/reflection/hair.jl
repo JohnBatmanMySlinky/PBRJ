@@ -37,7 +37,7 @@ struct HairBSDF <: AbstractBxDF
 		@assert length(v) == pMax_hair + 1
 		
 		# Compute azimuthal logistic scale factor from $\beta_n$
-		s = sqrt(pi) * (0.265 * beta_n + 1.194 * beta_n^2 + 5.372 * beta_n^22) / 8.0
+		s = 0.626657069 * (0.265 * beta_n + 1.194 * beta_n^2 + 5.372 * beta_n^22)
 		@assert !isinf(s)
 	
 		# compute $\alpha$ terms for hair scales
@@ -49,6 +49,11 @@ struct HairBSDF <: AbstractBxDF
 			sin_2_k_alpha[i+1] = 2 * cos_2_k_alpha[i-1+1] * sin_2_k_alpha[i-1+1]
 			cos_2_k_alpha[i+1] = cos_2_k_alpha[i-1+1]^2 - sin_2_k_alpha[i-1+1]^2
 		end
+
+		# println("V: $v")
+		# println("sin_2_k_alpha: $sin_2_k_alpha")
+		# println("cos_2_k_alpha: $cos_2_k_alpha")
+
 		return new(
 			bxdf,
 			h,
@@ -112,19 +117,25 @@ function f(hair::HairBSDF, wo::Vec3, wi::Vec3)::Spectrum
 
         # Handle out-of-range $\cos \thetao$ from scale adjustment
         cos_theta_Op = abs(cos_theta_Op)
-        fsum += Mp(
+		mp = Mp(
 			cos_theta_I,
 			cos_theta_Op, 
 			sin_theta_I, 
 			sin_theta_Op, 
 			hair.v[p+1]
-		) * ap[p+1] * Np(
+		)
+		np = Np(
 			phi, 
 			p, 
 			hair.s, 
 			hair.gamma_O, 
 			gamma_T
 		)
+		# println("mp: $mp")
+		# println("phi: $phi p: $p s: $(hair.s) gamma_o: $(hair.gamma_O) gamma_t: $gamma_T ")
+		# println("np: $np")
+		# println("ap: $(ap[p+1])")
+        fsum += mp * ap[p+1] * np
     end
 
 	# Compute contribution of remaining terms after _pMax_
@@ -139,8 +150,8 @@ function f(hair::HairBSDF, wo::Vec3, wi::Vec3)::Spectrum
 		fsum /= abs_cos_theta(wi)
 	end
     if !(!isinf(y_spectrum(fsum)) && !isnan(y_spectrum(fsum)))
-		print("end")
-		println(fsum)
+		# print("end")
+		# println(fsum)
 		@assert false
 	end
     return fsum

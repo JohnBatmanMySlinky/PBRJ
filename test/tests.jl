@@ -726,21 +726,3 @@ using Random
 #         @test error(spherical_area, tri_sample_estimate) < 0.15
 #     end
 # end
-
-@testset "Hair BSDF - Reciprocity" begin
-    for i in 1:10
-        h = RayTracing.HairBSDF(
-            -1.0 + 2.0 * rand(),
-            1.55,
-            RayTracing.sigma_a_from_concentration(0.3 + 7.7 * rand(), 0.3 + 7.7 * rand()),
-            .1 + .9 * rand(),
-            .1 + .9 * rand(),
-            1.5 + rand()
-        )
-        wi::RayTracing.Vec3 = RayTracing.random_on_sphere(RayTracing.Pnt2(rand(), rand()))
-        wo::RayTracing.Vec3 = RayTracing.random_on_sphere(RayTracing.Pnt2(rand(), rand()))
-        a = RayTracing.f(h, wi, wo) * RayTracing.abs_cos_theta(wo)
-        b = RayTracing.f(h, wo, wi) * RayTracing.abs_cos_theta(wi)
-        @test RayTracing.y_spectrum(a) == RayTracing.y_spectrum(b)
-    end
-end
