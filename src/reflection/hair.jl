@@ -207,11 +207,11 @@ function sample_f(hair::HairBSDF, wo::Vec3, u2::Pnt2, type::UInt8)::Tuple{Vec3, 
 	
 	# Sample $N_p$ to compute $\Delta\phi$
 	# Compute $\gammat$ for refracted ray
-	etap = sqrt(eta^2 - sin_theta_O^2) / cos_theta_O
-	sin_gamma_T = h / etap
+	etap = sqrt(hair.eta^2 - sin_theta_O^2) / cos_theta_O
+	sin_gamma_T = hair.h / etap
 	gamma_T = safe_asin(sin_gamma_T)
 	if (p < pMax_hair)
-		dphi = phi(p, hair.gamma_O, gamma_T) + sample_trimmed_logistic(u[0+1][1+1], s, -pi, Float64(pi))
+		dphi = phi(p, hair.gamma_O, gamma_T) + sample_trimmed_logistic(u01, hair.s, -pi, Float64(pi))
 	else
 		dphi = 2 * pi * u01
 	end
@@ -273,6 +273,14 @@ function compute_Ap_pdf(hair:: HairBSDF, cos_theta_O::Float64)::SVector{4, Float
 		y_spectrum(ap[3]) / sum_y,
 		y_spectrum(ap[4]) / sum_y
 	)
+end
+
+function sample_trimmed_logistic(u::Float64, s::Float64, a::Float64, b::Float64)::Float64
+	@assert a < b
+	k = logistic_CDF(b,s) - logistic_CDF(a, s)
+	x = -s * log(1 / (u * k + logistic_CDF(a, s)) - 1)
+    @assert !isnan(x)
+    return clamp(x, a, b)
 end
 
 function demux_float(f::Float32)::Pnt2
