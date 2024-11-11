@@ -1952,7 +1952,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         smoke_mi = MediumInterface(
             NanoVDBMedium(
                 spectrum_from_float(1.0),
-                spectrum_from_float(800.0),
+                spectrum_from_float(10.0),
                 0.877,
                 4.0,
                 jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
@@ -1991,7 +1991,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             world_bounds(bvh), 
             l_2_w, 
             # Spectrum(0.03, 0.07, 0.23), 
-            Spectrum(0.3, 0.7, 2.3), 
+            Spectrum(2.3, 2.7, 2.3), 
         )
         push!(lights, light)
 
@@ -1999,7 +1999,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         wb = world_bounds(bvh)
         world_center, world_radius = bounding_sphere(wb)
         light = DistantLight(
-            Spectrum(2.6, 2.5, 2.3),
+            Spectrum(4.6, 4.5, 4.3),
             Vec3(-0.5826, -0.7660, -0.2717),
             world_center,
             world_radius,

@@ -157,6 +157,110 @@ function f(hair::HairBSDF, wo::Vec3, wi::Vec3)::Spectrum
     return fsum
 end
 
+function sample_f(ahir::HairBSDF, wo::Vec3, u2::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
+	# Compute hair coordinate system terms related to _wo_
+	sin_theta_O = wo.x
+	cos_theta_O = safe_sqrt(1 - sin_theta_O^2)
+	phi_O = atan(wo.z, wo.y)
+
+	# Derive four random samples from _u2_
+	u = SVector(demux_float(u2.x), demux_float(u2.y))
+
+	# Determine which term $p$ to sample for hair scattering
+	ap_pdf = computer_Ap_pdf(cosThetaO)
+	p = -1
+	for p_tmp in 0:(pMax_hair-1)
+		if u[0+1][0+1] < ap_pdf
+			p = p_tmp
+			break
+		end
+		u[0+1][0+1] -= ap_pdf[p_tmp+1]
+	end
+
+	# Rotate $\sin \thetao$ and $\cos \thetao$ to account for hair scale tilt
+	if p == 0
+		sin_theta_op = sin_theta_O * hair.cos_2_k_alpha[1+1] - cos_theta_O * hair.sin_2_k_alpha[1+1]
+		cos_theta_op = cos_theta_O * hair.cos_2_k_alpha[1+1] + sin_theta_O * hair.sin_2_k_alpha[1+1]
+	elseif p == 1
+		sin_theta_op = sin_theta_O * hair.cos_2_k_alpha[0+1] + cos_theta_O * hair.sin_2_k_alpha[0+1]
+		cos_theta_op = cos_theta_O * hair.cos_2_k_alpha[0+1] - sin_theta_O * hair.sin_2_k_alpha[0+1]
+	elseif p == 2
+		sin_theta_op = sin_theta_O * hair.cos_2_k_alpha[2+1] + cos_theta_O * hair.sin_2_k_alpha[2+1]
+		cos_theta_op = cos_theta_O * hair.cos_2_k_alpha[2+1] - sin_theta_O * hair.sin_2_k_alpha[2+1]
+	else
+		sin_theta_op = sin_theta_O
+		cos_theta_op = cos_theta_O
+	end
+
+	# Sample $M_p$ to compute $\thetai$
+	u[1+1][0+1] = max(u[1+1][0+1], 1e-5)
+	cos_theta = 1 + v[p+1] * log(u[1+1][0+1] + (1 - u[1+1][0+1]) * exp(-2 / v[p+1]))
+	sin_theta = safe_sqrt(1 - cos_theta^2)
+	cos_phi = cos(2 * pi * u[1+1][1+1])
+	sin_theta_I = -cos_theta * sin_theta_op + sin_theta * cos_phi * cos_theta_op
+	cos_theta_I = safe_sqrt(1 - sin_theta_I^2)
+	
+	# Sample $N_p$ to compute $\Delta\phi$
+	# Compute $\gammat$ for refracted ray
+	etap = sqrt(eta^2 - sin_theta_O^2) / cos_theta_O
+	sin_gamma_T = h / etap
+	gamma_T = safe_asin(sin_gamma_T)
+	if (p < pMax_hair)
+		dphi = phi(p, hair.gamma_O, gamma_T) + sample_trimmed_logistic(u[0+1][1+1], s, -pi, Float64(pi))
+	else
+		dphi = 2 * pi * u[0+1][1+1]
+	end
+
+	# Compute _wi_ from sampled hair scattering angles
+	phi_I = phi_O + dphi
+	wi = Vec3(sin_theta_I, cos_theta_I * cos(phi_I), cos_theta_I * sin(phi_I))
+
+	# Compute PDF for sampled hair scattering direction _wi_
+	pdf_val = 0.0
+	for p in 0:(pMax_hair-1)
+		# Compute $\sin \thetao$ and $\cos \thetao$ terms accounting for scales
+		if p == 0
+			sin_theta_op = sin_theta_O * hair.cos_2_k_alpha[1+1] - cos_theta_O * hair.sin_2_k_alpha[1+1]
+			cos_theta_op = cos_theta_O * hair.cos_2_k_alpha[1+1] + sin_theta_O * hair.sin_2_k_alpha[1+1]
+
+		# Handle remainder of $p$ values for hair scale tilt
+		elseif p == 1
+			sin_theta_op = sin_theta_O * hair.cos_2_k_alpha[0+1] + cos_theta_O * hair.sin_2_k_alpha[0+1]
+			cos_theta_op = cos_theta_O * hair.cos_2_k_alpha[0+1] - sin_theta_O * hair.sin_2_k_alpha[0+1]
+		elseif p == 2
+			sin_theta_op = sin_theta_O * hair.cos_2_k_alpha[2+1] + cos_theta_O * hair.sin_2_k_alpha[2+1]
+			cos_theta_op = cos_theta_O * hair.cos_2_k_alpha[2+1] - sin_theta_O * hair.sin_2_k_alpha[2+1]
+		else
+			sin_theta_op = sin_theta_O
+			cos_theta_op = cos_theta_O
+		end
+
+		# Handle out-of-range $\cos \thetao$ from scale adjustment
+		cos_theta_op = abs(cos_theta_op)
+		pdf_val += Mp(cos_theta_I, cos_theta_op, sin_theta_I, sin_theta_op, hair.v[p+1]) * apPdf[p+1] * Np(dphi, p, hair.s, hair.gamma_O, gamma_T)
+	end
+	pdf_val += Mp(cos_theta_I, cos_theta_o, sin_theta_I, sin_theta_O, hair.v[pMax+1]) * apPdf[pMax+1] * (1 / (2 * pi))
+	return wi, f(hair, wo, wi), pdf_val, hair.type
+end
+
+function demux_float(f::Float32)::Pnt2
+    @assert 0.0 <= f < 1.0
+    v = UInt64(floor(f * (1 << 32)))
+    @assert v < 0x100000000
+
+    return Pnt2(compact1by1(v % UInt32) / Float64(1 << 16), compact1by1((v >> 1)% UInt32) / Float64(1 << 16))
+end
+
+function compact1by1(x::UInt32)::UInt32
+    # Apply bitmask and shifts to interleave bits as in the original C++ code
+    x &= 0x55555555
+    x = (x ⊻ (x >> 1)) & 0x33333333
+	x = (x ⊻ (x >> 2)) & 0x0f0f0f0f
+	x = (x ⊻ (x >> 4)) & 0x00ff00ff
+	x = (x ⊻ (x >> 8)) & 0x0000ffff
+	return x
+end
+
 function safe_a_sin(x::Float64)::Float64
 	return asin(clamp(x, -1.0, 1.0))
 end
