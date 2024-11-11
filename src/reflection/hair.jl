@@ -157,24 +157,29 @@ function f(hair::HairBSDF, wo::Vec3, wi::Vec3)::Spectrum
     return fsum
 end
 
-function sample_f(ahir::HairBSDF, wo::Vec3, u2::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
+function sample_f(hair::HairBSDF, wo::Vec3, u2::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
 	# Compute hair coordinate system terms related to _wo_
 	sin_theta_O = wo.x
 	cos_theta_O = safe_sqrt(1 - sin_theta_O^2)
 	phi_O = atan(wo.z, wo.y)
 
 	# Derive four random samples from _u2_
-	u = SVector(demux_float(u2.x), demux_float(u2.y))
+	u1 = demux_float(Float32(u2.x))
+	u2 = demux_float(Float32(u2.y))
+	u00 = u1.x
+	u01 = u1.y
+	u10 = u2.x
+	u11 = u2.y
 
 	# Determine which term $p$ to sample for hair scattering
-	ap_pdf = computer_Ap_pdf(cosThetaO)
+	ap_pdf = compute_Ap_pdf(hair, cos_theta_O)
 	p = -1
 	for p_tmp in 0:(pMax_hair-1)
-		if u[0+1][0+1] < ap_pdf
+		if u00 < ap_pdf[p_tmp+1]
 			p = p_tmp
 			break
 		end
-		u[0+1][0+1] -= ap_pdf[p_tmp+1]
+		u00 -= ap_pdf[p_tmp+1]
 	end
 
 	# Rotate $\sin \thetao$ and $\cos \thetao$ to account for hair scale tilt
@@ -193,10 +198,10 @@ function sample_f(ahir::HairBSDF, wo::Vec3, u2::Pnt2, type::UInt8)::Tuple{Vec3, 
 	end
 
 	# Sample $M_p$ to compute $\thetai$
-	u[1+1][0+1] = max(u[1+1][0+1], 1e-5)
-	cos_theta = 1 + v[p+1] * log(u[1+1][0+1] + (1 - u[1+1][0+1]) * exp(-2 / v[p+1]))
+	u10 = max(u10, 1e-5)
+	cos_theta = 1 + hair.v[p+1] * log(u10 + (1 - u10) * exp(-2 / hair.v[p+1]))
 	sin_theta = safe_sqrt(1 - cos_theta^2)
-	cos_phi = cos(2 * pi * u[1+1][1+1])
+	cos_phi = cos(2 * pi * u11)
 	sin_theta_I = -cos_theta * sin_theta_op + sin_theta * cos_phi * cos_theta_op
 	cos_theta_I = safe_sqrt(1 - sin_theta_I^2)
 	
@@ -208,7 +213,7 @@ function sample_f(ahir::HairBSDF, wo::Vec3, u2::Pnt2, type::UInt8)::Tuple{Vec3, 
 	if (p < pMax_hair)
 		dphi = phi(p, hair.gamma_O, gamma_T) + sample_trimmed_logistic(u[0+1][1+1], s, -pi, Float64(pi))
 	else
-		dphi = 2 * pi * u[0+1][1+1]
+		dphi = 2 * pi * u01
 	end
 
 	# Compute _wi_ from sampled hair scattering angles
@@ -241,6 +246,33 @@ function sample_f(ahir::HairBSDF, wo::Vec3, u2::Pnt2, type::UInt8)::Tuple{Vec3, 
 	end
 	pdf_val += Mp(cos_theta_I, cos_theta_o, sin_theta_I, sin_theta_O, hair.v[pMax+1]) * apPdf[pMax+1] * (1 / (2 * pi))
 	return wi, f(hair, wo, wi), pdf_val, hair.type
+end
+
+function compute_Ap_pdf(hair:: HairBSDF, cos_theta_O::Float64)::SVector{4, Float64}
+	# Compute array of $A_p$ values for _cosThetaO_
+    sin_theta_O = safe_sqrt(1.0 - cos_theta_O^2)
+
+    # Compute $\cos \thetat$ for refracted ray
+    sin_theta_T = sin_theta_O / hair.eta
+    cos_theta_T = safe_sqrt(1 - sin_theta_T^2)
+
+    # Compute $\gammat$ for refracted ray
+    etap = sqrt(hair.eta^2 - sin_theta_O^2) / cos_theta_O
+    sin_gamma_T = hair.h / etap
+    cos_gamma_T = safe_sqrt(1 - sin_gamma_T^2)
+
+    # Compute the transmittance _T_ of a single path through the cylinder
+    T = exp.(-hair.sigma_a * (2 * cos_gamma_T / cos_theta_T))
+    ap = Ap(cos_theta_O, hair.eta, hair.h, T)
+
+    # Compute $A_p$ PDF from individual $A_p$ terms
+    sum_y = sum([y_spectrum(x) for x in ap])
+    return SVector(
+		y_spectrum(ap[1]) / sum_y,
+		y_spectrum(ap[2]) / sum_y,
+		y_spectrum(ap[3]) / sum_y,
+		y_spectrum(ap[4]) / sum_y
+	)
 end
 
 function demux_float(f::Float32)::Pnt2

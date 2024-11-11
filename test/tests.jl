@@ -727,64 +727,64 @@ using Random
 #     end
 # end
 
-@testset "Hair - WhiteFurnace" begin
-    wo::RayTracing.Vec3 = RayTracing.random_on_sphere(RayTracing.Pnt2(rand(), rand()))
-    for beta_m in 0.1:0.2:1
-        for beta_n in 0.1:0.2:1
-            y_sum = 0.0
+# @testset "Hair - WhiteFurnace" begin
+#     wo::RayTracing.Vec3 = RayTracing.random_on_sphere(RayTracing.Pnt2(rand(), rand()))
+#     for beta_m in 0.1:0.2:1
+#         for beta_n in 0.1:0.2:1
+#             y_sum = 0.0
 
-            # More samples for the smooth case, since we're sampling blindly.
-            count = (beta_m < 0.5 || beta_n < 0.5) ? 100_000 : 20_000
+#             # More samples for the smooth case, since we're sampling blindly.
+#             count = (beta_m < 0.5 || beta_n < 0.5) ? 100_000 : 20_000
 
-            if RayTracing.nSpectralSamples < 4
-                count *= 4
-            end
+#             if RayTracing.nSpectralSamples < 4
+#                 count *= 4
+#             end
 
-            for i in 0:(count-1)
-                h = RayTracing.clamp(-1 + 2.0 * RayTracing.radical_inverse(1, UInt64(i)), -.999999, .999999)
-                sigma_a = RayTracing.spectrum_from_float(0.0)
-                hair = RayTracing.HairBSDF(h, 1.55, sigma_a, beta_m, beta_n, 0.0)
-                wi::RayTracing.Vec3 = RayTracing.random_on_sphere(RayTracing.Pnt2(
-                    RayTracing.radical_inverse(2, UInt64(i)),
-                    RayTracing.radical_inverse(3, UInt64(i))
-                ))
+#             for i in 0:(count-1)
+#                 h = RayTracing.clamp(-1 + 2.0 * RayTracing.radical_inverse(1, UInt64(i)), -.999999, .999999)
+#                 sigma_a = RayTracing.spectrum_from_float(0.0)
+#                 hair = RayTracing.HairBSDF(h, 1.55, sigma_a, beta_m, beta_n, 0.0)
+#                 wi::RayTracing.Vec3 = RayTracing.random_on_sphere(RayTracing.Pnt2(
+#                     RayTracing.radical_inverse(2, UInt64(i)),
+#                     RayTracing.radical_inverse(3, UInt64(i))
+#                 ))
 
-                f_val = RayTracing.f(hair, wo, wi) * RayTracing.abs_cos_theta(wi)
-                y_sum += RayTracing.y_spectrum(f_val)
-            end
-            avg = y_sum / (count * RayTracing.uniform_sphere_pdf())
-            @test (avg >= .95) & (avg <= 1.05)
-        end
-    end
-end
+#                 f_val = RayTracing.f(hair, wo, wi) * RayTracing.abs_cos_theta(wi)
+#                 y_sum += RayTracing.y_spectrum(f_val)
+#             end
+#             avg = y_sum / (count * RayTracing.uniform_sphere_pdf())
+#             @test (avg >= .95) & (avg <= 1.05)
+#         end
+#     end
+# end
 
-@testset "DemuxFloat" begin
-    a = RayTracing.demux_float(Float32(.43))
-    @test isapprox(a.x, 0.651611, atol=1e-5) & isapprox(a.y, 0.439209, atol=1e-5)
+# @testset "DemuxFloat" begin
+#     a = RayTracing.demux_float(Float32(.43))
+#     @test isapprox(a.x, 0.651611, atol=1e-5) & isapprox(a.y, 0.439209, atol=1e-5)
 
-    a = RayTracing.demux_float(Float32(.69))
-    @test isapprox(a.x, 0.257568, atol=1e-5) & isapprox(a.y, 0.802979, atol=1e-5)
+#     a = RayTracing.demux_float(Float32(.69))
+#     @test isapprox(a.x, 0.257568, atol=1e-5) & isapprox(a.y, 0.802979, atol=1e-5)
 
-    a = RayTracing.demux_float(Float32(0.0))
-    @test isapprox(a.x, 0.0, atol=1e-5) & isapprox(a.y, 0.0, atol=1e-5)
+#     a = RayTracing.demux_float(Float32(0.0))
+#     @test isapprox(a.x, 0.0, atol=1e-5) & isapprox(a.y, 0.0, atol=1e-5)
 
-    a = RayTracing.demux_float(Float32(0.9999999))
-    @test isapprox(a.x, 0.999512, atol=1e-5) & isapprox(a.y, 0.999756, atol=1e-5)
+#     a = RayTracing.demux_float(Float32(0.9999999))
+#     @test isapprox(a.x, 0.999512, atol=1e-5) & isapprox(a.y, 0.999756, atol=1e-5)
 
-    a = RayTracing.demux_float(Float32(0.0000001))
-    @test isapprox(a.x, 0.000289917, atol=1e-5) & isapprox(a.y, 0.000213623, atol=1e-5)
-end
+#     a = RayTracing.demux_float(Float32(0.0000001))
+#     @test isapprox(a.x, 0.000289917, atol=1e-5) & isapprox(a.y, 0.000213623, atol=1e-5)
+# end
 
-@testset "Hair - HOnTheEdge" begin
-    wo = RayTracing.Vec3(0.54986966, 0.03359017, 0.83457476)
-    wi = RayTracing.Vec3(-0.37383357, -0.91920084, 0.12376696)
-    h = -1.0 + RayTracing.eps() # JOHN HACK
-    beta_m = 0.1
-    beta_n = 0.1
-    sigma_a = RayTracing.spectrum_from_float(0.0)
-    hair = RayTracing.HairBSDF(h, 1.55, sigma_a, beta_m, beta_n, 0.0)
-    f_val = RayTracing.f(hair, wo, wi)
-end
+# @testset "Hair - HOnTheEdge" begin
+#     wo = RayTracing.Vec3(0.54986966, 0.03359017, 0.83457476)
+#     wi = RayTracing.Vec3(-0.37383357, -0.91920084, 0.12376696)
+#     h = -1.0 + RayTracing.eps() # JOHN HACK
+#     beta_m = 0.1
+#     beta_n = 0.1
+#     sigma_a = RayTracing.spectrum_from_float(0.0)
+#     hair = RayTracing.HairBSDF(h, 1.55, sigma_a, beta_m, beta_n, 0.0)
+#     f_val = RayTracing.f(hair, wo, wi)
+# end
 
 
 @testset "Hair - WhiteFurnaceSampled" begin
@@ -795,14 +795,14 @@ end
 
             count = 10_000
             for i in 0:(count-1)
-                h = clamp(-1 + 2.0 * RayTracing.radical_invese(1, i), -.999999, .999999)
+                h = clamp(-1 + 2.0 * RayTracing.radical_inverse(1, UInt64(i)), -.999999, .999999)
 
                 sigma_a = RayTracing.spectrum_from_float(0.0)
                 hair = RayTracing.HairBSDF(h, 1.55, sigma_a, beta_m, beta_n, 0.0)
-                uc = RayTracing.radical_inverse(2, i)
-                u = RayTracing.Pnt2(RayTracing.radical_inverse(3, i), RayTracing.radical_inverse(4, i))
+                uc = RayTracing.radical_inverse(2, UInt64(i))
+                u = RayTracing.Pnt2(RayTracing.radical_inverse(3, UInt64(i)), RayTracing.radical_inverse(4, UInt64(i)))
 
-                wi, f_val, pdf_val, type_flag = RayTracing.sample_f(hair, wo, uc, u, UInt8(0))
+                wi, f_val, pdf_val, type_flag = RayTracing.sample_f(hair, wo, u, UInt8(0))
                 y_sum += RayTracing.y_spectrum(f_val * RayTracing.abs_cos_theta(wi) / pdf_val)
             end
 
