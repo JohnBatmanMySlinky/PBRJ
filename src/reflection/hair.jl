@@ -242,9 +242,9 @@ function sample_f(hair::HairBSDF, wo::Vec3, u2::Pnt2, type::UInt8)::Tuple{Vec3, 
 
 		# Handle out-of-range $\cos \thetao$ from scale adjustment
 		cos_theta_op = abs(cos_theta_op)
-		pdf_val += Mp(cos_theta_I, cos_theta_op, sin_theta_I, sin_theta_op, hair.v[p+1]) * apPdf[p+1] * Np(dphi, p, hair.s, hair.gamma_O, gamma_T)
+		pdf_val += Mp(cos_theta_I, cos_theta_op, sin_theta_I, sin_theta_op, hair.v[p+1]) * ap_pdf[p+1] * Np(dphi, p, hair.s, hair.gamma_O, gamma_T)
 	end
-	pdf_val += Mp(cos_theta_I, cos_theta_o, sin_theta_I, sin_theta_O, hair.v[pMax+1]) * apPdf[pMax+1] * (1 / (2 * pi))
+	pdf_val += Mp(cos_theta_I, cos_theta_O, sin_theta_I, sin_theta_O, hair.v[pMax_hair+1]) * ap_pdf[pMax_hair+1] * (1 / (2 * pi))
 	return wi, f(hair, wo, wi), pdf_val, hair.type
 end
 
