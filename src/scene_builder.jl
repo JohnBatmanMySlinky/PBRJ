@@ -14,7 +14,7 @@ scene 12: DISNEY CLOUD GRID! ✅
 scene 13: DISNEY CLOUD ✅
 scene 14: elevator hallway 🟨
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
-scene 100: Furry Bunny from pbrt-v4 ✅
+scene 100: Furry Bunny from pbrt-v4 ✅ (just dont use HairBSDF)
 scene 101: SF3D CUP 🔴 (obj parser sucks)
 """
 
@@ -2797,23 +2797,23 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         curves = parse_curves(
             jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunny-fur-curves.pbrt"),
             fur_shape_core,
-            10
+            0
         )
         for curve in curves
             push!(primitives, Primitive(curve, mat_hair, nothing))
         end
 
-        # bunny_t = Translate(Pnt3(0, -.231, 0)) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
-        # bunny = parse_obj(
-        #     jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunnymesh.obj"),
-        #     bunny_t,
-        #     false,
-        #     false,
-        #     nothing
-        # )
-        # for tri in bunny
-        #     push!(primitives, Primitive(tri, mat_bunny, nothing))
-        # end
+        bunny_t = Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0) * Translate(Pnt3(0, -0.033, 0))
+        bunny = parse_obj(
+            jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunnymesh.obj"),
+            bunny_t,
+            false,
+            false,
+            nothing
+        )
+        for tri in bunny
+            push!(primitives, Primitive(tri, mat_bunny, nothing))
+        end
 
         # ground
         ground_t = Translate(Pnt3(0, 0, -5))

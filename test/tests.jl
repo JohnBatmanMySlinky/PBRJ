@@ -736,6 +736,8 @@ end
             # More samples for the smooth case, since we're sampling blindly.
             count = (beta_m < 0.5 || beta_n < 0.5) ? 100_000 : 20_000
 
+            count *= 2 # for stability
+
             if RayTracing.nSpectralSamples < 4
                 count *= 4
             end
