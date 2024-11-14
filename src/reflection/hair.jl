@@ -284,7 +284,9 @@ function sample_trimmed_logistic(u::Float64, s::Float64, a::Float64, b::Float64)
 end
 
 function demux_float(f::Float32)::Pnt2
-    @assert 0.0 <= f < 1.0
+    # @assert 0.0 <= f < 1.0
+	# JOHN HACK cuz Float32(1.0-eps()) = 1.0f0
+	f = clamp(f, 0.0, 1.0-eps(Float32))
     v = UInt64(floor(f * (1 << 32)))
     @assert v < 0x100000000
 
