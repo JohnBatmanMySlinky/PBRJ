@@ -129,9 +129,9 @@ end
 ################################
 #### Matrices ##################
 ################################
-const Mat4 = SMatrix{4, 4, Float64}
-const Mat3 = SMatrix{3, 3, Float64}
-const Mat2 = SMatrix{2, 2, Float64}
+const Mat4 = SMatrix{4, 4, Float64, 16}
+const Mat3 = SMatrix{3, 3, Float64, 9}
+const Mat2 = SMatrix{2, 2, Float64, 4}
 
 ################################
 #### AABB ######################
