@@ -550,6 +550,30 @@ end
 
 # # Testing no allocations!
 # # This is cool!
+const t1 = RayTracing.Translate(RayTracing.Pnt3(1.0, 2.0, 3.0))
+const t2 = RayTracing.Scale(RayTracing.Vec3(1.0, 2.0, 3.0))
+const t3 = RayTracing.RotateX(45.0)
+const t4 = RayTracing.Perspective(45.0, .01, .0001)
+const t5 = RayTracing.LookAt(
+    RayTracing.Pnt3(0,0,0),
+    RayTracing.Pnt3(5,8,9),
+    RayTracing.Vec3(0,1,0),
+)
+
+
+const p = RayTracing.Pnt3(10, 0.5, 3.0)
+const v = RayTracing.Vec3(10, 0.5, 3.0)
+const n = RayTracing.Nml3(10, 0.5, 3.0)
+const b = RayTracing.Bounds3(
+    RayTracing.Pnt3(10, 0.5, 3.0),
+    RayTracing.Pnt3(0, 0, 0)
+)
+const r = RayTracing.Ray(
+    RayTracing.Pnt3(-1,-1,-1),
+    RayTracing.Vec3(1,1,1),
+    0.0,
+    typemax(Float64)
+)
 @testset "Testing none of these functions produce allocations" begin
     #####################
     ### rand_utils.jl ###
@@ -645,12 +669,35 @@ end
         RayTracing.Vec3(0,1,0),
     )) == 0
 
-    # Transformation application
-    t1 = RayTracing.Translate(RayTracing.Pnt3(1.0, 2.0, 3.0))
-    t2 = RayTracing.Scale(RayTracing.Vec3(1.0, 2.0, 3.0))
-    t3 = RayTracing.RotateX(45.0)
+    @test @ballocated(t1(p)) == 0
+    @test @ballocated(t2(p)) == 0
+    @test @ballocated(t3(p)) == 0
+    @test @ballocated(t4(p)) == 0
+    @test @ballocated(t5(p)) == 0
 
-    p = RayTracing.Pnt3(10, 0.5, 3.0)
+    @test @ballocated(t1(v)) == 0
+    @test @ballocated(t2(v)) == 0
+    @test @ballocated(t3(v)) == 0
+    @test @ballocated(t4(v)) == 0
+    @test @ballocated(t5(v)) == 0
+
+    @test @ballocated(t1(n)) == 0
+    @test @ballocated(t2(n)) == 0
+    @test @ballocated(t3(n)) == 0
+    @test @ballocated(t4(n)) == 0
+    @test @ballocated(t5(n)) == 0
+
+    @test @ballocated(t1(b)) == 0
+    @test @ballocated(t2(b)) == 0
+    @test @ballocated(t3(b)) == 0
+    @test @ballocated(t4(b)) == 0
+    @test @ballocated(t5(b)) == 0
+
+    ##########################
+    ### Intersections.jl #####
+    ##########################
+    @test @ballocated(RayTracing.intersect_p(b, r)) == 0
+    @test @ballocated(RayTracing.intersect_p(b, r, 1.0 ./ r.direction, RayTracing.is_dir_negative(r.direction))) == 0
 end
 
 # function get_random_triangle(v_in::Vector{Float64})::Tuple{Bool, RayTracing.Maybe{RayTracing.Triangle}}
