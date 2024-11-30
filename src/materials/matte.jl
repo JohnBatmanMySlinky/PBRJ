@@ -20,7 +20,7 @@ function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     # TODO implement black body check
     sigma = mean(clamp.(m.sigma(si), 0, 90))
     if sigma == 0.0
-        add!(si.bsdf, LambertianReflection(r))
+        add!(si.bsdf, LambertianReflection(Spectrum(r)))
     else
         add!(si.bsdf, OrenNayarReflection(r, sigma))
     end

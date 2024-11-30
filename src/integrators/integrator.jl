@@ -1,4 +1,9 @@
-function render(i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator}, scene::Scene, ::Tuple{Int64,Int64}, ::String)
+function render(
+    i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator, SimpleIntegrator}, 
+    scene::Scene, 
+    ::Dict{String, Any},
+    ::Tuple{Int64,Int64}  
+)
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
     sample_extent = diagonal(sample_bounds)
     tile_size = 16
@@ -31,7 +36,7 @@ function render(i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator}, scene
                 L = spectrum_from_float(0.0)
 
                 if w > 0
-                    L = li(i.cos_sample, ray, scene, 0, sampler)
+                    L = li(i, ray, scene, 0, sampler)
                 end
 
                 if any(isnan.(L))

@@ -205,3 +205,73 @@ function log_2_int(v::UInt32)::Int64
     # JOHN HACK cant I just do floor(log2(v))+1?
     return 31 - leading_zeros(v)
 end
+
+function bound_cubic_bezier(cp::SVector{4, Pnt3}, u_min::Float64, u_max::Float64)::Bounds3
+    if (u_min == 0.0) & (u_max == 1.0)
+        return bound_cubic_bezier(cp)
+    else
+        cp_seg = cubic_bezier_control_points(cp, u_min, u_max)
+        return bound_cubic_bezier(cp_seg)
+    end
+end
+
+function bound_cubic_bezier(cp::SVector{4, Pnt3})::Bounds3
+    return world_bounds(Bounds3(cp[1], cp[2]), Bounds3(cp[3], cp[4]))
+end
+
+function cubic_bezier_control_points(cp::SVector{4, Pnt3}, u_min::Float64, u_max::Float64)::SVector{4, Pnt3}
+    return SVector(
+        blossom_cubic_bezier(cp, u_min, u_min, u_min),
+        blossom_cubic_bezier(cp, u_min, u_min, u_max),
+        blossom_cubic_bezier(cp, u_min, u_max, u_max),
+        blossom_cubic_bezier(cp, u_max, u_max, u_max)
+    )
+end
+
+function blossom_cubic_bezier(cp::SVector{4, Pnt3}, u0::Float64, u1::Float64, u2::Float64)::Pnt3
+    a = SVector(
+        lerp(u0, cp[0+1], cp[1+1]),
+        lerp(u0, cp[1+1], cp[2+1]),
+        lerp(u0, cp[2+1], cp[3+1])
+    )
+    b = SVector(
+        lerp(u1, a[0+1], a[1+1]),
+        lerp(u1, a[1+1], a[2+1]),
+    )
+    return lerp(u2, b[0+1], b[1+1])
+end
+
+
+function subdivide_cubic_bezier(cp::SVector{4, Pnt3})::SVector{7, Pnt3}
+    return SVector(
+        cp[0+1],
+        (cp[0+1] + cp[1+1]) / 2,
+        (cp[0+1] + 2 * cp[1+1] + cp[2+1]) / 4,
+        (cp[0+1] + 3 * cp[1+1] + 3 * cp[2+1] + cp[3+1]) / 8,
+        (cp[1+1] + 2 * cp[2+1] + cp[3+1]) / 4,
+        (cp[2+1] + cp[3+1]) / 2,
+        cp[3+1]
+    )
+end
+
+function evaluate_cubic_bezier(cp::SVector{3, Pnt3}, u::Float64)::Pnt3
+    return blossom_cubic_bezier(cp, u, u, u)
+end
+
+function evaluate_cubic_bezier_deriv(cp::SVector{4, Pnt3}, u::Float64)::Tuple{Pnt3, Vec3}
+    cp1 = SVector(
+        lerp(u, cp[0+1], cp[1+1]), 
+        lerp(u, cp[1+1], cp[2+1]),
+        lerp(u, cp[2+1], cp[3+1])
+    )
+    cp2 = SVector(
+        lerp(u, cp1[0+1], cp1[1+1]), 
+        lerp(u, cp1[1+1], cp1[2+1])
+    )
+    if length_squared(Vec3(cp2[1+1] - cp2[0+1])) > 0
+        deriv = 3.0 * (cp2[1+1] - cp2[0+1])
+    else
+        deriv = cp[3+1] - cp[0+1]
+    end
+    return lerp(u, cp2[0+1], cp2[1+1]), Vec3(deriv)
+end

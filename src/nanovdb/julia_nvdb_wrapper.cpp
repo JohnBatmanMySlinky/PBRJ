@@ -171,7 +171,7 @@ class NanoVDBWrapper {
                 while (true) {
                     i += 1;
                     if (i > CAP){
-                        std::cout << "   oopsie" << std::endl;
+                        // std::cout << "   oopsie" << std::endl;
                         break;
                     }
                     t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;
@@ -233,7 +233,7 @@ class NanoVDBWrapper {
                 while (true) {
                     i += 1;
                     if (i > CAP){
-                        std::cout << "   oopsie" << std::endl;
+                        // std::cout << "   oopsie" << std::endl;
                         break;
                     }
                     t -= std::log(1.0 - dis(gen)) * inv_max_density / sigma_t;

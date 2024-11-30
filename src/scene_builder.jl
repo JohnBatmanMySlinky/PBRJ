@@ -7,13 +7,15 @@ scene 5: soft bodies ✅
 scene 6: goursat ✅
 scene 7: julia logo ✅
 scene 8: an anemic leafless procedural tree ✅
-scene 9: a broken ass orb 🔴
+scene 9: a broken ass orb 🔴 (obj parser sucks)
 scene 10: a cloud ✅
 scene 11: infinite light show off & material testing ✅
 scene 12: DISNEY CLOUD GRID! ✅
 scene 13: DISNEY CLOUD ✅
 scene 14: elevator hallway 🟨
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
+scene 100: Furry Bunny from pbrt-v4 ✅ (just dont use HairBSDF)
+scene 101: SF3D CUP 🔴 (obj parser sucks)
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -52,12 +54,12 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         mat_concrete = Substrate(
-            ImageTexture("../ref/Substance_Graph_BaseColor.jpg"), # kd
+            ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_BaseColor.jpg")), # kd
             ConstantTexture(Pnt3(.15, .15, .15)), # ks
             ConstantTexture(Pnt3(.003, .003, .003)), # u
             ConstantTexture(Pnt3(.003, .003, .003)), # v
             true, # remap
-            ImageTexture("../ref/Substance_Graph_Height.jpg"), # kd
+            ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_Height.jpg")), # kd
         )
 
         ###################################
@@ -1776,9 +1778,9 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         ###############
         ### a thing ###
-        ###############
+        ###############       
 
-        
+
         s = Sphere(ShapeCore(Translate(Pnt3(0, 0.025, 0)), Inv(Translate(Pnt3(0, 0.025, 0)))), .075)
         push!(primitives, Primitive(s, mat_blue, nothing))
 
@@ -1807,7 +1809,7 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             world_bounds(bvh), 
             l_2_w, 
             Spectrum(3.0, 3.0, 3.0), 
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
         )
         push!(lights, light)
 
@@ -1950,8 +1952,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
         smoke_mi = MediumInterface(
             NanoVDBMedium(
+                spectrum_from_float(1.0),
                 spectrum_from_float(10.0),
-                spectrum_from_float(90.0),
                 0.877,
                 4.0,
                 jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
@@ -1959,6 +1961,25 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+
+        # The disk
+        disk_t = Translate(Pnt3(0, -1000, 0)) * Scale(2000.0, 2000.0, 2000.0) * Rotate(-90.0, Vec3(1, 0, 0))
+        disk = Disk(
+            disk_t, 
+            0.0,
+            1.0, 
+            0.0,
+            360.0,
+            false,
+            false
+        )
+        mat_disk = Matte(
+            ConstantTexture(spectrum_from_float(0.3, 0.3, 0.3)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        push!(primitives, Primitive(disk, mat_disk, nothing))
+
 
         # instantiate accelerator
         print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -1970,31 +1991,22 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         light = UniformInfiniteLight(
             world_bounds(bvh), 
             l_2_w, 
-            Spectrum(0.36, 0.84, 2.76), 
+            # Spectrum(0.03, 0.07, 0.23), 
+            Spectrum(2.3, 2.7, 2.3), 
         )
         push!(lights, light)
 
+        # Distnat Light
         wb = world_bounds(bvh)
         world_center, world_radius = bounding_sphere(wb)
         light = DistantLight(
-            Spectrum(2.6, 2.5, 2.3),
+            Spectrum(4.6, 4.5, 4.3),
             Vec3(-0.5826, -0.7660, -0.2717),
             world_center,
             world_radius,
             l_2_w
         )
         push!(lights, light)
-
-        # instantiate the infinite light
-        # l_2_w = Translate(Pnt3(0,0,0))
-        # light = InfiniteLight(
-        #     world_bounds(bvh), 
-        #     l_2_w, 
-        #     Spectrum(3.0, 3.0, 3.0), 
-        #     "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
-        # )
-        # push!(lights, light)
-
 
         # Instantiate a Filter
         filter = BoxFilter(Pnt2(.5, .5))
@@ -2741,6 +2753,252 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         print("There are " * num2str(length(lights)) * " lights in the scene\n")
         scene = Scene(lights, bvh)
 
+        # Instantiate an Integrator
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+        return I, scene
+    elseif parsed_args["scene-number"] == 100
+        primitives = Primitive[]
+        lights = Light[]
+        mat_gray = Matte(            
+            ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        mat_curves = Matte(            
+            ConstantTexture(spectrum_from_float(0.15, 0.21, 1.0)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        mat_bunny = Matte(            
+            ConstantTexture(spectrum_from_float(0.35, 0.31, 0.3)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        mat_hair = HairMaterial(
+            nothing,       # sigma_a
+            ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),         # color
+            nothing,     # eumelanin
+            nothing,   # pheomelanin
+            nothing,           # eta
+            ConstantTextureFloat(0.5),        # beta_m
+            ConstantTextureFloat(0.5),        # beta_n
+            nothing          # alpha
+        )
+
+        # curves_t = Inv(Translate(Pnt3(0,2,5))) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
+        curves_t = Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
+        fur_shape_core = ShapeCore(
+            curves_t,
+            Inv(curves_t),
+            false,
+            false
+        )
+
+        curves = parse_curves(
+            jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunny-fur-curves.pbrt"),
+            fur_shape_core,
+            0
+        )
+        for curve in curves
+            push!(primitives, Primitive(curve, mat_hair, nothing))
+        end
+
+        bunny_t = Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0) * Translate(Pnt3(0, -0.033, 0))
+        bunny = parse_obj(
+            jmfp("/home/jmyslinski/random_stuff/pbrt-v4-scenes/bunny-fur/geometry/bunnymesh.obj"),
+            bunny_t,
+            false,
+            false,
+            nothing
+        )
+        for tri in bunny
+            push!(primitives, Primitive(tri, mat_bunny, nothing))
+        end
+
+        # ground
+        ground_t = Translate(Pnt3(0, 0, -5))
+        ground = BilinearPatchGenerator(
+            ShapeCore(ground_t, Inv(ground_t), false, false),
+            1, 4,
+            Int64[0, 1, 2, 3],
+            Pnt3[Pnt3(-10, 0, -10), Pnt3(10, 0, -10), Pnt3(10, 0, 10), Pnt3(-10, 0, 10)],
+            nothing, nothing, nothing
+        )
+        for each in ground
+            push!(primitives, Primitive(each, mat_gray, nothing))
+        end
+
+        #backstop
+        blp_t = Translate(Pnt3(0, 1, 0))
+        blp = BilinearPatchGenerator(
+            ShapeCore(blp_t, Inv(blp_t), false, false),
+            1, 4, 
+            Int64[0, 1, 2, 3],
+            Pnt3[Pnt3(-10, 0, -2), Pnt3(10, 0, -2), Pnt3(-10, 10, -2), Pnt3(10, 10, -2)],
+            nothing, nothing, nothing
+        )
+        for each in blp
+            push!(primitives, Primitive(each, mat_gray, nothing))
+        end
+        cyl_t = Translate(Pnt3(0, 1, -1)) * Rotate(-90.0, Vec3(1, 0, 0)) * Rotate(90.0, Vec3(0, 1, 0))
+        cyl = Cylindar(
+            cyl_t,
+            1.0,
+            -10.0,
+            10.0,
+            90.0,
+            false,
+            false
+        )
+        push!(primitives, Primitive(cyl, mat_gray, nothing))
+
+            
+        # instantiate accelerator
+        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives)
+        print("Done building BVH\n")
+
+        # instantiate the infinite light
+        l_2_w = Translate(Pnt3(0,0,0))
+        light = InfiniteLight(
+            world_bounds(bvh), 
+            l_2_w, 
+            Spectrum(3.0, 3.0, 3.0), 
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
+        )
+        push!(lights, light)
+
+        # Instantiate a Filter
+        filter = BoxFilter(Pnt2(.5, .5))
+
+        # Instantiate a Film
+        film = Film(
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+            Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
+            filter,
+            1.0,
+            1.0,
+            parsed_args["file-name"]
+        )
+
+        # Instantiate a Camera
+        look_from = Pnt3(0, 2, 5)
+        look_at = Pnt3(.02, .47, 0)
+        up = Vec3(0, 1, 0)
+        screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 20.0, film)
+
+        # Instantiate a Sampler
+        # S = ZSobolSampler(
+        #     parsed_args["samples-per-pixel"], 
+        #     Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), 
+        #     Int8(2)
+        # )
+        S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+
+        # Instantiate Scene
+        print("There are " * num2str(length(lights)) * " lights in the scene\n")
+        scene = Scene(lights, bvh)
+
+        # Instantiate an Integrator
+        # I = SimpleIntegrator(C, S)
+        I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+        return I, scene
+    elseif parsed_args["scene-number"] == 101
+                primitives = Primitive[]
+        lights = Light[]
+
+        # materials
+        mat_gray = Matte(
+            ConstantTexture(spectrum_from_float(0.6, 0.6, 0.6)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+        mat_blue = Matte(
+            ConstantTexture(spectrum_from_float(0.2, 1.0, 0.2)),
+            ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+            nothing
+        )
+
+        ###############
+        ### a thing ###
+        ###############       
+
+        cup_translate = Translate(Pnt3(0, 0, 0))
+        cup =  parse_obj(
+            "../ref/cup.obj",
+            cup_translate,
+            false,
+            false,
+            nothing
+        )
+
+        for tri in cup
+            push!(primitives, Primitive(tri, mat_blue, nothing))
+        end
+
+        floor_transform = Translate(Pnt3(0,0,0))
+        floor = Rectangle(
+            Pnt2(-10, -10),
+            Pnt2(10, 10),
+            0.0,
+            2, 
+            ShapeCore(floor_transform, Inv(floor_transform), false, false),
+            false,
+            nothing
+        )
+        # for tri in floor
+        #     push!(primitives, Primitive(tri, mat_gray, nothing))
+        # end
+
+        # instantiate accelerator
+        print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+        @time bvh = BVH(primitives)
+        print("Done building BVH\n")
+
+        # instantiate the infinite light
+        l_2_w = Translate(Pnt3(0,0,0))
+        light = InfiniteLight(
+            world_bounds(bvh), 
+            l_2_w, 
+            Spectrum(3.0, 3.0, 3.0), 
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
+        )
+        push!(lights, light)
+
+        # Instantiate a Filter
+        filter = BoxFilter(Pnt2(.5, .5))
+
+        # Instantiate a Film
+        film = Film(
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+            Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
+            filter,
+            1.0,
+            1.0,
+            parsed_args["file-name"]
+        )
+
+        # Instantiate a Camera
+        look_from = Pnt3(4, 4, 4)
+        look_at = Pnt3(0, 0.0, 0)
+        up = Vec3(0, 1, 0)
+        screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
+        C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
+
+        # Instantiate a Sampler
+        S = ZSobolSampler(
+            parsed_args["samples-per-pixel"], 
+            Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), 
+            Int8(2)
+        )
+        print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+        
+        # Instantiate Scene
+        print("There are " * num2str(length(lights)) * " lights in the scene\n")
+        scene = Scene(lights, bvh)
+        
         # Instantiate an Integrator
         I = BDPTIntegrator(C, S, parsed_args["max-depth"])
         return I, scene

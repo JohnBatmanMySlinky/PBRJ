@@ -129,9 +129,9 @@ end
 ################################
 #### Matrices ##################
 ################################
-const Mat4 = SMatrix{4, 4, Float64}
-const Mat3 = SMatrix{3, 3, Float64}
-const Mat2 = SMatrix{2, 2, Float64}
+const Mat4 = SMatrix{4, 4, Float64, 16}
+const Mat3 = SMatrix{3, 3, Float64, 9}
+const Mat2 = SMatrix{2, 2, Float64, 4}
 
 ################################
 #### AABB ######################
@@ -236,6 +236,20 @@ function bounding_sphere(b::Bounds3)::Tuple{Pnt3, Float64}
     center = (b.pMax + b.pMin) / 2.0
     radius = inside(center, b) ? norm(center - b.pMax) : 0.0
     return center, radius
+end
+
+function expand(b::Bounds3, delta::Float64)::Bounds3
+    return Bounds3(
+        b.pMin - Pnt3(delta, delta, delta),
+        b.pMax + Pnt3(delta, delta, delta),
+    )
+end
+
+function overlaps(b1::Bounds3, b2::Bounds3)::Bool
+    x = (b1.pMax.x >= b2.pMin.x) && (b1.pMin.x <= b2.pMax.x)
+    y = (b1.pMax.y >= b2.pMin.y) && (b1.pMin.y <= b2.pMax.y)
+    z = (b1.pMax.z >= b2.pMin.z) && (b1.pMin.z <= b2.pMax.z)
+    return x && y && z
 end
 
 # should only be using the intersect_p below!!!

@@ -22,7 +22,7 @@ function jmfp(fp::String)
 		fp = replace(fp, "Documents" => "random_stuff")
 	elseif fp_linux && sys_apple
 		fp = replace(fp, "home" => "Users")
-		fp = replace(fp, "jmyslinski", "johnmyslinski")
+		fp = replace(fp, "jmyslinski" => "johnmyslinski")
 		fp = replace(fp, "random_stuff" => "Documents")
 	end
 	return fp

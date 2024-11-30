@@ -15,87 +15,81 @@ end
 ########################################
 
 function Translate(v::Union{Vec3,Pnt3})::Transformation
-    m = Mat4([
-        1 0 0 v[1]
-        0 1 0 v[2]
-        0 0 1 v[3]
-        0 0 0 1
-    ])
-    m_inv = Mat4([
-        1 0 0 -v[1]
-        0 1 0 -v[2]
-        0 0 1 -v[3]
-        0 0 0 1
-    ])
-    return Transformation(m, m_inv)
+    m = Mat4(
+        1,   0,   0,   0,
+        0,   1,   0,   0,
+        0,   0,   1,   0,
+        v.x, v.y, v.z, 1
+    )
+    return Transformation(m, inv(m))
 end
 
 function Scale(x::Float64, y::Float64, z::Float64)::Transformation
-    m = Mat4([
-        x    0    0    0
-        0    y    0    0
-        0    0    z    0
-        0    0    0    1
-    ])
+    m = Mat4(
+        x,    0,    0,    0,
+        0,    y,    0,    0,
+        0,    0,    z,    0,
+        0,    0,    0,    1,
+    )
 
-    m_inv = Mat4([
-        1.0/x  0      0      0
-        0      1.0/y  0      0
-        0      0      1.0/z  0
-        0      0      0      1
-    ])
+    m_inv = Mat4(
+        1.0/x,  0,      0,      0,
+        0,      1.0/y,  0,      0,
+        0,      0,      1.0/z,  0,
+        0,      0,      0,      1,
+    )
     return Transformation(m, m_inv)
 end
 function Scale(v::Vec3)::Transformation
-    m = Mat4([
-        v.x  0    0    0
-        0    v.y  0    0
-        0    0    v.z  0
-        0    0    0    1
-    ])
+    m = Mat4(
+        v.x,    0,      0,      0,
+        0,      v.y,    0,      0,
+        0,      0,      v.z,    0,
+        0,      0,      0,      1,
+    )
 
-    m_inv = Mat4([
-        1.0/v.x  0        0        0
-        0        1.0/v.y  0        0
-        0        0        1.0/v.z  0
-        0        0        0        1
-    ])
+    m_inv = Mat4(
+        1.0/v.x,  0,        0,        0,
+        0,        1.0/v.y,  0,        0,
+        0,        0,        1.0/v.z,  0,
+        0,        0,        0,        1,
+    )
     return Transformation(m, m_inv)
 end
 
 function RotateX(theta::Float64)::Transformation
     sin_theta = sin(deg2rad(theta))
     cos_theta = cos(deg2rad(theta))
-    m = Mat4([
-        1 0         0          0 
-        0 cos_theta -sin_theta 0
-        0 sin_theta cos_theta 0
-        0 0         0          1
-    ])
+    m = Mat4(
+        1, 0, 0, 0,
+        0, cos_theta, sin_theta, 0,
+        0, -sin_theta, cos_theta, 0,
+        0, 0, 0, 1
+    )
     return Transformation(m, inv(m))
 end
 
 function RotateY(theta::Float64)::Transformation
     sin_theta = sin(deg2rad(theta))
     cos_theta = cos(deg2rad(theta))
-    m = Mat4([
-        cos_theta  0 sin_theta 0
-        0          1 0         0
-        -sin_theta 0 cos_theta 0
-        0          0 0         1
-    ])
+    m = Mat4(
+        cos_theta, 0, -sin_theta, 0,
+        0, 1, 0, 0,
+        sin_theta, 0, cos_theta, 0,
+        0, 0, 0, 1
+    )
     return Transformation(m, inv(m))
 end
 
 function RotateZ(theta::Float64)::Transformation
     sin_theta = sin(deg2rad(theta))
     cos_theta = cos(deg2rad(theta))
-    m = Mat4([
-        cos_theta -sin_theta 0 0
-        sin_theta cos_theta  0 0
-        0         0          1 0
-        0         0          0 1
-    ])
+    m = Mat4(
+        cos_theta, sin_theta, 0, 0,
+        -sin_theta, cos_theta, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    )
     return Transformation(m, inv(m))
 end
 
@@ -105,27 +99,28 @@ function Rotate(theta::Float64, axis::Vec3)::Transformation
     cos_theta = cos(deg2rad(theta))
 
     # this way matches in debug
-    m = Mat4([
-        a.x * a.x + (1 - a.x * a.x) * cos_theta
-        a.x * a.y * (1 - cos_theta) + a.z * sin_theta
-        a.x * a.z * (1 - cos_theta) - a.y * sin_theta
-        0.0
+    m = Mat4(
+        a.x * a.x + (1 - a.x * a.x) * cos_theta,
+        a.x * a.y * (1 - cos_theta) - a.z * sin_theta,
+        a.x * a.z * (1 - cos_theta) + a.y * sin_theta,
+        0,
 
-        a.x * a.y * (1 - cos_theta) - a.z * sin_theta        
-        a.y * a.y + (1 - a.y * a.y) * cos_theta
-        a.y * a.z * (1 - cos_theta) + a.x * sin_theta
-        0.0
 
-        a.x * a.z * (1 - cos_theta) + a.y * sin_theta
-        a.y * a.z * (1 - cos_theta) - a.x * sin_theta       
-        a.z * a.z + (1 - a.z * a.z) * cos_theta
-        0.0
+        a.x * a.y * (1 - cos_theta) + a.z * sin_theta,
+        a.y * a.y + (1 - a.y * a.y) * cos_theta,
+        a.y * a.z * (1 - cos_theta) - a.x * sin_theta,       
 
-        0.0
-        0.0
-        0.0
-        1.0
-    ])
+
+        a.x * a.z * (1 - cos_theta) - a.y * sin_theta,
+        a.y * a.z * (1 - cos_theta) + a.x * sin_theta,
+        a.z * a.z + (1 - a.z * a.z) * cos_theta,
+        0.0,
+
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+    )
 
     # backwards?
     # m = Mat4([
@@ -158,12 +153,12 @@ end
 function Perspective(fov::Float64, near::Float64, far::Float64)::Transformation
     a = far / (far - near)
     b = -far * near / (far - near)
-    p = Mat4([
-        1 0 0 0
-        0 1 0 0
-        0 0 a b
-        0 0 1 0
-    ])
+    p = Mat4(
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, a, 1,
+        0, 0, b, 0
+    )
     inv_tan = 1 / tan(deg2rad(fov) / 2)
     return Scale(Vec3(inv_tan, inv_tan, 1)) * Transformation(p, inv(p))
 end
@@ -173,12 +168,12 @@ function LookAt(pos::Pnt3, look::Pnt3, up::Vec3)::Transformation
     left = normalize(cross(normalize(up), dir))
     @assert length_pbrt(left) != 0.0 "Uh oh your viewing angle and up vector are the same!"
     new_up = cross(dir, left)
-    m = Mat4([
-        left.x new_up.x dir.x pos.x
-        left.y new_up.y dir.y pos.y
-        left.z new_up.z dir.z pos.z
-        0      0        0     1
-    ])
+    m = Mat4(
+        left.x, left.y, left.z, 0,
+        new_up.x, new_up.y, new_up.z, 0,
+        dir.x, dir.y, dir.z, 0,
+        pos.x, pos.y, pos.z, 1
+    )
     return Transformation(m, inv(m))
 end
 
@@ -205,7 +200,12 @@ end
 # apply transformations to a POINT
 function (t::Transformation)(p::Pnt3)::Pnt3
     tmp = Pnt4(p...,1.0)
-    ph = Mat4([tmp tmp tmp tmp])
+    ph = Mat4(
+        tmp...,
+        tmp...,
+        tmp...,
+        tmp...,
+    )
     pt = t.m * ph
     pr = Pnt3(pt[SA[1,2,3]])
     if pt[4] == 1.0

@@ -50,7 +50,7 @@ function(f::FresnelDielectric)(cos_theta_i)
     return fresnel_dielectric(cos_theta_i, f.eta_i, f.eta_t)
 end
 
-function fresnel_dielectric(cos_theta_i::Float64, eta_i::Float64, eta_t::Float64)
+function fresnel_dielectric(cos_theta_i::Float64, eta_i::Float64, eta_t::Float64)::Float64
     cos_theta_i = clamp(cos_theta_i, -1, 1)
     if cos_theta_i <= 0
         eta_i, eta_t = eta_t, eta_i

@@ -1,0 +1,130 @@
+uniform
+	[0.12725779244523247, 0.12250715312536237, 0.12668112113980937]
+power
+	[0.09748723432189484, 0.07717019104649193, 0.1103255725826627]
+centroid-distance
+	[0.11845241752433847, 0.11339589164555655, 0.11775609848550925]
+voxel-125
+	[0.10558082821273519, 0.09888808997737973, 0.10502837979324885]
+voxel-512
+	[0.0985145660874043, 0.0926199133929744, 0.1036872999644393]
+voxel-1000
+	[0.12002524126100374, 0.11638050487764798, 0.12139010721116543]
+voxel-2197
+	[0.13581014949994938, 0.12806938771476442, 0.1333655714272929]
+	
+	
+There are 91 objects in the scene, building BVH
+  0.054917 seconds (89.88 k allocations: 6.292 MiB, 98.95% compilation time)
+Done building BVH
+Using 9 samples per pixel
+There are 42 lights in the scene
+Rendering 484 tiles
+Progress:   0%|                                                                                                                                                |  ETA: N/AUtilizing 4 threads
+
+Progress: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:02:11
+148.234820 seconds (3.04 G allocations: 178.912 GiB, 27.10% gc time, 31.71% compilation time)
+
+############################################################################################################################################################################################################################
+The latest version of Julia in the `release` channel is 1.11.0+0.x64.linux.gnu. You currently have `1.10.4+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.11.0+0.x64.linux.gnu and update the `release` channel to that version.
+
+There are 91 objects in the scene, building BVH
+  0.052939 seconds (89.88 k allocations: 6.292 MiB, 98.66% compilation time)
+Done building BVH
+Using 9 samples per pixel
+There are 42 lights in the scene
+Rendering 484 tiles
+Progress:   0%|                                                                                                                                                |  ETA: N/AUtilizing 4 threads
+
+Progress: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:02:27
+164.560294 seconds (3.52 G allocations: 205.110 GiB, 27.97% gc time, 29.01% compilation time)
+############################################################################################################################################################################################################################
+The latest version of Julia in the `release` channel is 1.11.0+0.x64.linux.gnu. You currently have `1.10.4+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.11.0+0.x64.linux.gnu and update the `release` channel to that version.
+
+There are 91 objects in the scene, building BVH
+  0.055531 seconds (89.88 k allocations: 6.292 MiB, 98.90% compilation time)
+Done building BVH
+Using 9 samples per pixel
+There are 42 lights in the scene
+Rendering 484 tiles
+Progress:   0%|                                                                                                                                                |  ETA: N/AUtilizing 4 threads
+
+Progress: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:02:09
+146.301702 seconds (2.91 G allocations: 172.597 GiB, 26.33% gc time, 32.87% compilation time)
+############################################################################################################################################################################################################################
+The latest version of Julia in the `release` channel is 1.11.0+0.x64.linux.gnu. You currently have `1.10.4+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.11.0+0.x64.linux.gnu and update the `release` channel to that version.
+
+There are 91 objects in the scene, building BVH
+  0.053921 seconds (89.88 k allocations: 6.296 MiB, 98.78% compilation time)
+Done building BVH
+Using 9 samples per pixel
+There are 42 lights in the scene
+Rendering 484 tiles
+Progress:   0%|                                                                                                                                                |  ETA: N/AUtilizing 4 threads
+
+Progress: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:02:15
+152.896124 seconds (3.04 G allocations: 179.140 GiB, 26.51% gc time, 30.64% compilation time)
+############################################################################################################################################################################################################################
+The latest version of Julia in the `release` channel is 1.11.0+0.x64.linux.gnu. You currently have `1.10.4+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.11.0+0.x64.linux.gnu and update the `release` channel to that version.
+
+There are 91 objects in the scene, building BVH
+  0.052257 seconds (89.88 k allocations: 6.292 MiB, 98.92% compilation time)
+Done building BVH
+Using 9 samples per pixel
+There are 42 lights in the scene
+Rendering 484 tiles
+Progress:   0%|                                                                                                                                                |  ETA: N/AUtilizing 4 threads
+
+Progress: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:02:10
+147.110936 seconds (3.04 G allocations: 179.188 GiB, 27.09% gc time, 32.18% compilation time)
+############################################################################################################################################################################################################################
+The latest version of Julia in the `release` channel is 1.11.0+0.x64.linux.gnu. You currently have `1.10.4+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.11.0+0.x64.linux.gnu and update the `release` channel to that version.
+
+There are 91 objects in the scene, building BVH
+  0.056134 seconds (89.88 k allocations: 6.292 MiB, 98.90% compilation time)
+Done building BVH
+Using 9 samples per pixel
+There are 42 lights in the scene
+Rendering 484 tiles
+Progress:   0%|                                                                                                                                                |  ETA: N/AUtilizing 4 threads
+
+Progress: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:02:14
+152.043801 seconds (3.04 G allocations: 179.188 GiB, 26.98% gc time, 31.40% compilation time)
+############################################################################################################################################################################################################################
+The latest version of Julia in the `release` channel is 1.11.0+0.x64.linux.gnu. You currently have `1.10.4+0.x64.linux.gnu` installed. Run:
+
+  juliaup update
+
+in your terminal shell to install Julia 1.11.0+0.x64.linux.gnu and update the `release` channel to that version.
+
+There are 91 objects in the scene, building BVH
+  0.057503 seconds (89.88 k allocations: 6.292 MiB, 98.98% compilation time)
+Done building BVH
+Using 9 samples per pixel
+There are 42 lights in the scene
+Rendering 484 tiles
+Progress:   0%|                                                                                                                                                |  ETA: N/AUtilizing 4 threads
+
+Progress:  99%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████▍|  ETA: 0:00:01
+Progress: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| Time: 0:02:13
+151.022617 seconds (3.04 G allocations: 179.207 GiB, 26.98% gc time, 31.67% compilation time)

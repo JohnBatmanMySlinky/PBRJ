@@ -26,7 +26,7 @@ function L(dal::DiffuseAreaLight, n::Nml3, w::Vec3)::Spectrum
     return (dal.two_sided || dot(n, w) > 0) ? dal.Lemit : spectrum_from_float(0.0, 0.0, 0.0)
 end
 
-function Power(li::DiffuseAreaLight)::Spectrum
+function power(li::DiffuseAreaLight)::Spectrum
     return li.Lemit * li.area * pi
 end
 
