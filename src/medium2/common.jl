@@ -1,0 +1,60 @@
+struct MediumInterface
+    inside::Maybe{AbstractMedium}
+    outside::Maybe{AbstractMedium}
+end
+
+function MediumInterface(m::Maybe{AbstractMedium})
+    return MediumInterface(m, m)
+end
+
+function get_medium(inter::Interaction, w::Vec3)::Maybe{AbstractMedium}
+    @info "\t\t Get Medium: $(w), $(inter.n)"
+    return dot(w, inter.n) > 0.0 ? inter.mi.outside : inter.mi.inside
+end
+
+function get_medium(inter::Interaction)::Maybe{AbstractMedium}
+    @assert inter.mi.inside == inter.mi.outside
+    return inter.mi.inside
+end
+
+function is_transition_medium(mi::MediumInterface)::Bool
+    return mi.inside != mi.outside
+end
+
+struct MediumProperties
+    sigma_a::Spectrum
+    sigma_s::Spectrum
+    phase::AbstractPhaseFunction
+    Le::Spectrum
+end
+
+struct RayMajorantSegment
+    t_min::Float64
+    t_max::Float64
+    sigma_maj::Spectrum
+end
+
+mutable struct HomogeneousMajorantIterator <: AbstractMajorantIterator
+    seg::RayMajorantSegment
+    called::Bool
+
+    function HomogeneousMajorantIterator(t_min::Float64, t_max::Float64, sigma_as::Spectrum)
+        return new(
+            RayMajorantSegment(t_min, t_max, sigma_as),
+            false
+        )
+    end
+end
+
+function next(hmi::HomogeneousMajorantIterator)::Maybe{RayMajorantSegment}
+    if hmi.called
+        return nothing
+    else
+        hmi.called = true
+        return hmi.seg
+    end
+end
+
+mutable struct DDAMajorantIterator <: AbstractMajorantIterator
+end
+

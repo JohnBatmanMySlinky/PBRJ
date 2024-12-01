@@ -303,9 +303,42 @@ function random_walk!(
         end
 
         if !(ray.medium isa Nothing)
-            @info "MEDIUM BEEN HIT"
-            beta_mult, mi  = sample(ray.medium, ray, sampler)
-            beta *= beta_mult
+            u = get_1D!(sampler)
+            t_max = si.core.t
+
+            # stepping inside SampleT_maj
+            # Normalize ray direction and update _tMax_ accordingly
+            ray2 = ray
+            t_max *= length_pbrt(ray.direction)
+            ray2.direction = normalize(ray.direction)
+
+            # Initialize _MajorantIterator_ for ray majorant sampling
+            iter = sample_ray(ray2.medium, ray2, t_max)
+
+            # Generate ray majorant samples until termination
+            T_maj = spectrum_from_float(1.0)
+            done = false
+            while !done
+                # Get next majorant segment from iterator and sample it
+                seg = next(iter)
+                if (seg isa Nothing)
+                    done = true
+                    break
+                end
+
+                # Handle zero-valued majorant for current segment
+                if (is_black(seg.sigma_maj)) 
+                    dt = seg.t_max - seg.t_min
+       
+                    T_maj *= exp(-dt * seg.sigma_maj)
+                    continue
+                end
+
+                # Generate samples along current majorant segment
+                t_min = seg.t_min
+                while true
+                end
+            end
         end
 
         if is_black(beta)

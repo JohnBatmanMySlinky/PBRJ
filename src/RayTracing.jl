@@ -35,6 +35,7 @@ abstract type Randomizer end
 abstract type AbstractMedium end
 abstract type AbstractPhaseFunction end
 abstract type AbstractTextureMapping2D end
+abstract type AbstractMajorantIterator end
 
 # Defining some global constants
 const Radiance = Val{:Radiance}
