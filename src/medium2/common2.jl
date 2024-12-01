@@ -1,12 +1,3 @@
-struct MediumInterface
-    inside::Maybe{AbstractMedium}
-    outside::Maybe{AbstractMedium}
-end
-
-function MediumInterface(m::Maybe{AbstractMedium})
-    return MediumInterface(m, m)
-end
-
 function get_medium(inter::Interaction, w::Vec3)::Maybe{AbstractMedium}
     @info "\t\t Get Medium: $(w), $(inter.n)"
     return dot(w, inter.n) > 0.0 ? inter.mi.outside : inter.mi.inside
