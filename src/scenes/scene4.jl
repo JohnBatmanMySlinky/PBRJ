@@ -1,12 +1,10 @@
 function make_scene4()::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
-    primitives2 = Primitive[]
     lights = Light[]
-    lights2 = Light[]
 
     # MATERIALS
     mat_gray = Matte(
-        ConstantTexture(spectrum_from_float(.75, .75, .75)),
+        ConstantTexture(spectrum_from_float(0.725, 0.71, 0.68)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
@@ -16,29 +14,20 @@ function make_scene4()::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     mat_red = Matte(
-        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-        nothing
-    )
-    mat_blue = Matte(
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
+        ConstantTexture(spectrum_from_float(0.63, 0.065, 0.05)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
     mat_green = Matte(
-        ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
+        ConstantTexture(spectrum_from_float(0.14, 0.45, 0.091)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
-    mat_ball = Substrate(
-        ConstantTexture(spectrum_from_float(0.0, .5, .6)), # kd
-        ConstantTexture(spectrum_from_float(.15, .15, .15)), # ks
-        ConstantTexture(spectrum_from_float(.003, .003, .003)), # u
-        ConstantTexture(spectrum_from_float(.003, .003, .003)), # v
-        true, # remap
-        nothing,
+    mat_blue = Matte(
+        ConstantTexture(spectrum_from_float(0.14, 0.09, 0.68)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        nothing
     )
-    mat_metal = Metal()
 
     # instantiate objects
     identity_shape_core = ShapeCore(
@@ -81,7 +70,7 @@ function make_scene4()::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in backwall
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, mat_blue, nothing))
     end
     leftwall = Rectangle(
         Pnt2(0, 0), 
@@ -119,7 +108,7 @@ function make_scene4()::Tuple{AbstractIntegrator, Scene}
     )
     for tri in reverse(ceiling_light)
         alight = DiffuseAreaLight(
-            spectrum_from_float(20.0, 20.0, 20.0, Illuminant),
+            spectrum_from_float(17.0, 12.0, 4.0, Illuminant),
             tri,
             false # NOT two sided
         )
@@ -147,29 +136,29 @@ function make_scene4()::Tuple{AbstractIntegrator, Scene}
     # push!(lights, alight)
     # push!(primitives, Primitive(s, mat_white, alight))
 
-    box_1_transform = Translate(Pnt3(265, 0, 295)) * RotateY(25.0)
-    box_1 = Box(
-        Pnt3(0,0,0), 
-        Pnt3(165,  330, 165), 
-        ShapeCore(box_1_transform, Inv(box_1_transform), false, false),
-        nothing
-    )
-    for tri in box_1
-        push!(primitives, Primitive(tri, mat_gray, nothing))
-    end
+    # box_1_transform = Translate(Pnt3(265, 0, 295)) * RotateY(25.0)
+    # box_1 = Box(
+    #     Pnt3(0,0,0), 
+    #     Pnt3(165,  330, 165), 
+    #     ShapeCore(box_1_transform, Inv(box_1_transform), false, false),
+    #     nothing
+    # )
+    # for tri in box_1
+    #     push!(primitives, Primitive(tri, mat_gray, nothing))
+    # end
 
-    box_2_transform = Translate(Pnt3(130, 0, 65)) * RotateY(-18.0)
-    box_2 = Box(
-        Pnt3(0,0,0), 
-        Pnt3(165,  165, 165), 
-        ShapeCore(box_2_transform, Inv(box_2_transform), false, false),
-        nothing
-    )
-    for tri in box_2
-        push!(primitives, Primitive(tri, mat_gray, nothing))
-    end
+    # box_2_transform = Translate(Pnt3(130, 0, 65)) * RotateY(-18.0)
+    # box_2 = Box(
+    #     Pnt3(0,0,0), 
+    #     Pnt3(165,  165, 165), 
+    #     ShapeCore(box_2_transform, Inv(box_2_transform), false, false),
+    #     nothing
+    # )
+    # for tri in box_2
+    #     push!(primitives, Primitive(tri, mat_gray, nothing))
+    # end
 
-    sphere_transform = Translate(Pnt3(130,250,65))
+    sphere_transform = Translate(Pnt3(278, 278, 278))
     sphere = Sphere(
         ShapeCore(
             sphere_transform,
