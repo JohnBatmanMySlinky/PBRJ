@@ -306,6 +306,9 @@ function random_walk!(
         vertex = bounces+1
         prev = bounces-1+1
 
+        scattered = false
+        terminated = false
+
         if !(ray.medium isa Nothing)
             @info "WE HAVE HIT A MEDIUM DUDE\n"
             @info "Ray $(ray.origin) $(ray.direction) $(ray.t) \n"
@@ -439,6 +442,14 @@ function random_walk!(
         if is_black(beta)
             @info "Random walk: exited due to Black"
             break
+        end
+
+        if terminated
+            return bounces
+        end
+
+        if scattered
+            continue
         end
 
         # handle surface interaction for path generation
