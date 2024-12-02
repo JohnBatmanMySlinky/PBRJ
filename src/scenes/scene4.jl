@@ -1,4 +1,4 @@
-function make_scene4()::Tuple{AbstractIntegrator, Scene}
+function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
 
@@ -166,7 +166,7 @@ function make_scene4()::Tuple{AbstractIntegrator, Scene}
             false,
             false
         ),
-        100.0
+        45.0
     )
     smoke_mi = MediumInterface(
         HomogenousMedium(spectrum_from_float(0.001), spectrum_from_float(0.015)),
@@ -178,6 +178,7 @@ function make_scene4()::Tuple{AbstractIntegrator, Scene}
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
+    print("Scene Bounds $(world_bounds(bvh))")
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.1, .1))

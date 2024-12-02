@@ -307,34 +307,41 @@ function random_walk!(
         prev = bounces-1+1
 
         if !(ray.medium isa Nothing)
+            @info "WE HAVE HIT A MEDIUM DUDE\n"
+            @info "Ray $(ray.origin) $(ray.direction) $(ray.t) \n"
             u = get_1D!(sampler)
-            t_max = si.core.t
+            t_max = isect.core.t
+            @info "tMax $t_max"
 
             # stepping inside SampleT_maj
             # Normalize ray direction and update _tMax_ accordingly
-            ray2 = ray
             t_max *= length_pbrt(ray.direction)
-            ray2.direction = normalize(ray.direction)
+            ray.direction = normalize(ray.direction)
+            @info "SampleT_maj: tMax $t_max"
+            @info "SampleT_maj: ray $(ray.origin) $(ray.direction) $(ray.t)"
 
             # Initialize _MajorantIterator_ for ray majorant sampling
-            iter = sample_ray(ray2.medium, ray2, t_max)
+            iter = sample_ray(ray.medium, ray, t_max)
 
             # Generate ray majorant samples until termination
             T_maj = spectrum_from_float(1.0)
             done = false
             while !done
+                @info "Entering a while loop - done?"
                 # Get next majorant segment from iterator and sample it
                 seg = next(iter)
+                @info "Seg - $seg"
                 if (seg isa Nothing)
+                    @info "Exited due to no more segments"
                     done = true
                     break
                 end
 
                 # Handle zero-valued majorant for current segment
-                if (is_black(seg.sigma_maj)) 
+                if (is_black(seg.sigma_maj))
                     dt = seg.t_max - seg.t_min
        
-                    T_maj *= exp(-dt * seg.sigma_maj)
+                    T_maj *= exp.(-dt * seg.sigma_maj)
                     continue
                 end
 
@@ -346,7 +353,7 @@ function random_walk!(
                     u = get_1D!(sampler)
                     if t < seg.t_max
                         # Call callback function for sample within segment
-                        T_maj *= exp(-(t - t_min) * seg.sigma_maj)
+                        T_maj *= exp.(-(t - t_min) * seg.sigma_maj)
                         mp = sample_point(ray.medium, at(ray,t))
 
                         ############
@@ -389,8 +396,8 @@ function random_walk!(
                             callback_val= false
                         elseif mode == 2
                             # Handle null scattering for _RandomWalk()_ ray
-                            sigma_n = clamp(sigma_maj - ray.medium.sigma_a - ray.medium.sigma_s, 0.0, typemax(Float64))
-                            pdf_val = y_spectrum(T_maj) * y_spetrum(sigma_n)
+                            sigma_n = clamp.(seg.sigma_maj - ray.medium.sigma_a - ray.medium.sigma_s, 0.0, typemax(Float64))
+                            pdf_val = y_spectrum(T_maj) * y_spectrum(sigma_n)
                             if (pdf_val == 0.0)
                                 beta = spectrum_from_float(0.0)
                             else
@@ -412,7 +419,7 @@ function random_walk!(
                         # Handle sample past end of majorant segment
                         dt = seg.t_max - t_min
                         # Handle infinite _dt_ for ray majorant segment
-                        T_maj *= exp(-dt * seg.sigma_maj)
+                        T_maj *= exp.(-dt * seg.sigma_maj)
                         break
                     end
                 end

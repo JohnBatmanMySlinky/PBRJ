@@ -2,14 +2,19 @@ struct HomogenousMedium <: AbstractMedium
     sigma_a::Spectrum
     sigma_s::Spectrum
     Le::Spectrum
-    g::Float64
     phase::AbstractPhaseFunction
+end
 
-    function HomogenousMedium(
-        sigma_a::Spectrum, sigma_s::Spectrum, sigma_scale::Float64, phase::AbstractPhaseFunction
-    )
-        return new(sigma_a * sigma_scale, sigma_s * sigma_scale, spectrum_from_float(0.0), 0.0, phase)
-    end
+function HomogenousMedium(
+    sigma_a::Spectrum, sigma_s::Spectrum, sigma_scale::Float64, g::Float64
+)::HomogenousMedium
+    return HomogenousMedium(sigma_a * sigma_scale, sigma_s * sigma_scale, spectrum_from_float(0.0), HenyeyGreenstein(g))
+end
+
+function HomogenousMedium(
+    sigma_a::Spectrum, sigma_s::Spectrum
+)::HomogenousMedium
+    return HomogenousMedium(sigma_a, sigma_s, spectrum_from_float(0.0), HenyeyGreenstein(0.0))
 end
 
 function sample_point(hm::HomogenousMedium, p::Pnt3)::MediumProperties
