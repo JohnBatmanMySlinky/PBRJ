@@ -310,7 +310,7 @@ function random_walk!(
             @info "WE HAVE HIT A MEDIUM DUDE\n"
             @info "Ray $(ray.origin) $(ray.direction) $(ray.t) \n"
             u = get_1D!(sampler)
-            t_max = isect.core.t
+            t_max = t
             @info "tMax $t_max"
 
             # stepping inside SampleT_maj
@@ -347,14 +347,21 @@ function random_walk!(
 
                 # Generate samples along current majorant segment
                 t_min = seg.t_min
+                @info "tMin - $t_min"
                 while true
                     # Try to generate sample along current majorant segment
                     t = t_min + sample_exponential(u, seg.sigma_maj[0+1])
                     u = get_1D!(sampler)
+                    @info "inside another loop"
+                    @info "t - $t"
+                    @info "u - $u"
                     if t < seg.t_max
+                        @info "t < seg->tMax"
                         # Call callback function for sample within segment
                         T_maj *= exp.(-(t - t_min) * seg.sigma_maj)
+                        @info "T_maj - $T_maj"
                         mp = sample_point(ray.medium, at(ray,t))
+                        @info "MediumProperties - $(mp.sigma_a) - $(mp.sigma_s)"
 
                         ############
                         # CALLBACK #
@@ -423,6 +430,9 @@ function random_walk!(
                         break
                     end
                 end
+            end
+            if (!scattered)
+                beta *= T_maj / y_spectrum(T_maj)
             end
         end
 
