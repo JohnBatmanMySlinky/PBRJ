@@ -364,6 +364,7 @@ function random_walk!(
                         T_maj *= exp.(-(t - t_min) * seg.sigma_maj)
                         @info "T_maj - $T_maj"
                         mp = sample_point(ray.medium, at(ray,t))
+                        p = at(ray,t)
                         @info "MediumProperties - $(mp.sigma_a) - $(mp.sigma_s)"
 
                         ############
@@ -386,6 +387,7 @@ function random_walk!(
                             beta *= T_maj * ray.medium.sigma_s / (y_spectrum(T_maj) * y_spectrum(ray.medium.sigma_s))
 
                             # record medium interaction in _path_ and compute forward density
+                            mi = MediumInteraction(p, ray.t, -ray.direction, ray.medium, ray.medium.phase)
                             path[vertex] = create_medium_vertex(mi, beta, pdf_fwd, path[prev])
                             bounces += 1
                             if bounces >= max_depth
