@@ -379,21 +379,24 @@ function random_walk!(
 
                         if mode == 0
                             # Handle absorption for _RandomWalk()_ ray
+                            terminated = true
                             callback_val = false
                         elseif mode == 1
                             # Handle scattering for _RandomWalk()_ ray
-                            beta *= T_maj * ray.medium.sigma_s / (y_spectrum(T_maj) * y-spectrum(ray.medium.sigma_s))
+                            beta *= T_maj * ray.medium.sigma_s / (y_spectrum(T_maj) * y_spectrum(ray.medium.sigma_s))
 
                             # record medium interaction in _path_ and compute forward density
                             path[vertex] = create_medium_vertex(mi, beta, pdf_fwd, path[prev])
                             bounces += 1
                             if bounces >= max_depth
+                                terminated = true
                                 callback_val = false
                             end
 
                             # Sample direction and compute reverse density at preceding vertex
                             ps = sample_p(ray.medium.phase, -ray.direction, get_2D!(sampler))
                             if ((ps isa Nothing) || ps.pdf == 0.0)
+                                terminated = true
                                 callback_val = false
                             end
 
@@ -403,6 +406,7 @@ function random_walk!(
                             ray = spawn_ray(intr, ps.wi)
                             path[prev].pdf_rev = convert_density(path[vertex], ps.pdf, path[prev])
 
+                            scattered = true
                             callback_val= false
                         elseif mode == 2
                             # Handle null scattering for _RandomWalk()_ ray
