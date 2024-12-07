@@ -22,7 +22,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
         if !(ray.medium isa Nothing)
             t_max = 1.0
             u = get_1D!(sampler)
-            p_exit = at(ray, isect isa Nothing ? isect.core.t : (1 - eps()))
+            p_exit = at(ray, !(isect isa Nothing) ? isect.core.t : (1 - eps()))
             ray.direction = p_exit - ray.origin
 
             # Update transmittance for current ray segment

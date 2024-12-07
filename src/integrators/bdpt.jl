@@ -370,47 +370,57 @@ function random_walk!(
                         ############
                         # CALLBACK #
                         ############
+                        @info "INSIDE CALLBACK"
                         p_absorb = y_spectrum(ray.medium.sigma_a) / y_spectrum(seg.sigma_maj)
                         p_scatter = y_spectrum(ray.medium.sigma_s) / y_spectrum(seg.sigma_maj)
                         p_null = max(0.0, 1.0 - p_absorb - p_scatter)
+                        @info "Scatter Probs: $(p_absorb), $(p_scatter), $(p_null)"
 
                         # Randomly sample medium event for _RandomRalk()_ ray
                         um = get_1D!(sampler)
-                        mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), um)
+                        callback_mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), um)
+                        @info "scatter mode: $(callback_mode)"
 
-                        if mode == 0
+                        if callback_mode == 0+1
                             # Handle absorption for _RandomWalk()_ ray
                             terminated = true
                             callback_val = false
-                        elseif mode == 1
+                        elseif callback_mode == 1+1
                             # Handle scattering for _RandomWalk()_ ray
+                            @info "Scatter beta to start $beta"
                             beta *= T_maj * ray.medium.sigma_s / (y_spectrum(T_maj) * y_spectrum(ray.medium.sigma_s))
+                            @info "Scatter beta $beta"
 
                             # record medium interaction in _path_ and compute forward density
                             mi = MediumInteraction(p, ray.t, -ray.direction, ray.medium, ray.medium.phase)
                             path[vertex] = create_medium_vertex(mi, beta, pdf_fwd, path[prev])
                             bounces += 1
+                            @info "Update bounces to be $bounces"
                             if bounces >= max_depth
+                                @info "bounce depth exceeded"
                                 terminated = true
                                 callback_val = false
                             end
 
                             # Sample direction and compute reverse density at preceding vertex
-                            ps = sample_p(ray.medium.phase, -ray.direction, get_2D!(sampler))
-                            if ((ps isa Nothing) || ps.pdf == 0.0)
+                            ps_p, ps_wi, ps_pdf = sample_p(ray.medium.phase, -ray.direction, get_2D!(sampler))
+                            @info "Sample phase: p, wi, pdf: $ps_p, $ps_wi, $ps_pdf"
+                            if ((ps_p isa Nothing) || ps_pdf == 0.0) # JOHN HACK WHEN COULD ps be a Nothing?
+                                @info "terminated due to ps is a nothing or zero pdf"
                                 terminated = true
                                 callback_val = false
                             end
 
                             # Update path state and previous path vertex after medium scattering
-                            pdf_fwd = ps.pdf
-                            beta *= ps.p / ps.pdf
-                            ray = spawn_ray(intr, ps.wi)
-                            path[prev].pdf_rev = convert_density(path[vertex], ps.pdf, path[prev])
+                            pdf_fwd = ps_pdf
+                            beta *= ps_p / ps_pdf
+                            @info "beta update after phase sampling: $(beta)"
+                            ray = spawn_ray(mi.core, ps_wi)
+                            path[prev].pdf_rev = convert_density(path[vertex], ps_pdf, path[prev])
 
                             scattered = true
                             callback_val= false
-                        elseif mode == 2
+                        elseif callback_mode == 2+1
                             # Handle null scattering for _RandomWalk()_ ray
                             sigma_n = clamp.(seg.sigma_maj - ray.medium.sigma_a - ray.medium.sigma_s, 0.0, typemax(Float64))
                             pdf_val = y_spectrum(T_maj) * y_spectrum(sigma_n)
@@ -441,6 +451,7 @@ function random_walk!(
                 end
             end
             if (!scattered)
+                @info "scatered and beta adjusted by $(T_maj / y_spectrum(T_maj))"
                 beta *= T_maj / y_spectrum(T_maj)
             end
         end
