@@ -71,6 +71,8 @@ struct Film
         filter_table = Matrix{Float64}(undef, filter_table_width, filter_table_width)
 
         # compute image bounds
+        @assert cropped_pixel_bounds.pMin.x < cropped_pixel_bounds.pMax.x
+        @assert cropped_pixel_bounds.pMin.y < cropped_pixel_bounds.pMax.y
         cropped_pixel_bounds = Bounds2(
             ceil.(full_resolution .* cropped_pixel_bounds.pMin),
             ceil.(full_resolution .* cropped_pixel_bounds.pMax)
