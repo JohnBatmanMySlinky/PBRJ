@@ -178,7 +178,6 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
-    print("Scene Bounds $(world_bounds(bvh))")
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.1, .1))

@@ -327,6 +327,7 @@ function random_walk!(
 
             # Generate ray majorant samples until termination
             T_maj = spectrum_from_float(1.0)
+            done = false
             for seg in iter
                 @info "Entering a while loop - done?"
                 # Get next majorant segment from iterator and sample it
@@ -429,6 +430,7 @@ function random_walk!(
 
                         # outside callback
                         if !callback_val
+                            done = true
                             break
                         end
                         T_maj = spectrum_from_float(1.0)
@@ -440,6 +442,9 @@ function random_walk!(
                         T_maj *= exp.(-dt * seg.sigma_maj)
                         break
                     end
+                end
+                if done
+                    break
                 end
             end
             if (!scattered)
