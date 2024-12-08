@@ -5,6 +5,7 @@ Film "rgb"
     "string filename" [ "cornell-box.png" ]
     "integer yresolution" [ 500 ]
     "integer xresolution" [ 500 ]
+    "float cropwindow" [ 0.3 0.7 0.3 0.7 ]
 
 LookAt 278 278 -800   
        278 278 0   

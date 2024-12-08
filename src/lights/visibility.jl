@@ -34,14 +34,8 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
 
             # Generate ray majorant samples until termination
             T_maj = spectrum_from_float(1.0)
-            done = false
-            while !done
+            for seg in iter
                 # Get next majorant segment from iterator and sample it
-                seg = next(iter)
-                if (seg isa Nothing)
-                    done = true
-                    break
-                end
 
                 # Handle zero-valued majorant for current segment
                 if (is_black(seg.sigma_maj)) 
@@ -90,11 +84,11 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
                 end
             end
         end
-
-        if !check
+        if isect isa Nothing
             break
+        else
+            ray = spawn_ray_to(isect.core, vt.p1)
         end
-        ray = spawn_ray_to(isect.core, vt.p1)
     end
     return Tr
 end
