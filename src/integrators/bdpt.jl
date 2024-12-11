@@ -313,7 +313,7 @@ function random_walk!(
             @info "WE HAVE HIT A MEDIUM DUDE\n"
             @info "Ray $(ray.origin) $(ray.direction) $(ray.t) \n"
             u = get_1D!(sampler)
-            t_max = t
+            t_max = (t isa Nothing) ? typemax(Float64) : t
             @info "tMax $t_max"
 
             # stepping inside SampleT_maj
