@@ -136,29 +136,30 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # push!(lights, alight)
     # push!(primitives, Primitive(s, mat_white, alight))
 
-    # box_1_transform = Translate(Pnt3(265, 0, 295)) * RotateY(25.0)
-    # box_1 = Box(
-    #     Pnt3(0,0,0), 
-    #     Pnt3(165,  330, 165), 
-    #     ShapeCore(box_1_transform, Inv(box_1_transform), false, false),
-    #     nothing
-    # )
-    # for tri in box_1
-    #     push!(primitives, Primitive(tri, mat_gray, nothing))
-    # end
+    box_1_transform = Translate(Pnt3(265, 0, 295)) * RotateY(25.0)
+    box_1 = Box(
+        Pnt3(0,0,0), 
+        Pnt3(165,  330, 165), 
+        ShapeCore(box_1_transform, Inv(box_1_transform), false, false),
+        nothing
+    )
+    for tri in box_1
+        push!(primitives, Primitive(tri, mat_gray, nothing))
+    end
 
-    # box_2_transform = Translate(Pnt3(130, 0, 65)) * RotateY(-18.0)
-    # box_2 = Box(
-    #     Pnt3(0,0,0), 
-    #     Pnt3(165,  165, 165), 
-    #     ShapeCore(box_2_transform, Inv(box_2_transform), false, false),
-    #     nothing
-    # )
-    # for tri in box_2
-    #     push!(primitives, Primitive(tri, mat_gray, nothing))
-    # end
+    box_2_transform = Translate(Pnt3(130, 0, 65)) * RotateY(-18.0)
+    box_2 = Box(
+        Pnt3(0,0,0), 
+        Pnt3(165,  165, 165), 
+        ShapeCore(box_2_transform, Inv(box_2_transform), false, false),
+        nothing
+    )
+    for tri in box_2
+        push!(primitives, Primitive(tri, mat_gray, nothing))
+    end
 
-    sphere_transform = Translate(Pnt3(278, 278, 278))
+    # sphere_transform = Translate(Pnt3(278, 278, 278))
+    sphere_transform = Translate(Pnt3(130,250,65))
     sphere = Sphere(
         ShapeCore(
             sphere_transform,
@@ -166,7 +167,8 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         ),
-        45.0
+        # 45.0
+        100.0
     )
     smoke_mi = MediumInterface(
         HomogenousMedium(spectrum_from_float(0.001), spectrum_from_float(0.015)),
