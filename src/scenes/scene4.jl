@@ -178,7 +178,6 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
-    print("Scene Bounds $(world_bounds(bvh))")
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.1, .1))
@@ -201,7 +200,8 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 
     # Instantiate a Sampler
-    S = ZSobolSampler(parsed_args["samples-per-pixel"], film.full_resolution, Int8(2))
+    # S = ZSobolSampler(parsed_args["samples-per-pixel"], film.full_resolution, Int8(2))
+    S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene

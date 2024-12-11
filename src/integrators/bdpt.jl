@@ -133,11 +133,11 @@ function render(
                 #         pos = ""
                 #         lig = ""
                 #     end
-                #     @info "BDPT: Camera Vertex $(iii): $(camera_vertices[iii].type) @ $(pos) $(lig)"
+                    # @info "BDPT: Camera Vertex $(iii): $(camera_vertices[iii].type) @ $(pos) $(lig)"
                 # end
 
                 for iii in 1:num_real_camera_vertices
-                    @info "BDPT: Camera Vertex Hacky but OK $(iii): $(camera_vertices[iii].type) $(p(camera_vertices[iii]))"
+                    # @info "BDPT: Camera Vertex Hacky but OK $(iii): $(camera_vertices[iii].type) $(p(camera_vertices[iii]))"
                 end
 
                 # execute all BDPT connection strategies
@@ -164,7 +164,7 @@ function render(
                                 camera_sample.film
                             )
 
-                            @info "Connect bdpt s: $(s), t: $(t), Lpath: $(L_path), misWeight: $(mis_weight)"
+                            # @info "Connect bdpt s: $(s), t: $(t), Lpath: $(L_path), misWeight: $(mis_weight)"
 
                             if t != 1
                                 L += L_path
@@ -276,7 +276,6 @@ function random_walk!(
 )::Int64 where T <: TransportMode
     @info "Random Walk: We have entered"
     if max_depth == 0
-        @info "Random walk: depth exceeded"
         return 0
     end
     # decleare variables for forward and reverse probability densities
@@ -329,16 +328,10 @@ function random_walk!(
             # Generate ray majorant samples until termination
             T_maj = spectrum_from_float(1.0)
             done = false
-            while !done
+            for seg in iter
                 @info "Entering a while loop - done?"
                 # Get next majorant segment from iterator and sample it
-                seg = next(iter)
                 @info "Seg - $seg"
-                if (seg isa Nothing)
-                    @info "Exited due to no more segments"
-                    done = true
-                    break
-                end
 
                 # Handle zero-valued majorant for current segment
                 if (is_black(seg.sigma_maj))
@@ -370,47 +363,57 @@ function random_walk!(
                         ############
                         # CALLBACK #
                         ############
+                        @info "INSIDE CALLBACK"
                         p_absorb = y_spectrum(ray.medium.sigma_a) / y_spectrum(seg.sigma_maj)
                         p_scatter = y_spectrum(ray.medium.sigma_s) / y_spectrum(seg.sigma_maj)
                         p_null = max(0.0, 1.0 - p_absorb - p_scatter)
+                        @info "Scatter Probs: $(p_absorb), $(p_scatter), $(p_null)"
 
                         # Randomly sample medium event for _RandomRalk()_ ray
                         um = get_1D!(sampler)
-                        mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), um)
+                        callback_mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), um)
+                        @info "scatter mode: $(callback_mode)"
 
-                        if mode == 0
+                        if callback_mode == 0+1
                             # Handle absorption for _RandomWalk()_ ray
                             terminated = true
                             callback_val = false
-                        elseif mode == 1
+                        elseif callback_mode == 1+1
                             # Handle scattering for _RandomWalk()_ ray
+                            @info "Scatter beta to start $beta"
                             beta *= T_maj * ray.medium.sigma_s / (y_spectrum(T_maj) * y_spectrum(ray.medium.sigma_s))
+                            @info "Scatter beta $beta"
 
                             # record medium interaction in _path_ and compute forward density
                             mi = MediumInteraction(p, ray.t, -ray.direction, ray.medium, ray.medium.phase)
                             path[vertex] = create_medium_vertex(mi, beta, pdf_fwd, path[prev])
                             bounces += 1
+                            @info "Update bounces to be $bounces"
                             if bounces >= max_depth
+                                @info "bounce depth exceeded"
                                 terminated = true
                                 callback_val = false
                             end
 
                             # Sample direction and compute reverse density at preceding vertex
-                            ps = sample_p(ray.medium.phase, -ray.direction, get_2D!(sampler))
-                            if ((ps isa Nothing) || ps.pdf == 0.0)
+                            ps_p, ps_wi, ps_pdf = sample_p(ray.medium.phase, -ray.direction, get_2D!(sampler))
+                            @info "Sample phase: p, wi, pdf: $ps_p, $ps_wi, $ps_pdf"
+                            if ((ps_p isa Nothing) || ps_pdf == 0.0) # JOHN HACK WHEN COULD ps be a Nothing?
+                                @info "terminated due to ps is a nothing or zero pdf"
                                 terminated = true
                                 callback_val = false
                             end
 
                             # Update path state and previous path vertex after medium scattering
-                            pdf_fwd = ps.pdf
-                            beta *= ps.p / ps.pdf
-                            ray = spawn_ray(intr, ps.wi)
-                            path[prev].pdf_rev = convert_density(path[vertex], ps.pdf, path[prev])
+                            pdf_fwd = ps_pdf
+                            beta *= ps_p / ps_pdf
+                            @info "beta update after phase sampling: $(beta)"
+                            ray = spawn_ray(mi.core, ps_wi)
+                            path[prev].pdf_rev = convert_density(path[vertex], ps_pdf, path[prev])
 
                             scattered = true
                             callback_val= false
-                        elseif mode == 2
+                        elseif callback_mode == 2+1
                             # Handle null scattering for _RandomWalk()_ ray
                             sigma_n = clamp.(seg.sigma_maj - ray.medium.sigma_a - ray.medium.sigma_s, 0.0, typemax(Float64))
                             pdf_val = y_spectrum(T_maj) * y_spectrum(sigma_n)
@@ -418,6 +421,7 @@ function random_walk!(
                                 beta = spectrum_from_float(0.0)
                             else
                                 beta *= T_maj * sigma_n / pdf_val
+                                @info "beta update after null scatter: $(beta)"
                             end
                             callback_val = !is_black(beta)
                         else
@@ -439,8 +443,12 @@ function random_walk!(
                         break
                     end
                 end
+                if done
+                    break
+                end
             end
             if (!scattered)
+                @info "scatered and beta adjusted by $(T_maj / y_spectrum(T_maj))"
                 beta *= T_maj / y_spectrum(T_maj)
             end
         end
@@ -451,10 +459,12 @@ function random_walk!(
         end
 
         if terminated
+            @info "Random walk: exited due to terminated=true. bounces: $bounces"
             return bounces
         end
 
         if scattered
+            @info "Random walk: CONTINUE due to scattered=true."
             continue
         end
 
@@ -528,7 +538,7 @@ function connect_BDPT(
 )::Tuple{Spectrum, Float64, Pnt2}
     L = spectrum_from_float(0.0)
 
-    @info "connect bdpt for s $(s), t $(t)"
+    # @info "connect bdpt for s $(s), t $(t)"
 
     # ignore invalid connections related to infinite light
     if (t > 1) && (s != 0) && (camera_vertices[t-1+1].type == VTLight)
@@ -547,7 +557,7 @@ function connect_BDPT(
         """
         pt = camera_vertices[t-1+1]
         if is_light(pt)
-            @info "Vignette De Bugging: We Here"
+            # @info "Vignette De Bugging: We Here"
             L = le(pt, scene, camera_vertices[t-2+1]) * pt.beta
         end
     elseif t == 1
@@ -584,27 +594,27 @@ function connect_BDPT(
         """
         pt = camera_vertices[t-1+1]
         if is_connectible(pt)
-            @info "is connectable"
+            # @info "is connectable"
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
             sampled_li, wi, pdf_val, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
-            @info "sampled Li from last camera vertex: sampled_li: $(sampled_li), wi: $(wi), pdf_val: $(pdf_val), visibility tester: $(vis)"
+            # @info "sampled Li from last camera vertex: sampled_li: $(sampled_li), wi: $(wi), pdf_val: $(pdf_val), visibility tester: $(vis)"
             if pdf_val > 0.0 && !(is_black(sampled_li))
-                @info "<<<<<SAMPLED A VERTEX>>>>>"
+                # @info "<<<<<SAMPLED A VERTEX>>>>>"
                 ei = EndpointInteraction(vis.p1, light)
                 sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled, Radiance) * sampled.beta
-                @info "L: $(L)"
+                # @info "L: $(L)"
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))
                 end
-                @info "L: $(L)"
+                # @info "L: $(L)"
                 if !is_black(L)
                     TR = tr(vis, scene.b, sampler)
                     L *= TR
                 end
-                @info "L: $(L)"
+                # @info "L: $(L)"
             end
         end
     else
@@ -621,7 +631,7 @@ function connect_BDPT(
 
     # compute MIS weight for connection strategy
     mis_weight = is_black(L) ? 0.0 : MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr, light_num)
-    @info "MIS weight for (s,t) = ($(s),$(t)) connection $(mis_weight)"
+    # @info "MIS weight for (s,t) = ($(s),$(t)) connection $(mis_weight)"
     (DO_MIS_WEIGHT) && (L *= mis_weight)
     return L, mis_weight, pfilm
 end
@@ -640,8 +650,8 @@ function MIS_weight(
     sum_ri = 0.0
 
     for i in reverse(1:(t-1))
-        @info "MISWEIGHT LOOP: $(i)"
-        @info "\t\tRev $(camera_vertices[i+1].pdf_rev), Fwd $(camera_vertices[i+1].pdf_fwd)"
+        # @info "MISWEIGHT LOOP: $(i)"
+        # @info "\t\tRev $(camera_vertices[i+1].pdf_rev), Fwd $(camera_vertices[i+1].pdf_fwd)"
     end
 
     # Temporarily update vertex properties for current strategy
@@ -653,7 +663,7 @@ function MIS_weight(
     qs_minus = (s > 1) ? s-2+1 : 0 # --> LIGHT
     pt_minus = (t > 1) ? t-2+1 : 0 # --> CAMERA
 
-    @info "MISWEIGHTLOOP: s $(s), t $(t), qs $(qs), qs_mins $(qs_minus), pt $(pt), pt_minus $(pt_minus)"
+    # @info "MISWEIGHTLOOP: s $(s), t $(t), qs $(qs), qs_mins $(qs_minus), pt $(pt), pt_minus $(pt_minus)"
 
     # LOG INITIAL STATE
     logg = Dict{Tuple{Int64,Int64}, VertexLog}()
@@ -695,7 +705,7 @@ function MIS_weight(
     end
 
     if s==0 && t==3
-        @info "MISWEIGHT: <<a1>> $(camera_vertices[3].pdf_rev)"
+        # @info "MISWEIGHT: <<a1>> $(camera_vertices[3].pdf_rev)"
     end
 
     # Mark connection vertices as non-degenerate
@@ -704,7 +714,7 @@ function MIS_weight(
     (qs > 0) && (light_vertices[qs].delta = false)
 
     if s==0 && t==3
-        @info "MISWEIGHT: <<a2,a3>> $(camera_vertices[3].pdf_rev)"
+        # @info "MISWEIGHT: <<a2,a3>> $(camera_vertices[3].pdf_rev)"
     end
 
     # Update reverse density of vertex $\pt{}_{t-1}$
@@ -736,7 +746,7 @@ function MIS_weight(
     end
 
     if s==0 && t==3
-        @info "MISWEIGHT: <<a5>> $(camera_vertices[3].pdf_rev)"
+        # @info "MISWEIGHT: <<a5>> $(camera_vertices[3].pdf_rev)"
     end
 
     # Update reverse density of vertices $\pq{}_{s-1}$ and $\pq{}_{s-2}$
@@ -753,16 +763,16 @@ function MIS_weight(
     end
 
     if s==0 && t==3
-        @info "MISWEIGHT: <<a6,a7>> $(camera_vertices[3].pdf_rev)"
+        # @info "MISWEIGHT: <<a6,a7>> $(camera_vertices[3].pdf_rev)"
     end
 
     # Consider hypothetical connection strategies along the camera subpath
     ri = 1.0
     for i in reverse(1:(t-1))
-        @info "MISWEIGHT LOOP: $(i)"
+        # @info "MISWEIGHT LOOP: $(i)"
         ri *= remap0(camera_vertices[i+1].pdf_rev) / remap0(camera_vertices[i+1].pdf_fwd)
         if !camera_vertices[i+1].delta && !camera_vertices[i-1+1].delta
-            @info "MISWEIGHT: Camera Subpath: sumRi: $(sum_ri) ri: $(ri) aka $(remap0(camera_vertices[i+1].pdf_rev)) / $(remap0(camera_vertices[i+1].pdf_fwd))"
+            # @info "MISWEIGHT: Camera Subpath: sumRi: $(sum_ri) ri: $(ri) aka $(remap0(camera_vertices[i+1].pdf_rev)) / $(remap0(camera_vertices[i+1].pdf_fwd))"
             sum_ri += ri
         end
     end
@@ -770,11 +780,11 @@ function MIS_weight(
     # Consider hypothetical connection strategies along the light subpath
     ri = 1.0
     for i in reverse(0:(s-1))
-        @info "MISWEIGHT LOOP: $(i)"
+        # @info "MISWEIGHT LOOP: $(i)"
         ri *= remap0(light_vertices[i+1].pdf_rev) / remap0(light_vertices[i+1].pdf_fwd)
         delta_light_vertex = i > 0 ? light_vertices[i-1+1].delta : is_delta_light(light_vertices[0+1].ei.light)
         if !light_vertices[i+1].delta && !delta_light_vertex
-            @info "MISWEIGHT: Light Subpath: sumRi: $(sum_ri) ri: $(ri)"
+            # @info "MISWEIGHT: Light Subpath: sumRi: $(sum_ri) ri: $(ri)"
             sum_ri += ri
         end
     end
