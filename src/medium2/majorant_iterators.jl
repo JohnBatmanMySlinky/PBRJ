@@ -96,9 +96,29 @@ function voxel_bounds(ddami::DDAMajorantIterator, x::Int64, y::Int64, z::Int64):
 end
 
 function Base.iterate(ddami::DDAMajorantIterator, i::Integer = 1,)::Union{Nothing, Tuple{RayMajorantSegment, Integer}}
-    if i > 1
+    if ddami.t_min >= ddami.t_max
         return nothing
     end
 
-    return hmi.seg, i + 1
+    bits = ((ddami.next_crossing_T[0+1] < ddami.next_crossing_T[1+1]) << 2) + 
+        ((ddami.next_crossing_T[0+1] < ddami.next_crossing_T[2+1]) << 1) + 
+        (ddami.next_crossing_T[1+1] < ddami.next_crossing_T[2+1])
+    cmp_to_axis = SVector(2, 1, 2, 1, 2, 2, 0, 0)
+    step_axis = cmp_to_axis[bits]
+    t_voxel_exit = min(ddami.t_max, ddami.next_crossing_T[step_axis+1])
+
+    sigma_maj = sigma_t * lookup(ddami.grid, voxel[0+1], voxel[1+1], voxel[2+1])
+    seg = RayMajorantSegment(ddami.t_min, t_voxel_exit, sigma_maj)
+
+    ddami.t_min = t_voxel_exit
+    if ddami.next_crossing_T[step_axis+1] > t_max
+        ddami.t_min = ddami.t_max
+    end
+    voxel[step_axis+1] += step[step_axis+1]
+    if voxel[step_axis+1] == voxel_limit[step_axis+1]
+        ddami.t_min = ddami.t_max
+    end
+    next_crossing_T[step_axis+1] += delta_T[step_axis+1]
+
+    return seg, i + 1
 end
