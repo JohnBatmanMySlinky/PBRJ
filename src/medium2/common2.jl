@@ -24,34 +24,3 @@ struct RayMajorantSegment
     t_max::Float64
     sigma_maj::Spectrum
 end
-
-mutable struct HomogeneousMajorantIterator <: AbstractMajorantIterator
-    seg::RayMajorantSegment
-
-    function HomogeneousMajorantIterator(t_min::Float64, t_max::Float64, sigma_as::Spectrum)
-        return new(
-            RayMajorantSegment(t_min, t_max, sigma_as),
-        )
-    end
-end
-
-# function next(hmi::HomogeneousMajorantIterator)::Maybe{RayMajorantSegment}
-#     if hmi.called
-#         return nothing
-#     else
-#         hmi.called = true
-#         return hmi.seg
-#     end
-# end
-
-function Base.iterate(hmi::HomogeneousMajorantIterator, i::Integer = 1,)::Union{Nothing, Tuple{RayMajorantSegment, Integer}}
-    if i > 1
-        return nothing
-    end
-
-    return hmi.seg, i + 1
-end
-
-mutable struct DDAMajorantIterator <: AbstractMajorantIterator
-end
-
