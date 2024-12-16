@@ -47,7 +47,9 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
                 ray.direction.x / diag.x,
                 ray.direction.y / diag.y,
                 ray.direction.z / diag.z,
-            )
+            ),
+            0.0,
+            typemax(Float64)
         )
         grid_intersect = at(ray_grid, t_min)
         for axis in 0:3

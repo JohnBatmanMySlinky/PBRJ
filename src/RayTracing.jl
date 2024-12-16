@@ -81,10 +81,13 @@ const XXX::Spectrum, YYY::Spectrum, ZZZ::Spectrum, rgbRefl2SpectWhite::Spectrum,
 
 include("mip_map.jl")
 # include("medium/media_parser.jl")
+include("medium2/sampled_grid.jl")
 include("medium2/media_parser.jl")
 # include("medium/media1.jl")
 include("medium2/common1.jl")
+include("medium2/majorant_iterators.jl")
 include("medium2/homogenous_medium.jl")
+include("medium2/grid_medium.jl")
 include("ray.jl")
 include("primitive.jl")
 include("interactions.jl")
