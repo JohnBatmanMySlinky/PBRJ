@@ -23,6 +23,7 @@ function lookup(sg::SampledGrid, p::Pnt3)::Float64
     return lerp(d.z, lerp(d.y, d00, d10), lerp(d.y, d01, d11))
 end
 
+# WOW BE CAREFUL OF PBRT V4 LOOKUP WITH INTEGERS VS FLOAT!!!
 function get(sg::SampledGrid, p::Pnt3)::Float64
     sampled_bounds = Bounds3(Pnt3(0,0,0), Pnt3(sg.nx, sg.ny, sg.nz))
     if !inside_exclusive(p, sampled_bounds)
@@ -42,7 +43,7 @@ function max_value(sg::SampledGrid, bounds::Bounds3)::Float64
     for z in pi0.z:(pi1.z+1)
         for y in pi0.y:(pi1.y+1)
             for x in pi0.x:(pi1.x+1)
-                max_value = max(max_value, lookup(sg, Pnt3(x,y,z)))
+                max_value = max(max_value, get(sg, Pnt3(x,y,z)))
             end
         end
     end

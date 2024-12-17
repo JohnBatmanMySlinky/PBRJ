@@ -866,8 +866,12 @@ const nx2, ny2, nz2, d2 = RayTracing.parse_media("test_grid-3x3x3.pbrt")
 const sg2 = RayTracing.SampledGrid(d2, nx2, ny2, nz2)
 const nx3, ny3, nz3, d3 = RayTracing.parse_media("test_grid-3x3x2.pbrt")
 const sg3 = RayTracing.SampledGrid(d3, nx3, ny3, nz3)
-@testset "SampledGrid - Access" begin
+@testset "SampledGrid - lookup() & max_value()" begin
     @test maximum(d1) == RayTracing.lookup(sg1, RayTracing.Pnt3(1.0 - 1.0 / nx1 / 2.0, 1.0 - 1.0 / ny1 / 2.0, 1.0 - 1.0 / nz1 / 2.0))
     @test maximum(d2) == RayTracing.lookup(sg2, RayTracing.Pnt3(1.0 - 1.0 / nx2 / 2.0, 1.0 - 1.0 / ny2 / 2.0, 1.0 - 1.0 / nz2 / 2.0))
     @test maximum(d3) == RayTracing.lookup(sg3, RayTracing.Pnt3(1.0 - 1.0 / nx3 / 2.0, 1.0 - 1.0 / ny3 / 2.0, 1.0 - 1.0 / nz3 / 2.0))
+
+    @test maximum(d1) == RayTracing.max_value(sg1, RayTracing.Bounds3(RayTracing.Pnt3(0, 0, 0), RayTracing.Pnt3(1, 1, 1)))
+    @test maximum(d2) == RayTracing.max_value(sg2, RayTracing.Bounds3(RayTracing.Pnt3(0, 0, 0), RayTracing.Pnt3(1, 1, 1)))
+    @test maximum(d3) == RayTracing.max_value(sg3, RayTracing.Bounds3(RayTracing.Pnt3(0, 0, 0), RayTracing.Pnt3(1, 1, 1)))
 end
