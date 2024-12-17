@@ -27,11 +27,11 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
     t_min::Float64
     t_max::Float64
     grid::MajorantGrid
-    next_crossing_T::StaticArray{3, Float64}
-    delta_T::StaticArray{3, Float64}
-    step::StaticArray{3, Int64}
-    voxel_limit::StaticArray{3, Int64}
-    voxel::StaticArray{3, Int64}
+    next_crossing_T::FieldVector{3, Float64}
+    delta_T::FieldVector{3, Float64}
+    step::FieldVector{3, Int64}
+    voxel_limit::FieldVector{3, Int64}
+    voxel::FieldVector{3, Int64}
 
     function DDAMajorantIterator(
         ray::AbstractRay, 

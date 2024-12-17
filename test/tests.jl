@@ -861,7 +861,7 @@ using Random
 
 
 const nx1, ny1, nz1, d1 = RayTracing.parse_media("test_grid-2x2x2.pbrt")
-const sg1 = RayTracing.SampledGrid(d1, nx1, ny1, nz2)
+const sg1 = RayTracing.SampledGrid(d1, nx1, ny1, nz1)
 const nx2, ny2, nz2, d2 = RayTracing.parse_media("test_grid-3x3x3.pbrt")
 const sg2 = RayTracing.SampledGrid(d2, nx2, ny2, nz2)
 const nx3, ny3, nz3, d3 = RayTracing.parse_media("test_grid-3x3x2.pbrt")
