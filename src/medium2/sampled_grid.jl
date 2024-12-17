@@ -28,7 +28,7 @@ function get(sg::SampledGrid, p::Pnt3)::Float64
     if !inside_exclusive(p, sampled_bounds)
         return 0.0
     else
-        return sg.values[(p.z * sg.ny + p.y) * nx + p.x + 1]
+        return sg.values[Int64((p.z * sg.ny + p.y) * sg.nx + p.x + 1)]
     end
 end
 
