@@ -83,16 +83,16 @@ function lookup(ddami::DDAMajorantIterator, x::Int64, y::Int64, z::Int64)::Float
     return ddami.voxels[x+ddami.grid.res.x * (y + ddami.grid.res.y * z) + 1]
 end
 
-function voxel_bounds(ddami::DDAMajorantIterator, x::Int64, y::Int64, z::Int64)::Bounds3
+function voxel_bounds(res::Pnt3, x::Int64, y::Int64, z::Int64)::Bounds3
     p0 = Pnt3(
-        Float64(x) / ddami.grid.res.x,
-        Float64(y) / ddami.grid.res.y,
-        Float64(z) / ddami.grid.res.z
+        Float64(x) / res.x,
+        Float64(y) / res.y,
+        Float64(z) / res.z
     )
     p1 = Pnt3(
-        Float64(x+1) / ddami.grid.res.x,
-        Float64(y+1) / ddami.grid.res.y,
-        Float64(z+1) / ddami.grid.res.z
+        Float64(x+1) / res.x,
+        Float64(y+1) / res.y,
+        Float64(z+1) / res.z
     )
     return Bounds3(p0, p1)
 end
