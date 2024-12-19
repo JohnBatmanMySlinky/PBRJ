@@ -29,7 +29,7 @@ struct GridMedium <: AbstractMedium
             for y in 0:(majorant_grid_res.y-1)
                 for x in 0:(majorant_grid_res.x-1)
                     tmp_bounds = voxel_bounds(majorant_grid_res, Int64(x), Int64(y), Int64(z))
-                    print("$tmp_bounds\n")
+                    print("GridBuild ($x, $y, $z) - $tmp_bounds - $(max_value(density_grid, tmp_bounds))\n")
                     majorant_grid_d[Int64(x+majorant_grid_res.x * (y + majorant_grid_res.y * z) + 1)] = max_value(density_grid, tmp_bounds)
                 end
             end

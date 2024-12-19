@@ -1,0 +1,41 @@
+Integrator "path"
+    "integer maxdepth" [ 65 ]
+Transform [ 1 -0 -0 -0 -0 1 -0 -0 -0 -0 -1 -0 -0 -1 6.8 1  ]
+Sampler "sobol"
+    "integer pixelsamples" [ 64 ]
+PixelFilter "triangle"
+    "float xradius" [ 1 ]
+    "float yradius" [ 1 ]
+Film "rgb"
+    "string filename" [ "cornell-box.png" ]
+    "integer yresolution" [ 1024 ]
+    "integer xresolution" [ 1024 ]
+Camera "perspective"
+    "float fov" [ 19.5 ]
+
+
+WorldBegin
+
+
+MakeNamedMedium "smoke"
+    "string type" "uniformgrid"
+    "float g" 0.0
+    "float density" [ 0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 ]
+    "integer nx" 2
+    "integer ny" 2
+    "integer nz" 2
+    "point3 p0" [ 0.0 0.0 0.0 ] 
+    "point3 p1" [ 1.0 1.0 1.0 ]
+
+AttributeBegin
+    AreaLightSource "diffuse"
+        "rgb L" [ 17 12 4 ]
+    NamedMaterial "Light"
+    Shape "trianglemesh"
+        "point2 uv" [ 0 0 1 0 1 1 0 1 
+            ]
+        "normal N" [ -8.74228e-8 -1 1.86006e-7 -8.74228e-8 -1 1.86006e-7 -8.74228e-8 
+                     -1 1.86006e-7 -8.74228e-8 -1 1.86006e-7 ]
+        "point3 P" [ -0.24 1.98 -0.22 0.23 1.98 -0.22 0.23 1.98 0.16 -0.24 1.98 0.16 ]
+        "integer indices" [ 0 1 2 0 2 3 ]
+AttributeEnd
