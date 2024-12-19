@@ -42,7 +42,7 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
     )
         diag = diagonal(grid.bounds)
         ray_grid = Ray(
-            Pnt3(offset(grid.bounds(), ray.origin)),
+            Pnt3(offset(grid.bounds, ray.origin)),
             Vec3(
                 ray.direction.x / diag.x,
                 ray.direction.y / diag.y,

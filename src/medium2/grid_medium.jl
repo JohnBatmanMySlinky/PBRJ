@@ -47,3 +47,29 @@ struct GridMedium <: AbstractMedium
     end
 end
 
+function sample_point(gm::GridMedium, p::Pnt3)::MediumProperties
+    # Scale scattering coefficients by medium density at _p_
+    p = gm.render_from_medium(p)
+    p = offset(gm.bounds, p)
+    d = lookup(gm.density_grid, p)
+    sigma_a = gm.sigma_a * d
+    sigma_s = gm.sigma_s * d
+
+    # Compute grid emission _Le_ at _p_
+    Le = spectrum_from_float(0.0)
+    # NOT EMISSIVE SO SKIP
+
+    return MediumProperties(sigma_a, sigma_s, gm.phase, Le)
+end
+
+function sample_ray(gm::GridMedium, ray::AbstractRay, ray_t_max::Float64)::Maybe{AbstractMajorantIterator}
+    # Transform ray to medium's space and compute bounds overlap
+    # JOHN HACK: WHAT IS ray_t_max DOING HERE???
+    ray = Inv(gm.render_from_medium)(ray)
+    check, t_min, t_max = intersect_p(gm.bounds, ray)
+    if !check
+        return nothing
+    end
+
+    return DDAMajorantIterator(ray, gm.sigma_a + gm.sigma_s, gm.majorant_grid, t_min, t_max)
+end
