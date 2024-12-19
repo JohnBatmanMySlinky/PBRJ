@@ -41,9 +41,9 @@ function max_value(sg::SampledGrid, bounds::Bounds3)::Float64
     print("\t$pi0, $pi1\n")
 
     max_value = get(sg, pi0)
-    for z in pi0.z:(pi1.z+0)
-        for y in pi0.y:(pi1.y+0)
-            for x in pi0.x:(pi1.x+0)
+    for z in pi0.z:pi1.z
+        for y in pi0.y:pi1.y
+            for x in pi0.x:pi1.x
                 print("\t($x, $y, $z) - $(get(sg, Pnt3(x,y,z)))\n")
                 max_value = max(max_value, get(sg, Pnt3(x,y,z)))
             end
