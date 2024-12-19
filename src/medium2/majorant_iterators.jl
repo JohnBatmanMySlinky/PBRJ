@@ -27,11 +27,11 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
     t_min::Float64
     t_max::Float64
     grid::MajorantGrid
-    next_crossing_T::FieldVector{3, Float64}
-    delta_T::FieldVector{3, Float64}
-    step::FieldVector{3, Int64}
-    voxel_limit::FieldVector{3, Int64}
-    voxel::FieldVector{3, Int64}
+    next_crossing_T::MVector{3, Float64}
+    delta_T::MVector{3, Float64}
+    step::MVector{3, Int64}
+    voxel_limit::MVector{3, Int64}
+    voxel::MVector{3, Int64}
 
     function DDAMajorantIterator(
         ray::AbstractRay, 
@@ -40,6 +40,16 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
         t_min::Float64=-typemax(Float64), 
         t_max::Float64=typemax(Float64)
     )
+        # JOHN HACK 
+        # instantiating things here
+        # Floats
+        next_crossing_T = MVector(-1.0, -1.0, -1.0)
+        delta_T = MVector(-1.0, -1.0, -1.0)
+        # Ints
+        step = MVector(-1, -1, -1)
+        voxel_limit = MVector(-1, -1, -1)
+        voxel = MVector(-1, -1, -1)
+
         diag = diagonal(grid.bounds)
         ray_grid = Ray(
             Pnt3(offset(grid.bounds, ray.origin)),
@@ -52,7 +62,7 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
             typemax(Float64)
         )
         grid_intersect = at(ray_grid, t_min)
-        for axis in 0:3
+        for axis in 0:2
             voxel[axis+1] = clamp(grid_intersect[axis+1] * grid.res[axis+1], 0, grid.res[axis+1] - 1)
             delta_T[axis+1] = 1.0 / (abs(ray_grid.direction[axis+1]) * grid.res[axis+1])
 
@@ -70,7 +80,7 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
         end
 
         return new(
-            simga_t,
+            sigma_t,
             t_min, t_max,
             grid,
             next_crossing_T, delta_T,
@@ -80,7 +90,7 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
 end
 
 function lookup(ddami::DDAMajorantIterator, x::Int64, y::Int64, z::Int64)::Float64
-    return ddami.voxels[x+ddami.grid.res.x * (y + ddami.grid.res.y * z) + 1]
+    return ddami.grid.voxels[Int64(x+ddami.grid.res.x * (y + ddami.grid.res.y * z) + 1)]
 end
 
 function voxel_bounds(res::Pnt3, x::Int64, y::Int64, z::Int64)::Bounds3
@@ -106,21 +116,21 @@ function Base.iterate(ddami::DDAMajorantIterator, i::Integer = 1,)::Union{Nothin
         ((ddami.next_crossing_T[0+1] < ddami.next_crossing_T[2+1]) << 1) + 
         (ddami.next_crossing_T[1+1] < ddami.next_crossing_T[2+1])
     cmp_to_axis = SVector(2, 1, 2, 1, 2, 2, 0, 0)
-    step_axis = cmp_to_axis[bits]
+    step_axis = cmp_to_axis[bits+1]
     t_voxel_exit = min(ddami.t_max, ddami.next_crossing_T[step_axis+1])
 
-    sigma_maj = sigma_t * lookup(ddami.grid, voxel[0+1], voxel[1+1], voxel[2+1])
+    sigma_maj = ddami.sigma_t * lookup(ddami, ddami.voxel[0+1], ddami.voxel[1+1], ddami.voxel[2+1])
     seg = RayMajorantSegment(ddami.t_min, t_voxel_exit, sigma_maj)
 
     ddami.t_min = t_voxel_exit
-    if ddami.next_crossing_T[step_axis+1] > t_max
+    if ddami.next_crossing_T[step_axis+1] > ddami.t_max
         ddami.t_min = ddami.t_max
     end
-    voxel[step_axis+1] += step[step_axis+1]
-    if voxel[step_axis+1] == voxel_limit[step_axis+1]
+    ddami.voxel[step_axis+1] += ddami.step[step_axis+1]
+    if ddami.voxel[step_axis+1] == ddami.voxel_limit[step_axis+1]
         ddami.t_min = ddami.t_max
     end
-    next_crossing_T[step_axis+1] += delta_T[step_axis+1]
+    ddami.next_crossing_T[step_axis+1] += ddami.delta_T[step_axis+1]
 
     return seg, i + 1
 end
