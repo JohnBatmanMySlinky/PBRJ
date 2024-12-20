@@ -3,7 +3,7 @@
 # Configuration
 SAMPLES_PER_PIXEL=16
 SCENE_NUMBER=4
-DIM=5                          # Square dimension (5x5) for testing
+DIM=2                          # Square dimension (5x5) for testing
 BASE_DIR="pixel_outputs"       # Base directory for all runs
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")  # Generate timestamp for this run
 OUTPUT_DIR="$BASE_DIR/run_${TIMESTAMP}_${DIM}x${DIM}"  # Include dimension in dir name
@@ -48,7 +48,5 @@ for ((y=0; y<DIM; y++)); do
         fi
     done
 done
-
-julia ../RayTracing.jl --image-dim $DIM
 
 echo "Processing complete. Results in: $OUTPUT_DIR"
