@@ -2,6 +2,7 @@
 
 # Configuration
 SAMPLES_PER_PIXEL=16
+SCENE_NUMBER=4
 DIM=5                          # Square dimension (5x5) for testing
 BASE_DIR="pixel_outputs"       # Base directory for all runs
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")  # Generate timestamp for this run
@@ -26,7 +27,7 @@ for ((y=0; y<DIM; y++)); do
         echo "Processing pixel ($x,$y) -> ($x_min,$y_min,$x_max,$y_max)"
         
         # Construct the command with space-separated crop window coordinates
-        cmd="julia ../RayTracing.jl --image-dim $DIM --crop-window $x_min $y_min $x_max $y_max --samples-per-pixel $SAMPLES_PER_PIXEL"
+        cmd="julia ../RayTracing.jl --scene-number $SCENE_NUMBER --image-dim $DIM --crop-window $x_min $y_min $x_max $y_max --samples-per-pixel $SAMPLES_PER_PIXEL"
         
         # Run Julia script with correct arguments
         output=$(eval "$cmd" 2>&1)
