@@ -1,4 +1,4 @@
-function make_scene10()::Tuple{AbstractIntegrator, Scene}
+function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
 
@@ -16,14 +16,16 @@ function make_scene10()::Tuple{AbstractIntegrator, Scene}
         1.4
     )
     smoke_mi = MediumInterface(
-        GridDensityMedium(
+        GridMedium(
+            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt",
+            box_t,
             spectrum_from_float(10.0),
             spectrum_from_float(90.0),
-            0.0,
+            1.0,
             Pnt3(0.01, 0.01, 0.01),
             Pnt3(1.99, 1.99, 0.79),
-            box_t,
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
+            0.0,
+            Pnt3(5, 5, 5)
         ),
         nothing
     )

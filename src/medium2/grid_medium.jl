@@ -13,7 +13,7 @@ struct GridMedium <: AbstractMedium
 
     function GridMedium(
         fpath::String,
-        render_from_medium::Transformation,
+        medium_to_world::Transformation,
         sigma_a::Spectrum,
         sigma_s::Spectrum,
         sigma_scale::Float64=1.0,
@@ -35,9 +35,12 @@ struct GridMedium <: AbstractMedium
             end
         end
         majorant_grid = MajorantGrid(Bounds3(p0,p1), majorant_grid_d, majorant_grid_res)
+
+        data_to_medium = Translate(Vec3(p0)) * Scale(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)
+        tmp = Inv(medium_to_world * data_to_medium)
         return new(
             Bounds3(p0,p1),
-            render_from_medium, 
+            tmp, 
             sigma_a * sigma_scale, 
             sigma_s * sigma_scale, 
             density_grid, 
@@ -65,7 +68,9 @@ end
 function sample_ray(gm::GridMedium, ray::AbstractRay, ray_t_max::Float64)::Maybe{AbstractMajorantIterator}
     # Transform ray to medium's space and compute bounds overlap
     # JOHN HACK: WHAT IS ray_t_max DOING HERE???
-    ray = Inv(gm.render_from_medium)(ray)
+    ray = gm.render_from_medium(ray)
+    # println("SAMPLE RAY: RAY: $ray")
+    # println("SAMPLE RAY: BOUNDS: $(gm.bounds)")
     check, t_min, t_max = intersect_p(gm.bounds, ray)
     if !check
         return nothing

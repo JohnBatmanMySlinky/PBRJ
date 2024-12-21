@@ -63,7 +63,7 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
         )
         grid_intersect = at(ray_grid, t_min)
         for axis in 0:2
-            voxel[axis+1] = clamp(grid_intersect[axis+1] * grid.res[axis+1], 0, grid.res[axis+1] - 1)
+            voxel[axis+1] = clamp(floor(grid_intersect[axis+1] * grid.res[axis+1]), 0, grid.res[axis+1] - 1)
             delta_T[axis+1] = 1.0 / (abs(ray_grid.direction[axis+1]) * grid.res[axis+1])
 
             if ray_grid.direction[axis+1] >= 0

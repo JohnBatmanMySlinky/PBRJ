@@ -328,123 +328,125 @@ function random_walk!(
             # Generate ray majorant samples until termination
             T_maj = spectrum_from_float(1.0)
             done = false
-            for seg in iter
-                @info "Entering a while loop - done?"
-                # Get next majorant segment from iterator and sample it
-                @info "Seg - $seg"
+            if !(iter isa Nothing)
+                for seg in iter
+                    @info "Entering a while loop - done?"
+                    # Get next majorant segment from iterator and sample it
+                    @info "Seg - $seg"
 
-                # Handle zero-valued majorant for current segment
-                if (is_black(seg.sigma_maj))
-                    dt = seg.t_max - seg.t_min
-       
-                    T_maj *= exp.(-dt * seg.sigma_maj)
-                    continue
-                end
+                    # Handle zero-valued majorant for current segment
+                    if (is_black(seg.sigma_maj))
+                        dt = seg.t_max - seg.t_min
+        
+                        T_maj *= exp.(-dt * seg.sigma_maj)
+                        continue
+                    end
 
-                # Generate samples along current majorant segment
-                t_min = seg.t_min
-                @info "tMin - $t_min"
-                while true
-                    # Try to generate sample along current majorant segment
-                    t = t_min + sample_exponential(u, seg.sigma_maj[0+1])
-                    u = get_1D!(sampler)
-                    @info "inside another loop"
-                    @info "t - $t"
-                    @info "u - $u"
-                    if t < seg.t_max
-                        @info "t < seg->tMax"
-                        # Call callback function for sample within segment
-                        T_maj *= exp.(-(t - t_min) * seg.sigma_maj)
-                        @info "T_maj - $T_maj"
-                        mp = sample_point(ray.medium, at(ray,t))
-                        p = at(ray,t)
-                        @info "MediumProperties - $(mp.sigma_a) - $(mp.sigma_s)"
+                    # Generate samples along current majorant segment
+                    t_min = seg.t_min
+                    @info "tMin - $t_min"
+                    while true
+                        # Try to generate sample along current majorant segment
+                        t = t_min + sample_exponential(u, seg.sigma_maj[0+1])
+                        u = get_1D!(sampler)
+                        @info "inside another loop"
+                        @info "t - $t"
+                        @info "u - $u"
+                        if t < seg.t_max
+                            @info "t < seg->tMax"
+                            # Call callback function for sample within segment
+                            T_maj *= exp.(-(t - t_min) * seg.sigma_maj)
+                            @info "T_maj - $T_maj"
+                            mp = sample_point(ray.medium, at(ray,t))
+                            p = at(ray,t)
+                            @info "MediumProperties - $(mp.sigma_a) - $(mp.sigma_s)"
 
-                        ############
-                        # CALLBACK #
-                        ############
-                        @info "INSIDE CALLBACK"
-                        p_absorb = y_spectrum(ray.medium.sigma_a) / y_spectrum(seg.sigma_maj)
-                        p_scatter = y_spectrum(ray.medium.sigma_s) / y_spectrum(seg.sigma_maj)
-                        p_null = max(0.0, 1.0 - p_absorb - p_scatter)
-                        @info "Scatter Probs: $(p_absorb), $(p_scatter), $(p_null)"
+                            ############
+                            # CALLBACK #
+                            ############
+                            @info "INSIDE CALLBACK"
+                            p_absorb = y_spectrum(ray.medium.sigma_a) / y_spectrum(seg.sigma_maj)
+                            p_scatter = y_spectrum(ray.medium.sigma_s) / y_spectrum(seg.sigma_maj)
+                            p_null = max(0.0, 1.0 - p_absorb - p_scatter)
+                            @info "Scatter Probs: $(p_absorb), $(p_scatter), $(p_null)"
 
-                        # Randomly sample medium event for _RandomRalk()_ ray
-                        um = get_1D!(sampler)
-                        callback_mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), um)
-                        @info "scatter mode: $(callback_mode)"
+                            # Randomly sample medium event for _RandomRalk()_ ray
+                            um = get_1D!(sampler)
+                            callback_mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), um)
+                            @info "scatter mode: $(callback_mode)"
 
-                        if callback_mode == 0+1
-                            # Handle absorption for _RandomWalk()_ ray
-                            terminated = true
-                            callback_val = false
-                        elseif callback_mode == 1+1
-                            # Handle scattering for _RandomWalk()_ ray
-                            @info "Scatter beta to start $beta"
-                            beta *= T_maj * ray.medium.sigma_s / (y_spectrum(T_maj) * y_spectrum(ray.medium.sigma_s))
-                            @info "Scatter beta $beta"
-
-                            # record medium interaction in _path_ and compute forward density
-                            mi = MediumInteraction(p, ray.t, -ray.direction, ray.medium, ray.medium.phase)
-                            path[vertex] = create_medium_vertex(mi, beta, pdf_fwd, path[prev])
-                            bounces += 1
-                            @info "Update bounces to be $bounces"
-                            if bounces >= max_depth
-                                @info "bounce depth exceeded"
+                            if callback_mode == 0+1
+                                # Handle absorption for _RandomWalk()_ ray
                                 terminated = true
                                 callback_val = false
-                            end
+                            elseif callback_mode == 1+1
+                                # Handle scattering for _RandomWalk()_ ray
+                                @info "Scatter beta to start $beta"
+                                beta *= T_maj * ray.medium.sigma_s / (y_spectrum(T_maj) * y_spectrum(ray.medium.sigma_s))
+                                @info "Scatter beta $beta"
 
-                            # Sample direction and compute reverse density at preceding vertex
-                            ps_p, ps_wi, ps_pdf = sample_p(ray.medium.phase, -ray.direction, get_2D!(sampler))
-                            @info "Sample phase: p, wi, pdf: $ps_p, $ps_wi, $ps_pdf"
-                            if ((ps_p isa Nothing) || ps_pdf == 0.0) # JOHN HACK WHEN COULD ps be a Nothing?
-                                @info "terminated due to ps is a nothing or zero pdf"
-                                terminated = true
-                                callback_val = false
-                            end
+                                # record medium interaction in _path_ and compute forward density
+                                mi = MediumInteraction(p, ray.t, -ray.direction, ray.medium, ray.medium.phase)
+                                path[vertex] = create_medium_vertex(mi, beta, pdf_fwd, path[prev])
+                                bounces += 1
+                                @info "Update bounces to be $bounces"
+                                if bounces >= max_depth
+                                    @info "bounce depth exceeded"
+                                    terminated = true
+                                    callback_val = false
+                                end
 
-                            # Update path state and previous path vertex after medium scattering
-                            pdf_fwd = ps_pdf
-                            beta *= ps_p / ps_pdf
-                            @info "beta update after phase sampling: $(beta)"
-                            ray = spawn_ray(mi.core, ps_wi)
-                            path[prev].pdf_rev = convert_density(path[vertex], ps_pdf, path[prev])
+                                # Sample direction and compute reverse density at preceding vertex
+                                ps_p, ps_wi, ps_pdf = sample_p(ray.medium.phase, -ray.direction, get_2D!(sampler))
+                                @info "Sample phase: p, wi, pdf: $ps_p, $ps_wi, $ps_pdf"
+                                if ((ps_p isa Nothing) || ps_pdf == 0.0) # JOHN HACK WHEN COULD ps be a Nothing?
+                                    @info "terminated due to ps is a nothing or zero pdf"
+                                    terminated = true
+                                    callback_val = false
+                                end
 
-                            scattered = true
-                            callback_val= false
-                        elseif callback_mode == 2+1
-                            # Handle null scattering for _RandomWalk()_ ray
-                            sigma_n = clamp.(seg.sigma_maj - ray.medium.sigma_a - ray.medium.sigma_s, 0.0, typemax(Float64))
-                            pdf_val = y_spectrum(T_maj) * y_spectrum(sigma_n)
-                            if (pdf_val == 0.0)
-                                beta = spectrum_from_float(0.0)
+                                # Update path state and previous path vertex after medium scattering
+                                pdf_fwd = ps_pdf
+                                beta *= ps_p / ps_pdf
+                                @info "beta update after phase sampling: $(beta)"
+                                ray = spawn_ray(mi.core, ps_wi)
+                                path[prev].pdf_rev = convert_density(path[vertex], ps_pdf, path[prev])
+
+                                scattered = true
+                                callback_val= false
+                            elseif callback_mode == 2+1
+                                # Handle null scattering for _RandomWalk()_ ray
+                                sigma_n = clamp.(seg.sigma_maj - ray.medium.sigma_a - ray.medium.sigma_s, 0.0, typemax(Float64))
+                                pdf_val = y_spectrum(T_maj) * y_spectrum(sigma_n)
+                                if (pdf_val == 0.0)
+                                    beta = spectrum_from_float(0.0)
+                                else
+                                    beta *= T_maj * sigma_n / pdf_val
+                                    @info "beta update after null scatter: $(beta)"
+                                end
+                                callback_val = !is_black(beta)
                             else
-                                beta *= T_maj * sigma_n / pdf_val
-                                @info "beta update after null scatter: $(beta)"
+                                @assert false
                             end
-                            callback_val = !is_black(beta)
-                        else
-                            @assert false
-                        end
 
-                        # outside callback
-                        if !callback_val
-                            done = true
+                            # outside callback
+                            if !callback_val
+                                done = true
+                                break
+                            end
+                            T_maj = spectrum_from_float(1.0)
+                            t_min = t
+                        else
+                            # Handle sample past end of majorant segment
+                            dt = seg.t_max - t_min
+                            # Handle infinite _dt_ for ray majorant segment
+                            T_maj *= exp.(-dt * seg.sigma_maj)
                             break
                         end
-                        T_maj = spectrum_from_float(1.0)
-                        t_min = t
-                    else
-                        # Handle sample past end of majorant segment
-                        dt = seg.t_max - t_min
-                        # Handle infinite _dt_ for ray majorant segment
-                        T_maj *= exp.(-dt * seg.sigma_maj)
+                    end
+                    if done
                         break
                     end
-                end
-                if done
-                    break
                 end
             end
             if (!scattered)
