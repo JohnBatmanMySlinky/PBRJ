@@ -37,8 +37,8 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
         ray::AbstractRay, 
         sigma_t::Spectrum, 
         grid::MajorantGrid,
-        t_min::Float64=-typemax(Float64), 
-        t_max::Float64=typemax(Float64)
+        t_min::Float64=typemax(Float64), 
+        t_max::Float64=-typemax(Float64)
     )
         # JOHN HACK 
         # instantiating things here
@@ -62,6 +62,10 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
             typemax(Float64)
         )
         grid_intersect = at(ray_grid, t_min)
+
+        println("Diagonal: $diag")
+        println("ray_grid: $ray_grid")
+        println("grid_intersect: $grid_intersect")
         for axis in 0:2
             voxel[axis+1] = clamp(floor(grid_intersect[axis+1] * grid.res[axis+1]), 0, grid.res[axis+1] - 1)
             delta_T[axis+1] = 1.0 / (abs(ray_grid.direction[axis+1]) * grid.res[axis+1])
@@ -78,6 +82,12 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
                 voxel_limit[axis+1] = -1
             end
         end
+
+        println("next_crossing_T: $next_crossing_T")
+        println("delta_T: $delta_T")
+        println("step: $step")
+        println("voxel_limit: $voxel_limit")
+        println("voxel: $voxel")
 
         return new(
             sigma_t,
