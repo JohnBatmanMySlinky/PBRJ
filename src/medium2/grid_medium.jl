@@ -71,7 +71,7 @@ function sample_ray(gm::GridMedium, ray::AbstractRay, ray_t_max::Float64)::Maybe
     ray = gm.render_from_medium(ray)
     # println("SAMPLE RAY: RAY: $ray")
     # println("SAMPLE RAY: BOUNDS: $(gm.bounds)")
-    check, t_min, t_max = intersect_p(gm.bounds, ray)
+    check, t_min, t_max = intersect_p(gm.bounds, ray, ray_t_max)
     if !check
         return nothing
     end

@@ -63,9 +63,9 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
         )
         grid_intersect = at(ray_grid, t_min)
 
-        println("Diagonal: $diag")
-        println("ray_grid: $ray_grid")
-        println("grid_intersect: $grid_intersect")
+        # println("Diagonal: $diag")
+        # println("ray_grid: $ray_grid")
+        # println("grid_intersect: $grid_intersect")
         for axis in 0:2
             voxel[axis+1] = clamp(floor(grid_intersect[axis+1] * grid.res[axis+1]), 0, grid.res[axis+1] - 1)
             delta_T[axis+1] = 1.0 / (abs(ray_grid.direction[axis+1]) * grid.res[axis+1])
@@ -83,11 +83,11 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
             end
         end
 
-        println("next_crossing_T: $next_crossing_T")
-        println("delta_T: $delta_T")
-        println("step: $step")
-        println("voxel_limit: $voxel_limit")
-        println("voxel: $voxel")
+        # println("next_crossing_T: $next_crossing_T")
+        # println("delta_T: $delta_T")
+        # println("step: $step")
+        # println("voxel_limit: $voxel_limit")
+        # println("voxel: $voxel")
 
         return new(
             sigma_t,

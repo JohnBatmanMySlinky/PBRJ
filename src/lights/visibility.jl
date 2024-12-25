@@ -38,6 +38,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
             SEG_COUNTER = 0
             done = false
             for seg in iter
+                @info "VISIBILITY: seg: $seg"
                 SEG_COUNTER += 1
                 # Get next majorant segment from iterator and sample it
 
@@ -51,6 +52,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
 
                 # Generate samples along current majorant segment
                 t_min = seg.t_min
+                @info "VISIBILITY: t_min: $t_min"
 
                 INNER_COUNTER = 0
                 while true
@@ -58,7 +60,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
                     # Try to generate sample along current majorant segment
                     t = t_min + sample_exponential(u, y_spectrum(seg.sigma_maj))
                     u = get_1D!(sampler)
-                    @info "VISIBILITY: $u"
+                    @info "VISIBILITY: u: $u, t: $t, seg: $(seg), Tr: $Tr"
                     if t < seg.t_max
                         # Call callback function for sample within segment
                         T_maj *= exp.(-(t - t_min) * seg.sigma_maj)
@@ -87,6 +89,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
                             done = true
                             break
                         end
+                        t_min = t
                     else
                         # Handle sample past end of majorant segment
                         dt = seg.t_max - t_min
@@ -108,5 +111,5 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
             ray = spawn_ray_to(isect.core, vt.p1)
         end
     end
-    return Tr
+    return Tr / y_spectrum(inv_w)
 end
