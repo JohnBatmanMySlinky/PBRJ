@@ -37,72 +37,74 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
 
             SEG_COUNTER = 0
             done = false
-            for seg in iter
-                @info "VISIBILITY: seg: $seg"
-                SEG_COUNTER += 1
-                # Get next majorant segment from iterator and sample it
+            if !(iter isa Nothing)
+                for seg in iter
+                    @info "VISIBILITY: seg: $seg"
+                    SEG_COUNTER += 1
+                    # Get next majorant segment from iterator and sample it
 
-                # Handle zero-valued majorant for current segment
-                if (is_black(seg.sigma_maj)) 
-                    dt = seg.t_max - seg.t_min
-       
-                    T_maj *= exp.(-dt * seg.sigma_maj)
-                    continue
-                end
+                    # Handle zero-valued majorant for current segment
+                    if (is_black(seg.sigma_maj)) 
+                        dt = seg.t_max - seg.t_min
+        
+                        T_maj *= exp.(-dt * seg.sigma_maj)
+                        continue
+                    end
 
-                # Generate samples along current majorant segment
-                t_min = seg.t_min
-                @info "VISIBILITY: t_min: $t_min"
+                    # Generate samples along current majorant segment
+                    t_min = seg.t_min
+                    @info "VISIBILITY: t_min: $t_min"
 
-                INNER_COUNTER = 0
-                while true
-                    INNER_COUNTER += 1
-                    # Try to generate sample along current majorant segment
-                    t = t_min + sample_exponential(u, y_spectrum(seg.sigma_maj))
-                    u = get_1D!(sampler)
-                    @info "VISIBILITY: u: $u, t: $t, seg: $(seg), Tr: $Tr"
-                    if t < seg.t_max
-                        # Call callback function for sample within segment
-                        T_maj *= exp.(-(t - t_min) * seg.sigma_maj)
-                        mp = sample_point(ray.medium, at(ray,t))
+                    INNER_COUNTER = 0
+                    while true
+                        INNER_COUNTER += 1
+                        # Try to generate sample along current majorant segment
+                        t = t_min + sample_exponential(u, y_spectrum(seg.sigma_maj))
+                        u = get_1D!(sampler)
+                        @info "VISIBILITY: u: $u, t: $t, seg: $(seg), Tr: $Tr"
+                        if t < seg.t_max
+                            # Call callback function for sample within segment
+                            T_maj *= exp.(-(t - t_min) * seg.sigma_maj)
+                            mp = sample_point(ray.medium, at(ray,t))
 
-                        ############
-                        # CALLBACK #
-                        ############
-                        sigma_n = clamp.(seg.sigma_maj - mp.sigma_a - mp.sigma_s, 0.0, typemax(Float64))
+                            ############
+                            # CALLBACK #
+                            ############
+                            sigma_n = clamp.(seg.sigma_maj - mp.sigma_a - mp.sigma_s, 0.0, typemax(Float64))
 
-                        # ratio-tracking: only evaluate null scattering
-                        pr = T_maj * y_spectrum(seg.sigma_maj)
-                        Tr *= T_maj * sigma_n ./ pr
-                        inv_w *= T_maj * seg.sigma_maj ./ pr
+                            # ratio-tracking: only evaluate null scattering
+                            pr = T_maj * y_spectrum(seg.sigma_maj)
+                            Tr *= T_maj * sigma_n ./ pr
+                            inv_w *= T_maj * seg.sigma_maj ./ pr
 
-                        if (is_black(Tr) || is_black(inv_w))
-                            callback_value = false
+                            if (is_black(Tr) || is_black(inv_w))
+                                callback_value = false
+                            else
+                                callback_value = true
+                            end
+                            
+                            Tr *= T_maj ./ y_spectrum(T_maj)
+                            inv_w *= T_maj ./ y_spectrum(T_maj)
+
+                            if !callback_value
+                                done = true
+                                break
+                            end
+                            t_min = t
                         else
-                            callback_value = true
-                        end
-                        
-                        Tr *= T_maj ./ y_spectrum(T_maj)
-                        inv_w *= T_maj ./ y_spectrum(T_maj)
-
-                        if !callback_value
-                            done = true
+                            # Handle sample past end of majorant segment
+                            dt = seg.t_max - t_min
+                            # Handle infinite _dt_ for ray majorant segment
+                            T_maj *= exp.(-dt * seg.sigma_maj)
                             break
                         end
-                        t_min = t
-                    else
-                        # Handle sample past end of majorant segment
-                        dt = seg.t_max - t_min
-                        # Handle infinite _dt_ for ray majorant segment
-                        T_maj *= exp.(-dt * seg.sigma_maj)
+                    end
+                    @info "VSIBILITY: INNERS: $INNER_COUNTER"
+                    if done
                         break
                     end
                 end
-                @info "VSIBILITY: INNERS: $INNER_COUNTER"
-                if done
-                    break
-                end
-            end
+            end 
             @info "VISIBILITY: SEGS: $SEG_COUNTER"
         end
         if isect isa Nothing

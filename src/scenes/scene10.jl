@@ -19,13 +19,13 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         GridMedium(
             "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt",
             box_t,
-            spectrum_from_float(10.0),
-            spectrum_from_float(90.0),
+            spectrum_from_float(0.1),
+            spectrum_from_float(0.15),
             1.0,
             Pnt3(0.01, 0.01, 0.01),
             Pnt3(1.99, 1.99, 0.79),
             0.0,
-            Pnt3(5, 5, 5)
+            Pnt3(16, 16, 16)
         ),
         nothing
     )
