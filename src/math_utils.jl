@@ -275,3 +275,27 @@ function evaluate_cubic_bezier_deriv(cp::SVector{4, Pnt3}, u::Float64)::Tuple{Pn
     end
     return lerp(u, cp2[0+1], cp2[1+1]), Vec3(deriv)
 end
+
+# 25% faster than exp() so that's nice?
+# Shout out Claude for translating this over
+# see FastExp_testing.ipynb for benchmarks
+function fastexp(x::Float64)
+    xp = x * 1.4426950408889634
+    fxp = floor(xp)
+    f = xp - fxp
+    i = Int(fxp)
+    
+    two_to_f = 1.0 + f * (0.6931471805599453 + f * (0.2402265069591007 + f * 0.0855989669963166))
+    
+    bits = reinterpret(UInt64, two_to_f)
+    exponent = Int((bits >> 52) & 0x7FF) - 1023 + i
+    
+    if exponent < -1022
+        return 0.0
+    elseif exponent > 1023
+        return Inf
+    end
+    
+    bits = (bits & 0x800FFFFFFFFFFFFF) | (UInt64(exponent + 1023) << 52)
+    return reinterpret(Float64, bits)
+ end

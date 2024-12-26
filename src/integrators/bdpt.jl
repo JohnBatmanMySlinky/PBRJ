@@ -338,7 +338,7 @@ function random_walk!(
                     if (is_black(seg.sigma_maj))
                         dt = seg.t_max - seg.t_min
         
-                        T_maj *= exp.(-dt * seg.sigma_maj)
+                        T_maj *= fastexp.(-dt * seg.sigma_maj)
                         continue
                     end
 
@@ -355,7 +355,7 @@ function random_walk!(
                         if t < seg.t_max
                             @info "t < seg->tMax"
                             # Call callback function for sample within segment
-                            T_maj *= exp.(-(t - t_min) * seg.sigma_maj)
+                            T_maj *= fastexp.(-(t - t_min) * seg.sigma_maj)
                             @info "T_maj - $T_maj"
                             mp = sample_point(ray.medium, at(ray,t))
                             p = at(ray,t)
@@ -440,7 +440,7 @@ function random_walk!(
                             # Handle sample past end of majorant segment
                             dt = seg.t_max - t_min
                             # Handle infinite _dt_ for ray majorant segment
-                            T_maj *= exp.(-dt * seg.sigma_maj)
+                            T_maj *= fastexp.(-dt * seg.sigma_maj)
                             break
                         end
                     end
