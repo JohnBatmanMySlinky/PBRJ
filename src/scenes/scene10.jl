@@ -2,10 +2,15 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
 
+    mat_white = Matte(
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        nothing
+    )
     
     # Bounding sphere cause we hate winding order and such
-    box_t = Translate(Pnt3(-1.0, 0.0, -1.2))
-    sphere_transform = Translate(Pnt3(.045, 1.045, -.75))
+    box_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * Rotate(90.0, Vec3(1,0,0))
+    sphere_transform = Translate(Pnt3(-1.0, 0.0, -1.2)) * Rotate(90.0, Vec3(1,0,0))
     sphere = Sphere(
         ShapeCore(
             sphere_transform,
@@ -13,7 +18,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         ),
-        1.4
+        6.0
     )
     smoke_mi = MediumInterface(
         GridMedium(
@@ -30,6 +35,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+    # push!(primitives, Primitive(sphere, mat_white, nothing))
 
 
     # Orb light cause we hate environment maps (for now)
@@ -87,10 +93,10 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Camera
     look_from = Pnt3(0.0715308, -4.17677, 5.33558)
-    look_at = Pnt3(0.0720194, -3.57456, 4.60187)
+    look_at = Pnt3(0.0720194, -3.62456, 4.50187)
     up = Vec3(-0.000323605, 0.833706, 0.552208)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 20.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), screen, 0.0, 1.0, 0.0, 1e6, 25.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
