@@ -19,13 +19,13 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         GridMedium(
             "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt",
             box_t,
-            spectrum_from_float(0.1),
-            spectrum_from_float(0.15),
+            spectrum_from_float(0.5),
+            spectrum_from_float(0.55),
             1.0,
             Pnt3(0.01, 0.01, 0.01),
             Pnt3(1.99, 1.99, 0.79),
             0.0,
-            Pnt3(16, 16, 16)
+            Pnt3(25, 25, 25)
         ),
         nothing
     )
@@ -90,7 +90,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_at = Pnt3(0.0720194, -3.57456, 4.60187)
     up = Vec3(-0.000323605, 0.833706, 0.552208)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 15.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 20.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
