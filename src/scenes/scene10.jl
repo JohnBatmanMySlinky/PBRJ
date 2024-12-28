@@ -10,7 +10,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     
     # Bounding sphere cause we hate winding order and such
     box_t = Translate(Pnt3(-1.5, 0.0, -1.2)) * Rotate(90.0, Vec3(1,0,0))
-    sphere_transform = Translate(Pnt3(-1.5, 0.0, -1.2)) * Rotate(90.0, Vec3(1,0,0))
+    sphere_transform = Translate(Pnt3(-1.5, 0.0, -1.2)) * RotateX(90.0)
     sphere = Sphere(
         ShapeCore(
             sphere_transform,

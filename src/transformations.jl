@@ -93,62 +93,63 @@ function RotateZ(theta::Float64)::Transformation
     return Transformation(m, inv(m))
 end
 
-function Rotate(theta::Float64, axis::Vec3)::Transformation
-    a = normalize(axis)
-    sin_theta = sin(deg2rad(theta))
-    cos_theta = cos(deg2rad(theta))
+# BROKEN
+# function Rotate(theta::Float64, axis::Vec3)::Transformation
+#     a = normalize(axis)
+#     sin_theta = sin(deg2rad(theta))
+#     cos_theta = cos(deg2rad(theta))
 
-    # this way matches in debug
-    m = Mat4(
-        a.x * a.x + (1 - a.x * a.x) * cos_theta,
-        a.x * a.y * (1 - cos_theta) - a.z * sin_theta,
-        a.x * a.z * (1 - cos_theta) + a.y * sin_theta,
-        0.0,
+#     # this way matches in debug
+#     m = Mat4(
+#         a.x * a.x + (1 - a.x * a.x) * cos_theta,
+#         a.x * a.y * (1 - cos_theta) - a.z * sin_theta,
+#         a.x * a.z * (1 - cos_theta) + a.y * sin_theta,
+#         0.0,
 
 
-        a.x * a.y * (1 - cos_theta) + a.z * sin_theta,
-        a.y * a.y + (1 - a.y * a.y) * cos_theta,
-        a.y * a.z * (1 - cos_theta) - a.x * sin_theta,       
-        0.0,
+#         a.x * a.y * (1 - cos_theta) + a.z * sin_theta,
+#         a.y * a.y + (1 - a.y * a.y) * cos_theta,
+#         a.y * a.z * (1 - cos_theta) - a.x * sin_theta,       
+#         0.0,
 
-        a.x * a.z * (1 - cos_theta) - a.y * sin_theta,
-        a.y * a.z * (1 - cos_theta) + a.x * sin_theta,
-        a.z * a.z + (1 - a.z * a.z) * cos_theta,
-        0.0,
+#         a.x * a.z * (1 - cos_theta) - a.y * sin_theta,
+#         a.y * a.z * (1 - cos_theta) + a.x * sin_theta,
+#         a.z * a.z + (1 - a.z * a.z) * cos_theta,
+#         0.0,
 
-        0.0,
-        0.0,
-        0.0,
-        1.0,
-    )
+#         0.0,
+#         0.0,
+#         0.0,
+#         1.0,
+#     )
 
-    # backwards?
-    # m = Mat4([
-    #     a.x * a.x + (1 - a.x * a.x) * cos_theta
-    #     a.x * a.y * (1 - cos_theta) - a.z * sin_theta
-    #     a.x * a.z * (1 - cos_theta) + a.y * sin_theta
-    #     0.0
+#     # backwards?
+#     # m = Mat4([
+#     #     a.x * a.x + (1 - a.x * a.x) * cos_theta
+#     #     a.x * a.y * (1 - cos_theta) - a.z * sin_theta
+#     #     a.x * a.z * (1 - cos_theta) + a.y * sin_theta
+#     #     0.0
 
-    #     a.x * a.y * (1 - cos_theta) + a.z * sin_theta
-    #     a.y * a.y + (1 - a.y * a.y) * cos_theta
-    #     a.y * a.z * (1 - cos_theta) - a.x * sin_theta       
-    #     0.0
+#     #     a.x * a.y * (1 - cos_theta) + a.z * sin_theta
+#     #     a.y * a.y + (1 - a.y * a.y) * cos_theta
+#     #     a.y * a.z * (1 - cos_theta) - a.x * sin_theta       
+#     #     0.0
 
-    #     a.x * a.z * (1 - cos_theta) - a.y * sin_theta
-    #     a.y * a.z * (1 - cos_theta) + a.x * sin_theta
-    #     a.z * a.z + (1 - a.z * a.z) * cos_theta
-    #     0.0
+#     #     a.x * a.z * (1 - cos_theta) - a.y * sin_theta
+#     #     a.y * a.z * (1 - cos_theta) + a.x * sin_theta
+#     #     a.z * a.z + (1 - a.z * a.z) * cos_theta
+#     #     0.0
 
-    #     0.0
-    #     0.0
-    #     0.0
-    #     1.0
-    # ])
+#     #     0.0
+#     #     0.0
+#     #     0.0
+#     #     1.0
+#     # ])
 
-    @info "ROTATE $(m)"
+#     @info "ROTATE $(m)"
 
-    return Transformation(m, inv(m))
-end
+#     return Transformation(m, inv(m))
+# end
 
 function Perspective(fov::Float64, near::Float64, far::Float64)::Transformation
     a = far / (far - near)
