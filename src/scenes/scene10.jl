@@ -68,7 +68,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Done building BVH\n")
 
     # instantiate the infinite light
-    l_2_w = Translate(Pnt3(0,0,0))
+    l_2_w = RotateX(180.0)
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
