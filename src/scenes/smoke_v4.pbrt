@@ -6,7 +6,6 @@ PixelFilter "gaussian"
 Film "rgb"
     "float iso" [ 700 ]
     "string filename" [ "smoke.exr" ]
-    "float cropwindow" [ 0 0.9 0 0.8 ]
     "integer xresolution" [ 900 ]
     "integer yresolution" [ 900 ]
 Scale -1 1 1

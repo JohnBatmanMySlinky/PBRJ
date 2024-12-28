@@ -38,6 +38,7 @@ struct GridMedium <: AbstractMedium
 
         data_to_medium = Translate(Vec3(p0)) * Scale(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z)
         tmp = Inv(medium_to_world * data_to_medium)
+        # println("WTF IS THIS MEDIUM: $tmp")
         return new(
             Bounds3(p0,p1),
             tmp, 
