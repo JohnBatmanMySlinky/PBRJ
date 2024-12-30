@@ -93,7 +93,6 @@ function RotateZ(theta::Float64)::Transformation
     return Transformation(m, inv(m))
 end
 
-# BROKEN
 function Rotate(theta::Float64, axis::Vec3)::Transformation
     a = normalize(axis)
     sin_theta = sin(deg2rad(theta))
