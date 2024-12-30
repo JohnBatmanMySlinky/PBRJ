@@ -16,6 +16,10 @@ struct Disk <: Shape
     end
 end
 
+function Disk(t::Transformation, radius::Float64, reverse_orientation::Bool, transform_swaps_handedness::Bool)::Disk
+    return Disk(t, 0.0, radius, 0.0, 360.0, reverse_orientation, transform_swaps_handedness)
+end
+
 function ObjectBounds(d::Disk)::Bounds3
     return Bounds3(
         Pnt3(-d.radius, -d.radius, d.height - 0.000001),

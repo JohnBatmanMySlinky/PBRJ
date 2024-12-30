@@ -7,6 +7,11 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    mat_disk = Matte(
+        ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        nothing
+    )
     
     # Bounding sphere cause we hate winding order and such
     box_t = Translate(Pnt3(-1.5, 0.0, -1.2)) * RotateX(90.0)
@@ -36,6 +41,18 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
     # push!(primitives, Primitive(sphere, mat_white, nothing))
+
+    look_from = Pnt3(0.0715308, -4.17677, 5.33558)
+    look_at = Pnt3(0.0720194, -3.52456, 4.50187)
+    up = Vec3(-0.000323605, 0.833706, 0.552208)
+    camera_transform = Scale(-1.0, 1.0, 1.0) * LookAt(look_from, look_at, up)
+    disk = Disk(
+        camera_transform * Translate(Pnt3(0, 0, 30)),
+        30.0,
+        false,
+        false
+    )
+    push!(primitives, Primitive(disk, mat_disk, nothing))
 
 
     # Orb light cause we hate environment maps (for now)
@@ -92,11 +109,9 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(0.0715308, -4.17677, 5.33558)
-    look_at = Pnt3(0.0720194, -3.52456, 4.50187)
-    up = Vec3(-0.000323605, 0.833706, 0.552208)
+
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(Scale(-1.0, 1.0, 1.0) * LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 15.0, film)
+    C = PerspectiveCamera(camera_transform, screen, 0.0, 1.0, 0.0, 1e6, 15.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
