@@ -22,7 +22,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     smoke_mi = MediumInterface(
         GridMedium(
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt",
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"),
             box_t,
             spectrum_from_float(1.0),
             spectrum_from_float(9.0),
@@ -30,7 +30,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt3(0.01, 0.01, 0.01),
             Pnt3(1.99, 1.99, 0.79),
             0.0,
-            Pnt3(64, 64, 64)
+            Pnt3(100, 100, 100)
         ),
         nothing
     )
@@ -73,7 +73,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         world_bounds(bvh), 
         l_2_w, 
         Spectrum(3.0, 3.0, 3.0), 
-        "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
         # "/Users/johnmyslinski/Documents/PBRJ/scratch/mipmap/hello.exr"
     )
     push!(lights, light)
