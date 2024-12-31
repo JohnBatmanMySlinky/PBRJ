@@ -875,3 +875,37 @@ const sg3 = RayTracing.SampledGrid(d3, nx3, ny3, nz3)
     @test maximum(d2) == RayTracing.max_value(sg2, RayTracing.Bounds3(RayTracing.Pnt3(0, 0, 0), RayTracing.Pnt3(1, 1, 1)))
     @test maximum(d3) == RayTracing.max_value(sg3, RayTracing.Bounds3(RayTracing.Pnt3(0, 0, 0), RayTracing.Pnt3(1, 1, 1)))
 end
+
+@testset "DDAMajorantIterator - Iterating" begin
+    fpath = RayTracing.jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/geometry/density_big_0084.pbrt")
+    render_from_medium = RayTracing.Translate(RayTracing.Pnt3(0,0,0))
+    sigma_a = RayTracing.spectrum_from_float(0.01)
+    sigma_s = RayTracing.spectrum_from_float(0.015)
+    sigma_scale = 1.0
+    p0 = RayTracing.Pnt3(0.01, 0.01, 0.01)
+    p1 = RayTracing.Pnt3(1.99, 1.99, 0.79)
+    g = 0.0
+    majorant_grid_res = RayTracing.Pnt3(5, 5, 5)
+    grid_medium = RayTracing.GridMedium(
+        fpath,
+        render_from_medium,
+        sigma_a,
+        sigma_s,
+        sigma_scale,
+        p0,
+        p1,
+        g,
+        majorant_grid_res
+    )
+    ray = RayTracing.Ray(
+        RayTracing.Pnt3(-3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z),
+        RayTracing.Vec3(1, 0, 0),
+        0.0, typemax(Float64)
+    )
+    dda_majorant_iterator = RayTracing.sample_ray(grid_medium, ray, typemax(Float64))
+    i = 0
+    for seg in dda_majorant_iterator
+        i += 1
+    end
+    @test i == majorant_grid_res.x
+end
