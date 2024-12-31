@@ -1,4 +1,4 @@
-function make_scene13()::Tuple{AbstractIntegrator, Scene}
+function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
 
@@ -25,11 +25,13 @@ function make_scene13()::Tuple{AbstractIntegrator, Scene}
 
     smoke_mi = MediumInterface(
         NanoVDBMedium(
+            Translate(Pnt3(0,0,0)),
             spectrum_from_float(1.0),
             spectrum_from_float(10.0),
-            0.877,
             4.0,
-            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")
+            0.877,
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"),
+            Pnt3(3,3,3)
         ),
         nothing
     )
