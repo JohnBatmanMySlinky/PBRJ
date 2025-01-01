@@ -79,7 +79,6 @@ struct NanoVDBMedium <: AbstractMedium
             majorant_grid_d[index+1] = max_value
         end
 
-        @assert false
         return new(
             sigma_a, sigma_s, 
             HenyeyGreenstein(g), 
@@ -95,16 +94,14 @@ end
 function sample_point(nvdbm::NanoVDBMedium, p::Pnt3)::MediumProperties
     # Scale scattering coefficients by medium density at _p_
     p = nvdbm.render_from_medium(p)
-    p = offset(nvdbm.bounds, p)
-    d = lookup(nvdbm.density_grid, p)
-    sigma_a = nvdbm.sigma_a * d
-    sigma_s = nvdbm.sigma_s * d
 
+    d = NanoVDB.get_sampled_point(nvdbm.density_float_grid, p.x, p.y, p.z)
+    
     # Compute grid emission _Le_ at _p_
     Le = spectrum_from_float(0.0)
     # NOT EMISSIVE SO SKIP
 
-    return MediumProperties(sigma_a, sigma_s, gm.phase, Le)
+    return MediumProperties(sigma_a * d, sigma_s * d, gm.phase, Le)
 end
 
 function sample_ray(nvdbm::NanoVDBMedium, ray::AbstractRay, ray_t_max::Float64)::Maybe{AbstractMajorantIterator}
