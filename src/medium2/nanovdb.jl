@@ -101,7 +101,7 @@ function sample_point(nvdbm::NanoVDBMedium, p::Pnt3)::MediumProperties
     Le = spectrum_from_float(0.0)
     # NOT EMISSIVE SO SKIP
 
-    return MediumProperties(sigma_a * d, sigma_s * d, gm.phase, Le)
+    return MediumProperties(nvdbm.sigma_a * d, nvdbm.sigma_s * d, nvdbm.phase, Le)
 end
 
 function sample_ray(nvdbm::NanoVDBMedium, ray::AbstractRay, ray_t_max::Float64)::Maybe{AbstractMajorantIterator}

@@ -1,5 +1,6 @@
 #include "IO.h"
 #include "NanoVDB.h"
+#include "SampleFromVoxels.h"
 
 #include <random>
 #include <string>
@@ -180,16 +181,16 @@ class NanoVDBWrapper {
             return {minDensity, maxDensity};
         }
         float get_sampled_point(
-            float x,
-            float y,
-            float z
+            double x,
+            double y,
+            double z
         ) {
-            auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
-            auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
-            nanovdb::Vec3<float> pIndex = grid->worldToIndexF(nanovdb::Vec3<float>(x, y, z));
+            // auto handle = nanovdb::io::readGrid(jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")); // reads first grid from file
+            // auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+            nanovdb::Vec3<float> pIndex = densityFloatGrid->worldToIndexF(nanovdb::Vec3<float>(x, y, z));
             using Sampler = nanovdb::SampleFromVoxels<nanovdb::FloatGrid::TreeType, 1, false>;
             float d = Sampler(densityFloatGrid->tree())(pIndex);
-            return d
+            return d;
         }
         void init(){
             // auto handle = nanovdb::io::readGrid("/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
@@ -409,6 +410,7 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
         .method("get_worldToIndexF", &NanoVDBWrapper::get_worldToIndexF)
         .method("get_indexBBox", &NanoVDBWrapper::get_indexBBox)
         .method("get_max_voxel_value", &NanoVDBWrapper::get_max_voxel_value)
+        .method("get_sampled_point", &NanoVDBWrapper::get_sampled_point)
         .method("sample_NanoVDBWrapper", &NanoVDBWrapper::sample_NanoVDBWrapper)
         .method("transmittance_NanoVDBWrapper", &NanoVDBWrapper::transmittance_NanoVDBWrapper)
         .method("init", &NanoVDBWrapper::init);
