@@ -121,6 +121,49 @@ class NanoVDBWrapper {
         ~NanoVDBWrapper() {
             std::cout << "NanoVDBWrapper - Destructed\n";
         }
+        std::tuple<double, double, double> get_worldToIndexF(
+            double x,
+            double y,
+            double z
+        ){
+            nanovdb::Vec3 xyz = nanovdb::Vec3(x, y, z);
+
+            auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
+            auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+            nanovdb::Vec3 i0 = grid->worldToIndexF(xyz);
+            return {i0[0], i0[1], i0[2]};
+        }
+        std::tuple<float, float, float, float, float, float> get_indexBBox() {
+            auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
+            auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+            const nanovdb::BBox<nanovdb::Vec3d> box = grid->indexBBox();
+            nanovdb::Vec3 mi = box.min();
+            nanovdb::Vec3 ma = box.max();
+            return {mi[0], mi[1], mi[2], ma[0], ma[1], ma[2]};
+        }
+        float get_max_voxel_value(
+            int nx0,
+            int nx1,
+            int ny0,
+            int ny1,
+            int nz0,
+            int nz1
+        ) {
+            float maxValue = 0;
+
+            auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
+            auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+            auto accessor = grid->getAccessor();
+
+            for (int nz = nz0; nz <= nz1; ++nz) {
+                for (int ny = ny0; ny <= ny1; ++ny) {
+                    for (int nx = nx0; nx <= nx1; ++nx) {
+                        maxValue = std::max(maxValue, accessor.getValue({nx, ny, nz}));
+                    }
+                }
+            }
+            return maxValue;
+        }
         std::tuple<float, float, float, float, float, float> get_WorldBBox() {
             auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
             auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
@@ -351,6 +394,9 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
     mod.add_type<NanoVDBWrapper>("NanoVDBWrapper")
         .method("get_WorldBBox", &NanoVDBWrapper::get_WorldBBox)
         .method("get_extrema", &NanoVDBWrapper::get_extrema)
+        .method("get_worldToIndexF", &NanoVDBWrapper::get_worldToIndexF)
+        .method("get_indexBBox", &NanoVDBWrapper::get_indexBBox)
+        .method("get_max_voxel_value", &NanoVDBWrapper::get_max_voxel_value)
         .method("sample_NanoVDBWrapper", &NanoVDBWrapper::sample_NanoVDBWrapper)
         .method("transmittance_NanoVDBWrapper", &NanoVDBWrapper::transmittance_NanoVDBWrapper)
         .method("init", &NanoVDBWrapper::init);

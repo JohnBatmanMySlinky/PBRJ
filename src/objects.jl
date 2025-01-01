@@ -428,6 +428,14 @@ function Base.getindex(b::Union{Bounds2, Bounds3}, i::Integer)
     error("Invalid index `$i`. Only `1` & `2` are valid.")
 end
 
+function lerp(b::Bounds3, t::Pnt3)::Pnt3
+    return Pnt3(
+        lerp(t.x, b.pMin.x, b.pMax.x),
+        lerp(t.y, b.pMin.y, b.pMax.y),
+        lerp(t.z, b.pMin.z, b.pMax.z),
+    )
+end
+
 ################################
 #### Miscellaneous #############
 ################################
