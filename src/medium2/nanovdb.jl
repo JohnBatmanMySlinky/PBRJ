@@ -22,26 +22,26 @@ struct NanoVDBMedium <: AbstractMedium
         density_float_grid = NanoVDB.make_NanoVDBWrapper(fpath)
         a, b, c, d, e, f = NanoVDB.get_WorldBBox(density_float_grid)
 
-        println("CONSTRUCTOR: renderFromMedium $render_from_medium") 
+        # println("CONSTRUCTOR: renderFromMedium $render_from_medium") 
 
         bounds = Bounds3(Pnt3(a, b, c), Pnt3(d, e, f))
         @info "World Medium Bounds: $(b)"
         # medium_to_unit = UnitCube(b)
-        println("Coonstructor BOUNDS: $bounds")
+        # println("Coonstructor BOUNDS: $bounds")
 
         # moving this outside the loop
         a, b, c, d, e, f = bbox = NanoVDB.get_indexBBox(density_float_grid)
         bbox = Bounds3(Pnt3(a,b,c), Pnt3(d,e,f))
-        println("BBox: $bbox")
+        # println("BBox: $bbox")
 
         majorant_grid_size = Int64(majorant_grid_res.x * majorant_grid_res.y * majorant_grid_res.z)
         majorant_grid_d = zeros(Float64, Int64(majorant_grid_size))
         for index in 0:(majorant_grid_size-1)
             # Indices into majorantGrid
-            x::Int64 = index % majorant_grid_res.x
-            y = (index / majorant_grid_res.x) % majorant_grid_res.y
-            z = index / (majorant_grid_res.x * majorant_grid_res.y)
-            println("index: $index vs $x, $y, $z, aka $(Int64(x + majorant_grid_res.x * (y + majorant_grid_res.y * z)))")
+            x::Int64 = trunc(index % majorant_grid_res.x)
+            y::Int64 = trunc((index / majorant_grid_res.x) % majorant_grid_res.y)
+            z::Int64 = trunc(index / (majorant_grid_res.x * majorant_grid_res.y))
+            # println("index: $index vs $x, $y, $z, aka $(Int64(x + majorant_grid_res.x * (y + majorant_grid_res.y * z)))")
             @assert index ==  Int64(x + majorant_grid_res.x * (y + majorant_grid_res.y * z))
 
             # World (aka medium) space bounds of this max grid cell
@@ -57,7 +57,7 @@ struct NanoVDBMedium <: AbstractMedium
                     (z+1)/majorant_grid_res.z,
                 ))
             )
-            println("Coonstructor WB: $wb")
+            # println("Coonstructor WB: $wb")
 
             # Compute corresponding NanoVDB index-space bounds in floating-point.
             i0x, i0y, i0z = NanoVDB.get_worldToIndexF(density_float_grid, wb.pMin.x, wb.pMin.y, wb.pMin.z)
@@ -71,10 +71,10 @@ struct NanoVDBMedium <: AbstractMedium
             ny1 = Int64(trunc(min(i1y + delta, bbox.pMax[1+1])))
             nz0 = Int64(trunc(max(i0z - delta, bbox.pMin[2+1])))
             nz1 = Int64(trunc(min(i1z + delta, bbox.pMax[2+1])))
-            println("indices: $nx0 $nx1 $ny0 $ny1 $nz0 $nz1")
+            # println("indices: $nx0 $nx1 $ny0 $ny1 $nz0 $nz1")
 
             max_value = NanoVDB.get_max_voxel_value(density_float_grid, nx0, nx1, ny0, ny1, nz0, nz1)
-            println("MAJORANT GRID: $x $y $z $max_value")
+            # println("MAJORANT GRID: $x $y $z $max_value")
             
             majorant_grid_d[index+1] = max_value
         end
