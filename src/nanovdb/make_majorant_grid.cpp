@@ -61,4 +61,9 @@ std::vector<double> build_majorant_grid(
 	return majorantGrid;
 }
 
-# Then regular function return...
+// Claude says i need my function signature to be
+// jlcxx::Array<double>
+// Claude says I need to wrap my return in 
+// return jlcxx::make_julia_array(majorantGrid.data(), majorantGrid.size());
+
+// Then regular function return...
