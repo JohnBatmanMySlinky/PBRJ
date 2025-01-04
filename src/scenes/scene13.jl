@@ -8,6 +8,11 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    mat_disk = Matte(
+        ConstantTexture(spectrum_from_float(0.3, 0.3, 0.3)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        nothing
+    )
 
     # Bounding sphere cause we hate winding order and such
     box_t = Translate(Pnt3(0, 0, 0))
@@ -19,7 +24,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         ),
-        1.44224957031
+        # 1.44224957031
+        0.54224957031
     )
     # push!(primitives, Primitive(sphere, mat_gray, nothing))
 
@@ -35,7 +41,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ),
         nothing
     )
-    push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+    # push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+    push!(primitives, Primitive(sphere, mat_disk, nothing))
 
     # The disk
     disk_t = Translate(Pnt3(0, -1000, 0)) * Scale(2000.0, 2000.0, 2000.0) * Rotate(-90.0, Vec3(1, 0, 0))
@@ -47,11 +54,6 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         360.0,
         false,
         false
-    )
-    mat_disk = Matte(
-        ConstantTexture(spectrum_from_float(0.3, 0.3, 0.3)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-        nothing
     )
     push!(primitives, Primitive(disk, mat_disk, nothing))
 
@@ -75,8 +77,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     wb = world_bounds(bvh)
     world_center, world_radius = bounding_sphere(wb)
     light = DistantLight(
-        # Spectrum(4.6, 4.5, 4.3),
-        Spectrum(2.6, 2.5, 2.3),
+        Spectrum(10.6, 10.5, 10.3),
+        # Spectrum(2.6, 2.5, 2.3),
         Vec3(-0.5826, -0.7660, -0.2717),
         world_center,
         world_radius,
@@ -102,7 +104,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_at = Pnt3(6.021, 100.043, -43.679)
     up = Vec3(0.273, 0.962, -0.009)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(Scale(-1.0, 1.0, 1.0) * LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 46.07, film)
+    C = PerspectiveCamera(Scale(-1.0, 1.0, 1.0) * LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 31.07, film)
 
     # Instantiate a Sampler
     S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))
