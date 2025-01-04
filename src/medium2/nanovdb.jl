@@ -25,59 +25,33 @@ struct NanoVDBMedium <: AbstractMedium
         # println("CONSTRUCTOR: renderFromMedium $render_from_medium") 
 
         bounds = Bounds3(Pnt3(a, b, c), Pnt3(d, e, f))
-        @info "World Medium Bounds: $(b)"
-        # medium_to_unit = UnitCube(b)
+        @info "World Medium Bounds: $(bounds)"
         # println("Coonstructor BOUNDS: $bounds")
 
         # moving this outside the loop
-        a, b, c, d, e, f = bbox = NanoVDB.get_indexBBox(density_float_grid)
-        bbox = Bounds3(Pnt3(a,b,c), Pnt3(d,e,f))
+        # a, b, c, d, e, f = bbox = NanoVDB.get_indexBBox(density_float_grid)
+        # bbox = Bounds3(Pnt3(a,b,c), Pnt3(d,e,f))
         # println("BBox: $bbox")
 
+        # println("Starting MajorantGridBuild")
+        majorant_grid_d = NanoVDB.build_majorant_grid(
+            density_float_grid,
+            Int64(majorant_grid_res.x), 
+            Int64(majorant_grid_res.y), 
+            Int64(majorant_grid_res.z),
+        )
+
         majorant_grid_size = Int64(majorant_grid_res.x * majorant_grid_res.y * majorant_grid_res.z)
-        majorant_grid_d = zeros(Float64, Int64(majorant_grid_size))
-        for index in 0:(majorant_grid_size-1)
-            # Indices into majorantGrid
-            x::Int64 = trunc(index % majorant_grid_res.x)
-            y::Int64 = trunc((index / majorant_grid_res.x) % majorant_grid_res.y)
-            z::Int64 = trunc(index / (majorant_grid_res.x * majorant_grid_res.y))
-            # println("index: $index vs $x, $y, $z, aka $(Int64(x + majorant_grid_res.x * (y + majorant_grid_res.y * z)))")
-            @assert index ==  Int64(x + majorant_grid_res.x * (y + majorant_grid_res.y * z))
 
-            # World (aka medium) space bounds of this max grid cell
-            wb = Bounds3(
-                lerp(bounds, Pnt3(
-                    x/majorant_grid_res.x,
-                    y/majorant_grid_res.y,
-                    z/majorant_grid_res.z,
-                )),
-                lerp(bounds, Pnt3(
-                    (x+1)/majorant_grid_res.x,
-                    (y+1)/majorant_grid_res.y,
-                    (z+1)/majorant_grid_res.z,
-                ))
-            )
-            # println("Coonstructor WB: $wb")
+        @assert length(majorant_grid_d) == majorant_grid_size
 
-            # Compute corresponding NanoVDB index-space bounds in floating-point.
-            i0x, i0y, i0z = NanoVDB.get_worldToIndexF(density_float_grid, wb.pMin.x, wb.pMin.y, wb.pMin.z)
-            i1x, i1y, i1z = NanoVDB.get_worldToIndexF(density_float_grid, wb.pMax.x, wb.pMax.y, wb.pMax.z)
+        # for index in 0:(majorant_grid_size-1)
+        #     x::Int64 = trunc(index % majorant_grid_res.x)
+        #     y::Int64 = trunc((index / majorant_grid_res.x) % majorant_grid_res.y)
+        #     z::Int64 = trunc(index / (majorant_grid_res.x * majorant_grid_res.y))
 
-            # Now find integer index-space bounds, accounting for both filtering and the overall index bounding box.
-            delta = 1.0  # Filter slop
-            nx0 = Int64(trunc(max(i0x - delta, bbox.pMin[0+1])))
-            nx1 = Int64(trunc(min(i1x + delta, bbox.pMax[0+1])))
-            ny0 = Int64(trunc(max(i0y - delta, bbox.pMin[1+1])))
-            ny1 = Int64(trunc(min(i1y + delta, bbox.pMax[1+1])))
-            nz0 = Int64(trunc(max(i0z - delta, bbox.pMin[2+1])))
-            nz1 = Int64(trunc(min(i1z + delta, bbox.pMax[2+1])))
-            # println("indices: $nx0 $nx1 $ny0 $ny1 $nz0 $nz1")
-
-            max_value = NanoVDB.get_max_voxel_value(density_float_grid, nx0, nx1, ny0, ny1, nz0, nz1)
-            # println("MAJORANT GRID: $x $y $z $max_value")
-            
-            majorant_grid_d[index+1] = max_value
-        end
+        #     println("MajorantGridDensities: $x, $y, $z = $(majorant_grid_d[index+1])")
+        # end
 
         return new(
             sigma_a, sigma_s, 
