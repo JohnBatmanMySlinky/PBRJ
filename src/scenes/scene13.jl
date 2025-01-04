@@ -26,8 +26,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     smoke_mi = MediumInterface(
         NanoVDBMedium(
             Translate(Pnt3(0,0,0)),
+            spectrum_from_float(0.0),
             spectrum_from_float(1.0),
-            spectrum_from_float(10.0),
             4.0,
             0.877,
             jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"),
@@ -66,8 +66,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = UniformInfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        # Spectrum(0.03, 0.07, 0.23), 
-        Spectrum(2.3, 2.7, 2.3), 
+        Spectrum(0.03, 0.07, 0.23), 
+        # Spectrum(2.3, 2.7, 2.3), 
     )
     push!(lights, light)
 
@@ -75,7 +75,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     wb = world_bounds(bvh)
     world_center, world_radius = bounding_sphere(wb)
     light = DistantLight(
-        Spectrum(4.6, 4.5, 4.3),
+        # Spectrum(4.6, 4.5, 4.3),
+        Spectrum(2.6, 2.5, 2.3),
         Vec3(-0.5826, -0.7660, -0.2717),
         world_center,
         world_radius,
@@ -101,7 +102,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_at = Pnt3(6.021, 100.043, -43.679)
     up = Vec3(0.273, 0.962, -0.009)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 46.07, film)
+    C = PerspectiveCamera(Scale(-1.0, 1.0, 1.0) * LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 46.07, film)
 
     # Instantiate a Sampler
     S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))
