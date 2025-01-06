@@ -7,7 +7,8 @@ struct DistantLight <: Light
     flags::LightFlags
     medium::Maybe{Medium}
 
-    function DistantLight(L::Spectrum, w_light::Vec3, world_center::Pnt3, world_radius::Float64, light_to_world::Transformation)
+    function DistantLight(L::Spectrum, from::Vec3, to::Vec3, world_center::Pnt3, world_radius::Float64, light_to_world::Transformation)
+        w_light = from - to
         return new(
             L,
             normalize(light_to_world(w_light)),

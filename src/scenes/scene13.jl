@@ -41,8 +41,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ),
         nothing
     )
-    # push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
-    push!(primitives, Primitive(sphere, mat_disk, nothing))
+    push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+    # push!(primitives, Primitive(sphere, mat_disk, nothing))
 
     # The disk
     disk_t = Translate(Pnt3(0, -1000, 0)) * Scale(2000.0, 2000.0, 2000.0) * Rotate(-90.0, Vec3(1, 0, 0))
@@ -77,8 +77,9 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     wb = world_bounds(bvh)
     world_center, world_radius = bounding_sphere(wb)
     light = DistantLight(
-        Spectrum(10.6, 10.5, 10.3),
         # Spectrum(2.6, 2.5, 2.3),
+        Spectrum(6.6, 6.5, 6.3),
+        Vec3(0,0,0),
         Vec3(-0.5826, -0.7660, -0.2717),
         world_center,
         world_radius,

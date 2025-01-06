@@ -2,11 +2,6 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
 
-    mat_white = Matte(
-        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-        nothing
-    )
     mat_disk = Matte(
         ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
@@ -14,8 +9,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     
     # Bounding sphere cause we hate winding order and such
-    box_t = Translate(Pnt3(-1.5, 0.0, -1.2)) * RotateX(90.0)
-    sphere_transform = Translate(Pnt3(-1.5, 0.0, -1.2)) * RotateX(90.0) 
+    sphere_transform = Translate(Pnt3(0.25, 0.0, -1.2)) * RotateX(90.0) 
     sphere = Sphere(
         ShapeCore(
             sphere_transform,
@@ -23,19 +17,20 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         ),
-        7.0
+        1.4
     )
+    smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
     smoke_mi = MediumInterface(
         GridMedium(
             jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"),
-            box_t,
-            spectrum_from_float(1.0),
-            spectrum_from_float(9.0),
+            smoke_t,
+            spectrum_from_float(90.0),
+            spectrum_from_float(10.0),
             1.0,
             Pnt3(0.01, 0.01, 0.01),
             Pnt3(1.99, 1.99, 0.79),
             0.0,
-            Pnt3(100, 100, 100)
+            Pnt3(30, 30, 30)
         ),
         nothing
     )
@@ -43,7 +38,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # push!(primitives, Primitive(sphere, mat_white, nothing))
 
     look_from = Pnt3(0.0715308, -4.17677, 5.33558)
-    look_at = Pnt3(0.0720194, -3.52456, 4.50187)
+    look_at = Pnt3(0.0720194, -3.62456, 4.50187)
     up = Vec3(-0.000323605, 0.833706, 0.552208)
     camera_transform = Scale(-1.0, 1.0, 1.0) * LookAt(look_from, look_at, up)
     disk = Disk(
@@ -54,38 +49,13 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(primitives, Primitive(disk, mat_disk, nothing))
 
-
-    # Orb light cause we hate environment maps (for now)
-    # sphere_transform = Translate(Pnt3(0.0720194, -0.52456, 4.60187))
-    # sphere = Sphere(
-    #     ShapeCore(
-    #         sphere_transform,
-    #         Inv(sphere_transform),
-    #         false,
-    #         false
-    #     ),
-    #     .05
-    # )
-    # alight = DiffuseAreaLight(
-    #     spectrum_from_float(5_000.0),
-    #     sphere,
-    #     false
-    # )
-    # light_m = Matte(
-    #     ConstantTexture(spectrum_from_float(1.0)),
-    #     ConstantTexture(spectrum_from_float(0.0)),
-    #     nothing
-    # )
-    # push!(lights, alight)
-    # push!(primitives, Primitive(sphere, light_m, alight))
-
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
     # instantiate the infinite light
-    l_2_w = RotateX(180.0)
+    l_2_w = Translate(Pnt3(0,0,0))
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
