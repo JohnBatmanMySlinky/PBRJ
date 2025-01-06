@@ -8,3 +8,31 @@
 - my issues
     - my background isn't blue
     - # voxels are making a huge difference 
+- debugs
+    /Users/johnmyslinski/Documents/pbrt-v3/debug/pbrt -nthreads 1 smoke_a_debug.pbrt --logdir . --v 3
+    julia -t 4 RayTracing.jl --scene-number 10 --image-dim 100 --samples-per-pixel 1 --jitter false --debug true --crop-window 0 0 .01 .01
+
+
+
+AIGHT SO YOURE FUCKING TELLING ME
+THIS
+    Scale -1 1 1
+    LookAt 0.0715308 -4.17677 5.33558 0.0720194 -3.62456 4.50187 -0.000323605 0.833706 0.552208
+EQUALS
+
+THIS
+camera_transform = LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0)
+
+
+BUT 
+THIS
+TransformBegin
+	Translate -1 0 -1.2
+	Rotate 90 1 0 0
+	Include "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
+	  "color sigma_a" [90 90 90] "color sigma_s" [10 10 10]
+TransformEnd
+
+EQUALS
+THIS
+smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)

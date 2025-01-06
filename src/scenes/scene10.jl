@@ -30,7 +30,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt3(0.01, 0.01, 0.01),
             Pnt3(1.99, 1.99, 0.79),
             0.0,
-            Pnt3(30, 30, 30)
+            Pnt3(256, 256, 256)
         ),
         nothing
     )
@@ -40,7 +40,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(0.0715308, -4.17677, 5.33558)
     look_at = Pnt3(0.0720194, -3.62456, 4.50187)
     up = Vec3(-0.000323605, 0.833706, 0.552208)
-    camera_transform = Scale(-1.0, 1.0, 1.0) * LookAt(look_from, look_at, up)
+    camera_transform = LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0)
     disk = Disk(
         camera_transform * Translate(Pnt3(0, 0, 30)),
         30.0,
@@ -59,7 +59,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        Spectrum(3.0, 3.0, 3.0), 
+        spectrum_from_float(3.0, Illuminant), 
         jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
         # "/Users/johnmyslinski/Documents/PBRJ/scratch/mipmap/hello.exr"
     )
@@ -74,7 +74,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
-        1.0,
+        7.0,
         parsed_args["file-name"]
     )
 
