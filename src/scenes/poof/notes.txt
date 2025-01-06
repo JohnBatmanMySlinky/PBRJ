@@ -1,0 +1,10 @@
+- smoke.pbrt: 
+    - Original, raw from pbrt-v3-scenes
+- smoke_a.pbrt: 
+    - with a sphere (translated) instead of .ply
+    - 16 spp instead of 256
+    - bdpt instead of volpath
+    - no crop window 
+- my issues
+    - my background isn't blue
+    - # voxels are making a huge difference 
