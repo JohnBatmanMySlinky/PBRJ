@@ -1,4 +1,4 @@
-function make_scene12()::Tuple{AbstractIntegrator, Scene}
+function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
 

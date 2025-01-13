@@ -1,4 +1,4 @@
-function make_scene100()::Tuple{AbstractIntegrator, Scene}
+function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
     mat_gray = Matte(            
