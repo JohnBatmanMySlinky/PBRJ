@@ -3,7 +3,7 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     lights = Light[]
 
     # Bounding sphere cause we hate winding order and such
-    box_t = Translate(Pnt3(-0.5, -1.0, 0))
+    smoke_t = Translate(Pnt3(-0.5, -1.0, 0))
     sphere_transform = Translate(Pnt3(0, 0, 0))
     sphere = Sphere(
         ShapeCore(
@@ -15,14 +15,16 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         5.0
     )
     smoke_mi = MediumInterface(
-        GridDensityMedium(
-            spectrum_from_float(10.0),
+        GridMedium(
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render_cloud.pbrt"),
+            smoke_t,
             spectrum_from_float(90.0),
-            0.0,
-            Pnt3(0.0, 0.0, 0.0),
+            spectrum_from_float(10.0),
+            1.0,
+            Pnt3(0.01, 0.01, 0.01),
             Pnt3(1.0, 1.0, 1.0),
-            box_t,
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render_cloud.pbrt"
+            0.0,
+            Pnt3(256, 256, 256),
         ),
         nothing
     )
