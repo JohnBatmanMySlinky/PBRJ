@@ -284,12 +284,15 @@ function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
 end
 
 function pdf_light_origin(sampled::Vertex, scene::Scene, v::Vertex, light_distr::Distribution1D, light_num::Int64)::Float64
+    @info "MISWEIGHT <<a4>> shenanigans is is in pdfLightOrigin"
     w = p(v) - p(sampled)
     (dot(w,w) == 0.0) && (return 0.0)
     w = Vec3(normalize(w))
     if is_infinite_light(sampled)
+        @info "MISWEIGHT <<a4>> shenanigans is in InfiniteLightDensity"
         return infinite_light_density(scene.lights, light_distr, w)
     else
+        @info "MISWEIGHT <<a4>> shenanigans is NOT in InfiniteLightDensity"
         light = sampled.type == VTLight ? sampled.ei.light : sampled.si.primitive.area_light
         pdf_choice = discrete_pdf(light_distr, light_num)
         pdf_pos, pdf_dir = pdf_le(light, Ray(p(sampled), w, time(sampled), typemax(Float64)), ng(sampled))

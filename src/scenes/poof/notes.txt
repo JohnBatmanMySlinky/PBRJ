@@ -7,6 +7,7 @@
     - no crop window 
 - my issues
     - my background isn't blue
+        - fucking not indexing thru all the lights in the scene in infinite_light_pdf... at least it was easy.
     - # voxels are making a huge difference 
 - debugs
     /Users/johnmyslinski/Documents/pbrt-v3/debug/pbrt -nthreads 1 smoke_a_debug.pbrt --logdir . --v 3
