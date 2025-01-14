@@ -12,6 +12,14 @@
 - debugs
     /Users/johnmyslinski/Documents/pbrt-v3/debug/pbrt -nthreads 1 smoke_a_debug.pbrt --logdir . --v 3
     julia -t 4 RayTracing.jl --scene-number 10 --image-dim 100 --samples-per-pixel 1 --jitter false --debug true --crop-window 0 0 .01 .01
+- what is next
+    - why so voxel-y
+    - scene params?
+    - c++ clean up
+    - segfault investigation
+    - dda testing: add non square
+    - other tests...
+    - sampled grid 2x2x2 testing
 
 
 

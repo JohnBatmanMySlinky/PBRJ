@@ -877,6 +877,7 @@ const sg3 = RayTracing.SampledGrid(d3, nx3, ny3, nz3)
 end
 
 @testset "DDAMajorantIterator - Iterating" begin
+    # set up
     fpath = RayTracing.jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/geometry/density_big_0084.pbrt")
     render_from_medium = RayTracing.Translate(RayTracing.Pnt3(0,0,0))
     sigma_a = RayTracing.spectrum_from_float(0.01)
@@ -897,15 +898,27 @@ end
         g,
         majorant_grid_res
     )
-    ray = RayTracing.Ray(
-        RayTracing.Pnt3(-3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z),
-        RayTracing.Vec3(1, 0, 0),
-        0.0, typemax(Float64)
-    )
-    dda_majorant_iterator = RayTracing.sample_ray(grid_medium, ray, typemax(Float64))
-    i = 0
-    for seg in dda_majorant_iterator
-        i += 1
+
+    # an easy test in x, y, and z direction x pos and negative
+    for (idx, p, dir) in [
+        (1, RayTracing.Pnt3(3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(-1, 0, 0)),
+        (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, -1, 0)),
+        (3, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 0.5 / majorant_grid_res.y, 3.0), RayTracing.Vec3(0, 0, -1)),
+
+        (1, RayTracing.Pnt3(-3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(1, 0, 0)),
+        (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, -3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, 1, 0)),
+        (3, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 0.5 / majorant_grid_res.y, -3.0), RayTracing.Vec3(0, 0, 1)),
+    ]
+        ray = RayTracing.Ray(
+            p,
+            dir,
+            0.0, typemax(Float64)
+        )
+        dda_majorant_iterator = RayTracing.sample_ray(grid_medium, ray, typemax(Float64))
+        i = 0
+        for seg in dda_majorant_iterator
+            i += 1
+        end
+        @test i == majorant_grid_res[idx]
     end
-    @test i == majorant_grid_res.x
 end
