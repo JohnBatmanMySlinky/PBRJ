@@ -886,39 +886,45 @@ end
     p0 = RayTracing.Pnt3(0.01, 0.01, 0.01)
     p1 = RayTracing.Pnt3(1.99, 1.99, 0.79)
     g = 0.0
-    majorant_grid_res = RayTracing.Pnt3(5, 5, 5)
-    grid_medium = RayTracing.GridMedium(
-        fpath,
-        render_from_medium,
-        sigma_a,
-        sigma_s,
-        sigma_scale,
-        p0,
-        p1,
-        g,
-        majorant_grid_res
-    )
-
-    # an easy test in x, y, and z direction x pos and negative
-    for (idx, p, dir) in [
-        (1, RayTracing.Pnt3(3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(-1, 0, 0)),
-        (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, -1, 0)),
-        (3, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 0.5 / majorant_grid_res.y, 3.0), RayTracing.Vec3(0, 0, -1)),
-
-        (1, RayTracing.Pnt3(-3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(1, 0, 0)),
-        (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, -3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, 1, 0)),
-        (3, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 0.5 / majorant_grid_res.y, -3.0), RayTracing.Vec3(0, 0, 1)),
+    majorant_grid_res = RayTracing.Pnt3(3, 4, 5)
+    for majorant_grid_res in [
+        RayTracing.Pnt3(3, 4, 5),
+        RayTracing.Pnt3(4, 3, 5),
+        RayTracing.Pnt3(3, 4, 3),
     ]
-        ray = RayTracing.Ray(
-            p,
-            dir,
-            0.0, typemax(Float64)
+        grid_medium = RayTracing.GridMedium(
+            fpath,
+            render_from_medium,
+            sigma_a,
+            sigma_s,
+            sigma_scale,
+            p0,
+            p1,
+            g,
+            majorant_grid_res
         )
-        dda_majorant_iterator = RayTracing.sample_ray(grid_medium, ray, typemax(Float64))
-        i = 0
-        for seg in dda_majorant_iterator
-            i += 1
+
+        # an easy test in x, y, and z direction x pos and negative
+        for (idx, p, dir) in [
+            (1, RayTracing.Pnt3(3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(-1, 0, 0)),
+            (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, -1, 0)),
+            (3, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 0.5 / majorant_grid_res.y, 3.0), RayTracing.Vec3(0, 0, -1)),
+
+            (1, RayTracing.Pnt3(-3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(1, 0, 0)),
+            (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, -3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, 1, 0)),
+            (3, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 0.5 / majorant_grid_res.y, -3.0), RayTracing.Vec3(0, 0, 1)),
+        ]
+            ray = RayTracing.Ray(
+                p,
+                dir,
+                0.0, typemax(Float64)
+            )
+            dda_majorant_iterator = RayTracing.sample_ray(grid_medium, ray, typemax(Float64))
+            i = 0
+            for seg in dda_majorant_iterator
+                i += 1
+            end
+            @test i == majorant_grid_res[idx]
         end
-        @test i == majorant_grid_res[idx]
     end
 end
