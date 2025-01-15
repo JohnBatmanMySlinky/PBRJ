@@ -17,7 +17,7 @@
     - scene params?
     - c++ clean up
     - segfault investigation
-    - dda testing: add non square
+    - dda testing: ~add non square~, ~side~
     - other tests...
     - sampled grid 2x2x2 testing
 
