@@ -904,7 +904,7 @@ end
             majorant_grid_res
         )
 
-        # an easy test in x, y, and z direction x pos and negative
+        # an easy test in x, y, and z direction x pos and negative. then edge tests
         for (idx, p, dir) in [
             (1, RayTracing.Pnt3(3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(-1, 0, 0)),
             (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, -1, 0)),
@@ -913,6 +913,16 @@ end
             (1, RayTracing.Pnt3(-3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(1, 0, 0)),
             (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, -3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, 1, 0)),
             (3, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 0.5 / majorant_grid_res.y, -3.0), RayTracing.Vec3(0, 0, 1)),
+
+
+            (1, RayTracing.Pnt3(3.0, p0.y, p0.z), RayTracing.Vec3(-1, 0, 0)),
+            (2, RayTracing.Pnt3(p0.x, 3.0, p0.z), RayTracing.Vec3(0, -1, 0)),
+            (3, RayTracing.Pnt3(p0.x, p0.y, 3.0), RayTracing.Vec3(0, 0, -1)),
+
+            (1, RayTracing.Pnt3(-3.0, p0.y, p0.z), RayTracing.Vec3(1, 0, 0)),
+            (2, RayTracing.Pnt3(p0.x, -3.0, p0.z), RayTracing.Vec3(0, 1, 0)),
+            (3, RayTracing.Pnt3(p0.x, p0.y, -3.0), RayTracing.Vec3(0, 0, 1)),
+
         ]
             ray = RayTracing.Ray(
                 p,
