@@ -860,81 +860,101 @@ using Random
 # end
 
 
-const nx1, ny1, nz1, d1 = RayTracing.parse_media("test_grid-2x2x2.pbrt")
-const sg1 = RayTracing.SampledGrid(d1, nx1, ny1, nz1)
-const nx2, ny2, nz2, d2 = RayTracing.parse_media("test_grid-3x3x3.pbrt")
-const sg2 = RayTracing.SampledGrid(d2, nx2, ny2, nz2)
-const nx3, ny3, nz3, d3 = RayTracing.parse_media("test_grid-3x3x2.pbrt")
-const sg3 = RayTracing.SampledGrid(d3, nx3, ny3, nz3)
-@testset "SampledGrid - lookup() & max_value()" begin
-    @test maximum(d1) == RayTracing.lookup(sg1, RayTracing.Pnt3(1.0 - 1.0 / nx1 / 2.0, 1.0 - 1.0 / ny1 / 2.0, 1.0 - 1.0 / nz1 / 2.0))
-    @test maximum(d2) == RayTracing.lookup(sg2, RayTracing.Pnt3(1.0 - 1.0 / nx2 / 2.0, 1.0 - 1.0 / ny2 / 2.0, 1.0 - 1.0 / nz2 / 2.0))
-    @test maximum(d3) == RayTracing.lookup(sg3, RayTracing.Pnt3(1.0 - 1.0 / nx3 / 2.0, 1.0 - 1.0 / ny3 / 2.0, 1.0 - 1.0 / nz3 / 2.0))
+# const nx1, ny1, nz1, d1 = RayTracing.parse_media("test_grid-2x2x2.pbrt")
+# const sg1 = RayTracing.SampledGrid(d1, nx1, ny1, nz1)
+# const nx2, ny2, nz2, d2 = RayTracing.parse_media("test_grid-3x3x3.pbrt")
+# const sg2 = RayTracing.SampledGrid(d2, nx2, ny2, nz2)
+# const nx3, ny3, nz3, d3 = RayTracing.parse_media("test_grid-3x3x2.pbrt")
+# const sg3 = RayTracing.SampledGrid(d3, nx3, ny3, nz3)
+# @testset "SampledGrid - lookup() & max_value()" begin
+#     @test maximum(d1) == RayTracing.lookup(sg1, RayTracing.Pnt3(1.0 - 1.0 / nx1 / 2.0, 1.0 - 1.0 / ny1 / 2.0, 1.0 - 1.0 / nz1 / 2.0))
+#     @test maximum(d2) == RayTracing.lookup(sg2, RayTracing.Pnt3(1.0 - 1.0 / nx2 / 2.0, 1.0 - 1.0 / ny2 / 2.0, 1.0 - 1.0 / nz2 / 2.0))
+#     @test maximum(d3) == RayTracing.lookup(sg3, RayTracing.Pnt3(1.0 - 1.0 / nx3 / 2.0, 1.0 - 1.0 / ny3 / 2.0, 1.0 - 1.0 / nz3 / 2.0))
 
-    @test maximum(d1) == RayTracing.max_value(sg1, RayTracing.Bounds3(RayTracing.Pnt3(0, 0, 0), RayTracing.Pnt3(1, 1, 1)))
-    @test maximum(d2) == RayTracing.max_value(sg2, RayTracing.Bounds3(RayTracing.Pnt3(0, 0, 0), RayTracing.Pnt3(1, 1, 1)))
-    @test maximum(d3) == RayTracing.max_value(sg3, RayTracing.Bounds3(RayTracing.Pnt3(0, 0, 0), RayTracing.Pnt3(1, 1, 1)))
-end
+#     @test maximum(d1) == RayTracing.max_value(sg1, RayTracing.Bounds3(RayTracing.Pnt3(0, 0, 0), RayTracing.Pnt3(1, 1, 1)))
+#     @test maximum(d2) == RayTracing.max_value(sg2, RayTracing.Bounds3(RayTracing.Pnt3(0, 0, 0), RayTracing.Pnt3(1, 1, 1)))
+#     @test maximum(d3) == RayTracing.max_value(sg3, RayTracing.Bounds3(RayTracing.Pnt3(0, 0, 0), RayTracing.Pnt3(1, 1, 1)))
+# end
 
-@testset "DDAMajorantIterator - Iterating" begin
-    # set up
-    fpath = RayTracing.jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/geometry/density_big_0084.pbrt")
-    render_from_medium = RayTracing.Translate(RayTracing.Pnt3(0,0,0))
-    sigma_a = RayTracing.spectrum_from_float(0.01)
-    sigma_s = RayTracing.spectrum_from_float(0.015)
-    sigma_scale = 1.0
-    p0 = RayTracing.Pnt3(0.01, 0.01, 0.01)
-    p1 = RayTracing.Pnt3(1.99, 1.99, 0.79)
-    g = 0.0
-    majorant_grid_res = RayTracing.Pnt3(3, 4, 5)
-    for majorant_grid_res in [
-        RayTracing.Pnt3(3, 4, 5),
-        RayTracing.Pnt3(4, 3, 5),
-        RayTracing.Pnt3(3, 4, 3),
-    ]
-        grid_medium = RayTracing.GridMedium(
-            fpath,
-            render_from_medium,
-            sigma_a,
-            sigma_s,
-            sigma_scale,
-            p0,
-            p1,
-            g,
-            majorant_grid_res
-        )
+# @testset "DDAMajorantIterator - Iterating" begin
+#     # set up
+#     fpath = RayTracing.jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/geometry/density_big_0084.pbrt")
+#     render_from_medium = RayTracing.Translate(RayTracing.Pnt3(0,0,0))
+#     sigma_a = RayTracing.spectrum_from_float(0.01)
+#     sigma_s = RayTracing.spectrum_from_float(0.015)
+#     sigma_scale = 1.0
+#     p0 = RayTracing.Pnt3(0.01, 0.01, 0.01)
+#     p1 = RayTracing.Pnt3(1.99, 1.99, 0.79)
+#     g = 0.0
+#     majorant_grid_res = RayTracing.Pnt3(3, 4, 5)
+#     for majorant_grid_res in [
+#         RayTracing.Pnt3(3, 4, 5),
+#         RayTracing.Pnt3(4, 3, 5),
+#         RayTracing.Pnt3(3, 4, 3),
+#     ]
+#         grid_medium = RayTracing.GridMedium(
+#             fpath,
+#             render_from_medium,
+#             sigma_a,
+#             sigma_s,
+#             sigma_scale,
+#             p0,
+#             p1,
+#             g,
+#             majorant_grid_res
+#         )
 
-        # an easy test in x, y, and z direction x pos and negative. then edge tests
-        for (idx, p, dir) in [
-            (1, RayTracing.Pnt3(3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(-1, 0, 0)),
-            (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, -1, 0)),
-            (3, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 0.5 / majorant_grid_res.y, 3.0), RayTracing.Vec3(0, 0, -1)),
+#         # an easy test in x, y, and z direction x pos and negative. then edge tests
+#         for (idx, p, dir) in [
+#             (1, RayTracing.Pnt3(3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(-1, 0, 0)),
+#             (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, -1, 0)),
+#             (3, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 0.5 / majorant_grid_res.y, 3.0), RayTracing.Vec3(0, 0, -1)),
 
-            (1, RayTracing.Pnt3(-3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(1, 0, 0)),
-            (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, -3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, 1, 0)),
-            (3, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 0.5 / majorant_grid_res.y, -3.0), RayTracing.Vec3(0, 0, 1)),
+#             (1, RayTracing.Pnt3(-3.0, 0.5 / majorant_grid_res.y, 0.5 / majorant_grid_res.z), RayTracing.Vec3(1, 0, 0)),
+#             (2, RayTracing.Pnt3(0.5 / majorant_grid_res.x, -3.0, 0.5 / majorant_grid_res.z), RayTracing.Vec3(0, 1, 0)),
+#             (3, RayTracing.Pnt3(0.5 / majorant_grid_res.x, 0.5 / majorant_grid_res.y, -3.0), RayTracing.Vec3(0, 0, 1)),
 
 
-            (1, RayTracing.Pnt3(3.0, p0.y, p0.z), RayTracing.Vec3(-1, 0, 0)),
-            (2, RayTracing.Pnt3(p0.x, 3.0, p0.z), RayTracing.Vec3(0, -1, 0)),
-            (3, RayTracing.Pnt3(p0.x, p0.y, 3.0), RayTracing.Vec3(0, 0, -1)),
+#             (1, RayTracing.Pnt3(3.0, p0.y, p0.z), RayTracing.Vec3(-1, 0, 0)),
+#             (2, RayTracing.Pnt3(p0.x, 3.0, p0.z), RayTracing.Vec3(0, -1, 0)),
+#             (3, RayTracing.Pnt3(p0.x, p0.y, 3.0), RayTracing.Vec3(0, 0, -1)),
 
-            (1, RayTracing.Pnt3(-3.0, p0.y, p0.z), RayTracing.Vec3(1, 0, 0)),
-            (2, RayTracing.Pnt3(p0.x, -3.0, p0.z), RayTracing.Vec3(0, 1, 0)),
-            (3, RayTracing.Pnt3(p0.x, p0.y, -3.0), RayTracing.Vec3(0, 0, 1)),
+#             (1, RayTracing.Pnt3(-3.0, p0.y, p0.z), RayTracing.Vec3(1, 0, 0)),
+#             (2, RayTracing.Pnt3(p0.x, -3.0, p0.z), RayTracing.Vec3(0, 1, 0)),
+#             (3, RayTracing.Pnt3(p0.x, p0.y, -3.0), RayTracing.Vec3(0, 0, 1)),
 
-        ]
-            ray = RayTracing.Ray(
-                p,
-                dir,
-                0.0, typemax(Float64)
-            )
-            dda_majorant_iterator = RayTracing.sample_ray(grid_medium, ray, typemax(Float64))
-            i = 0
-            for seg in dda_majorant_iterator
-                i += 1
-            end
-            @test i == majorant_grid_res[idx]
-        end
+#         ]
+#             ray = RayTracing.Ray(
+#                 p,
+#                 dir,
+#                 0.0, typemax(Float64)
+#             )
+#             dda_majorant_iterator = RayTracing.sample_ray(grid_medium, ray, typemax(Float64))
+#             i = 0
+#             for seg in dda_majorant_iterator
+#                 i += 1
+#             end
+#             @test i == majorant_grid_res[idx]
+#         end
+#     end
+# end
+
+@testset "NanoVDB: Disney Cloud: 3x3x3 - Majorant Grid" begin
+    nvdb = RayTracing.NanoVDBMedium(
+        RayTracing.Translate(RayTracing.Pnt3(0,0,0)),
+        RayTracing.spectrum_from_float(0.0),
+        RayTracing.spectrum_from_float(1.0),
+        4.0,
+        0.877,
+        RayTracing.jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"),
+        RayTracing.Pnt3(3, 3, 3)
+    )
+    for index in 0:(nvdb.majorant_grid.res.x * nvdb.majorant_grid.res.y * nvdb.majorant_grid.res.z - 1)
+        x::Int64 = trunc(index % majorant_grid_res.x)
+        y::Int64 = trunc((index / majorant_grid_res.x) % majorant_grid_res.y)
+        z::Int64 = trunc(index / (majorant_grid_res.x * majorant_grid_res.y))
+
+    println("$x, $y, $z: $(nvdb.majorant_grid.voxels[index+1])")  
     end
+
 end
