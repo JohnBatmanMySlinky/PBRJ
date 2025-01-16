@@ -21,6 +21,8 @@
     - other tests...
     - sampled grid 2x2x2 testing
 
+- disney cloud majorant grid set up testing on 3x3x3
+
 
 
 AIGHT SO YOURE FUCKING TELLING ME
