@@ -37,7 +37,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             4.0,
             0.877,
             jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"),
-            Pnt3(3, 3, 3)
+            Pnt3(64, 64, 64)
         ),
         nothing
     )
@@ -77,8 +77,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     wb = world_bounds(bvh)
     world_center, world_radius = bounding_sphere(wb)
     light = DistantLight(
-        # Spectrum(2.6, 2.5, 2.3),
-        Spectrum(6.6, 6.5, 6.3),
+        Spectrum(2.6, 2.5, 2.3),
+        # Spectrum(6.6, 6.5, 6.3),
         Vec3(0,0,0),
         Vec3(-0.5826, -0.7660, -0.2717),
         world_center,
@@ -105,7 +105,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_at = Pnt3(6.021, 100.043, -43.679)
     up = Vec3(0.273, 0.962, -0.009)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(Scale(-1.0, 1.0, 1.0) * LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 31.07, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), screen, 0.0, 1.0, 0.0, 1e6, 31.07, film)
 
     # Instantiate a Sampler
     S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))
