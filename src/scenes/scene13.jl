@@ -24,8 +24,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         ),
-        # 1.44224957031
-        0.54224957031
+        1.44224957031
+        # 0.54224957031
     )
 
     smoke_mi = MediumInterface(
@@ -36,7 +36,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             0.877,
             4.0,
             jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"),
-            Pnt3(3, 3, 3)
+            Pnt3(256, 256, 256)
         ),
         nothing
     )
