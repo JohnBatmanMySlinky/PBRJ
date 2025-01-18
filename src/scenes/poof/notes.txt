@@ -20,8 +20,15 @@
     - dda testing: ~add non square~, ~side~
     - other tests...
     - sampled grid 2x2x2 testing
+    - NanoVDB seg faults if I try to use `path` before init so do i need a null check or someshit?
+    - fucking distant light is fucky
+        - make disney cloud NOT use distant
+        - make pbrt v3 exact match distant light
+            - looks like Vis tester isnt using the Medium?x
 
 - disney cloud majorant grid set up testing on 3x3x3
+
+- AIGHT SO NOW DISTANT LIKE IS FUCK SO MAKE IN PBRTV3 AND MATCH
 
 
 

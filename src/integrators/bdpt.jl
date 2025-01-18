@@ -706,8 +706,8 @@ function MIS_weight(
         end
     end
 
-    if s==0 && t==3
-        @info "MISWEIGHT: <<a1>> $(camera_vertices[3].pdf_rev)"
+    if s==1 && t==2
+        @info "MISWEIGHT: <<a1>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Mark connection vertices as non-degenerate
@@ -715,8 +715,8 @@ function MIS_weight(
     (pt > 0) && (camera_vertices[pt].delta = false)
     (qs > 0) && (light_vertices[qs].delta = false)
 
-    if s==0 && t==3
-        @info "MISWEIGHT: <<a2,a3>> $(camera_vertices[3].pdf_rev)"
+    if s==1 && t==2
+        @info "MISWEIGHT: <<a2,a3>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Update reverse density of vertex $\pt{}_{t-1}$
@@ -724,6 +724,7 @@ function MIS_weight(
     if pt > 0 
         if s > 0
             if qs_minus == 0
+                @info "BOOP"
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, nothing, camera_vertices[pt])
             else
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, light_vertices[qs_minus], camera_vertices[pt])
@@ -733,8 +734,10 @@ function MIS_weight(
         end
     end
 
-    if s==0 && t==3
-        @info "MISWEIGHT: <<a4>> $(camera_vertices[3].pdf_rev)"
+    @info "HAHA: pt: $pt, s: $s, qsMiuns: $qs_minus"
+
+    if s==1 && t==2
+        @info "MISWEIGHT: <<a4>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Update reverse density of vertex $\pt{}_{t-2}$
@@ -747,8 +750,8 @@ function MIS_weight(
         end
     end
 
-    if s==0 && t==3
-        @info "MISWEIGHT: <<a5>> $(camera_vertices[3].pdf_rev)"
+    if s==1 && t==2
+        @info "MISWEIGHT: <<a5>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Update reverse density of vertices $\pq{}_{s-1}$ and $\pq{}_{s-2}$
@@ -764,18 +767,18 @@ function MIS_weight(
         light_vertices[qs_minus].pdf_rev = pdf(light_vertices[qs], scene, camera_vertices[pt], light_vertices[qs_minus])
     end
 
-    if s==0 && t==3
-        @info "MISWEIGHT: <<a6,a7>> $(camera_vertices[3].pdf_rev)"
+    if s==1 && t==2
+        @info "MISWEIGHT: <<a6,a7>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Consider hypothetical connection strategies along the camera subpath
     ri = 1.0
     for i in reverse(1:(t-1))
-        # @info "MISWEIGHT LOOP: $(i)"
+        @info "MISWEIGHT LOOP: $(i)"
         ri *= remap0(camera_vertices[i+1].pdf_rev) / remap0(camera_vertices[i+1].pdf_fwd)
         if !camera_vertices[i+1].delta && !camera_vertices[i-1+1].delta
-            @info "MISWEIGHT: Camera Subpath: sumRi: $(sum_ri) ri: $(ri) aka $(remap0(camera_vertices[i+1].pdf_rev)) / $(remap0(camera_vertices[i+1].pdf_fwd))"
             sum_ri += ri
+            @info "MISWEIGHT: Camera Subpath: sumRi: $(sum_ri) ri: $(ri) aka $(remap0(camera_vertices[i+1].pdf_rev)) / $(remap0(camera_vertices[i+1].pdf_fwd))"
         end
     end
 

@@ -197,6 +197,7 @@ class NanoVDBWrapper {
             // auto handle = nanovdb::io::readGrid(jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")); // reads first grid from file
             // auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
             nanovdb::Vec3<float> pIndex = densityFloatGrid->worldToIndexF(nanovdb::Vec3<float>(x, y, z));
+            // std::cout << "SAMPLE POINT: pIndex " << pIndex[0] << ", " << pIndex[1] << ", " << pIndex[2] << std::endl;
             using Sampler = nanovdb::SampleFromVoxels<nanovdb::FloatGrid::TreeType, 1, false>;
             float d = Sampler(densityFloatGrid->tree())(pIndex);
             return d;

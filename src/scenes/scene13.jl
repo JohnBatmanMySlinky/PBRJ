@@ -27,17 +27,16 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # 1.44224957031
         0.54224957031
     )
-    # push!(primitives, Primitive(sphere, mat_gray, nothing))
 
     smoke_mi = MediumInterface(
         NanoVDBMedium(
             Translate(Pnt3(0,0,0)),
-            spectrum_from_float(0.0),
+            spectrum_from_float(0.1),
             spectrum_from_float(1.0),
-            4.0,
             0.877,
+            4.0,
             jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"),
-            Pnt3(64, 64, 64)
+            Pnt3(3, 3, 3)
         ),
         nothing
     )
@@ -68,7 +67,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = UniformInfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        Spectrum(0.03, 0.07, 0.23), 
+        Spectrum(0.53, 0.57, 0.53), 
+        # Spectrum(0.03, 0.07, 0.23), 
         # Spectrum(2.3, 2.7, 2.3), 
     )
     push!(lights, light)
@@ -109,6 +109,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Sampler
     S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))
+    # S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
