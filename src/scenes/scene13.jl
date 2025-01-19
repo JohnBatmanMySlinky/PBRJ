@@ -31,7 +31,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     smoke_mi = MediumInterface(
         NanoVDBMedium(
             Translate(Pnt3(0,0,0)),
-            spectrum_from_float(0.1),
+            spectrum_from_float(0.0),
             spectrum_from_float(1.0),
             0.877,
             4.0,
@@ -67,8 +67,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = UniformInfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        Spectrum(0.53, 0.57, 0.53), 
-        # Spectrum(0.03, 0.07, 0.23), 
+        # Spectrum(0.53, 0.57, 0.53), 
+        Spectrum(0.03, 0.07, 0.23), 
         # Spectrum(2.3, 2.7, 2.3), 
     )
     push!(lights, light)

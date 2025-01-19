@@ -5,7 +5,7 @@ struct DistantLight <: Light
     world_radius::Float64
     light_to_world::Transformation
     flags::LightFlags
-    medium::Maybe{Medium}
+    medium::Maybe{AbstractMedium}
 
     function DistantLight(L::Spectrum, from::Vec3, to::Vec3, world_center::Pnt3, world_radius::Float64, light_to_world::Transformation)
         w_light = from - to
@@ -38,7 +38,7 @@ function sample_li(dl::DistantLight, interaction::Interaction, u::Pnt2)::Tuple{S
     p_outside = interaction.p + dl.w_light * 2 * dl.world_radius
     visibility = VisibilityTester(
         interaction, 
-        Interaction(p_outside, interaction.t, Vec3(0,0,0), Nml3(0,0,0))
+        Interaction(p_outside, interaction.t, Vec3(0,0,0), Nml3(0,0,0), dl.medium)
     )
     radiance = L(dl, nshape, -wi)
     return radiance, wi, pdf_val, visibility, pshape, nshape
