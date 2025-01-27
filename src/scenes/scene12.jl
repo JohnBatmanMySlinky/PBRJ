@@ -20,6 +20,32 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(primitives, Primitive(sphere, mat_sphere, nothing))
 
+    smoke_t = Translate(Pnt3(1, 0, -1)) * Rotate(180.0, Vec3(0,1,0)) * Translate(Pnt3(-0.75, 0.0, -0.75)) * Scale(2.0, 2.0, 2.0)
+    sphere2 = Sphere(
+        ShapeCore(
+            smoke_t,
+            Inv(smoke_t),
+            false,
+            false
+        ),
+        3.0
+    )
+    smoke_mi = MediumInterface(
+        GridMedium(
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/geometry/density_big_0084.pbrt"),
+            smoke_t,
+            spectrum_from_float(20.0),
+            spectrum_from_float(160.0),
+            1.0,
+            Pnt3(0.00, 0.00, 0.00),
+            Pnt3(0.75, 1.00, 0.75),
+            0.0,
+            Pnt3(16, 16, 16)
+        ),
+        nothing
+    )
+    push!(primitives, Primitive(sphere2, nothing, nothing, smoke_mi))
+
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
