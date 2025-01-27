@@ -33,7 +33,8 @@
 - aight so distant light is OK. still some fireflies. why does voxel size make such a difference? probably cuz something in DDAMajorant Iterator is fucked...
 - un fuck scene 12 for fun.
 
-
+- something is fucking wrong when i do a 3,3,3 grid. # scatters should be proportional to resolution of voxel grid?
+- v4 smoke plume!!
 
 AIGHT SO YOURE FUCKING TELLING ME
 THIS

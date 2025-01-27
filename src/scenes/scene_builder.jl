@@ -8,10 +8,10 @@ scene 6: goursat ✅
 scene 7: julia logo ✅
 scene 8: an anemic leafless procedural tree ✅
 scene 9: a broken ass orb 🔴 (obj parser sucks)
-scene 10: a cloud ✅
+scene 10: a cloud 🟨
 scene 11: infinite light show off & material testing ✅
-scene 12: DISNEY CLOUD GRID! ✅
-scene 13: DISNEY CLOUD ✅
+scene 12: v4 smoke plume 🟨
+scene 13: DISNEY CLOUD 🟨
 scene 14: elevator hallway 🟨
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
 scene 100: Furry Bunny from pbrt-v4 ✅ (just dont use HairBSDF)
