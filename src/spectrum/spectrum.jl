@@ -5,6 +5,7 @@ function spectrum_from_sampled(lambda::Vector{Float64}, v::Vector{Float64}, n::I
 
     # check lambda is sorted
     @assert check_monotonic(lambda)
+    @assert length(lambda) == length(v) == n
 
     tmp = zeros(nSpectralSamples)
     for i in 1:nSpectralSamples
@@ -13,6 +14,21 @@ function spectrum_from_sampled(lambda::Vector{Float64}, v::Vector{Float64}, n::I
         tmp[i] = average_spectrum_samples(lambda, v, n, lambda0, lambda1)
     end
     return Spectrum(tmp)
+end
+
+function spectrum_from_sampled(spd_path::String)::Spectrum
+    # reads SPD data from spd file
+    lambda = Float64[]
+    v = Float64[]
+    open(spd_path) do file
+        for line in eachline(file)
+            vals = split(line)
+            push!(lambda, parse(Float64, vals[1]))
+            push!(v, parse(Float64, vals[2]))
+        end
+    end
+    
+    return spectrum_from_sampled(lambda, v, length(lambda))
 end
 
 function spectrum_from_RGB(r::Float64, g::Float64, b::Float64, spectrum_type::Type{S}=Reflectance)::Spectrum where S <: SpectrumType
