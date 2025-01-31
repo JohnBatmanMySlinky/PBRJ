@@ -62,8 +62,8 @@ function (m::Metal)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     si.bsdf = BSDF(si)
 
     # JOHN TODO fair amount of kludging in here
-    u_rough::Float64 = (m.u_roughness isa Nothing) ? y(m.roughness(si)) : y(m.u_roughness(si))
-    v_rough::Float64 = (m.v_roughness isa Nothing) ? y(m.roughness(si)) : y(m.v_roughness(si))
+    u_rough::Float64 = (m.u_roughness isa Nothing) ? y_spectrum(m.roughness(si)) : y_spectrum(m.u_roughness(si))
+    v_rough::Float64 = (m.v_roughness isa Nothing) ? y_spectrum(m.roughness(si)) : y_spectrum(m.v_roughness(si))
     if m.remap_roughness
         u_rough = roughness_to_alpha(u_rough)
         v_rough = roughness_to_alpha(v_rough)

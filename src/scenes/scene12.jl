@@ -2,10 +2,10 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
 
-    mat_sphere = Matte(
-        ConstantTexture(spectrum_from_float(0.3, 0.3, 0.3)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-        nothing
+    mat_sphere = Metal(
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.eta.spd"))),
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.k.spd"))),
+        ConstantTexture(spectrum_from_float(0.0)),
     )
     mat_floor = Matte(
         ConstantTexture(spectrum_from_float(0.025, 0.025, 0.025)),
