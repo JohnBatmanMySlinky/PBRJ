@@ -7,6 +7,11 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    mat_floor = Matte(
+        ConstantTexture(spectrum_from_float(0.025, 0.025, 0.025)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        nothing
+    )
 
     sphere_transform = Translate(Pnt3(1, 1, -1)) * Rotate(180.0, Vec3(0, 1, 0)) * Translate(Pnt3(-0.75, 0, -0.75)) * Scale(2.0, 2.0, 2.0) * Translate(Pnt3(0.375, 0.0, 0.375))
     sphere = Sphere(
@@ -40,11 +45,26 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt3(0.00, 0.00, 0.00),
             Pnt3(0.75, 1.00, 0.75),
             0.0,
-            Pnt3(16, 16, 16)
+            Pnt3(256, 256, 256)
         ),
         nothing
     )
     push!(primitives, Primitive(sphere2, nothing, nothing, smoke_mi))
+
+    floor_t = Translate(Pnt3(0, 0.1, 0))
+    floor = BilinearPatchGenerator(
+        ShapeCore(floor_t, Inv(floor_t), false, false),
+        1,
+        4,
+        Int64[0, 1, 2, 3],
+        Pnt3[Pnt3(-50, 0, -50), Pnt3(-50, 0, 50), Pnt3(50, 0, -50), Pnt3(50, 0, 50)],
+        nothing,
+        nothing,
+        nothing
+    )
+    for tri in floor
+        push!(primitives, Primitive(tri, mat_floor, nothing))
+    end
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -57,7 +77,7 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         world_bounds(bvh), 
         l_2_w, 
         Spectrum(4.0, 4.0, 4.0), 
-        "/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/textures/sky.exr"
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/textures/sky.exr")
     )
     push!(lights, light)
 
