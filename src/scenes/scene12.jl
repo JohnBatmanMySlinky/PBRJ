@@ -35,21 +35,21 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ),
         3.0
     )
-    smoke_mi = MediumInterface(
-        GridMedium(
-            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/geometry/density_big_0084.pbrt"),
-            smoke_t,
-            spectrum_from_float(20.0),
-            spectrum_from_float(160.0),
-            1.0,
-            Pnt3(0.00, 0.00, 0.00),
-            Pnt3(0.75, 1.00, 0.75),
-            0.0,
-            Pnt3(256, 256, 256)
-        ),
-        nothing
-    )
-    push!(primitives, Primitive(sphere2, nothing, nothing, smoke_mi))
+    # smoke_mi = MediumInterface(
+    #     GridMedium(
+    #         jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/geometry/density_big_0084.pbrt"),
+    #         smoke_t,
+    #         spectrum_from_float(20.0),
+    #         spectrum_from_float(160.0),
+    #         1.0,
+    #         Pnt3(0.00, 0.00, 0.00),
+    #         Pnt3(0.75, 1.00, 0.75),
+    #         0.0,
+    #         Pnt3(256, 256, 256)
+    #     ),
+    #     nothing
+    # )
+    # push!(primitives, Primitive(sphere2, nothing, nothing, smoke_mi))
 
     floor_t = Translate(Pnt3(0, 0.1, 0))
     floor = BilinearPatchGenerator(

@@ -16,6 +16,8 @@ struct Metal <: Material
         bump_map::Maybe{Texture}=nothing,
         remap_roughness::Bool=true
     )::Metal
+        @info "Metal eta: $eta"
+        @info "Metal k: $k"
         return new(eta, k, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
     end
 end
@@ -64,10 +66,18 @@ function (m::Metal)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     # JOHN TODO fair amount of kludging in here
     u_rough::Float64 = (m.u_roughness isa Nothing) ? y_spectrum(m.roughness(si)) : y_spectrum(m.u_roughness(si))
     v_rough::Float64 = (m.v_roughness isa Nothing) ? y_spectrum(m.roughness(si)) : y_spectrum(m.v_roughness(si))
+
+    @info "uRough PRE: $u_rough"
+    @info "vRough PRE: $v_rough"
+
     if m.remap_roughness
         u_rough = roughness_to_alpha(u_rough)
         v_rough = roughness_to_alpha(v_rough)
     end
+
+    @info "uRough POST: $u_rough"
+    @info "vRough POST: $v_rough"
+
     fresnel = FresnelConductor(spectrum_from_float(1.0), m.eta(si), m.k(si))
     distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
     add!(si.bsdf, MicrofacetReflection(spectrum_from_float(1.0), distrib, fresnel))
