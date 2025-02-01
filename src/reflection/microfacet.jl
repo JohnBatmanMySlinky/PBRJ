@@ -11,7 +11,7 @@ struct MicrofacetReflection <: AbstractBxDF
     end
 end
 
-function f(mr::MicrofacetReflection, wo::Vec3, wi::Vec3)
+function f(mr::MicrofacetReflection, wo::Vec3, wi::Vec3)::Spectrum
     cos_theta_o = abs(cos_theta(wo))
     cos_theta_i = abs(cos_theta(wi))
     wh = wo + wi
@@ -23,6 +23,9 @@ function f(mr::MicrofacetReflection, wo::Vec3, wi::Vec3)
     end
     wh = normalize(wh)
     F = mr.fresnel(dot(wi, face_forward(wh, Vec3(0,0,1))))
+    @info "F: $F"
+    @info "D: $(D(mr.distrib, wh))"
+    @info "G: $(G(mr.distrib, wo, wi))"
     return mr.R * D(mr.distrib, wh) * G(mr.distrib, wo, wi) * F / (4.0 * cos_theta_i * cos_theta_o)
 end
 

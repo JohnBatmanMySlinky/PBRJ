@@ -72,21 +72,24 @@ end
 
 function sample_wh(md::TrowbridgeReitzDistribution, wo::Vec3, u::Pnt2)::Vec3
     if (!md.sample_visible_area)
-        cosTheta = 0
+        @info "MD: NOT sample visible area"
+        cosTheta = 0.0
         phi = (2 * pi) * u.y
-        if (md.alphax == md.alphay) 
-            tanTheta2 = md.alphax * md.alphax * u.x / (1.0 - u.x)
+        if (md.alpha_x == md.alpha_y) 
+            @info "MD: alpha_x == alpha_y"
+            tanTheta2 = md.alpha_x * md.alpha_x * u.x / (1.0 - u.x)
             cosTheta = 1.0 / sqrt(1.0 + tanTheta2)
         else
-            phi = atan(alphay / alphax * tan(2 * pi * u.y + .5 * pi))
+            @info "MD: alpha_x != alpha_y"
+            phi = atan(md.alpha_y / md.alpha_x * tan(2 * pi * u.y + .5 * pi))
             if (u.y > .5) 
                 phi += pi
             end
             sinPhi = sin(phi)
             cosPhi = cos(phi)
-            alphax2 = md.alphax * md.alphax
-            alphay2 = md.alphay * md.alphay
-            alpha2 = 1.0 / (cosPhi * cosPhi / alphax2 + sinPhi * sinPhi / alphay2)
+            md.alpha_x2 = md.alpha_x * md.alpha_x
+            md.alpha_y2 = md.alpha_y * md.alpha_y
+            alpha2 = 1.0 / (cosPhi * cosPhi / md.alpha_x2 + sinPhi * sinPhi / md.alpha_y2)
             tanTheta2 = alpha2 * u.x / (1.0 - u.x)
             cosTheta = 1.0 / sqrt(1 + tanTheta2)
         end
@@ -95,10 +98,11 @@ function sample_wh(md::TrowbridgeReitzDistribution, wo::Vec3, u::Pnt2)::Vec3
         if (!same_hemisphere(wo, wh)) 
             wh = -wh
         end
-    else 
+    else
+        @info "MD: sample visible area"
         flip = wo.z < 0
-        wh = TrowbridgeReitzSample(flip ? -wo : wo, alphax, alphay, u.x, u.y)
-        if (flip) 
+        wh = TrowbridgeReitzSample(flip ? -wo : wo, md.alpha_x, md.alpha_y, u.x, u.y)
+        if flip
             wh = -wh
         end
     end
@@ -108,14 +112,17 @@ end
 function TrowbridgeReitzSample(wi::Vec3, alpha_x::Float64, alpha_y::Float64, U1::Float64, U2::Float64)
     # 1. stretch wi
     wiStretched = normalize(Vec3(alpha_x * wi.x, alpha_y * wi.y, wi.z))
+    @info "MD: wiStretched: $wiStretched"
 
     # 2. simulate P22_{wi}(x_slope, y_slope, 1, 1)
     slope_x, slope_y = TrowbridgeReitzSample11(cos_theta(wiStretched), U1, U2)
+    @info "MD: slope_x: $slope_x, slope_y: $slope_y"
 
     # 3. rotate
     tmp = cos_phi(wiStretched) * slope_x - sin_phi(wiStretched) * slope_y
     slope_y = sin_phi(wiStretched) * slope_x + cos_phi(wiStretched) * slope_y
     slope_x = tmp
+    @info "MD: slope_x: $slope_x, slope_y: $slope_y"
 
     # 4. unstretch
     slope_x = alpha_x * slope_x
@@ -125,57 +132,67 @@ function TrowbridgeReitzSample(wi::Vec3, alpha_x::Float64, alpha_y::Float64, U1:
     return normalize(Vec3(-slope_x, -slope_y, 1.0))
 end
 
-static void TrowbridgeReitzSample11(Float cosTheta, Float U1, Float U2,
-                                    Float *slope_x, Float *slope_y) {
-    // special case (normal incidence)
-    if (cosTheta > .9999) {
-        Float r = sqrt(U1 / (1 - U1));
-        Float phi = 6.28318530718 * U2;
-        *slope_x = r * cos(phi);
-        *slope_y = r * sin(phi);
-        return;
-    }
+function TrowbridgeReitzSample11(cosTheta::Float64, U1::Float64, U2::Float64)::Tuple{Float64, Float64}
+    # special case (normal incidence)
+    if (cosTheta > .9999) 
+        r = sqrt(U1 / (1 - U1))
+        phi = 6.28318530718 * U2
+        return r * cos(phi), r * sin(phi)
+    end
+    sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta))
+    tanTheta = sinTheta / cosTheta
+    a = 1.0 / tanTheta;
+    G1 = 2.0 / (1.0 + sqrt(1.0 + 1.0 / (a * a)))
 
-    Float sinTheta =
-        std::sqrt(std::max((Float)0, (Float)1 - cosTheta * cosTheta));
-    Float tanTheta = sinTheta / cosTheta;
-    Float a = 1 / tanTheta;
-    Float G1 = 2 / (1 + std::sqrt(1.f + 1.f / (a * a)));
+    # sample slope_x
+    A = 2.0 * U1 / G1 - 1.0
+    tmp = 1.0 / (A * A - 1.0)
+    if (tmp > 1e10) 
+        tmp = 1e10
+    end
+    B = tanTheta
+    D = sqrt(max(B * B * tmp * tmp - (A * A - B * B) * tmp, 0.0))
+    slope_x_1 = B * tmp - D
+    slope_x_2 = B * tmp + D
+    slope_x = (A < 0 || slope_x_2 > 1.0 / tanTheta) ? slope_x_1 : slope_x_2
 
-    // sample slope_x
-    Float A = 2 * U1 / G1 - 1;
-    Float tmp = 1.f / (A * A - 1.f);
-    if (tmp > 1e10) tmp = 1e10;
-    Float B = tanTheta;
-    Float D = std::sqrt(
-        std::max(Float(B * B * tmp * tmp - (A * A - B * B) * tmp), Float(0)));
-    Float slope_x_1 = B * tmp - D;
-    Float slope_x_2 = B * tmp + D;
-    *slope_x = (A < 0 || slope_x_2 > 1.f / tanTheta) ? slope_x_1 : slope_x_2;
+    # sample slope_y
+    if (U2 > 0.5)
+        S = 1.0
+        U2 = 2.0 * (U2 - .5)
+    else 
+        S = -1.0
+        U2 = 2.0 * (.5f - U2)
+    end
+    z = (U2 * (U2 * (U2 * 0.27385 - 0.73369) + 0.46341)) / (U2 * (U2 * (U2 * 0.093073 + 0.309420) - 1.000000) + 0.597999)
+    slope_y = S * z * sqrt(1.0 + slope_x * slope_x)
 
-    // sample slope_y
-    Float S;
-    if (U2 > 0.5f) {
-        S = 1.f;
-        U2 = 2.f * (U2 - .5f);
-    } else {
-        S = -1.f;
-        U2 = 2.f * (.5f - U2);
-    }
-    Float z =
-        (U2 * (U2 * (U2 * 0.27385f - 0.73369f) + 0.46341f)) /
-        (U2 * (U2 * (U2 * 0.093073f + 0.309420f) - 1.000000f) + 0.597999f);
-    *slope_y = S * z * std::sqrt(1.f + *slope_x * *slope_x);
-
-    CHECK(!std::isinf(*slope_y));
-    CHECK(!std::isnan(*slope_y));
-}
+    @assert isfinite(slope_x)
+    @assert isfinite(slope_y)
+    return slope_x, slope_y
+end
 
 
 ########################
 ######### G()
 ########################
 
-function G(md::MicrofacetDistribution, wo::Vec3, wi::Vec3)
-    return 1 / (1 + Lambda(md, wo) + Lambda(md, wi))
+function G(md::MicrofacetDistribution, wo::Vec3, wi::Vec3)::Float64
+    return 1.0 / (1.0 + Lambda(md, wo) + Lambda(md, wi))
+end
+
+function G1(md::MicrofacetDistribution, w::Vec3)::Float64
+    return 1.0 / (1.0 + Lambda(md, w))
+end
+
+########################
+######### PDF()
+########################
+
+function pdf(md::MicrofacetDistribution, wo::Vec3, wh::Vec3)::Float64
+    if md.sample_visible_area
+        return D(md, wh) * G1(md, wo) * abs(dot(wo, wh)) / abs_cos_theta(wo)
+    else
+        return D(md, wh) * abs_cos_theta(wh)
+    end
 end
