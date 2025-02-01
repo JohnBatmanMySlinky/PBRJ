@@ -25,3 +25,28 @@ function f(mr::MicrofacetReflection, wo::Vec3, wi::Vec3)
     F = mr.fresnel(dot(wi, face_forward(wh, Vec3(0,0,1))))
     return mr.R * D(mr.distrib, wh) * G(mr.distrib, wo, wi) * F / (4.0 * cos_theta_i * cos_theta_o)
 end
+
+function sample_f(bxdf::MicrofacetReflection, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
+    @info "METALDEBUG: sample_f: wo: $wo"
+
+    # Sample microfacet orientation $\wh$ and reflected direction $\wi$
+    if (wo.z == 0) 
+        return Vec3(0, 0, 0), spectrum_from_float(0.0), 0.0, nothing
+    end
+    wh = sample_wh(bxdf.distrib, wo, u)
+    @info "METALDEBUG: sample_f: wh: $wh"
+    if (dot(wo, wh) < 0) 
+        return Vec3(0, 0, 0), spectrum_from_float(0.0), 0.0, nothing   # Should be rare
+    end
+    wi = reflect(wo, wh)
+    @info "METALDEBUG: sample_f: wi: $wi"
+    if (!same_hemisphere(wo, wi)) 
+        return Vec3(0, 0, 0), spectrum_from_float(0.0), 0.0, nothing
+    end
+
+    # Compute PDF of _wi_ for microfacet reflection
+    pdf_val = pdf(bxdf.distrib, wo, wh) / (4.0 * dot(wo, wh))
+    @info "METALDEBUG: sample_f: pdf_val: $pdf_val"
+    f_val = f(bxdf, wo, wi)
+    return wi, f_val, pdf_val, nothing
+end
