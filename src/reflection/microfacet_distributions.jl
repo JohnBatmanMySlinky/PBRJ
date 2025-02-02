@@ -162,7 +162,7 @@ function TrowbridgeReitzSample11(cosTheta::Float64, U1::Float64, U2::Float64)::T
         U2 = 2.0 * (U2 - .5)
     else 
         S = -1.0
-        U2 = 2.0 * (.5f - U2)
+        U2 = 2.0 * (.5 - U2)
     end
     z = (U2 * (U2 * (U2 * 0.27385 - 0.73369) + 0.46341)) / (U2 * (U2 * (U2 * 0.093073 + 0.309420) - 1.000000) + 0.597999)
     slope_y = S * z * sqrt(1.0 + slope_x * slope_x)
