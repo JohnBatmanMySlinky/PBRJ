@@ -129,11 +129,14 @@ function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spe
     cos_phi = cos(phi)
 
     d = -il.light_to_world(Vec3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta))
+    @info "Sampling Light: d: $d"
     nlight = Nml3(d)
 
     _, v1, v2 = orthonormal_basis(-d)
     cd = random_in_concentric_disk(u2)
     p_disk = il.world_center + il.world_radius * (cd.x * v1 + cd.y * v2)
+    @info "world_center: $(il.world_center)  world_radius: $(il.world_radius)"
+    @info "Sampling Light: p_disk: $p_disk"
     ray = RayDifferential(Ray(p_disk + il.world_radius * -d, d, t, typemax(Float64)))
 
     pdf_dir = sin_theta == 0.0 ? 0.0 : map_pdf / (2 * pi * pi * sin_theta)

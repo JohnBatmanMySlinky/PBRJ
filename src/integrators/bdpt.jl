@@ -510,6 +510,7 @@ function random_walk!(
         end
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
+        @info "pdf_rev sneak peak: $pdf_rev"
         if (sampled_type & BSDF_SPECULAR) > 0
             path[vertex].delta = true
             pdf_rev = 0.0

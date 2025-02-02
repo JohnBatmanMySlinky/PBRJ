@@ -189,7 +189,7 @@ end
 ######### PDF()
 ########################
 
-function pdf(md::MicrofacetDistribution, wo::Vec3, wh::Vec3)::Float64
+function compute_pdf(md::MicrofacetDistribution, wo::Vec3, wh::Vec3)::Float64
     if md.sample_visible_area
         return D(md, wh) * G1(md, wo) * abs(dot(wo, wh)) / abs_cos_theta(wo)
     else

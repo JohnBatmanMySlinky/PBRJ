@@ -48,8 +48,16 @@ function sample_f(bxdf::MicrofacetReflection, wo::Vec3, u::Pnt2, type::UInt8=BSD
     end
 
     # Compute PDF of _wi_ for microfacet reflection
-    pdf_val = pdf(bxdf.distrib, wo, wh) / (4.0 * dot(wo, wh))
+    pdf_val = compute_pdf(bxdf.distrib, wo, wh) / (4.0 * dot(wo, wh))
     @info "METALDEBUG: sample_f: pdf_val: $pdf_val"
     f_val = f(bxdf, wo, wi)
     return wi, f_val, pdf_val, nothing
+end
+
+function compute_pdf(bxdf::MicrofacetReflection, wo::Vec3, wi::Vec3)::Float64
+    if (!same_hemisphere(wo, wi)) 
+        return 0.0
+    end
+    wh = normalize(wo + wi);
+    return compute_pdf(bxdf.distrib, wo, wh) / (4.0 * dot(wo, wh))
 end

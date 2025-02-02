@@ -51,20 +51,20 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # )
     # push!(primitives, Primitive(sphere2, nothing, nothing, smoke_mi))
 
-    floor_t = Translate(Pnt3(0, 0.1, 0))
-    floor = BilinearPatchGenerator(
-        ShapeCore(floor_t, Inv(floor_t), false, false),
-        1,
-        4,
-        Int64[0, 1, 2, 3],
-        Pnt3[Pnt3(-50, 0, -50), Pnt3(-50, 0, 50), Pnt3(50, 0, -50), Pnt3(50, 0, 50)],
-        nothing,
-        nothing,
-        nothing
-    )
-    for tri in floor
-        push!(primitives, Primitive(tri, mat_floor, nothing))
-    end
+    # floor_t = Translate(Pnt3(0, 0.1, 0))
+    # floor = BilinearPatchGenerator(
+    #     ShapeCore(floor_t, Inv(floor_t), false, false),
+    #     1,
+    #     4,
+    #     Int64[0, 1, 2, 3],
+    #     Pnt3[Pnt3(-50, 0, -50), Pnt3(-50, 0, 50), Pnt3(50, 0, -50), Pnt3(50, 0, 50)],
+    #     nothing,
+    #     nothing,
+    #     nothing
+    # )
+    # for tri in floor
+    #     push!(primitives, Primitive(tri, mat_floor, nothing))
+    # end
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -72,7 +72,7 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Done building BVH\n")
 
     # instantiate the infinite light
-    l_2_w = Rotate(-90.0, Vec3(1, 0, 0)) * Rotate(110.0, Vec3(0, 1, 0))
+    l_2_w = Rotate(110.0, Vec3(0, 1, 0)) * Rotate(-90.0, Vec3(1, 0, 0))
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
