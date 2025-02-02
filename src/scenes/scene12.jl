@@ -77,7 +77,8 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         world_bounds(bvh), 
         l_2_w, 
         Spectrum(4.0, 4.0, 4.0), 
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/textures/sky.exr")
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/textures/sky.exr"),
+        true
     )
     push!(lights, light)
 
