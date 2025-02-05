@@ -1,32 +1,43 @@
 struct TriangleMesh
     n_triangles::Int64
-    n_vertices::Int64
+
     vertices::Vector{Pnt3}
-    indices::Vector{Int64}
+    vertex_indices::Vector{Int64}
+
     normals::Vector{Nml3}
+    normal_indices::Vector{Int64}
+
     uvs::Vector{Pnt2}
+    uv_indices::Vector{Int64}
+
     alpha_mask::Maybe{Texture}
     shading_tangent::Nothing
 
     function TriangleMesh(
         object_to_world::Transformation, 
-        n_triangles::Int64, 
-        n_vertices::Int64, 
-        vertices::Vector{Pnt3}, 
-        indices::Vector{Int64}, 
+        n_triangles::Int64,
+
+        vertices::Vector{Pnt3},
+        vertex_indices::Vector{Int64},
+    
         normals::Vector{Nml3},
+        normal_indices::Vector{Int64},
+    
         uvs::Vector{Pnt2},
-        alpha_mask::Maybe{Texture},
+        uv_indices::Vector{Int64},
+    
+        alpha_mask::Maybe{Texture}
     )
         vertices = object_to_world.(vertices)
         normals = object_to_world.(normals)
         new(
             n_triangles,
-            n_vertices,
             vertices,
-            indices,
+            vertex_indices,
             normals,
+            normal_indices,
             uvs,
+            uv_indices,
             alpha_mask,
             nothing
         )
