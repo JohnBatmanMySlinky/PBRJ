@@ -4,11 +4,11 @@ struct TriangleMesh
     vertices::Vector{Pnt3}
     vertex_indices::Vector{Int64}
 
-    normals::Vector{Nml3}
-    normal_indices::Vector{Int64}
+    normals::Maybe{Vector{Nml3}}
+    normal_indices::Maybe{Vector{Int64}}
 
-    uvs::Vector{Pnt2}
-    uv_indices::Vector{Int64}
+    uvs::Maybe{Vector{Pnt2}}
+    uv_indices::Maybe{Vector{Int64}}
 
     alpha_mask::Maybe{Texture}
     shading_tangent::Nothing
@@ -20,11 +20,11 @@ struct TriangleMesh
         vertices::Vector{Pnt3},
         vertex_indices::Vector{Int64},
     
-        normals::Vector{Nml3},
-        normal_indices::Vector{Int64},
+        normals::Maybe{Vector{Nml3}},
+        normal_indices::Maybe{Vector{Int64}},
     
-        uvs::Vector{Pnt2},
-        uv_indices::Vector{Int64},
+        uvs::Maybe{Vector{Pnt2}},
+        uv_indices::Maybe{Vector{Int64}},
     
         alpha_mask::Maybe{Texture}
     )
@@ -69,11 +69,11 @@ function construct_triangle_mesh(
     vertices::Vector{Pnt3},
     vertex_indices::Vector{Int64},
     
-    normals::Vector{Nml3},
-    normal_indices::Vector{Int64},
+    normals::Maybe{Vector{Nml3}},
+    normal_indices::Maybe{Vector{Int64}},
     
-    uvs::Vector{Pnt2},
-    uv_indices::Vector{Int64},
+    uvs::Maybe{Vector{Pnt2}},
+    uv_indices::Maybe{Vector{Int64}},
     
     alpha_mask::Maybe{Texture}
 )
@@ -208,7 +208,11 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     t = t_scaled * inv_det
 
     # Compute triangle partial derivatives
-    uv = get_uvs(tri)
+    if !(tri.mesh.uvs isa Nothing)
+        uv = get_uvs(tri)
+    else
+        uv = (Pnt2(0, 0), Pnt2(1, 0), Pnt2(1, 1))
+    end
     duv13 = uv[1] - uv[3]
     duv23 = uv[2] - uv[3]
     dp13 = p0 - p2

@@ -1,25 +1,25 @@
-function parse_vertex(line::AbstractString)::Pnt3
+function parse_vertex(line::AbstractString)::RayTracing.Pnt3
 	parts = split(strip(line))[2:end]
 	if length(parts) != 3
 		throw(ArgumentError("Invalid vertex format: $line"))
 	end
-	return Pnt3(parse(Float64, parts[1]), parse(Float64, parts[2]), parse(Float64, parts[3]))
+	return RayTracing.Pnt3(parse(Float64, parts[1]), parse(Float64, parts[2]), parse(Float64, parts[3]))
 end
 
-function parse_normal(line::AbstractString)::Nml3
+function parse_normal(line::AbstractString)::RayTracing.Nml3
 	parts = split(strip(line))[2:end]
 	if length(parts) != 3
 		throw(ArgumentError("Invalid vertex format: $line"))
 	end
-	return Nml3(parse(Float64, parts[1]), parse(Float64, parts[2]), parse(Float64, parts[3]))
+	return RayTracing.Nml3(parse(Float64, parts[1]), parse(Float64, parts[2]), parse(Float64, parts[3]))
 end
 
-function parse_uv(line::AbstractString)::Pnt2
+function parse_uv(line::AbstractString)::RayTracing.Pnt2
 	parts = split(strip(line))[2:end]
 	if length(parts) != 2
 		throw(ArgumentError("Invalid vertex format: $line"))
 	end
-	return Pnt2(parse(Float64, parts[1]), parse(Float64, parts[2]))
+	return RayTracing.Pnt2(parse(Float64, parts[1]), parse(Float64, parts[2]))
 end
 
 function parse_face!(
@@ -50,18 +50,18 @@ end
 
 function parse_obj(
     file_path::AbstractString,
-    object_to_world::Transformation, 
+    object_to_world::RayTracing.Transformation, 
     reverse_orientation::Bool, 
     transform_swaps_handedness::Bool,
-    alpha_mask::Maybe{Texture},
+    alpha_mask::RayTracing.Maybe{RayTracing.Texture},
 )
-	vertices = Pnt3[]
+	vertices = RayTracing.Pnt3[]
     vertex_indices = Int[]
 
-	uvs = Pnt2[]
+	uvs = RayTracing.Pnt2[]
     uv_indices = Int[]
 
-	normals = Nml3[]
+	normals = RayTracing.Nml3[]
 	normal_indices = Int[]
 	
 	open(file_path) do file
@@ -95,13 +95,32 @@ function parse_obj(
                 @assert false
             end
 		end
-
-        @assert mod(length(vertex_indices), 3) == 0
-        @assert mod(length(uv_indices), 3) == 0
-        @assert mod(length(normal_indices), 3) == 0
 	end
-	return construct_triangle_mesh(
-        ShapeCore(object_to_world, Inv(object_to_world), reverse_orientation, transform_swaps_handedness),
+
+    # if face only specifies a single set of indices but we get normals
+    if (length(normals) > 0) & (length(normal_indices) == 0)
+        @assert length(vertices) == length(normals)
+        normal_indices = vertex_indices
+    end
+
+    # if face only specifies a single set of indices but we get uvs
+    if (length(uvs) > 0) & (length(uv_indices) == 0)
+        @assert length(vertices) == length(uvs)
+        uv_indices = vertex_indices
+    end
+
+    @assert mod(length(vertex_indices), 3) == 0
+    @assert mod(length(uv_indices), 3) == 0
+    @assert mod(length(normal_indices), 3) == 0
+
+    normals = length(normals)>0 ? normals : nothing
+    normal_indices = length(normal_indices)>0 ? normal_indices : nothing
+
+    uvs = length(uvs)>0 ? uvs : nothing
+    uv_indices = length(uv_indices)>0 ? uv_indices : nothing
+
+	return RayTracing.construct_triangle_mesh(
+        RayTracing.ShapeCore(object_to_world, RayTracing.Inv(object_to_world), reverse_orientation, transform_swaps_handedness),
         length(vertex_indices)÷3,
     
         vertices,
