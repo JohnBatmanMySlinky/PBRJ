@@ -98,12 +98,14 @@ function parse_obj(
 	end
 
     # if face only specifies a single set of indices but we get normals
+    # as seen in teapot.obj
     if (length(normals) > 0) & (length(normal_indices) == 0)
         @assert length(vertices) == length(normals)
         normal_indices = vertex_indices
     end
 
     # if face only specifies a single set of indices but we get uvs
+    # as seen in teapot.obj
     if (length(uvs) > 0) & (length(uv_indices) == 0)
         @assert length(vertices) == length(uvs)
         uv_indices = vertex_indices
