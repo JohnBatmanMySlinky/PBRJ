@@ -4,7 +4,7 @@ struct AOIntegrator <: AbstractIntegrator
     cos_sample::Bool
 end
 
-function li(cos_sample::Bool, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
+function li(ao::AOIntegrator, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
     L = spectrum_from_float(0.0)
     isect = empty_surface_interation()
 
@@ -28,7 +28,7 @@ function li(cos_sample::Bool, ray::AbstractRay, scene::Scene, depth::Int64, samp
     tt = cross(isect.core.n, s)
 
     u = get_2D!(sampler)
-    if cos_sample
+    if ao.cos_sample
         wi = cosine_sample_hemisphere(u)
         pdf_val = cosine_hemisphere_pdf(abs(wi.z))
     else

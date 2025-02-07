@@ -91,6 +91,15 @@ function parse_obj(
             elseif cmd == "g"
                 @warn "Skipping group: $line"
                 continue
+            elseif cmd == "o"
+                @warn "Skipping object: $line"
+                continue
+            elseif cmd == "s"
+                @warn "Skipping something: $line"
+                continue
+            elseif cmd == "l"
+                @warn "Skipping line: $line"
+                continue
             else
                 @assert false
             end
