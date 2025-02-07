@@ -44,16 +44,16 @@ function make_scene9()::Tuple{AbstractIntegrator, Scene}
     for tri in mesh1
         push!(primitives, Primitive(tri, mat_stand, nothing))
     end
-    # mesh2 =  parse_obj(
-    #     "../ref/lte-orb/mesh-2.obj", # outer
-    #     mesh012_translate,
-    #     true,
-    #     false,
-    #     nothing
-    # )
-    # for tri in mesh2
-    #     push!(primitives, Primitive(tri, mat_outer, nothing))
-    # end
+    mesh2 =  parse_obj(
+        "../ref/lte-orb/mesh-2.obj", # outer
+        mesh012_translate,
+        true,
+        false,
+        nothing
+    )
+    for tri in mesh2
+        push!(primitives, Primitive(tri, mat_outer, nothing))
+    end
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -79,7 +79,7 @@ function make_scene9()::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(-1, -1, -1)
+    look_from = Pnt3(0, -.3, -.5)
     look_at = Pnt3(0, 0.1, 0)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
