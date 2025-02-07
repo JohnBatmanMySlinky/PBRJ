@@ -3,13 +3,18 @@ function make_scene9()::Tuple{AbstractIntegrator, Scene}
     lights = Light[]
 
     # materials
-    mat_white = Matte(
-        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+    mat_inner = Matte(
+        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
-    mat_inner = Matte(
-        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+    mat_outer = Matte(
+        ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        nothing
+    )
+    mat_stand = Matte(
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
@@ -29,16 +34,16 @@ function make_scene9()::Tuple{AbstractIntegrator, Scene}
     for tri in mesh0
         push!(primitives, Primitive(tri, mat_inner, nothing))
     end
-    # mesh1 =  parse_obj(
-    #     "../ref/lte-orb/mesh-1.obj", # base
-    #     mesh012_translate,
-    #     true,
-    #     false,
-    #     nothing
-    # )
-    # for tri in mesh1
-    #     push!(primitives, Primitive(tri, mat_inner, nothing))
-    # end
+    mesh1 =  parse_obj(
+        "../ref/lte-orb/mesh-1.obj", # base
+        mesh012_translate,
+        true,
+        false,
+        nothing
+    )
+    for tri in mesh1
+        push!(primitives, Primitive(tri, mat_stand, nothing))
+    end
     # mesh2 =  parse_obj(
     #     "../ref/lte-orb/mesh-2.obj", # outer
     #     mesh012_translate,
@@ -47,10 +52,8 @@ function make_scene9()::Tuple{AbstractIntegrator, Scene}
     #     nothing
     # )
     # for tri in mesh2
-    #     push!(primitives, Primitive(tri, mat_inner, nothing))
+    #     push!(primitives, Primitive(tri, mat_outer, nothing))
     # end
-
-
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -76,7 +79,7 @@ function make_scene9()::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(0.2, 0.4, -0.5)
+    look_from = Pnt3(-1, -1, -1)
     look_at = Pnt3(0, 0.1, 0)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
