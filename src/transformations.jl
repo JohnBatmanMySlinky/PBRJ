@@ -101,18 +101,17 @@ function Rotate(theta::Float64, axis::Vec3)::Transformation
     # this way matches in debug
     m = Mat4(
         a.x * a.x + (1 - a.x * a.x) * cos_theta,
-        a.x * a.y * (1 - cos_theta) - a.z * sin_theta,
-        a.x * a.z * (1 - cos_theta) + a.y * sin_theta,
-        0,
-
-
         a.x * a.y * (1 - cos_theta) + a.z * sin_theta,
-        a.y * a.y + (1 - a.y * a.y) * cos_theta,
-        a.y * a.z * (1 - cos_theta) - a.x * sin_theta,       
+        a.x * a.z * (1 - cos_theta) - a.y * sin_theta,
         0.0,
 
-        a.x * a.z * (1 - cos_theta) - a.y * sin_theta,
+        a.x * a.y * (1 - cos_theta) - a.z * sin_theta,
+        a.y * a.y + (1 - a.y * a.y) * cos_theta,
         a.y * a.z * (1 - cos_theta) + a.x * sin_theta,
+        0.0,
+
+        a.x * a.z * (1 - cos_theta) + a.y * sin_theta,
+        a.y * a.z * (1 - cos_theta) - a.x * sin_theta,
         a.z * a.z + (1 - a.z * a.z) * cos_theta,
         0.0,
 
