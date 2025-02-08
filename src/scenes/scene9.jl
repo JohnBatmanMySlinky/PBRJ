@@ -79,8 +79,14 @@ function make_scene9()::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(0, -.3, -.5)
-    look_at = Pnt3(0, 0.1, 0)
+
+
+    # 0.16432909667491913, -0.8644996881484985, -0.6155436635017395
+    # 0.27579671144485474, -0.9914534687995911, -0.6511322855949402
+    # 0.2510230839252472, -0.9913325309753418, -0.6673218607902527
+
+    look_from = Pnt3(0.0, -0.55, -0.25)
+    look_at = Pnt3(0, 0.7, 0)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
