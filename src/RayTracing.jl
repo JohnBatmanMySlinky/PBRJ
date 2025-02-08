@@ -35,6 +35,7 @@ abstract type Randomizer end
 abstract type AbstractMedium end
 abstract type AbstractPhaseFunction end
 abstract type AbstractTextureMapping2D end
+abstract type AbstractMajorantIterator end
 
 # Defining some global constants
 const Radiance = Val{:Radiance}
@@ -79,17 +80,26 @@ const XXX::Spectrum, YYY::Spectrum, ZZZ::Spectrum, rgbRefl2SpectWhite::Spectrum,
     rgbIllum2SpectRed::Spectrum, rgbIllum2SpectGreen::Spectrum, rgbIllum2SpectBlue::Spectrum = make_spectral_constants()
 
 include("mip_map.jl")
-include("medium/media_parser.jl")
-include("medium/media1.jl")
+# include("medium/media_parser.jl")
+include("medium2/media_parser.jl")
+# include("medium/media1.jl")
+include("medium2/common1.jl")
+include("medium2/common2.jl")
+include("medium2/sampled_grid.jl")
+include("medium2/majorant_iterators.jl")
+include("medium2/homogenous_medium.jl")
 include("ray.jl")
 include("primitive.jl")
 include("interactions.jl")
+include("medium2/common3.jl")
 include("textures/texture_mappings.jl")
 include("image_utils.jl")
 include("textures/texture.jl")
 include("transformations.jl")
-include("medium/media2.jl")
-include("medium/media3.jl")
+include("medium2/grid_medium.jl")
+# include("medium/media2.jl")
+# include("medium/media3.jl")
+include("medium2/nanovdb.jl")
 include("rand_utils.jl")
 include("shapes/shape.jl")
 include("shapes/sphere.jl")
@@ -185,8 +195,9 @@ include("scenes/scene100.jl")
 include("scenes/scene101.jl")
 include("scenes/scene_builder.jl")
 include("denoising/edge_avoiding_a_trous.jl")
-include("medium/media_funcs.jl")
-include("medium/phase_functions.jl")
+# include("medium/media_funcs.jl")
+# include("medium/phase_functions.jl")
+include("medium2/phase_functions.jl")
 include("scene_utils.jl")
 
 # do MIS_weight or nah

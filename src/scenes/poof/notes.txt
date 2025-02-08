@@ -1,0 +1,60 @@
+- smoke.pbrt: 
+    - Original, raw from pbrt-v3-scenes
+- smoke_a.pbrt: 
+    - with a sphere (translated) instead of .ply
+    - 16 spp instead of 256
+    - bdpt instead of volpath
+    - no crop window 
+- my issues
+    - my background isn't blue
+        - fucking not indexing thru all the lights in the scene in infinite_light_pdf... at least it was easy.
+    - # voxels are making a huge difference 
+- debugs
+    /Users/johnmyslinski/Documents/pbrt-v3/debug/pbrt -nthreads 1 smoke_a_debug.pbrt --logdir . --v 3
+    julia -t 4 RayTracing.jl --scene-number 10 --image-dim 100 --samples-per-pixel 1 --jitter false --debug true --crop-window 0 0 .01 .01
+- what is next
+    - why so voxel-y
+    - scene params?
+    - c++ clean up
+    - segfault investigation
+    - dda testing: ~add non square~, ~side~
+    - other tests...
+    - sampled grid 2x2x2 testing
+    - NanoVDB seg faults if I try to use `path` before init so do i need a null check or someshit?
+    - fucking distant light is fucky
+        - make disney cloud NOT use distant
+        - make pbrt v3 exact match distant light
+            - looks like Vis tester isnt using the Medium?x
+
+- disney cloud majorant grid set up testing on 3x3x3
+
+- AIGHT SO NOW DISTANT LIKE IS FUCK SO MAKE IN PBRTV3 AND MATCH
+
+- aight so distant light is OK. still some fireflies. why does voxel size make such a difference? probably cuz something in DDAMajorant Iterator is fucked...
+- un fuck scene 12 for fun.
+
+- something is fucking wrong when i do a 3,3,3 grid. # scatters should be proportional to resolution of voxel grid?
+- v4 smoke plume!!
+
+AIGHT SO YOURE FUCKING TELLING ME
+THIS
+    Scale -1 1 1
+    LookAt 0.0715308 -4.17677 5.33558 0.0720194 -3.62456 4.50187 -0.000323605 0.833706 0.552208
+EQUALS
+
+THIS
+camera_transform = LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0)
+
+
+BUT 
+THIS
+TransformBegin
+	Translate -1 0 -1.2
+	Rotate 90 1 0 0
+	Include "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
+	  "color sigma_a" [90 90 90] "color sigma_s" [10 10 10]
+TransformEnd
+
+EQUALS
+THIS
+smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)

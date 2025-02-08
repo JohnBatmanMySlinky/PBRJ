@@ -275,3 +275,132 @@ function evaluate_cubic_bezier_deriv(cp::SVector{4, Pnt3}, u::Float64)::Tuple{Pn
     end
     return lerp(u, cp2[0+1], cp2[1+1]), Vec3(deriv)
 end
+
+# 25% faster than exp() so that's nice?
+# Shout out Claude for translating this over
+# see FastExp_testing.ipynb for benchmarks
+function fastexp(x::Float64)
+    xp = x * 1.4426950408889634
+    fxp = floor(xp)
+    f = xp - fxp
+    i = Int(fxp)
+    
+    two_to_f = 1.0 + f * (0.6931471805599453 + f * (0.2402265069591007 + f * 0.0855989669963166))
+    
+    bits = reinterpret(UInt64, two_to_f)
+    exponent = Int((bits >> 52) & 0x7FF) - 1023 + i
+    
+    if exponent < -1022
+        return 0.0
+    elseif exponent > 1023
+        return Inf
+    end
+    
+    bits = (bits & 0x800FFFFFFFFFFFFF) | (UInt64(exponent + 1023) << 52)
+    return reinterpret(Float64, bits)
+end
+
+function equal_area_square_to_sphere(p::Pnt2)::Vec3
+    @assert (p.x >= 0) && (p.x <= 1) && (p.y >= 0) && (p.y <= 1)
+    # Transform _p_ to $[-1,1]^2$ and compute absolute values
+    u = 2.0 * p.x - 1.0
+    v = 2.0 * p.y - 1.0
+    up = abs(u) 
+    vp = abs(v)
+
+    # Compute radius _r_ as signed distance from diagonal
+    signedDistance = 1.0 - (up + vp)
+    d = abs(signedDistance)
+    r = 1.0 - d
+
+    # Compute angle $\phi$ for square to sphere mapping
+    phi = (r == 0 ? 1.0 : (vp - up) / r + 1.0) * pi / 4.0
+
+    # Find $z$ coordinate for spherical direction
+    z = copysign(1 - r^2, signedDistance)
+
+    # Compute $\cos\phi$ and $\sin\phi$ for original quadrant and return vector
+    cosPhi = copysign(cos(phi), u)
+    sinPhi = copysign(sin(phi), v)
+    return Vec3(
+        cosPhi * r * safe_sqrt(2 - r^2), 
+        sinPhi * r * safe_sqrt(2 - r^2),
+        z
+    )
+end
+
+function evaluate_polynomial(x::Float64, coeffs::Float64...)::Float64
+    result = coeffs[end]
+    for i in length(coeffs)-1:-1:1
+        result = result * x + coeffs[i]
+    end
+    return result
+end
+
+function equal_area_sphere_to_square(d::Vec3)::Pnt2
+    @assert (length_squared(d) > .99) && (length_squared(d) < 1.001)
+    x = abs(d.x)
+    y = abs(d.y)
+    z = abs(d.z)
+
+    # Compute the radius r
+    r = safe_sqrt(1.0 - z)  # r = sqrt(1-|z|)
+
+    # Compute the argument to atan (detect a=0 to avoid div-by-zero)
+    a = max(x, y)
+    b = min(x, y)
+    b = a == 0.0 ? 0.0 : b / a
+
+    # Polynomial approximation of atan(x)*2/pi, x=b
+    # Coefficients for 6th degree minimax approximation of atan(x)*2/pi,
+    # x=[0,1].
+    t1 = 0.406758566246788489601959989e-5
+    t2 = 0.636226545274016134946890922156
+    t3 = 0.61572017898280213493197203466e-2
+    t4 = -0.247333733281268944196501420480
+    t5 = 0.881770664775316294736387951347e-1
+    t6 = 0.419038818029165735901852432784e-1
+    t7 = -0.251390972343483509333252996350e-1
+    phi = evaluate_polynomial(b, t1, t2, t3, t4, t5, t6, t7)
+
+    # Extend phi if the input is in the range 45-90 degrees (u<v)
+    if (x < y)
+        phi = 1.0 - phi
+    end
+
+    # Find (u,v) based on (r,phi)
+    v = phi * r
+    u = r - v
+
+    if (d.z < 0)
+        # southern hemisphere -> mirror u,v
+        u, v = v, u
+        u = 1.0 - u
+        v = 1.0 - v
+    end
+
+    # Move (u,v) to the correct quadrant based on the signs of (x,y)
+    u = copysign(u, d.x)
+    v = copysign(v, d.y)
+
+    # Transform (u,v) from [-1,1] to [0,1]
+    return Pnt2(0.5 * (u + 1), 0.5 * (v + 1))
+end
+
+# Point2f WrapEqualAreaSquare(Point2f uv) {
+#     if (uv[0] < 0) {
+#         uv[0] = -uv[0]     // mirror across u = 0
+#         uv[1] = 1 - uv[1]  // mirror across v = 0.5
+#     } else if (uv[0] > 1) {
+#         uv[0] = 2 - uv[0]  // mirror across u = 1
+#         uv[1] = 1 - uv[1]  // mirror across v = 0.5
+#     }
+#     if (uv[1] < 0) {
+#         uv[0] = 1 - uv[0]  // mirror across u = 0.5
+#         uv[1] = -uv[1]     // mirror across v = 0
+#     } else if (uv[1] > 1) {
+#         uv[0] = 1 - uv[0]  // mirror across u = 0.5
+#         uv[1] = 2 - uv[1]  // mirror across v = 1
+#     }
+#     return uv
+# }

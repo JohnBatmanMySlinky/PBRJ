@@ -25,3 +25,6 @@ function cos_d_phi(wa::Vec3, wb::Vec3)
     return clamp((wa.x * wb.x + wa.y * wb.y) / sqrt((wa.x^2 + wa.y^2) * (wb.x^2 + wb.y^2), -1, 1))
 end
 
+function reflect(wo::Vec3, n::Vec3)::Vec3
+    return -wo + 2.0 * dot(wo, n) * n
+end

@@ -263,3 +263,7 @@ function sample_spherical_rectangle(p_ref::Pnt3, s::Pnt3, ex::Vec3, ey::Vec3, u:
     # Return spherical triangle sample in original coordinate system
     return p_ref + Vec3(xu * x + yv * y + z0 * z), pdf_val
 end
+
+function sample_exponential(u::Float64, a::Float64)::Float64
+    return -log(1.0 - u) / a
+end

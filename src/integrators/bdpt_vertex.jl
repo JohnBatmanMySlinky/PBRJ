@@ -154,7 +154,7 @@ function is_infinite_light(v::Vertex)::Bool
             return true
         else
             # if we have a VTLight and a light in ei, check type of light
-            return v.ei.light.flags & LightInfinite
+            return (v.ei.light.flags & LightInfinite) || (v.ei.light.flags & LightDeltaDirection)
         end
     end
 end
@@ -284,12 +284,15 @@ function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
 end
 
 function pdf_light_origin(sampled::Vertex, scene::Scene, v::Vertex, light_distr::Distribution1D, light_num::Int64)::Float64
+    @info "MISWEIGHT <<a4>> shenanigans is is in pdfLightOrigin"
     w = p(v) - p(sampled)
     (dot(w,w) == 0.0) && (return 0.0)
     w = Vec3(normalize(w))
     if is_infinite_light(sampled)
+        @info "MISWEIGHT <<a4>> shenanigans is in InfiniteLightDensity"
         return infinite_light_density(scene.lights, light_distr, w)
     else
+        @info "MISWEIGHT <<a4>> shenanigans is NOT in InfiniteLightDensity"
         light = sampled.type == VTLight ? sampled.ei.light : sampled.si.primitive.area_light
         pdf_choice = discrete_pdf(light_distr, light_num)
         pdf_pos, pdf_dir = pdf_le(light, Ray(p(sampled), w, time(sampled), typemax(Float64)), ng(sampled))
@@ -299,12 +302,15 @@ end
 
 function pdf_light(v0::Vertex, scene::Scene, v1::Vertex)::Float64
     w = Vec3(p(v1) - p(v0))
-    invdist2 = 1/dot(w,w)
+    invdist2 = 1/length_squared(w)
     w *= sqrt(invdist2)
+    @info "PLSPLS: apparently its not an infinite light? $(is_infinite_light(v0))"
     if is_infinite_light(v0)
         # Compute planar sampling density for infinite light sources
-        worldradius = world_radius(scene.b)
-        pdf_val = 1 / (pi * worldradius * worldradius)
+        wb = world_bounds(scene.b)
+        _, world_radius = bounding_sphere(wb)
+        pdf_val = 1 / (pi * world_radius * world_radius)
+        @info "PLSPLS: pdf_val: $pdf_val" 
     else
         light = v0.type == VTLight ? v0.ei.light : v0.si.primitive.area_light
         pdf_pos, pdf_dir = pdf_le(light, Ray(p(v0), w, time(v0), typemax(Float64)), ng(v0))
@@ -317,12 +323,15 @@ function pdf_light(v0::Vertex, scene::Scene, v1::Vertex)::Float64
 end
 
 function pdf(v0::Vertex, scene::Scene, prev::Maybe{Vertex}, next::Vertex)::Float64
+    @info "PLS\n\t\tv0.type: $(v0.type)"
     (v0.type == VTLight) && (return pdf_light(v0, scene, next))
     wn = p(next) - p(v0)
+    @info "PLS\n\t\twn: $wn"
     (norm(wn)^2 == 0.0) && (return 0.0)
     wn = Vec3(normalize(wn))
     if !(prev isa Nothing)
         wp = p(prev) - p(v0)
+        @info "PLS\n\t\twp: $wp"
         (norm(wp)^2 == 0.0) && (return 0.0)
         wp = Vec3(normalize(wp))
     end

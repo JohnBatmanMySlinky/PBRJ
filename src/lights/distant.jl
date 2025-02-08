@@ -5,9 +5,10 @@ struct DistantLight <: Light
     world_radius::Float64
     light_to_world::Transformation
     flags::LightFlags
-    medium::Maybe{Medium}
+    medium::Maybe{AbstractMedium}
 
-    function DistantLight(L::Spectrum, w_light::Vec3, world_center::Pnt3, world_radius::Float64, light_to_world::Transformation)
+    function DistantLight(L::Spectrum, from::Vec3, to::Vec3, world_center::Pnt3, world_radius::Float64, light_to_world::Transformation)
+        w_light = from - to
         return new(
             L,
             normalize(light_to_world(w_light)),
@@ -37,7 +38,7 @@ function sample_li(dl::DistantLight, interaction::Interaction, u::Pnt2)::Tuple{S
     p_outside = interaction.p + dl.w_light * 2 * dl.world_radius
     visibility = VisibilityTester(
         interaction, 
-        Interaction(p_outside, interaction.t, Vec3(0,0,0), Nml3(0,0,0))
+        Interaction(p_outside, interaction.t, Vec3(0,0,0), Nml3(0,0,0), dl.medium)
     )
     radiance = L(dl, nshape, -wi)
     return radiance, wi, pdf_val, visibility, pshape, nshape
@@ -56,11 +57,12 @@ function sample_le(light::DistantLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{S
     # choose point on disk oriented toward infinite light direction
     w_light, v1, v2 = orthonormal_basis(light.w_light)
     cd = random_in_concentric_disk(u1)
-    p_disk = light.world_center .+ light.world_radius + (cd.x * v1 + cd.y * v2)
+    p_disk = light.world_center .+ light.world_radius * (cd.x * v1 + cd.y * v2)
+    @info "SampleLe:\n\tworld_center: $(light.world_center) \n\tworld_radius: $(light.world_radius)\n\tw_light: $w_light\n\tv1: $v1\n\tv2: $v2\n\tcd: $cd\n\tp_disk: $p_disk"
 
     # set ray origin and direction for infinite light ray
-    ray = RayDifferential(Ray(p_disk + light.world_radius * w_light, -light.w_light, t, typemax(Float64)))
-    pdf_pos = 1/ (pi * light.world_radius^2)
+    ray = RayDifferential(Ray(p_disk + light.world_radius * w_light, -w_light, t, typemax(Float64)))
+    pdf_pos = 1.0 / (pi * light.world_radius^2)
     pdf_dir = 1.0
     return light.L, ray, Nml3(ray.direction), pdf_pos, pdf_dir
 end

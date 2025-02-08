@@ -1,10 +1,19 @@
-function make_scene12()::Tuple{AbstractIntegrator, Scene}
+function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
 
-    # Bounding sphere cause we hate winding order and such
-    box_t = Translate(Pnt3(-0.5, -1.0, 0))
-    sphere_transform = Translate(Pnt3(0, 0, 0))
+    mat_sphere = Metal(
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.eta.spd"))),
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.k.spd"))),
+        ConstantTexture(spectrum_from_float(0.0)),
+    )
+    mat_floor = Matte(
+        ConstantTexture(spectrum_from_float(0.025, 0.025, 0.025)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        nothing
+    )
+
+    sphere_transform = Translate(Pnt3(1, 1, -1)) * Rotate(180.0, Vec3(0, 1, 0)) * Translate(Pnt3(-0.75, 0, -0.75)) * Scale(2.0, 2.0, 2.0) * Translate(Pnt3(0.375, 0.0, 0.375))
     sphere = Sphere(
         ShapeCore(
             sphere_transform,
@@ -12,21 +21,50 @@ function make_scene12()::Tuple{AbstractIntegrator, Scene}
             false,
             false
         ),
-        5.0
+        0.1
+    )
+    push!(primitives, Primitive(sphere, mat_sphere, nothing))
+
+    smoke_t = Translate(Pnt3(1, 0, -1)) * Rotate(180.0, Vec3(0,1,0)) * Translate(Pnt3(-0.75, 0.0, -0.75)) * Scale(2.0, 2.0, 2.0)
+    sphere2 = Sphere(
+        ShapeCore(
+            smoke_t,
+            Inv(smoke_t),
+            false,
+            false
+        ),
+        3.0
     )
     smoke_mi = MediumInterface(
-        GridDensityMedium(
-            spectrum_from_float(10.0),
-            spectrum_from_float(90.0),
+        GridMedium(
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/geometry/density_big_0084.pbrt"),
+            smoke_t,
+            spectrum_from_float(20.0),
+            spectrum_from_float(160.0),
+            1.0,
+            Pnt3(0.00, 0.00, 0.00),
+            Pnt3(0.75, 1.00, 0.75),
             0.0,
-            Pnt3(0.0, 0.0, 0.0),
-            Pnt3(1.0, 1.0, 1.0),
-            box_t,
-            "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render_cloud.pbrt"
+            Pnt3(256, 256, 256)
         ),
         nothing
     )
-    push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+    push!(primitives, Primitive(sphere2, nothing, nothing, smoke_mi))
+
+    floor_t = Translate(Pnt3(0, 0.1, 0))
+    floor = BilinearPatchGenerator(
+        ShapeCore(floor_t, Inv(floor_t), false, false),
+        1,
+        4,
+        Int64[0, 1, 2, 3],
+        Pnt3[Pnt3(-50, 0, -50), Pnt3(-50, 0, 50), Pnt3(50, 0, -50), Pnt3(50, 0, 50)],
+        nothing,
+        nothing,
+        nothing
+    )
+    for tri in floor
+        push!(primitives, Primitive(tri, mat_floor, nothing))
+    end
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -34,12 +72,13 @@ function make_scene12()::Tuple{AbstractIntegrator, Scene}
     print("Done building BVH\n")
 
     # instantiate the infinite light
-    l_2_w = Translate(Pnt3(0,0,0))
+    l_2_w = Rotate(110.0, Vec3(0, 1, 0)) * Rotate(-90.0, Vec3(1, 0, 0))
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        Spectrum(3.0, 3.0, 3.0), 
-        "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+        Spectrum(4.0, 4.0, 4.0), 
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/smoke-plume/textures/sky.exr"),
+        true
     )
     push!(lights, light)
 
@@ -57,11 +96,11 @@ function make_scene12()::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(0.0715308, 1.17677, 5.33558)
-    look_at = Pnt3(0, 0, 0)
-    up = Vec3(-0.000323605, 0.833706, 0.552208)
+    look_from = Pnt3(1.0, 2.9, -10.5)
+    look_at = Pnt3(1.0, 0.775, 0.0)
+    up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 25.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 8.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
