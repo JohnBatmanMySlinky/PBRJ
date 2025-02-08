@@ -59,9 +59,21 @@ Render
 
     ![julia_logo](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/julia-logo.png?raw=true)
 
-6. Smoke
+6. Uniform Medium
 
-    ![smoke](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/smoke.exr?raw=true)
+    ![uniform-medium](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/solid-medium.png?raw=true)
+
+7. Grid Medium 1
+
+    ![grid-medium-1](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/smoke.png?raw=true)
+
+8. Grid Medium 1
+
+    ![grid-medium-2](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/smoke-plume.png?raw=true)
+
+9. Furry Bunny
+
+    ![bunny-fur](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/bunny-fur.png?raw=true)
         
 # Features Implemented
 - Accelerators: BVH
@@ -74,6 +86,7 @@ Render
     - Very very very very basic L-system
     - Implicit surfaces: Goursat surface & metaballs
 - Participating mediums: Homogenous, Grid, and NanoVDB
+    - with DDA Majorant Iterator
 - RGB and spectral rendering
 - Textures: Constant, image, mixed, procedural and mixed
 - Other Stuff
@@ -82,32 +95,15 @@ Render
     - Edge-avoiding a-trous denoising
 
 # TODO's
-- combine `scratch/` and `src/notebooks`
-- RENDER DISNEY CLOUD from PBRTv4
-    - ~~my transforms and world / medium / unit spae are fucked~~ is it?
-    - ~~why is pbrtv4's "eye" transform baked in???~~ read the user manual mayhaps
-    - ~~FOV seems off and I get black corners~~
-    - clean up c++ code
-    - ~~pbrt has a sigma scale~~
-    - ~~remove p0 and p1~~
-    - ~~finish interpolation~~
-    - do rng better?
-    - Document export to DensityGridMedium
+- Time to make my OBJ parser suck less
+- Fix Mediums
+    - Grid medium is more sensitive to SampledGrid resolution than it should be
+    - NanoVDB is fucking broken and seg-faulty and I want to cry
+- Tests
+    - Analytic scenes from pbrt-v3
+    - Do more of them - especially around SampleTMaj and anything to fix the voxelation of GridMedium
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
-- Testing
-    - ~~Validate 100% aginst PBR for a single scene~~ I'm pretty close, see NB. Off on the red channel? idk, no more fireflies!
-        - ~~Document what is needed to get that level of validation~~
-        - ~~Suffer thru MISWeight & image writing~~
-        - write a robust triangle test suite. oof.
-            - Write c++ version to double check
-            - copy pbrt's triangle test suite. oof.
-        - ~~write a fn to clean julia logs and make format close to pbrt lol~~
-    - ~~WHERE ARE THE FIREFLIES COMING FROM~~
-    - add a sphere with substrate material to test scene
-    - add test scene file to repo
-    - ~~testing something with an infite env light~~ Got smoke.exr looking great!
-    - Copy my `*.pbrt`'s over to here
 - Performance
     - add an array of materials. store the index instead of the material in the primitive.
     - implement a Pnt3 but it's Ints not Float to avoid some conversions
@@ -127,7 +123,7 @@ Render
         - Improve goursat scene
     - Add leafs to l-systems
     - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
-    - implement a pbrtv4 to RGB script
+- combine `scratch/` and `src/notebooks`
 - PBRT Features
     - SimplePathIntegrator
     - VolPathIntegrator
@@ -186,7 +182,7 @@ Render
          - ~~Homogenous medium~~
          - ~~Grid medium~~
          - OpenVDB
-    - Add bi-linear patches
+    - ~~Add bi-linear patches~~
     - Add sub div surfaces
     - Robustly parse .pbrt scene files
     - Implement more materials
@@ -202,11 +198,11 @@ Render
     - ~~Move to EXR~~
         - ~~for env lights~~
         - ~~for final image~~
-    - Move the pbrt-v4's sampler structure
+    - ~~Move the pbrt-v4's sampler structure~~
         - ~~Sobol~~
         - ~~PaddedSobol~~
         - ~~ZSobol~~
-        - Does it matter what my hash function is?
+        - ~~Does it matter what my hash function is?~~
 - Scene work
     - Re run old scenes
     - ~~Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.~~
@@ -232,11 +228,35 @@ Render
 
 # Bugs
 - ~~My world is upside down! Use real pbrt to debug (or pxl-th's)~~
-- Sometimes objects are see through (ie when they have a really bright light behind them)
+- ~~Sometimes objects are see through (ie when they have a really bright light behind them)~~
 - ShapeCore specification bug. what if you spec only a translate? inverse is wrong!
 - Wait do I need to be using ::Radiance and ::Reflectance??? See spectrum
-- General Rotation is fucked. Cloud scene bounding box with rotation dont match. AHHHHHHHH
-    - Maybe not... might have been that hidden `data2medium` transformation. recheck this.
+- ~~General Rotation is fucked. Cloud scene bounding box with rotation dont match. AHHHHHHHH~~
+    - ~~Maybe not... might have been that hidden `data2medium` transformation. recheck this.~~
+    ```
+    AIGHT SO YOURE FUCKING TELLING ME
+    THIS
+        Scale -1 1 1
+        LookAt 0.0715308 -4.17677 5.33558 0.0720194 -3.62456 4.50187 -0.000323605 0.833706 0.552208
+    EQUALS
+
+    THIS
+    camera_transform = LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0)
+
+
+    BUT 
+    THIS
+    TransformBegin
+        Translate -1 0 -1.2
+        Rotate 90 1 0 0
+        Include "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
+        "color sigma_a" [90 90 90] "color sigma_s" [10 10 10]
+    TransformEnd
+
+    EQUALS
+    THIS
+    smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
+    ```
 
 # Ideas
 - ~~Triangles using UInt16 when small enough?~~ I get a very small pay off when I did a quick test.

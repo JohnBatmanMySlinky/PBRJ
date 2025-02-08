@@ -131,11 +131,12 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
             end
         end
     end
-    @info "Overall f: $(f_val), pdf_val: $(pdf_val), ratio: $((pdf > 0.0) ? (f_val / pdf_val) : spectrum_from_float(0.0))"
+    # @info "Overall f: $(f_val), pdf_val: $(pdf_val), ratio: $((pdf > 0.0) ? (f_val / pdf_val) : spectrum_from_float(0.0))"
     return wi_world, f_val, pdf_val, sampled_type
 end
 
 function compute_pdf(b::BSDF, wo_world::Vec3, wi_world::Vec3, flags::UInt8,)::Float64
+    @info "HUH - $(b.n_bxdfs)"
     b.n_bxdfs == 0 && return 0.0
 
     wo = world_to_local(b, wo_world)
@@ -147,6 +148,7 @@ function compute_pdf(b::BSDF, wo_world::Vec3, wi_world::Vec3, flags::UInt8,)::Fl
     for i in 1:b.n_bxdfs
         if b.bxdfs[i] & flags
             matching_components += 1
+            @info "bxdf[$i]: $(b.bxdfs[i])"
             pdf += compute_pdf(b.bxdfs[i], wo, wi)
         end
     end

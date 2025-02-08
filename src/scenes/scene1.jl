@@ -1,4 +1,4 @@
-function make_scene1()::Tuple{AbstractIntegrator, Scene}
+function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ###########################
     ######## Materials ########
     ###########################

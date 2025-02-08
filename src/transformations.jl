@@ -104,7 +104,7 @@ function Rotate(theta::Float64, axis::Vec3)::Transformation
         a.x * a.y * (1 - cos_theta) + a.z * sin_theta,
         a.x * a.z * (1 - cos_theta) - a.y * sin_theta,
         0.0,
-
+        
         a.x * a.y * (1 - cos_theta) - a.z * sin_theta,
         a.y * a.y + (1 - a.y * a.y) * cos_theta,
         a.y * a.z * (1 - cos_theta) + a.x * sin_theta,

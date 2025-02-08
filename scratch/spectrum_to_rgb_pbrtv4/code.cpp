@@ -1,0 +1,13 @@
+        std::cout << "GridMedium Spectrum Poking" << std::endl;
+        std::cout << "\tsigma_a: " << sigma_a << std::endl;
+        std::cout << "\tsigma_s: " << sigma_s << std::endl;
+        std::cout << "\tsigma_a_spec: " << sigma_a_spec << std::endl;
+        std::cout << "\tsigma_s_spec: " << sigma_s_spec << std::endl;
+        std::cout << "\tsigma_a[0]: " << sigma_a[0] << std::endl;
+        std::cout << "\tsigma_s[0]: " << sigma_s[0] << std::endl;
+        std::cout << "\tlambda: " << lambda << std::endl;
+        std::cout << "\tsigma_a XYZ: " << sigma_a.ToXYZ(lambda) << std::endl;
+        std::cout << "\tsigma_s XYZ: " << sigma_s.ToXYZ(lambda) << std::endl;
+        std::cout << "\tsigma_a RGB: " << sigma_a.ToRGB(lambda, *RGBColorSpace::sRGB) << std::endl;
+        std::cout << "\tsigma_s RGB: " << sigma_s.ToRGB(lambda, *RGBColorSpace::sRGB) << std::endl;
+        std::abort();
