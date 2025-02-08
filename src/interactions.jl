@@ -288,6 +288,6 @@ function le(si::SurfaceInteraction, w::Vec3)::Spectrum
     if si.primitive.area_light isa Nothing
         return spectrum_from_float(0.0)
     else
-        return si.primitive.area_light.Lemit
+        return L(si.primitive.area_light, si.core.n, w)
     end
 end
