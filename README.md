@@ -96,6 +96,8 @@ Render
 
 # TODO's
 - Time to make my OBJ parser suck less
+    - Pre-allocate arrays within parse_obj
+    - Bilinear patch support for quads
 - Fix Mediums
     - Grid medium is more sensitive to SampledGrid resolution than it should be
     - NanoVDB is fucking broken and seg-faulty and I want to cry
