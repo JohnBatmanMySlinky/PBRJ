@@ -4,7 +4,7 @@ struct SimpleVolPathIntegrator <: AbstractIntegrator
     max_depth::Int64
 end
 
-function li(svp::SimpleVolPathIntegratorIntegrator, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
+function li(svp::SimpleVolPathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
     # declare local variables for delta tracking integration
     LL = spectrum_from_float(0.0)
     beta = 1.0
@@ -17,7 +17,7 @@ function li(svp::SimpleVolPathIntegratorIntegrator, ray::AbstractRay, scene::Sce
         # estimate radiance for ray path using delta tracking
         check, t, si = intersect!(scene.b, ray)
         scattered = false
-        terminate = false
+        terminated = false
 
         if !(ray.medium isa Nothing)
             t_max = (t isa Nothing) ? typemax(Float64) : t
@@ -63,8 +63,8 @@ function li(svp::SimpleVolPathIntegratorIntegrator, ray::AbstractRay, scene::Sce
                             # CALLBACK #
                             ############
                             # computer medium event probabilities for interaction
-                            p_absorb = mp.sigma_a[0] / seg.sigma_maj[0]
-                            p_scatter = mp.sigma_s[0] / seg.sigma_maj[0]
+                            p_absorb = mp.sigma_a[0+1] / seg.sigma_maj[0+1]
+                            p_scatter = mp.sigma_s[0+1] / seg.sigma_maj[0+1]
                             p_null = max(0.0, 1.0 - p_absorb - p_scatter)
 
                             # randomly sample medium scattering event for delta trackign
@@ -79,7 +79,7 @@ function li(svp::SimpleVolPathIntegratorIntegrator, ray::AbstractRay, scene::Sce
                                 # stop sampling if maximum depth has been reached
                                 depth += 1
                                 if depth >= svp.max_depth
-                                    terminate = true
+                                    terminated = true
                                     callback_val = false
                                 end
 
@@ -135,7 +135,7 @@ function li(svp::SimpleVolPathIntegratorIntegrator, ray::AbstractRay, scene::Sce
         end
         
         if !(si isa Nothing)
-            LL += beta * Le(si, -ray.direction)
+            LL += beta * le(si, -ray.direction)
         else
             for light in scene.lights
                 if is_infinite_light(light)
@@ -145,9 +145,9 @@ function li(svp::SimpleVolPathIntegratorIntegrator, ray::AbstractRay, scene::Sce
             return LL
         end
 
-        compute_scattering!(si, ray, true, mode)
+        compute_scattering!(si, ray, true, Radiance)
         if si.bsdf isa Nothing
-            ray = spawn_ray(isect.core, ray.direction)
+            ray = spawn_ray(si.core, ray.direction)
             continue
         else
             @assert false
