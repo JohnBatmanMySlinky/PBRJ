@@ -41,13 +41,13 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_at = Pnt3(0.0720194, -3.62456, 4.50187)
     up = Vec3(-0.000323605, 0.833706, 0.552208)
     camera_transform = LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0)
-    disk = Disk(
-        camera_transform * Translate(Pnt3(0, 0, 30)),
-        30.0,
-        false,
-        false
-    )
-    push!(primitives, Primitive(disk, mat_disk, nothing))
+    # disk = Disk(
+    #     camera_transform * Translate(Pnt3(0, 0, 30)),
+    #     30.0,
+    #     false,
+    #     false
+    # )
+    # push!(primitives, Primitive(disk, mat_disk, nothing))
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -60,8 +60,9 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         world_bounds(bvh), 
         l_2_w, 
         spectrum_from_float(3.0, Illuminant), 
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"),
         # "/Users/johnmyslinski/Documents/PBRJ/scratch/mipmap/hello.exr"
+        false
     )
     push!(lights, light)
 
@@ -92,7 +93,8 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
-    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    I = SimpleVolPathIntegrator(C, S, parsed_args["max-depth"])
 
     return I, scene
 end
