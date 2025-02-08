@@ -78,7 +78,7 @@ Render
 # Features Implemented
 - Accelerators: BVH
 - Cameras: Perspective
-- Integrators: BDPT, ambient occlusion, path, and whitted
+- Integrators: BDPT, ambient occlusion, path, simple volumetric path, and whitted
 - Lights: Area, distant, image infinite, uniform infinite, point, and spot
 - Materials: Glass, matte, metal, mirror, plastic, and substrate materials
 - Samplers: Stratified, z-sobol, and sobol
