@@ -1,32 +1,47 @@
 struct TriangleMesh
     n_triangles::Int64
-    n_vertices::Int64
+
     vertices::Vector{Pnt3}
-    indices::Vector{Int64}
-    normals::Vector{Nml3}
-    uvs::Vector{Pnt2}
+    vertex_indices::Vector{Int64}
+
+    normals::Maybe{Vector{Nml3}}
+    normal_indices::Maybe{Vector{Int64}}
+
+    uvs::Maybe{Vector{Pnt2}}
+    uv_indices::Maybe{Vector{Int64}}
+
     alpha_mask::Maybe{Texture}
     shading_tangent::Nothing
 
     function TriangleMesh(
         object_to_world::Transformation, 
-        n_triangles::Int64, 
-        n_vertices::Int64, 
-        vertices::Vector{Pnt3}, 
-        indices::Vector{Int64}, 
-        normals::Vector{Nml3},
-        uvs::Vector{Pnt2},
-        alpha_mask::Maybe{Texture},
+        n_triangles::Int64,
+
+        vertices::Vector{Pnt3},
+        vertex_indices::Vector{Int64},
+    
+        normals::Maybe{Vector{Nml3}},
+        normal_indices::Maybe{Vector{Int64}},
+    
+        uvs::Maybe{Vector{Pnt2}},
+        uv_indices::Maybe{Vector{Int64}},
+    
+        alpha_mask::Maybe{Texture}
     )
         vertices = object_to_world.(vertices)
         normals = object_to_world.(normals)
         new(
             n_triangles,
-            n_vertices,
+
             vertices,
-            indices,
+            vertex_indices,
+
             normals,
+            normal_indices,
+
             uvs,
+            uv_indices,
+
             alpha_mask,
             nothing
         )
@@ -50,21 +65,31 @@ end
 function construct_triangle_mesh(
     core::ShapeCore, 
     n_triangles::Int64, 
-    n_vertices::Int64, 
-    vertices::Vector{Pnt3}, 
-    indices::Vector{Int64}, 
-    normals::Vector{Nml3},
-    uvs::Vector{Pnt2},
-    alpha_mask::Maybe{Texture},
+
+    vertices::Vector{Pnt3},
+    vertex_indices::Vector{Int64},
+    
+    normals::Maybe{Vector{Nml3}},
+    normal_indices::Maybe{Vector{Int64}},
+    
+    uvs::Maybe{Vector{Pnt2}},
+    uv_indices::Maybe{Vector{Int64}},
+    
+    alpha_mask::Maybe{Texture}
 )
     mesh = TriangleMesh(
         core.object_to_world, 
         n_triangles, 
-        n_vertices, 
+
         vertices, 
-        indices, 
+        vertex_indices, 
+
         normals, 
+        normal_indices, 
+
         uvs,
+        uv_indices,
+        
         alpha_mask
     )
     return [Triangle(core, mesh, i) for i in 0:n_triangles - 1]
@@ -98,17 +123,17 @@ end
 ##############################
 
 @inline function get_vertices(t::Triangle)::Tuple{Pnt3, Pnt3, Pnt3}
-    return t.mesh.vertices[t.mesh.indices[t.i + 0]], t.mesh.vertices[t.mesh.indices[t.i + 1]], t.mesh.vertices[t.mesh.indices[t.i + 2]]
+    return t.mesh.vertices[t.mesh.vertex_indices[t.i + 0]], t.mesh.vertices[t.mesh.vertex_indices[t.i + 1]], t.mesh.vertices[t.mesh.vertex_indices[t.i + 2]]
 end
 
 @inline function get_normals(t::Triangle)::Tuple{Nml3, Nml3, Nml3}
     # TODO implement ability to NOT have normals
-    return t.mesh.normals[t.mesh.indices[t.i + 0]], t.mesh.normals[t.mesh.indices[t.i + 1]], t.mesh.normals[t.mesh.indices[t.i + 2]]
+    return t.mesh.normals[t.mesh.normal_indices[t.i + 0]], t.mesh.normals[t.mesh.normal_indices[t.i + 1]], t.mesh.normals[t.mesh.normal_indices[t.i + 2]]
 end
 
 @inline function get_uvs(t::Triangle)::Tuple{Pnt2, Pnt2, Pnt2}
     # TODO implement ability to NOT have UVs
-    return t.mesh.uvs[t.mesh.indices[t.i + 0]], t.mesh.uvs[t.mesh.indices[t.i + 1]], t.mesh.uvs[t.mesh.indices[t.i + 2]]
+    return t.mesh.uvs[t.mesh.uv_indices[t.i + 0]], t.mesh.uvs[t.mesh.uv_indices[t.i + 1]], t.mesh.uvs[t.mesh.uv_indices[t.i + 2]]
 end
 
 ##################################################
@@ -183,7 +208,11 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     t = t_scaled * inv_det
 
     # Compute triangle partial derivatives
-    uv = get_uvs(tri)
+    if !(tri.mesh.uvs isa Nothing)
+        uv = get_uvs(tri)
+    else
+        uv = (Pnt2(0, 0), Pnt2(1, 0), Pnt2(1, 1))
+    end
     duv13 = uv[1] - uv[3]
     duv23 = uv[2] - uv[3]
     dp13 = p0 - p2

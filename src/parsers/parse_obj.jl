@@ -1,124 +1,148 @@
-##############################
-##############################
-######## WARNING #############
-##############################
-##############################
-# This parser is really lazy. 
-# It only uses one index for verticies, normals and UVs. 
-
-
-function parse_vertex(s::String)
-    tmp = Float64[]
-    splitted = split(s, " ")
-    for each in splitted
-        if !(each in ["v", ""])
-            push!(tmp,parse(Float64, each))
-        end
-    end
-    return Pnt3(tmp[1], tmp[2], tmp[3])
+function parse_vertex(line::AbstractString)::RayTracing.Pnt3
+	parts = split(strip(line))[2:end]
+	if length(parts) != 3
+		throw(ArgumentError("Invalid vertex format: $line"))
+	end
+	return RayTracing.Pnt3(parse(Float64, parts[1]), parse(Float64, parts[2]), parse(Float64, parts[3]))
 end
 
-function push_vertices!(s::String, indices::Vector{Int64})
-    splitted = split(s, " ")
-    for each in splitted
-        if !(each in ["f", ""])
-            if occursin("/", each)
-                push!(indices, parse(Float64, split(each,"/")[1]))
-            else
-                push!(indices, parse(Float64, each))
-            end
+function parse_normal(line::AbstractString)::RayTracing.Nml3
+	parts = split(strip(line))[2:end]
+	if length(parts) != 3
+		throw(ArgumentError("Invalid vertex format: $line"))
+	end
+	return RayTracing.Nml3(parse(Float64, parts[1]), parse(Float64, parts[2]), parse(Float64, parts[3]))
+end
+
+function parse_uv(line::AbstractString)::RayTracing.Pnt2
+	parts = split(strip(line))[2:end]
+	if length(parts) != 2
+		throw(ArgumentError("Invalid vertex format: $line"))
+	end
+	return RayTracing.Pnt2(parse(Float64, parts[1]), parse(Float64, parts[2]))
+end
+
+function parse_face!(
+    line::AbstractString,
+    vertex_indices::Vector{Int},
+    uv_indices::Vector{Int},
+    normal_indices::Vector{Int}
+)
+	parts = split(strip(line))[2:end]
+    
+    if length(parts) != 3
+        throw(ArgumentError("Invalid face format on line: $line"))
+    end
+	
+	for part in parts
+		indices = split(part, "/")
+		push!(vertex_indices, parse(Int, indices[1]))
+		
+        if length(indices) > 1 && indices[2] != ""
+            push!(uv_indices, parse(Int, indices[2]))
+        end
+		
+		if length(indices) > 2 && indices[3] != ""
+            push!(normal_indices, parse(Int, indices[3]))
         end
     end
 end
-
-function parse_normals(s::String)
-    tmp = Float64[]
-    splitted = split(s, " ")
-    for each in splitted
-        if !(each in ["vn", ""])
-            push!(tmp,parse(Float64, each))
-        end
-    end
-    return Nml3(tmp[1], tmp[2], tmp[3])
-end
-
-function parse_uvs(s::String)
-    tmp = Float64[]
-    splitted = split(s, " ")
-    for each in splitted
-        if !(each in ["vt", ""])
-            push!(tmp, parse(Float64, each))
-        end
-    end
-    return Pnt2(tmp[1], tmp[2])
-end
-
 
 function parse_obj(
-    fname::String, 
-    object_to_world::Transformation, 
+    file_path::AbstractString,
+    object_to_world::RayTracing.Transformation, 
     reverse_orientation::Bool, 
     transform_swaps_handedness::Bool,
-    alpha_mask::Maybe{Texture},
+    alpha_mask::RayTracing.Maybe{RayTracing.Texture},
 )
-    vertices = Pnt3[]
-    indices = Int64[]
-    normals = Nml3[]
-    uvs = Pnt2[]
-    open(fname) do f
-        while !eof(f)
-            # read current line
-            s = readline(f)
+	vertices = RayTracing.Pnt3[]
+    vertex_indices = Int[]
 
-            # skip empty lines
-            if length(s) < 2
+	uvs = RayTracing.Pnt2[]
+    uv_indices = Int[]
+
+	normals = RayTracing.Nml3[]
+	normal_indices = Int[]
+	
+	open(file_path) do file
+		for line in eachline(file)
+			line = strip(line)
+			if isempty(line) || startswith(line, "#")
+				continue
+			end
+			
+			parts = split(line)
+			cmd = parts[1]
+			
+            if cmd == "v"
+                push!(vertices, parse_vertex(line))
+            elseif cmd == "vt"
+                push!(uvs, parse_uv(line))
+            elseif cmd == "vn"
+                push!(normals, parse_normal(line))
+            elseif cmd == "f"
+                parse_face!(line, vertex_indices, uv_indices, normal_indices)
+            elseif cmd == "mtllib"
+                @warn "Skipping material: $line"
                 continue
+            elseif cmd == "usemtl"
+                @warn "Skipping material: $line"
+                continue
+            elseif cmd == "g"
+                @warn "Skipping group: $line"
+                continue
+            elseif cmd == "o"
+                @warn "Skipping object: $line"
+                continue
+            elseif cmd == "s"
+                @warn "Skipping something: $line"
+                continue
+            elseif cmd == "l"
+                @warn "Skipping line: $line"
+                continue
+            else
+                @assert false
             end
+		end
+	end
 
-            # first two characters tell you what to do 
-            key = s[1:2]
-
-            # parse vertices
-            if key == "v "
-                v = parse_vertex(s)
-                push!(vertices,v)
-            # parse indices
-            elseif key == "f "
-                push_vertices!(s, indices)
-            elseif key == "vn"
-                n = parse_normals(s)
-                push!(normals, n)
-            elseif key == "vt"
-                vt = parse_uvs(s)
-                push!(uvs, vt)
-            end
-            # parse UV
-        end
-    end
-    @assert length(indices) % 3 == 0
-
-    # if no UVs found, add dummy UVs
-    if length(uvs) == 0
-        for i in 1:length(vertices)
-            push!(uvs, Pnt2(1,1))
-        end
+    # if face only specifies a single set of indices but we get normals
+    # as seen in teapot.obj
+    if (length(normals) > 0) & (length(normal_indices) == 0)
+        @assert length(vertices) == length(normals)
+        normal_indices = vertex_indices
     end
 
-    # if no Normals found, add dummy UVs
-    if length(normals) == 0
-        for i in 1:length(vertices)
-            push!(normals, Nml3(0,1,0))
-        end
+    # if face only specifies a single set of indices but we get uvs
+    # as seen in teapot.obj
+    if (length(uvs) > 0) & (length(uv_indices) == 0)
+        @assert length(vertices) == length(uvs)
+        uv_indices = vertex_indices
     end
 
-    return construct_triangle_mesh(
-        ShapeCore(object_to_world, Inv(object_to_world), reverse_orientation, transform_swaps_handedness), 
-        length(indices)÷3,  # n_triangles
-        length(vertices),   # n_vertices
+    @assert mod(length(vertex_indices), 3) == 0
+    @assert mod(length(uv_indices), 3) == 0
+    @assert mod(length(normal_indices), 3) == 0
+
+    normals = length(normals)>0 ? normals : nothing
+    normal_indices = length(normal_indices)>0 ? normal_indices : nothing
+
+    uvs = length(uvs)>0 ? uvs : nothing
+    uv_indices = length(uv_indices)>0 ? uv_indices : nothing
+
+	return RayTracing.construct_triangle_mesh(
+        RayTracing.ShapeCore(object_to_world, RayTracing.Inv(object_to_world), reverse_orientation, transform_swaps_handedness),
+        length(vertex_indices)÷3,
+    
         vertices,
-        indices,
+        vertex_indices,
+    
         normals,
+        normal_indices,
+    
         uvs,
+        uv_indices,
+    
         alpha_mask
     )
-end 
+end

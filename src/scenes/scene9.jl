@@ -3,14 +3,19 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     lights = Light[]
 
     # materials
-    mat_white = Matte(
-        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+    mat_inner = Matte(
+        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
-    mat_inner = Matte(
-        ConstantTexture(spectrum_from_float(0.4, 0.4, 0.7)),
-        ConstantTexture(spectrum_from_float(20.0, 20.0, 20.0)),
+    mat_outer = Matte(
+        ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        nothing
+    )
+    mat_stand = Matte(
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
 
@@ -20,7 +25,7 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mesh012_translate = Translate(Pnt3(0,0,0)) 
     mesh0 =  parse_obj(
-        "../ref/lte-orb/mesh-0.obj",
+        "../ref/lte-orb/mesh-0.obj", # inner
         mesh012_translate,
         true,
         false,
@@ -30,27 +35,25 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(tri, mat_inner, nothing))
     end
     mesh1 =  parse_obj(
-        "../ref/lte-orb/mesh-1.obj",
+        "../ref/lte-orb/mesh-1.obj", # base
         mesh012_translate,
         true,
         false,
         nothing
     )
     for tri in mesh1
-        push!(primitives, Primitive(tri, mat_inner, nothing))
+        push!(primitives, Primitive(tri, mat_stand, nothing))
     end
     mesh2 =  parse_obj(
-        "../ref/lte-orb/mesh-2.obj",
+        "../ref/lte-orb/mesh-2.obj", # outer
         mesh012_translate,
         true,
         false,
         nothing
     )
     for tri in mesh2
-        push!(primitives, Primitive(tri, mat_inner, nothing))
+        push!(primitives, Primitive(tri, mat_outer, nothing))
     end
-
-
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -58,8 +61,8 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Done building BVH\n")
 
     # instantiate the infinite light
-    l_2_w = Translate(Pnt3(0,0,0))
-    light = InfiniteLight(world_bounds(bvh), l_2_w, Spectrum(3.0, 3.0, 3.0), "/Users/johnmyslinski/Documents/PBRJ/scratch/mipmap/hello.exr")
+    l_2_w = Rotate(-90.0, Vec3(1,0,0))
+    light = InfiniteLight(world_bounds(bvh), l_2_w, Spectrum(1.4, 1.4, 1.4), "/Users/johnmyslinski/Documents/pbrt-v4-scenes/lte-orb/textures/small_rural_road_equiarea.exr")
     push!(lights, light)
 
     # Instantiate a Filter
@@ -76,11 +79,17 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(-.3, .5, -.5)
-    look_at = Pnt3(0, 0.0, 0)
+
+
+    # 0.16432909667491913, -0.8644996881484985, -0.6155436635017395
+    # 0.27579671144485474, -0.9914534687995911, -0.6511322855949402
+    # 0.2510230839252472, -0.9913325309753418, -0.6673218607902527
+
+    look_from = Pnt3(0.0, -0.55, -0.25)
+    look_at = Pnt3(0, 0.7, 0)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])

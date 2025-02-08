@@ -4,36 +4,39 @@ function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore,
         return construct_triangle_mesh(
             sc,
             2,
-            4,
             [Pnt3(k, MIN.x, MIN.y), Pnt3(k, MAX.x, MAX.y), Pnt3(k, MIN.x, MAX.y), Pnt3(k, MAX.x, MIN.y)],
             # BE REALLY CAREFUL OF YOUR WINDING ORDER
             [1,2,3,1,4,2],
-            [Nml3(0,0,0)*flip, Nml3(0,0,0)*flip, Nml3(0,0,0)*flip, Nml3(0,0,0)*flip],
+            [Nml3(0,0,0)*flip],
+            [1,1,1,1,1,1],
             [Pnt2(0,0), Pnt2(1,1), Pnt2(0,1), Pnt2(1,0)],
+            [1,2,3,1,4,2],
             alpha_mask
         )
     elseif axis == 2
         return construct_triangle_mesh(
             sc,
             2,
-            4,
             [Pnt3(MIN.x, k, MIN.y), Pnt3(MAX.x, k, MAX.y), Pnt3(MIN.x, k, MAX.y), Pnt3(MAX.x, k, MIN.y)],
             # BE REALLY CAREFUL OF YOUR WINDING ORDER
             [1,2,3,1,4,2],
-            [Nml3(0,0,0)*flip, Nml3(0,0,0)*flip, Nml3(0,0,0)*flip, Nml3(0,0,0)*flip],
+            [Nml3(0,0,0)*flip],
+            [1,1,1,1,1,1],
             [Pnt2(0,0), Pnt2(1,1), Pnt2(0,1), Pnt2(1,0)],
+            [1,2,3,1,4,2],
             alpha_mask
         )
     elseif axis == 3
         return construct_triangle_mesh(
             sc,
             2,
-            4,
             [Pnt3(MIN.x, MIN.y, k), Pnt3(MAX.x, MAX.y, k), Pnt3(MIN.x, MAX.y, k), Pnt3(MAX.x, MIN.y, k)],
             # BE REALLY CAREFUL OF YOUR WINDING ORDER
             [1,2,3,1,4,2],
-            [Nml3(0,0,0)*flip, Nml3(0,0,0)*flip, Nml3(0,0,0)*flip, Nml3(0,0,0)*flip],
+            [Nml3(0,0,0)*flip],
+            [1,1,1,1,1,1],
             [Pnt2(0,0), Pnt2(1,1), Pnt2(0,1), Pnt2(1,0)],
+            [1,2,3,1,4,2],
             alpha_mask
         )
     else
