@@ -1,4 +1,4 @@
-function parse_media(fpath::String)::Tuple{Int64, Int64, Int64, Vector{Float64}, Maybe{Vector{Float64}}, Pnt3, Pnt3}
+function parse_media(fpath::String)::Tuple{Int64, Int64, Int64, Vector{Float64}, Maybe{Vector{Float64}}, Maybe{Vector{Float64}}, Pnt3, Pnt3}
     f = open(fpath, "r")
     s = read(f, String)
 
@@ -18,14 +18,15 @@ function parse_media(fpath::String)::Tuple{Int64, Int64, Int64, Vector{Float64},
 
     le_grid = parse.(Float64, split(split(split(match(r"\"float Lescale\"\s\[(.*)\]"s, s).match, "[ ")[2], " ]")[1]))
 
-    temperature_grid = parse.(Float64, split(split(split(match(r"\"float Temperature\"\s\[(.*)\]"s, s).match, "[ ")[2], " ]")[1]))
+    # temperature_grid = parse.(Float64, split(split(split(match(r"\"float Temperature\"\s\[(.*)\]"s, s).match, "[ ")[2], " ]")[1]))
+    temperature_grid = nothing
 
     @assert nx * ny * nz == length(d)
 
-    if le_grid isa Nothing
+    if !(le_grid isa Nothing)
         @assert length(d) == length(le_grid)
     end
-    if temperature_grid isa Nothing
+    if !(temperature_grid isa Nothing)
         @assert length(d) == length(temperature_grid)
     end
 

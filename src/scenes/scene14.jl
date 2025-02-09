@@ -52,7 +52,19 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     media_t = Transformation(Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 4.705, 0, 1)) *
         Transformation(Mat4(3.18, 0, 0, 0, 0, 3.212, 0, 0, 0, 0, 3.1, 0, 0.008, -0.024, -0.064, 1))
 
-    # MEDIUM GO HERE
+    anemone_mi = MediumInterface(
+        GridMedium(
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium.pbrt"),
+            media_t,
+            spectrum_from_float(0.1, 0.9, 0.5),
+            spectrum_from_float(0.2, .01, 1.0),
+            1.0,
+            spectrum_from_float(10.0, 0.5, 5.0),
+            0.0,
+            Pnt3(256, 256, 256)
+        ),
+        nothing
+    )
 
     ground_t = Transformation(Mat4(10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 1)) * 
         Transformation(Mat4(500, 0, 0, 0, 0, 0, -500, 0, 0, 1, 0, 0, 0, 0, 0, 1))
@@ -71,7 +83,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ShapeCore(orb_t1, Inv(orb_t1), false, false),
         1.0
     )
-    # push!(primitives, Primitive(orb_media, mat_blue, nothing))
+    push!(primitives, Primitive(orb_media, nothing, nothing, anemone_mi))
 
     orb_t2 = Transformation(Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 4.705, 0, 1)) *
     Transformation(Mat4(3.696, 0, 0, 0, 0, 0, -3.696, 0, 0, 3.696, 0, 0, 0, 0, 0, 1))
@@ -178,6 +190,17 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(primitives, Primitive(stand_orb12, mat_blue, nothing))
 
+    metal_stand_t = Transformation(Mat4(3.7, 0, 0, 0, 0, 3.7, 0, 0, 0, 0, 3.7, 0, 0, 0, 0, 1)) * RotateX(90.0)
+    metal_stand = parse_obj(
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/metal_stand.obj"),
+        metal_stand_t,
+        false,
+        false,
+        nothing
+    )
+    for tri in metal_stand
+        push!(primitives, Primitive(tri, mat_blue, nothing))
+    end
 
 
     # instantiate accelerator

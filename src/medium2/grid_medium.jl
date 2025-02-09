@@ -53,10 +53,14 @@ struct GridMedium <: AbstractMedium
             temperature_grid,
             le,
             le_grid,
-            !(temperature_grid isa Nothing) || !(le_grid isa Nothing),
+            !(temperature_grid isa Nothing) || !(maximum(le) > 0.0),
             majorant_grid
         )
     end
+end
+
+function is_emissive(gm::GridMedium)::Bool
+    return gm.is_emissive
 end
 
 function sample_point(gm::GridMedium, p::Pnt3)::MediumProperties
@@ -67,9 +71,22 @@ function sample_point(gm::GridMedium, p::Pnt3)::MediumProperties
     sigma_a = gm.sigma_a * d
     sigma_s = gm.sigma_s * d
 
+    
     # Compute grid emission _Le_ at _p_
     Le = spectrum_from_float(0.0)
-    # NOT EMISSIVE SO SKIP
+    if gm.is_emissive
+        scale = lookup(gm.le_grid, p)
+        if scale > 0.0
+            # Compute emitted radiance using _temperatureGrid_ or _Le_spec_
+            if !(gm.temperature_grid isa Nothing)
+                @assert false
+                temp = lookup(gm.temperature_grid, p)
+                Le = scale * black_body_spectrum(temp)
+            else
+                Le = scale * gm.le
+            end
+        end
+    end
 
     return MediumProperties(sigma_a, sigma_s, gm.phase, Le)
 end
