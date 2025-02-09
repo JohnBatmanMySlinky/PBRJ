@@ -17,15 +17,19 @@ struct GridMedium <: AbstractMedium
         medium_to_world::Transformation,
         sigma_a::Spectrum,
         sigma_s::Spectrum,
-        sigma_scale::Float64=1.0,
+        sigma_scale::Float64,
         le::Spectrum,
         g::Float64=0.0,
         majorant_grid_res::Pnt3=Pnt3(16, 16, 16)
     )
         nx, ny, nz, d, le_grid, temperature_grid, p0, p1 = parse_media(fpath)
         density_grid = SampledGrid(d, nx, ny, nz)
-        temperature_grid =  SampledGrid(temperature_grid, nx, ny, nz)
-        le_grid = SampledGrid(d, nx, ny, nz)
+        if !(temperature_grid isa Nothing)
+            temperature_grid =  SampledGrid(temperature_grid, nx, ny, nz)
+        end
+        if !(le_grid isa Nothing)
+            le_grid = SampledGrid(le_grid, nx, ny, nz)
+        end
 
         majorant_grid_d = zeros(Float64, Int64(majorant_grid_res.x * majorant_grid_res.y * majorant_grid_res.z))
         for z in 0:(majorant_grid_res.z-1)

@@ -4,11 +4,11 @@ struct GaussianFilter <: Filter
     exp_x::Float64
     exp_y::Float64
 
-    function GaussianFilter(radius::Pnt2, alpha::Float64)
+    function GaussianFilter(radius::Pnt2, alpha::Float64=2.0)
         return new(
             radius,
             alpha,
-            exp(-alpha * radius.x^2)
+            exp(-alpha * radius.x^2),
             exp(-alpha * radius.y^2)
         )
     end
