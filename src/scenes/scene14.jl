@@ -42,6 +42,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    mat_glass = Glass()
 
     # this matches PBRT. wtf is that base transformation baked in there...
     #     media_t = RayTracing.Transformation(RayTracing.Mat4( 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0 , -8.999994 , -23.999943, 1 )) *
@@ -92,7 +93,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ShapeCore(orb_t2, Inv(orb_t2), false, false),
         1.0
     )
-    # push!(primitives, Primitive(orb_glass, mat_green, nothing))
+    push!(primitives, Primitive(orb_glass, mat_glass, nothing))
 
     stand_orb1_t = Transformation(Mat4(3.7, 0, 0, 0, 0, 3.7, 0, 0, 0, 0, 3.7, 0, 0, 0, 0, 1)) * 
         Transformation(Mat4(0.04, 0, 0, 0, 0, 0, -0.04, 0, 0, 0.04, 0, 0, 0.879841, 0.70134, 0, 1))
@@ -209,13 +210,13 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Done building BVH\n")
 
     # instantiate the infinite light
-    l_2_w = Translate(Pnt3(0,0,0))
-    light = UniformInfiniteLight(
-        world_bounds(bvh), 
-        l_2_w, 
-        Spectrum(0.53, 0.57, 0.53), 
-    )
-    push!(lights, light)
+    # l_2_w = Translate(Pnt3(0,0,0))
+    # light = UniformInfiniteLight(
+    #     world_bounds(bvh), 
+    #     l_2_w, 
+    #     Spectrum(0.53, 0.57, 0.53), 
+    # )
+    # push!(lights, light)
 
     # Instantiate a Sampler
     # S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))
