@@ -13,6 +13,9 @@ struct MixDirectionTexture <: Texture
     a::Texture
     b::Texture
     dir::Vec3
+    function MixDirectionTexture(a::Texture, b::Texture, dir::Vec3)
+        return new(a,b,normalize(dir))
+    end
 end
 
 function (t::MixDirectionTexture)(si::SurfaceInteraction)

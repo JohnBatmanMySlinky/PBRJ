@@ -21,8 +21,8 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_glass = Glass(
         ConstantTexture(Pnt3(1.0)), # Kr
         ConstantTexture(Pnt3(1.0)), # Kt
-        dir_mix_texture,            # u_roughness
-        dir_mix_texture,            # v_roughness
+        ConstantTexture(Pnt3(.005)),  # u_roughness
+        ConstantTexture(Pnt3(.005)),  # v_roughness
         ConstantTexture(Pnt3(1.5)), # eta
         nothing,                    # bump
         true                        # remap_roughness
