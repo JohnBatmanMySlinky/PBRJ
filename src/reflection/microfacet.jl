@@ -80,13 +80,13 @@ end
 
 function f(mt::MicrofacetTransmission, wo::Vec3, wi::Vec3)::Spectrum
     if same_hemisphere(wo, wi)
-        return spectrum(0.0)
+        return spectrum_from_float(0.0)
     end
     
     cos_theta_O = cos_theta(wo)
     cos_theta_I = cos_theta(wi)
     if (cos_theta_O == 0.0) || (cos_theta_I == 0.0)
-        return spectrum(0.0)
+        return spectrum_from_float(0.0)
     end
 
     # Compute $\wh$ from $\wo$ and $\wi$ for microfacet transmission
