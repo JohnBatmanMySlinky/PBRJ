@@ -12,7 +12,7 @@ scene 10: a cloud + SimpleVolPathIntegrator ✅
 scene 11: infinite light show off & material testing ✅
 scene 12: v4 smoke plume ✅
 scene 13: DISNEY CLOUD 🟨
-scene 14: explosion + SimpleVolPathIntegrator
+scene 14: Anemone
 scene 15: procedural clouds 🟨
 scene 16: elevator hallway 🟨
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
