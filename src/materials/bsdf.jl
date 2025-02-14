@@ -119,10 +119,11 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
             @info "i - $i"
             if b.bxdfs[i+1] != bxdf && b.bxdfs[i+1] & type
                 pdf_val += compute_pdf(b.bxdfs[i+1], wo, wi)
-                @info "pdf_val - $pdf_val"
+                @info "pdf_val - $pdf_val, $wo, $wi"
             end
         end
     end
+    @info "dont be changing: $wo, $wi"
     matching_components > 1 && (pdf_val /= matching_components)
     # Compute value of BSDF for sampled direction.
     if !(bxdf.type & BSDF_SPECULAR != 0)
@@ -133,7 +134,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
             bxdf = b.bxdfs[i+1]
             if ((bxdf & type) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0))))
                 f_val::Spectrum += f(bxdf, wo, wi)
-                @info "f_val - $f_val"
+                @info "f_val - $f_val, $wo, $wi"
             end
         end
     end

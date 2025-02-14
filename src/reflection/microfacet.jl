@@ -104,6 +104,7 @@ function f(mt::MicrofacetTransmission, wo::Vec3, wi::Vec3)::Spectrum
     F = mt.fresnel(dot(wo, wh))
     sqrtDenom = dot(wo, wh) + eta * dot(wi, wh)
     factor = (mt.mode == Radiance) ? (1 / eta) : 1.0
+    @info "little f: $F, $sqrtDenom, $factor, $(D(mt.distribution, wh)), $(G(mt.distribution, wo, wi))"
     
     return (spectrum_from_float(1.0) .- F) * mt.T *
             abs(D(mt.distribution, wh) * G(mt.distribution, wo, wi) * eta * eta *
