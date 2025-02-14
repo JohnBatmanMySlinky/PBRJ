@@ -21,8 +21,8 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_glass = Glass(
         ConstantTexture(Pnt3(1.0)), # Kr
         ConstantTexture(Pnt3(1.0)), # Kt
-        ConstantTexture(Pnt3(.005)),  # u_roughness
-        ConstantTexture(Pnt3(.005)),  # v_roughness
+        ConstantTexture(Pnt3(.0005)),  # u_roughness
+        ConstantTexture(Pnt3(.0005)),  # v_roughness
         ConstantTexture(Pnt3(1.5)), # eta
         nothing,                    # bump
         true                        # remap_roughness
@@ -42,7 +42,8 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    camera_t = Translate(Pnt3(0, 15, 0)) * Transformation(Mat4(1, 0, 0, 0, 0, 0.978148, -0.207912, 0, 0, -0.207912, -0.978148, 0, 0, -3.81345, 25.3467, 1)) 
+    # camera_t = Translate(Pnt3(0, 15, 0)) * Transformation(Mat4(1, 0, 0, 0, 0, 0.978148, -0.207912, 0, 0, -0.207912, -0.978148, 0, 0, -3.81345, 25.3467, 1)) 
+    camera_t = LookAt(Pnt3(0,9,24), Pnt3(0,2,0), Vec3(0,1,0)) * Scale(-1.0, 1.0, 1.0)
     # screen = Bounds2(Pnt2(-1, -0.5625), Pnt2(1, 0.5625))
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     C = PerspectiveCamera(camera_t, screen, 0.0, 1.0, 0.0, 1e6, 45.0, film)
@@ -212,14 +213,24 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
-    # instantiate the infinite light
-    l_2_w = Translate(Pnt3(0,0,0))
-    light = UniformInfiniteLight(
+    l_2_w = Rotate(110.0, Vec3(0, 1, 0)) * Rotate(-90.0, Vec3(1, 0, 0))
+    light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        Spectrum(0.53, 0.57, 0.53), 
+        spectrum_from_float(4.0, Illuminant), 
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"),
+        false
     )
     push!(lights, light)
+
+    # instantiate the infinite light
+    # l_2_w = Translate(Pnt3(0,0,0))
+    # light = UniformInfiniteLight(
+    #     world_bounds(bvh), 
+    #     l_2_w, 
+    #     Spectrum(0.53, 0.57, 0.53), 
+    # )
+    # push!(lights, light)
 
     # Instantiate a Sampler
     # S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))

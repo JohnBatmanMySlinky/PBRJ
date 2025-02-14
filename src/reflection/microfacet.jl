@@ -18,7 +18,7 @@ function f(mr::MicrofacetReflection, wo::Vec3, wi::Vec3)::Spectrum
     if cos_theta_i == 0 || cos_theta_o == 0
         return spectrum_from_float(0.0)
     end
-    if wh.x == 0 && wh.y == 0 & wh.z == 0
+    if wh.x == 0 && wh.y == 0 && wh.z == 0
         return spectrum_from_float(0.0)
     end
     wh = normalize(wh)
@@ -116,23 +116,25 @@ function sample_f(bxdf::MicrofacetTransmission, wo::Vec3, u::Pnt2, type::UInt8=B
         return Vec3(0, 0, 0), spectrum_from_float(0.0), 0.0, nothing
     end
     wh = sample_wh(bxdf.distribution, wo, u)
+    @info "BxDF::sample_f: wh: $wh"
     if (dot(wo, wh) < 0) 
         # Should be rare
         return Vec3(0, 0, 0), spectrum_from_float(0.0), 0.0, nothing
     end
 
     eta = cos_theta(wo) > 0 ? (bxdf.eta_A / bxdf.eta_B) : (bxdf.eta_B / bxdf.eta_A)
-    # JOHN HACK MY REFACT ALWASY RETURNS?
     wi = refract(wo, Nml3(wh), eta)
+    @info "BxDF::sample_f: wi $wi"
     if (wi isa Nothing) 
         return Vec3(0, 0, 0), spectrum_from_float(0.0), 0.0, nothing
     end
-    pdf_val = compute_pdf(bxdf.distribution, wo, wi)
+    pdf_val = compute_pdf(bxdf, wo, wi)
+    @info "BxDF::pdf_val: wi $pdf_val"
     return wi, f(bxdf, wo, wi), pdf_val, nothing
 end
 
 function compute_pdf(bxdf::MicrofacetTransmission, wo::Vec3, wi::Vec3)::Float64
-    if (same_hemisphere(wo, wi)) 
+    if same_hemisphere(wo, wi)
         return 0.0
     end
     # Compute $\wh$ from $\wo$ and $\wi$ for microfacet transmission
@@ -146,5 +148,7 @@ function compute_pdf(bxdf::MicrofacetTransmission, wo::Vec3, wi::Vec3)::Float64
     # Compute change of variables _dwh\_dwi_ for microfacet transmission
     sqrtDenom = dot(wo, wh) + eta * dot(wi, wh)
     dwh_dwi = abs((eta * eta * dot(wi, wh)) / (sqrtDenom * sqrtDenom))
+    @info "compute_pdf: $dwh_dwi, $sqrtDenom, $wo, $wi"
+    @info "computer_pdf: $(compute_pdf(bxdf.distribution, wo, wh))"
     return compute_pdf(bxdf.distribution, wo, wh) * dwh_dwi
 end
