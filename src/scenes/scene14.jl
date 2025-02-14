@@ -21,8 +21,8 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_glass = Glass(
         ConstantTexture(Pnt3(1.0)), # Kr
         ConstantTexture(Pnt3(1.0)), # Kt
-        ConstantTexture(Pnt3(.0005)),  # u_roughness
-        ConstantTexture(Pnt3(.0005)),  # v_roughness
+        dir_mix_texture,  # u_roughness
+        dir_mix_texture,  # v_roughness
         ConstantTexture(Pnt3(1.5)), # eta
         nothing,                    # bump
         true                        # remap_roughness
@@ -57,19 +57,19 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     media_t = Transformation(Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 4.705, 0, 1)) *
         Transformation(Mat4(3.18, 0, 0, 0, 0, 3.212, 0, 0, 0, 0, 3.1, 0, 0.008, -0.024, -0.064, 1))
 
-    # anemone_mi = MediumInterface(
-    #     GridMedium(
-    #         jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium.pbrt"),
-    #         media_t,
-    #         spectrum_from_float(0.1, 0.9, 0.5),
-    #         spectrum_from_float(0.2, .01, 1.0),
-    #         1.0,
-    #         spectrum_from_float(10.0, 0.5, 5.0),
-    #         0.0,
-    #         Pnt3(256, 256, 256)
-    #     ),
-    #     nothing
-    # )
+    anemone_mi = MediumInterface(
+        GridMedium(
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium.pbrt"),
+            media_t,
+            spectrum_from_float(0.1, 0.9, 0.5),
+            spectrum_from_float(0.2, .01, 1.0),
+            1.0,
+            spectrum_from_float(10.0, 0.5, 5.0),
+            0.0,
+            Pnt3(256, 256, 256)
+        ),
+        nothing
+    )
 
     ground_t = Transformation(Mat4(10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 1)) * 
         Transformation(Mat4(500, 0, 0, 0, 0, 0, -500, 0, 0, 1, 0, 0, 0, 0, 0, 1))
@@ -88,7 +88,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ShapeCore(orb_t1, Inv(orb_t1), false, false),
         1.0
     )
-    # push!(primitives, Primitive(orb_media, nothing, nothing, anemone_mi))
+    push!(primitives, Primitive(orb_media, nothing, nothing, anemone_mi))
 
     orb_t2 = Transformation(Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 4.705, 0, 1)) *
     Transformation(Mat4(3.696, 0, 0, 0, 0, 0, -3.696, 0, 0, 3.696, 0, 0, 0, 0, 0, 1))
@@ -197,7 +197,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     metal_stand_t = Transformation(Mat4(3.7, 0, 0, 0, 0, 3.7, 0, 0, 0, 0, 3.7, 0, 0, 0, 0, 1)) * RotateX(90.0)
     metal_stand = parse_obj(
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/metal_stand.obj"),
+        jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/metal_stand.obj"),
         metal_stand_t,
         false,
         false,
@@ -217,7 +217,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        spectrum_from_float(4.0, Illuminant), 
+        spectrum_from_float(1.0, Illuminant), 
         jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"),
         false
     )
