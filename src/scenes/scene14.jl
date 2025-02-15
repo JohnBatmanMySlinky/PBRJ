@@ -213,15 +213,15 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
-    l_2_w = Rotate(110.0, Vec3(0, 1, 0)) * Rotate(-90.0, Vec3(1, 0, 0))
-    light = InfiniteLight(
-        world_bounds(bvh), 
-        l_2_w, 
-        spectrum_from_float(1.0, Illuminant), 
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"),
-        false
-    )
-    push!(lights, light)
+    # l_2_w = Rotate(110.0, Vec3(0, 1, 0)) * Rotate(-90.0, Vec3(1, 0, 0))
+    # light = InfiniteLight(
+    #     world_bounds(bvh), 
+    #     l_2_w, 
+    #     spectrum_from_float(1.0, Illuminant), 
+    #     jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"),
+    #     false
+    # )
+    # push!(lights, light)
 
     # instantiate the infinite light
     # l_2_w = Translate(Pnt3(0,0,0))
