@@ -11,6 +11,10 @@ function render(
     parsed_args::Dict, 
     bdpt_pass::Tuple{Int64, Int64}=(-1,-1),
 )::Array{RGB}
+
+    # BDPT only works if you have lights!!
+    @assert length(scene.lights) > 0
+
     # create light sampling light_distribution
     # JOHN HACK --> hard coding uniform dist
     light_distr_generator = LightDistribution(
@@ -235,9 +239,6 @@ function generate_light_subpath!(
     (max_depth == 0) && return 0, 0
     
     # sample initial ray for light subpath
-    if length(light_distr.func) == 0
-        return 0, 0 # emissive medium !!
-    end
     light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
     @info "Light subpath light #$(light_num) aka $(light_num-1) in c++"
     light = scene.lights[light_num]
