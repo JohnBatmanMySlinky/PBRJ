@@ -59,7 +59,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     anemone_mi = MediumInterface(
         GridMedium(
-            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium_downsampled.pbrt"),
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium.pbrt"),
             media_t,
             spectrum_from_float(0.1, 0.9, 0.5),
             spectrum_from_float(0.2, .01, 1.0),

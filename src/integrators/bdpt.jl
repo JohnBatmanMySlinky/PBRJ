@@ -313,164 +313,78 @@ function random_walk!(
         terminated = false
 
         if !(ray.medium isa Nothing)
-            @info "WE HAVE HIT A MEDIUM DUDE\n"
-            @info "Ray $(ray.origin) $(ray.direction) $(ray.t) \n"
             u = get_1D!(sampler)
             t_max = (t isa Nothing) ? typemax(Float64) : t
-            @info "tMax $t_max"
 
-            # stepping inside SampleT_maj
-            # Normalize ray direction and update _tMax_ accordingly
-            t_max *= length_pbrt(ray.direction)
-            ray.direction = normalize(ray.direction)
-            @info "SampleT_maj: tMax $t_max"
-            @info "SampleT_maj: ray $(ray.origin) $(ray.direction) $(ray.t)"
+            T_maj = sampleT_maj!(ray, t_max, u, sampler) do p, mp, sigma_maj, T_maj
+                p_absorb = y_spectrum(mp.sigma_a) / y_spectrum(sigma_maj)
+                p_scatter = y_spectrum(mp.sigma_s) / y_spectrum(sigma_maj)
+                p_null = max(0.0, 1.0 - p_absorb - p_scatter)
 
-            # Initialize _MajorantIterator_ for ray majorant sampling
-            iter = sample_ray(ray.medium, ray, t_max)
+                # Randomly sample medium event for _RandomRalk()_ ray
+                um = get_1D!(sampler)
+                callback_mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), um)
 
-            # Generate ray majorant samples until termination
-            T_maj = spectrum_from_float(1.0)
-            done = false
-            if !(iter isa Nothing)
-                for seg in iter
-                    @info "Entering a while loop - done?"
-                    # Get next majorant segment from iterator and sample it
-                    @info "Seg - $seg"
+                if callback_mode == 0+1
+                    # Handle absorption for _RandomWalk()_ ray
+                    terminated = true
+                    return false
+                elseif callback_mode == 1+1
+                    # Handle scattering for _RandomWalk()_ ray
+                    beta *= T_maj * mp.sigma_s / (y_spectrum(T_maj) * y_spectrum(mp.sigma_s))
 
-                    # Handle zero-valued majorant for current segment
-                    if (is_black(seg.sigma_maj))
-                        dt = seg.t_max - seg.t_min
-        
-                        T_maj *= fastexp.(-dt * seg.sigma_maj)
-                        continue
+                    # record medium interaction in _path_ and compute forward density
+                    mi = MediumInteraction(p, ray.t, -ray.direction, ray.medium, mp.phase)
+                    path[vertex] = create_medium_vertex(mi, beta, pdf_fwd, path[prev])
+                    bounces += 1
+                    if bounces >= max_depth
+                        terminated = true
+                        return false
                     end
 
-                    # Generate samples along current majorant segment
-                    t_min = seg.t_min
-                    @info "tMin - $t_min"
-                    while true
-                        # Try to generate sample along current majorant segment
-                        t = t_min + sample_exponential(u, seg.sigma_maj[0+1])
-                        u = get_1D!(sampler)
-                        @info "inside another loop"
-                        @info "t - $t"
-                        @info "u - $u"
-                        if t < seg.t_max
-                            @info "t < seg->tMax"
-                            # Call callback function for sample within segment
-                            T_maj *= fastexp.(-(t - t_min) * seg.sigma_maj)
-                            @info "T_maj - $T_maj"
-                            mp = sample_point(ray.medium, at(ray,t))
-                            p = at(ray,t)
-                            @info "MediumProperties - $(mp.sigma_a) - $(mp.sigma_s)"
-
-                            ############
-                            # CALLBACK #
-                            ############
-                            @info "INSIDE CALLBACK"
-                            p_absorb = y_spectrum(ray.medium.sigma_a) / y_spectrum(seg.sigma_maj)
-                            p_scatter = y_spectrum(ray.medium.sigma_s) / y_spectrum(seg.sigma_maj)
-                            p_null = max(0.0, 1.0 - p_absorb - p_scatter)
-                            @info "Scatter Probs: $(p_absorb), $(p_scatter), $(p_null)"
-
-                            # Randomly sample medium event for _RandomRalk()_ ray
-                            um = get_1D!(sampler)
-                            callback_mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), um)
-                            @info "scatter mode: $(callback_mode)"
-
-                            if callback_mode == 0+1
-                                # Handle absorption for _RandomWalk()_ ray
-                                terminated = true
-                                callback_val = false
-                            elseif callback_mode == 1+1
-                                # Handle scattering for _RandomWalk()_ ray
-                                @info "Scatter beta to start $beta"
-                                beta *= T_maj * ray.medium.sigma_s / (y_spectrum(T_maj) * y_spectrum(ray.medium.sigma_s))
-                                @info "Scatter beta $beta"
-
-                                # record medium interaction in _path_ and compute forward density
-                                mi = MediumInteraction(p, ray.t, -ray.direction, ray.medium, ray.medium.phase)
-                                path[vertex] = create_medium_vertex(mi, beta, pdf_fwd, path[prev])
-                                bounces += 1
-                                @info "Update bounces to be $bounces"
-                                if bounces >= max_depth
-                                    @info "bounce depth exceeded"
-                                    terminated = true
-                                    callback_val = false
-                                end
-
-                                # Sample direction and compute reverse density at preceding vertex
-                                ps_p, ps_wi, ps_pdf = sample_p(ray.medium.phase, -ray.direction, get_2D!(sampler))
-                                @info "Sample phase: p, wi, pdf: $ps_p, $ps_wi, $ps_pdf"
-                                if ((ps_p isa Nothing) || ps_pdf == 0.0) # JOHN HACK WHEN COULD ps be a Nothing?
-                                    @info "terminated due to ps is a nothing or zero pdf"
-                                    terminated = true
-                                    callback_val = false
-                                end
-
-                                # Update path state and previous path vertex after medium scattering
-                                pdf_fwd = ps_pdf
-                                beta *= ps_p / ps_pdf
-                                @info "beta update after phase sampling: $(beta)"
-                                ray = spawn_ray(mi.core, ps_wi)
-                                path[prev].pdf_rev = convert_density(path[vertex], ps_pdf, path[prev])
-
-                                scattered = true
-                                callback_val= false
-                            elseif callback_mode == 2+1
-                                # Handle null scattering for _RandomWalk()_ ray
-                                sigma_n = clamp.(seg.sigma_maj - ray.medium.sigma_a - ray.medium.sigma_s, 0.0, typemax(Float64))
-                                pdf_val = y_spectrum(T_maj) * y_spectrum(sigma_n)
-                                if (pdf_val == 0.0)
-                                    beta = spectrum_from_float(0.0)
-                                else
-                                    beta *= T_maj * sigma_n / pdf_val
-                                    @info "beta update after null scatter: $(beta)"
-                                end
-                                callback_val = !is_black(beta)
-                            else
-                                @assert false
-                            end
-
-                            # outside callback
-                            if !callback_val
-                                done = true
-                                break
-                            end
-                            T_maj = spectrum_from_float(1.0)
-                            t_min = t
-                        else
-                            # Handle sample past end of majorant segment
-                            dt = seg.t_max - t_min
-                            # Handle infinite _dt_ for ray majorant segment
-                            T_maj *= fastexp.(-dt * seg.sigma_maj)
-                            break
-                        end
+                    # Sample direction and compute reverse density at preceding vertex
+                    ps_p, ps_wi, ps_pdf = sample_p(ray.medium.phase, -ray.direction, get_2D!(sampler))
+                    if ((ps_p isa Nothing) || ps_pdf == 0.0) # JOHN HACK WHEN COULD ps be a Nothing?
+                        terminated = true
+                        return false
                     end
-                    if done
-                        break
+
+                    # Update path state and previous path vertex after medium scattering
+                    pdf_fwd = ps_pdf
+                    beta *= ps_p / ps_pdf
+                    ray = spawn_ray(mi.core, ps_wi)
+                    path[prev].pdf_rev = convert_density(path[vertex], ps_pdf, path[prev])
+
+                    scattered = true
+                    return false
+                else
+                    # Handle null scattering for _RandomWalk()_ ray
+                    sigma_n = clamp.(sigma_maj - mp.sigma_a - mp.sigma_s, 0.0, typemax(Float64))
+                    pdf_val = y_spectrum(T_maj) * y_spectrum(sigma_n)
+                    if (pdf_val == 0.0)
+                        beta = spectrum_from_float(0.0)
+                    else
+                        beta *= T_maj * sigma_n / pdf_val
                     end
+                    return !is_black(beta)
                 end
+                @assert false
             end
+
             if (!scattered)
-                @info "scatered and beta adjusted by $(T_maj / y_spectrum(T_maj))"
                 beta *= T_maj / y_spectrum(T_maj)
             end
         end
 
         if is_black(beta)
-            @info "Random walk: exited due to Black"
             break
         end
 
         if terminated
-            @info "Random walk: exited due to terminated=true. bounces: $bounces"
             return bounces
         end
 
         if scattered
-            @info "Random walk: CONTINUE due to scattered=true."
             continue
         end
 
@@ -478,21 +392,16 @@ function random_walk!(
         if !check
             # capture escaped rays when tracing from camera
             if mode == Radiance
-                @info "Random walk: Capture escaped rays when tracing from the camera - RADIANCE"
                 path[vertex] = create_light_vertex(EndpointInteraction(ray), beta, pdf_fwd)
-                @info "HAHA: $(p(path[vertex])) $(ray)"
                 bounces += 1
             end
-            @info "Random walk: exited due to escaped rays"
             break
         end
 
         # compute scattering functions for mode and skip over medium boundaries
         compute_scattering!(isect, ray, true, mode)
         if isect.bsdf isa Nothing
-            @info "Random Walk: No BSDF. Ray $(ray)"
             ray = spawn_ray(isect.core, ray.direction)
-            @info "Random Walk: No BSDF. Ray $(ray)"
             continue
         end
         
@@ -500,21 +409,17 @@ function random_walk!(
         path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
         bounces += 1
         if bounces >= max_depth + path_offset # JOHN HACK
-            @info "Random walk: depth exceeded"
             break
         end
 
         # sample BSDF at current vertex and compute reverse probability
         wo = isect.core.wo
         wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
-        @info "Random walk:\n\tsampled dir $(wi)\n\tsampled f $(f)\n\tsampled pdfFwd $(pdf_fwd)\n\tsampled_type $(bitstring(UInt8(sampled_type)))"
         if (pdf_fwd == 0.0) || is_black(f)
-            @info "Random walk: exited due to black or pdf 0"
             break
         end
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
-        @info "pdf_rev sneak peak: $pdf_rev"
         if (sampled_type & BSDF_SPECULAR) > 0
             path[vertex].delta = true
             pdf_rev = 0.0
