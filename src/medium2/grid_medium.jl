@@ -19,6 +19,7 @@ struct GridMedium <: AbstractMedium
         sigma_s::Spectrum,
         sigma_scale::Float64,
         le::Spectrum,
+        le_grid_scale::Float64=1.0,
         g::Float64=0.0,
         majorant_grid_res::Pnt3=Pnt3(16, 16, 16)
     )
@@ -28,7 +29,7 @@ struct GridMedium <: AbstractMedium
             temperature_grid =  SampledGrid(temperature_grid, nx, ny, nz)
         end
         if !(le_grid isa Nothing)
-            le_grid = SampledGrid(le_grid, nx, ny, nz)
+            le_grid = SampledGrid(le_grid * le_grid_scale, nx, ny, nz)
         end
 
         majorant_grid_d = zeros(Float64, Int64(majorant_grid_res.x * majorant_grid_res.y * majorant_grid_res.z))
