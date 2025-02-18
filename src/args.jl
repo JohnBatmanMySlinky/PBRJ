@@ -11,13 +11,14 @@ function parse_commandline()::Dict
             arg_type = Bool
             default = false
         "--image-dim"
+            nargs = 2
             help = "image-width"
             arg_type = Int
-            default = 250
+            default = [250, 250]
         "--samples-per-pixel"
             help = "samples per pixel"
             arg_type = Int
-            default = 5
+            default = 16
         "--n-spectral-samples"
             help = "number of spectral samples to be used in rendering. 3 == RGB, else == Spectral"
             arg_type = Int

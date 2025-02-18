@@ -33,7 +33,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
@@ -43,9 +43,8 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Camera
     # camera_t = Translate(Pnt3(0, 15, 0)) * Transformation(Mat4(1, 0, 0, 0, 0, 0.978148, -0.207912, 0, 0, -0.207912, -0.978148, 0, 0, -3.81345, 25.3467, 1)) 
-    camera_t = LookAt(Pnt3(0,9,24), Pnt3(0,2,0), Vec3(0,1,0)) * Scale(-1.0, 1.0, 1.0)
-    # screen = Bounds2(Pnt2(-1, -0.5625), Pnt2(1, 0.5625))
-    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
+    camera_t = LookAt(Pnt3(0,9,24), Pnt3(0,4,0), Vec3(0,1,0)) * Scale(-1.0, 1.0, 1.0)
+    screen = Bounds2(Pnt2(-1, -0.5625), Pnt2(1, 0.5625))
     C = PerspectiveCamera(camera_t, screen, 0.0, 1.0, 0.0, 1e6, 45.0, film)
 
     # this matches PBRT. wtf is that base transformation baked in there...
@@ -59,7 +58,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     anemone_mi = MediumInterface(
         GridMedium(
-            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium.pbrt"),
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium_downsampled.pbrt"),
             media_t,
             spectrum_from_float(0.1, 0.9, 0.5),
             spectrum_from_float(0.2, .01, 1.0),
