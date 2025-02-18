@@ -33,7 +33,8 @@ function start_pixel_sample!(zs::ZSobolSampler, pixel::Pnt2, sample_index::Int64
     # do i need this?
     @assert sample_index != zs.samples_per_pixel
     zs.dimension = dim
-    zs.morton_index = encode_morton_2(UInt64(pixel.x), UInt64(pixel.y)) << zs.log_2_samples_per_pixel | sample_index
+    
+    zs.morton_index = encode_morton_2(reinterpret(UInt64, Int64(pixel.x)), reinterpret(UInt64, Int64(pixel.y))) << zs.log_2_samples_per_pixel | sample_index
 end
 
 function get_1D!(zs::ZSobolSampler)::Float64
