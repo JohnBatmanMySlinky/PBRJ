@@ -74,6 +74,10 @@ Render
 9. Furry Bunny
 
     ![bunny-fur](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/bunny-fur.png?raw=true)
+
+10. Anemone
+
+    ![anemone](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/anemone.png?raw=true)
         
 # Features Implemented
 - Accelerators: BVH
