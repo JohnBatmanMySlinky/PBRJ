@@ -7,7 +7,7 @@ scene 5: soft bodies ✅
 scene 6: goursat ✅
 scene 7: julia logo ✅
 scene 8: an anemic leafless procedural tree ✅
-scene 9: a broken ass orb 🔴 (obj parser sucks)
+scene 9: a boringly material'd orb 🟨
 scene 10: a cloud + SimpleVolPathIntegrator ✅
 scene 11: infinite light show off & material testing ✅
 scene 12: v4 smoke plume ✅
