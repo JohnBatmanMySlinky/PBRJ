@@ -68,36 +68,39 @@ end
 # add rho's
 
 function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, UInt8}
+    @info "BSDF FIXIN TIME"
+    @info "wo_world: $wo_world"
+    @info "u: $u"
+    @info "type: $type"
     # Choose which BxDF to sample.
     matching_components = num_components(b, type)
     matching_components == 0 && return (Vec3(0), spectrum_from_float(0.0), 0.0, BSDF_NONE)
-    component = min(
-        max(1, Int64(ceil(u[1] * matching_components))),
-        matching_components,
-    )
+    component = min(floor(Int, u[1] * matching_components), matching_components - 1)
+    @info "Chose comp: $(component) / matching: $(matching_components)"
+
     # Get BxDF for chosen component.
-    count = component
-    component -= 1
     bxdf = nothing
-    for i in 1:b.n_bxdfs
-        if b.bxdfs[i] & type
-            if count == 1
-                bxdf = b.bxdfs[i]
-                break
-            end
+    count = component
+    for i in 0:(b.n_bxdfs - 1)
+        @info "i: $i - count: $count"
+        if (b.bxdfs[i+1] & type) && (count == 0)
             count -= 1
+            @info "hehehe - $count"
+            bxdf = b.bxdfs[i+1]
+            break
         end
+        count -= 1
     end
-    @info "BSDF::Sample_f chose comp: $(component) / matching: $(matching_components), bxdf: $(bxdf)"
+    
 
     # Remap BxDF sample u to [0, 1)^2.
     u_remapped = Pnt2(
-        min(u.x * matching_components - component, 1), u.y,
+        min(u.x * matching_components - component, 1.0-eps()), u.y,
     )
+    @info "u_remapped: $u_remapped"
+
     # Sample chosen BxDF.
-    # @info "BSDF:: wo_world: $(wo_world)"
     wo = world_to_local(b, wo_world)
-    # @info "BSDF:: wo: $(wo)"
     wo.z == 0 && return (Vec3(0), spectrum_from_float(0.0), 0, BSDF_NONE)   
 
     # TODO when to update sampled type
@@ -106,32 +109,36 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
     if !(sampled_type_tmp isa Nothing)
         sampled_type = sampled_type_tmp
     end
-    # @info "For wo: $(wo), sampled f: $(f_val), pdf: $(pdf), ratio = $((pdf > 0.0) ? (f_val / pdf) : spectrum_from_float(0.0)), wi: $(wi), sampled_type: $(bitstring(sampled_type))"
 
     pdf_val == 0 && return (Vec3(0), spectrum_from_float(0.0), 0, BSDF_NONE)
 
     wi_world = local_to_world(b, wi)
     # Compute overall PDF with all matching BxDFs.
     if !(bxdf.type & BSDF_SPECULAR != 0) && matching_components > 1
-        for i in 1:b.n_bxdfs
-            if b.bxdfs[i] != bxdf && b.bxdfs[i] & type
-                pdf_val += compute_pdf(b.bxdfs[i], wo, wi)
+        for i in 0:(b.n_bxdfs - 1)
+            @info "i - $i"
+            if b.bxdfs[i+1] != bxdf && b.bxdfs[i+1] & type
+                pdf_val += compute_pdf(b.bxdfs[i+1], wo, wi)
+                @info "pdf_val - $pdf_val, $wo, $wi"
             end
         end
     end
+    @info "dont be changing: $wo, $wi"
     matching_components > 1 && (pdf_val /= matching_components)
     # Compute value of BSDF for sampled direction.
     if !(bxdf.type & BSDF_SPECULAR != 0)
         reflect = (dot(wi_world, b.ng) * dot(wo_world, b.ng)) > 0
         f_val::Spectrum = spectrum_from_float(0.0, 0.0, 0.0)
-        for i in 1:b.n_bxdfs
-            bxdf = b.bxdfs[i]
+        for i in 0:(b.n_bxdfs - 1)
+            @info "i - $i"
+            bxdf = b.bxdfs[i+1]
             if ((bxdf & type) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0))))
                 f_val::Spectrum += f(bxdf, wo, wi)
+                @info "f_val - $f_val, $wo, $wi"
             end
         end
     end
-    # @info "Overall f: $(f_val), pdf_val: $(pdf_val), ratio: $((pdf > 0.0) ? (f_val / pdf_val) : spectrum_from_float(0.0))"
+    @info "Overall f = $f_val, pdf = $pdf_val, wiWorld =  $wi_world"
     return wi_world, f_val, pdf_val, sampled_type
 end
 

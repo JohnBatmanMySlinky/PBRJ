@@ -28,3 +28,17 @@ end
 function reflect(wo::Vec3, n::Vec3)::Vec3
     return -wo + 2.0 * dot(wo, n) * n
 end
+
+function refract(wi::Vec3, n::Nml3, eta::Float64)::Maybe{Vec3}
+    # Compute $\cos \theta_\roman{t}$ using Snell's law
+    cosThetaI = dot(n, wi)
+    sin2ThetaI = max(0.0, 1.0 - cosThetaI * cosThetaI)
+    sin2ThetaT = eta * eta * sin2ThetaI
+
+    # Handle total internal reflection for transmission
+    if (sin2ThetaT >= 1.0) 
+        return nothing
+    end
+    cosThetaT = sqrt(1.0 - sin2ThetaT)
+    return eta * -wi + (eta * cosThetaI - cosThetaT) * n
+end

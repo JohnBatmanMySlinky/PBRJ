@@ -3,6 +3,10 @@ struct Transformation
     inv_m::Mat4
 end
 
+function Transformation(m::Mat4)::Transformation
+    return Transformation(m, inv(m))
+end
+
 function Inv(t::Transformation)::Transformation
     return Transformation(
         t.inv_m,

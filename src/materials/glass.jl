@@ -54,7 +54,7 @@ function (g::Glass)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Ty
         if is_specular == true
             add!(si.bsdf, SpecularReflection(KR, fresnel))
         else
-            add(si.bsdf, MicrofacetReflection(KR, distrib, fresnel))
+            add!(si.bsdf, MicrofacetReflection(KR, distrib, fresnel))
         end
 
         # skipping T black check

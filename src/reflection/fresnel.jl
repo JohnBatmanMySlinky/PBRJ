@@ -52,22 +52,27 @@ end
 
 function fresnel_dielectric(cos_theta_i::Float64, eta_i::Float64, eta_t::Float64)::Float64
     cos_theta_i = clamp(cos_theta_i, -1, 1)
-    if cos_theta_i <= 0
+    # Potentially swap indices of refraction
+    entering = cos_theta_i > 0.0
+    if !entering
         eta_i, eta_t = eta_t, eta_i
         cos_theta_i = abs(cos_theta_i)
     end
 
+    # Compute _cosThetaT_ using Snell's law
     sin_theta_i = sqrt(max(0, 1-cos_theta_i^2))
-    sin_theta_t = sin_theta_i * eta_i / eta_t
+    sin_theta_t = eta_i / eta_t * sin_theta_i
+
+    # Handle total inernal reflection
     if sin_theta_t >= 1
         return 1
     end
     cos_theta_t = sqrt(max(0, 1-sin_theta_t^2))
 
-    r_par = (eta_t * cos_theta_i - eta_i * cos_theta_t) / (eta_t * cos_theta_i + eta_i * cos_theta_t)
-    r_perp = (eta_i * cos_theta_i - eta_t * cos_theta_t) / (eta_i * cos_theta_i + eta_t * cos_theta_t)
+    r_parl = ((eta_t * cos_theta_i) - (eta_i * cos_theta_t)) / ((eta_t * cos_theta_i) + (eta_i * cos_theta_t))
+    r_perp = ((eta_i * cos_theta_i) - (eta_t * cos_theta_t)) / ((eta_i * cos_theta_i) + (eta_t * cos_theta_t))
 
-    return (r_par + r_perp) / 2
+    return (r_parl * r_parl + r_perp * r_perp) / 2.0
 end
 
 

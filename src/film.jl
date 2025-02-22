@@ -290,25 +290,25 @@ function save(film::Film, splat_scale::Float64 = 1.0)::Array{RGB}
     image = Array{Float64}(undef, X, Y, 3)
     for y in 1:Y
         for x in 1:X
-            pixel = film.pixels[y, x]
-            image[y, x, :] .= XYZ_to_RGB(pixel.xyz)
+            pixel = film.pixels[x,y]
+            image[x, y, :] .= XYZ_to_RGB(pixel.xyz)
             # Normalize pixel with weight sum.
             filter_weight_sum = pixel.filter_weight_sum
             if filter_weight_sum != 0
                 inv_weight = 1 / filter_weight_sum
-                image[y, x, :] .= max.(0, image[y, x, :] .* inv_weight)
+                image[x, y, :] .= max.(0, image[x, y, :] .* inv_weight)
             end
             # Add splat value at pixel & scale.
             @info "save: AtomicXYZ - $(pixel.splat_xyz), XYZ - $(convert(XYZPBRT, pixel.splat_xyz)), RGB - $(XYZ_to_RGB(convert(XYZPBRT, pixel.splat_xyz)))"
             splat_rgb = XYZ_to_RGB(convert(XYZPBRT, pixel.splat_xyz))
-            image[y, x, :] .+= splat_scale .* splat_rgb
-            image[y, x, :] .*= film.scale
+            image[x, y, :] .+= splat_scale .* splat_rgb
+            image[x, y, :] .*= film.scale
         end
     end
     newimage = zeros(RGB, X, Y)
     for y in 1:Y
         for x in 1:X
-            newimage[y,x] = RGB(image[y,x,1], image[y,x,2], image[y,x,3])
+            newimage[x,y] = RGB(image[x,y,1], image[x,y,2], image[x,y,3])
         end
     end
     return newimage

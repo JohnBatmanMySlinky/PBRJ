@@ -3,12 +3,13 @@ struct GridMedium <: AbstractMedium
     render_from_medium::Transformation
     sigma_a::Spectrum
     sigma_s::Spectrum
-    density_grid::SampledGrid
+    sigma_scale::Float64
     phase::AbstractPhaseFunction
-    # no temperature_grid right now
-    # no Le right now
-    # no is_emissive right now because no temp grid
-    # no temperature_scale or temperature_offset either
+    density_grid::SampledGrid
+    temperature_grid::Maybe{SampledGrid}
+    le::Spectrum
+    le_grid::Maybe{SampledGrid}
+    is_emissive::Bool
     majorant_grid::MajorantGrid
 
     function GridMedium(
@@ -16,20 +17,26 @@ struct GridMedium <: AbstractMedium
         medium_to_world::Transformation,
         sigma_a::Spectrum,
         sigma_s::Spectrum,
-        sigma_scale::Float64=1.0,
-        p0::Pnt3=Pnt3(0,0,0),
-        p1::Pnt3=Pnt3(1,1,1),
+        sigma_scale::Float64,
+        le::Spectrum,
+        le_grid_scale::Float64=1.0,
         g::Float64=0.0,
         majorant_grid_res::Pnt3=Pnt3(16, 16, 16)
     )
-        nx, ny, nz, d = parse_media(fpath)
+        nx, ny, nz, d, le_grid, temperature_grid, p0, p1 = parse_media(fpath)
         density_grid = SampledGrid(d, nx, ny, nz)
+        if !(temperature_grid isa Nothing)
+            temperature_grid =  SampledGrid(temperature_grid, nx, ny, nz)
+        end
+        if !(le_grid isa Nothing)
+            le_grid = SampledGrid(le_grid * le_grid_scale, nx, ny, nz)
+        end
+
         majorant_grid_d = zeros(Float64, Int64(majorant_grid_res.x * majorant_grid_res.y * majorant_grid_res.z))
         for z in 0:(majorant_grid_res.z-1)
             for y in 0:(majorant_grid_res.y-1)
                 for x in 0:(majorant_grid_res.x-1)
                     tmp_bounds = voxel_bounds(majorant_grid_res, Int64(x), Int64(y), Int64(z))
-                    # print("GridBuild ($x, $y,  $z) - $tmp_bounds - $(max_value(density_grid, tmp_bounds))\n")
                     majorant_grid_d[Int64(x+majorant_grid_res.x * (y + majorant_grid_res.y * z) + 1)] = max_value(density_grid, tmp_bounds)
                 end
             end
@@ -41,11 +48,20 @@ struct GridMedium <: AbstractMedium
             Inv(medium_to_world), 
             sigma_a * sigma_scale, 
             sigma_s * sigma_scale, 
-            density_grid, 
+            sigma_scale,
             HenyeyGreenstein(g),
+            density_grid, 
+            temperature_grid,
+            le,
+            le_grid,
+            !(temperature_grid isa Nothing) || !(maximum(le) > 0.0),
             majorant_grid
         )
     end
+end
+
+function is_emissive(gm::GridMedium)::Bool
+    return gm.is_emissive
 end
 
 function sample_point(gm::GridMedium, p::Pnt3)::MediumProperties
@@ -56,9 +72,22 @@ function sample_point(gm::GridMedium, p::Pnt3)::MediumProperties
     sigma_a = gm.sigma_a * d
     sigma_s = gm.sigma_s * d
 
+    
     # Compute grid emission _Le_ at _p_
     Le = spectrum_from_float(0.0)
-    # NOT EMISSIVE SO SKIP
+    if gm.is_emissive
+        scale = lookup(gm.le_grid, p)
+        if scale > 0.0
+            # Compute emitted radiance using _temperatureGrid_ or _Le_spec_
+            if !(gm.temperature_grid isa Nothing)
+                @assert false
+                temp = lookup(gm.temperature_grid, p)
+                Le = scale * black_body_spectrum(temp)
+            else
+                Le = scale * gm.le
+            end
+        end
+    end
 
     return MediumProperties(sigma_a, sigma_s, gm.phase, Le)
 end

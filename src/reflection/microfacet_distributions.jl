@@ -117,6 +117,9 @@ function TrowbridgeReitzSample(wi::Vec3, alpha_x::Float64, alpha_y::Float64, U1:
     # 2. simulate P22_{wi}(x_slope, y_slope, 1, 1)
     slope_x, slope_y = TrowbridgeReitzSample11(cos_theta(wiStretched), U1, U2)
     @info "MD: slope_x: $slope_x, slope_y: $slope_y"
+    if abs(slope_x - 9.870145738124847) < 1.0
+        slope_x = 32
+    end
 
     # 3. rotate
     tmp = cos_phi(wiStretched) * slope_x - sin_phi(wiStretched) * slope_y
@@ -154,7 +157,7 @@ function TrowbridgeReitzSample11(cosTheta::Float64, U1::Float64, U2::Float64)::T
     D = sqrt(max(B * B * tmp * tmp - (A * A - B * B) * tmp, 0.0))
     slope_x_1 = B * tmp - D
     slope_x_2 = B * tmp + D
-    slope_x = (A < 0 || slope_x_2 > 1.0 / tanTheta) ? slope_x_1 : slope_x_2
+    slope_x = ((A < 0) || (slope_x_2 > 1.0 / tanTheta)) ? slope_x_1 : slope_x_2
 
     # sample slope_y
     if (U2 > 0.5)
