@@ -5,15 +5,26 @@ struct DiffuseAreaLight <: Light
     area::Float64
     two_sided::Bool
     medium::Maybe{Medium}
+    image::Maybe{MIPMap}
 
-    function DiffuseAreaLight(Lemit::Spectrum, shape::Shape, two_sided::Bool)
+    function DiffuseAreaLight(
+        Lemit::Spectrum, shape::Shape, two_sided::Bool, 
+        medium::Maybe{Medium}, texmap::Maybe{String}, LL::Float64
+    )
+        if texmap isa Nothing
+            Lmap = nothing
+        else
+            dat2, L, W = read_image(texmap, LL)
+            Lmap = MIPMap(Pnt2(W, L), dat2) # NOTE THE FLIP HERE
+        end
         return new(
             LightArea,
             Lemit,
             shape,
             area(shape),
             two_sided,
-            nothing
+            medium,
+            Lmap,
         )
     end
 end
@@ -22,8 +33,18 @@ function le(dal::DiffuseAreaLight, ray::AbstractRay)::Spectrum
     return spectrum_from_float(0.0)
 end
 
-function L(dal::DiffuseAreaLight, n::Nml3, w::Vec3)::Spectrum
-    return (dal.two_sided || dot(n, w) > 0) ? dal.Lemit : spectrum_from_float(0.0, 0.0, 0.0)
+function L(dal::DiffuseAreaLight, n::Nml3, w::Vec3, uv::Pnt2)::Spectrum
+    # Check for zero emitted radiance from point on area light
+    if dal.two_sided && dot(n, w) < 0
+        return spectrum_from_float(0.0)
+    end
+
+    if !(dal.image isa Nothing)
+        # return the DiffuseAreaLight emission using image
+        return lookup(dal.image, uv)
+    end
+
+    return dal.Lemit
 end
 
 function power(li::DiffuseAreaLight)::Spectrum
@@ -33,7 +54,7 @@ end
 # PBR 14.2.3
 function sample_li(dal::DiffuseAreaLight, interaction::Interaction, u::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     # TODO use more efficient sampling cone of visibility
-    pshape, nshape, pdf_val = sample(dal.shape, interaction, u)
+    pshape, nshape, uvshape, pdf_val = sample(dal.shape, interaction, u)
     wi = Vec3(normalize(pshape - interaction.p))
     # pdf_val = pdf(dal.shape, interaction, wi)
     visibility = VisibilityTester(
@@ -42,7 +63,7 @@ function sample_li(dal::DiffuseAreaLight, interaction::Interaction, u::Pnt2)::Tu
     )
     # PBR
     # "given a point on the surface of the area light"
-    radiance = L(dal, nshape, -wi)
+    radiance = L(dal, nshape, -wi, uvshape)
     return radiance, wi, pdf_val, visibility, pshape, nshape
 end
 
@@ -59,7 +80,7 @@ function sample_le(light::DiffuseAreaLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tup
     # JOHN HACK: kludging around in this function
     
     # samplea  point on the area lights shape, pshape
-    p_shape, n_light = sample(light.shape, u1)
+    p_shape, n_light, uv, _ = sample(light.shape, u1)
     @info "Light Sampling: p:$(p_shape), n:$(n_light)"
     pdf_pos = pdf(light.shape)
 
@@ -73,7 +94,7 @@ function sample_le(light::DiffuseAreaLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tup
     n_light, v1, v2 = orthonormal_basis(Vec3(n_light))
     W = w.x * v1 + w.y * v2 + w.z * n_light
     ray = spawn_ray(Interaction(p_shape, t, n_light, Nml3(n_light)), W)
-    return L(light, Nml3(W), W), ray, n_light, pdf_pos, pdf_dir
+    return L(light, Nml3(W), W, uv), ray, n_light, pdf_pos, pdf_dir
 end
 
 function pdf_le(light::DiffuseAreaLight, ray::AbstractRay, n::Nml3)::Tuple{Float64, Float64}

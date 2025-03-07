@@ -279,7 +279,7 @@ function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
     else
         light = v1.si.primitive.area_light
         # JOHN HACK, ignore nullptr check?
-        return L(light, v1.si.shading.n, w) # JOHN HACK, is it shading normal here?
+        return L(light, v1.si.shading.n, w, v1.si.uv) # JOHN HACK, is it shading normal here?
     end
 end
 

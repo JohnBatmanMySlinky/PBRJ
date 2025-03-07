@@ -52,6 +52,10 @@ function safe_asin(f::Float64)::Float64
     return asin(clamp(f, -1.0, 1.0))
 end
 
+function safe_acos(f::Float64)::Float64
+    return acos(clamp(f, -1.0, 1.0))
+end
+
 function difference_of_products(a::Float64, b::Float64, c::Float64, d::Float64)::Float64
     # JOHN HACK
     # this is clearly just me porting their code over needlessly exactly.

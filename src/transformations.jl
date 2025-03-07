@@ -190,6 +190,24 @@ function UnitCube(b::Bounds3)::Transformation
     return translate * scale
 end
 
+function Shear(a::Float64, b::Float64, c::Float64, d::Float64, e::Float64, f::Float64)::Transformation
+"""
+a controls shearing along the x-axis proportional to y
+b controls shearing along the x-axis proportional to z
+c controls shearing along the y-axis proportional to x
+d controls shearing along the y-axis proportional to z
+e controls shearing along the z-axis proportional to x
+f controls shearing along the z-axis proportional to y
+"""
+    m = Mat4(
+        1.0, a,   b,   0.0,
+        c,   1.0, d,   0.0,
+        e,   f,   1.0, 0.0,
+        0.0, 0.0, 0.0, 1.0
+    )
+    return Transformation(m, inv(m))
+end
+
 ########################################
 ### Apply Transformations to Things ####
 ########################################
