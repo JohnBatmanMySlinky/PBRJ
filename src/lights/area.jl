@@ -35,7 +35,7 @@ end
 
 function L(dal::DiffuseAreaLight, n::Nml3, w::Vec3, uv::Pnt2)::Spectrum
     # Check for zero emitted radiance from point on area light
-    if dal.two_sided && dot(n, w) < 0
+    if !(dal.two_sided || dot(n, w) > 0)
         return spectrum_from_float(0.0)
     end
 
