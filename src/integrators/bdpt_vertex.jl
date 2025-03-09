@@ -295,7 +295,7 @@ function pdf_light_origin(sampled::Vertex, scene::Scene, v::Vertex, light_distr:
         @info "MISWEIGHT <<a4>> shenanigans is NOT in InfiniteLightDensity"
         light = sampled.type == VTLight ? sampled.ei.light : sampled.si.primitive.area_light
         pdf_choice = discrete_pdf(light_distr, light_num)
-        pdf_pos, pdf_dir = pdf_le(light, Ray(p(sampled), w, time(sampled), typemax(Float64)), ng(sampled))
+        pdf_pos, _ = pdf_le(light, Ray(p(sampled), w, time(sampled), typemax(Float64)), ng(sampled))
         return pdf_pos * pdf_choice
     end
 end
