@@ -2,37 +2,33 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
 
+    old_smile = jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/smile3.png")
+    new_smile = jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/smile3_post.exr")
+
+    # make my PNG blue!
+    party_blob_fuckery!(
+        old_smile,
+        new_smile,
+        (0.3, 0.3, 1.3)
+    )
+
     # materials
     mat_gray = Matte(
         ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
-    mat_checker_board = Matte(
-        ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/checkerboard.png")),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-        nothing
-    )
-    mat_smile = Matte(
-        ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/smile3.png")),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-        nothing
-    )
 
     emissive_color = spectrum_from_float(0.3, 0.3, 1.3)
+    Kd = MixMultTexture(
+        ConstantTexture(emissive_color),
+        ImageTexture(UVMapping2D(), new_smile)
+    )
     mat_blob = Matte(
-        MixMultTexture(
-            ConstantTexture(emissive_color),
-            ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/smile3.png"))
-        ),
+        Kd,
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
-    # mat_blob = Matte(
-    #     ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
-    #     ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-    #     nothing
-    # )
 
     ###############
     ### a thing ###
@@ -40,7 +36,6 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     radius = 1.0
     sphere_t = Shear(0.0, 0.0, 0.3, 0.0, 0.0, 0.0) * Scale(1.0, 1.4, 1.0) * RotateY(130.0) * RotateZ(-35.0) * RotateX(-80.0)
-    # sphere_t = Scale(1.0, 1.4, 1.0)
     sphere = Sphere(
         ShapeCore(sphere_t, Inv(sphere_t), false, false),
         radius
@@ -50,8 +45,7 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         sphere,
         false,
         nothing,
-        jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/smile3.png"),
-        # nothing,
+        new_smile,
         1.0
     )
     push!(primitives, Primitive(sphere, mat_blob, alight))
@@ -75,17 +69,6 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
-
-    # instantiate the infinite light
-    # l_2_w = Translate(Pnt3(0,0,0))
-    # light = InfiniteLight(
-    #     world_bounds(bvh), 
-    #     l_2_w, 
-    #     Spectrum(3.0, 3.0, 3.0), 
-    #     jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"),
-    #     false
-    # )
-    # push!(lights, light)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.5, .5))
@@ -113,7 +96,6 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         Pnt2(parsed_args["image-dim"][1], parsed_args["image-dim"][2]), 
         Int8(2)
     )
-    # S = IndependentSampler(parsed_args["samples-per-pixel"])
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
