@@ -58,11 +58,12 @@ end
         RayTracing.TriangleMesh(
             core.object_to_world,
             1,
-            3,
             [RayTracing.Pnt3(0.0, 0.0, -trisize), RayTracing.Pnt3(0.0, trisize, trisize), RayTracing.Pnt3(0.0, 0.0, trisize)],
             [1, 2, 3],
             [RayTracing.Nml3(0), RayTracing.Nml3(0), RayTracing.Nml3(0)],
+            [1, 2, 3],
             [RayTracing.Pnt2(0,0), RayTracing.Pnt2(1,1), RayTracing.Pnt2(0,1)],
+            [1, 2, 3],
             nothing
         ),
         0
@@ -74,11 +75,12 @@ end
         RayTracing.TriangleMesh(
             core.object_to_world,
             1,
-            3,
             [RayTracing.Pnt3(0.0, 0.0, -trisize), RayTracing.Pnt3(0.0, trisize, trisize), RayTracing.Pnt3(0.0, 0.0, trisize)],
             [1, 2, 3],
             [RayTracing.Nml3(0, 0, 1), RayTracing.Nml3(0, 0, 1), RayTracing.Nml3(0, 0, 1)],
+            [1, 2, 3],
             [RayTracing.Pnt2(0,0), RayTracing.Pnt2(1,1), RayTracing.Pnt2(0,1)],
+            [1, 2, 3],
             nothing
         ),
         0
@@ -90,11 +92,12 @@ end
         RayTracing.TriangleMesh(
             core.object_to_world,
             1,
-            3,
             [RayTracing.Pnt3(0.0, 0.0, -trisize), RayTracing.Pnt3(0.0, trisize, trisize), RayTracing.Pnt3(0.0, 0.0, trisize)],
             [1, 2, 3],
             [RayTracing.Nml3(0, 0, -1), RayTracing.Nml3(0, 0, -1), RayTracing.Nml3(0, 0, -1)],
+            [1, 2, 3],
             [RayTracing.Pnt2(0,0), RayTracing.Pnt2(1,1), RayTracing.Pnt2(0,1)],
+            [1, 2, 3],
             nothing
         ),
         0
@@ -107,11 +110,12 @@ end
         RayTracing.TriangleMesh(
             core2.object_to_world,
             1,
-            3,
             [RayTracing.Pnt3(0.0, 0.0, -trisize), RayTracing.Pnt3(0.0, trisize, trisize), RayTracing.Pnt3(0.0, 0.0, trisize)],
             [1, 2, 3],
             [RayTracing.Nml3(0, 0, -1), RayTracing.Nml3(0, 0, -1), RayTracing.Nml3(0, 0, -1)],
+            [1, 2, 3],
             [RayTracing.Pnt2(0,0), RayTracing.Pnt2(1,1), RayTracing.Pnt2(0,1)],
+            [1, 2, 3],
             nothing
         ),
         0

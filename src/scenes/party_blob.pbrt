@@ -1,0 +1,38 @@
+Integrator "bdpt" "integer maxdepth" [ 6 ]
+Sampler "random" "integer pixelsamples" [ 3 ]
+#Sampler "sobol" "integer pixelsamples" [ 64 ]
+
+Film "image" 
+    "integer yresolution" [ 100 ] 
+    "integer xresolution" [ 100 ]
+    "string filename" [ "party-blob-pbrtv3.png" ]
+    "float cropwindow" [ 0.41 0.71 0.41 0.71]
+
+LookAt 4 4 4  
+       0 1 0 
+       0 1 0 
+Camera "perspective" "float fov" [ 37 ]
+
+
+WorldBegin
+
+# Materials
+MakeNamedMaterial "Floor"
+    "string type" [ "matte" ]
+
+# Geometry
+NamedMaterial "Floor"
+Shape "trianglemesh"
+      "integer indices" [0 1 2 0 2 3]
+      "point P" [ -10 0 -10   10 0 -10   10 0 10   -10 0 10 ]
+
+
+AttributeBegin
+    AreaLightSource "diffuse"
+        "rgb L" [ .3 .3 1.3 ]
+    Scale 1.0 1.4 1.0
+    Shape "sphere"
+        "float radius" [ 1.0 ]
+AttributeEnd
+
+WorldEnd

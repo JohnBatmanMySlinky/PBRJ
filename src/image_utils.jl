@@ -4,6 +4,8 @@ function read_image(texmap::String, LL::Union{Float64, RayTracing.Spectrum})::Tu
         dat = OpenEXR.load(texmap)
     elseif ident == ".jpg"
         dat = FileIO.load(texmap)
+    elseif ident == ".png"
+        dat = FileIO.load(texmap)
     else
         @assert false # NOT IMPLEMENTED
     end

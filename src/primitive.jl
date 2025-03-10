@@ -15,7 +15,13 @@ end
 #####################################################
 
 function intersect!(gp::Primitive, ray::AbstractRay, shadow_ray::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
-    if shadow_ray && !(gp.area_light isa Nothing) # JOHN HACK
+    ####################
+    ### For party blob; my "shadow rays can't intersect stuf" was killnig me
+    ### So I removed removed it (adding a false) - 
+    ### leaving this note here so I cant un fuck this if other scenes get fucked
+    #####################
+    
+    if shadow_ray && !(gp.area_light isa Nothing) && false
         # shadow rays can't intersect with lights
         return false, nothing, nothing
     else
