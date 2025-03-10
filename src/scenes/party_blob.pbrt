@@ -1,11 +1,12 @@
 Integrator "bdpt" "integer maxdepth" [ 6 ]
-#Sampler "independent" "integer pixelsamples" [ 64 ]
-Sampler "sobol" "integer pixelsamples" [ 64 ]
+Sampler "random" "integer pixelsamples" [ 3 ]
+#Sampler "sobol" "integer pixelsamples" [ 64 ]
 
 Film "image" 
-    "integer yresolution" [ 500 ] 
-    "integer xresolution" [ 500 ]
+    "integer yresolution" [ 100 ] 
+    "integer xresolution" [ 100 ]
     "string filename" [ "party-blob-pbrtv3.png" ]
+    "float cropwindow" [ 0.41 0.71 0.41 0.71]
 
 LookAt 4 4 4  
        0 1 0 
@@ -18,7 +19,6 @@ WorldBegin
 # Materials
 MakeNamedMaterial "Floor"
     "string type" [ "matte" ]
-    "rgb L" [ 0.725 0.71 0.68 ]
 
 # Geometry
 NamedMaterial "Floor"

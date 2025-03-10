@@ -4,7 +4,7 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # materials
     mat_gray = Matte(
-        ConstantTexture(spectrum_from_float(0.6, 0.6, 0.6)),
+        ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
@@ -28,6 +28,11 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    # mat_blob = Matte(
+    #     ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
+    #     ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+    #     nothing
+    # )
 
     ###############
     ### a thing ###
@@ -35,6 +40,7 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     radius = 1.0
     sphere_t = Shear(0.0, 0.0, 0.3, 0.0, 0.0, 0.0) * Scale(1.0, 1.4, 1.0) * RotateY(130.0) * RotateZ(-35.0) * RotateX(-80.0)
+    # sphere_t = Scale(1.0, 1.4, 1.0)
     sphere = Sphere(
         ShapeCore(sphere_t, Inv(sphere_t), false, false),
         radius
@@ -45,11 +51,11 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         nothing,
         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/smile3.png"),
+        # nothing,
         1.0
     )
     push!(primitives, Primitive(sphere, mat_blob, alight))
     push!(lights, alight)
-    # push!(primitives, Primitive(sphere, mat_smile, nothing))
 
     floor_transform = Translate(Pnt3(0,0,0))
     floor = Rectangle(
@@ -107,6 +113,7 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         Pnt2(parsed_args["image-dim"][1], parsed_args["image-dim"][2]), 
         Int8(2)
     )
+    # S = IndependentSampler(parsed_args["samples-per-pixel"])
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene

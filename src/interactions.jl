@@ -175,6 +175,7 @@ end
 ### Spawn Ray ###
 #################
 function spawn_ray(interaction::Interaction, direction::Vec3)::RayDifferential
+    # JOHN HACK: OffsetRayOrigin
     o = interaction.p + ShadowEpsilon * direction
     return RayDifferential(Ray(o, direction, interaction.t, typemax(Float64), get_medium(interaction, direction)))
 end

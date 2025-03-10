@@ -44,6 +44,7 @@ function sample_discrete(d::Distribution1D, u::Float64)::Tuple{Int64, Float64, F
 end
 
 function discrete_pdf(d::Distribution1D, u::Int64)::Float64
+    u = max(1, u) # JOHN HACK OH GOD WHY
     return d.func[u] / (d.func_int * length(d.func))
 end
 

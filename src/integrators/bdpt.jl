@@ -179,7 +179,7 @@ function render(
                     end
                 end
                 
-                @info "Add film sample pFilm: $(camera_sample.film), L: $(L), (y: $(y_spectrum(L)))"
+                @info "Add film sample pFilm: [ $(camera_sample.film.x), $(camera_sample.film.y) ], L: $(L), (y: $(y_spectrum(L)))"
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
             end
         end
@@ -243,6 +243,7 @@ function generate_light_subpath!(
     @info "Light subpath light #$(light_num) aka $(light_num-1) in c++"
     light = scene.lights[light_num]
     Le, ray, n_light, pdf_pos, pdf_dir = sample_le(light, get_2D!(sampler), get_2D!(sampler), t)
+    @info "Sample_le: $Le, $n_light, $ray"
     if (pdf_pos == 0.0) || (pdf_dir == 0.0) || is_black(Le)
         return 0, 0
     end
@@ -313,6 +314,7 @@ function random_walk!(
         terminated = false
 
         if !(ray.medium isa Nothing)
+            @info "MEDIUM BEEN HIT"
             u = get_1D!(sampler)
             t_max = (t isa Nothing) ? typemax(Float64) : t
 
@@ -377,6 +379,7 @@ function random_walk!(
         end
 
         if is_black(beta)
+            @info "Random walk: exited due to Black"
             break
         end
 
@@ -392,9 +395,12 @@ function random_walk!(
         if !check
             # capture escaped rays when tracing from camera
             if mode == Radiance
+                @info "Random walk: Capture escaped rays when tracing from the camera - RADIANCE"
                 path[vertex] = create_light_vertex(EndpointInteraction(ray), beta, pdf_fwd)
+                @info "HAHA: $(p(path[vertex])) $ray"
                 bounces += 1
             end
+            @info "Random walk: exited due to escaped rays"
             break
         end
 
