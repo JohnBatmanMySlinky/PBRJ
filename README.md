@@ -78,7 +78,14 @@ Render
 10. Anemone
 
     ![anemone](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/anemone.png?raw=true)
-        
+
+# A couple little janky bits (mainly so that I don't forget about 'em)
+1. src/notebooks/TEST_nanovdb_indexing.ipynb    
+    - couldn't get the nanovdb bindings to work in the test directory...
+2. src/party_blob.ipynb
+    - no easy way to animate via CLI so NB it is. Should make scene102-ish.
+
+
 # Features Implemented
 - Accelerators: BVH
 - Cameras: Perspective
