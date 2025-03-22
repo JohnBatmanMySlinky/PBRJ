@@ -16,7 +16,7 @@ struct StaticLightDistribution <: AbstractLightDistribution
     distr::Distribution1D
 
     function StaticLightDistribution(name::String, scene::Scene)
-        if name == "uniform"
+        if (name == "uniform") || (length(scene.lights) == 1)
             return new(
                 Distribution1D(ones(length(scene.lights)))
             )
@@ -45,10 +45,8 @@ struct SpatialLightDistribution <: AbstractLightDistribution
 
         # if we were fancy, like the book we'd stop our constructor here and build the spatial dist as we render. 
         # But we're not.
-        
-
-
-
+        # so we build the whole thing meow (and not parallelized)
+        # TODO 
         return new()
     end
 end
@@ -60,7 +58,7 @@ function LightDistribution(
     scene::Scene, 
     N_voxels::Int64=4^3
 )::AbstractLightDistribution
-    if (name == "uniform") || (name == "power")
+    if (name == "uniform") || (name == "power") || (length(scene.lights) == 1)
         return StaticLightDistribution(name, scene)
 
     elseif name == "spatial"
@@ -76,9 +74,4 @@ end
 
 function lookup(ld::StaticLightDistribution, p::Pnt3)::Distribution1D
     return ld.distr
-end
-
-function lookup(vld::VoxelLightDistribution, p::Pnt3)::Distribution1D
-    distance_from_pmin = Int64.(floor.((p - vld.pMin)/vld.voxel_size) .+ 1)
-    return get(vld.voxels, [(distance_from_pmin.x, distance_from_pmin.y, distance_from_pmin.z)], vld.dummy_dist)
 end

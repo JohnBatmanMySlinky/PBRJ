@@ -80,8 +80,8 @@ function lerp(t::Float64, a::Pnt3, b::Pnt3)::Pnt3
     return a .+ t .* (b - a)
 end
 
-function lerp(t::Pnt3, a::Pnt3, b::Pnt3)::Pnt3
-    return a .+ t .* (b - a)
+function lerp(t::Pnt3, c::Bounds3)::Pnt3
+    return c.pMin .+ t .* (c.pMax - c.pMin)
 end
 
 function spherical_phi(v::Vec3)::Float64
