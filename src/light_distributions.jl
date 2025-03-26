@@ -32,22 +32,69 @@ end
 
 # this covers Spatial
 struct SpatialLightDistribution <: AbstractLightDistribution
-    voxels::Dict{Tuple{Int64, Int64, Int64}, Distribution1D}
-    n_voxels::Pnt3
+    voxel_dists::Dict{Tuple{Int64, Int64, Int64}, Distribution1D}
+    voxel_size::Pnt3
+    wbounds::Bounds3
 
     function SpatialLightDistribution(
         scene::Scene,
-        max_voxels::Int64
+        max_voxels::Int64,
     )
-        diag = RayTracing.diagonal(wbounds)
+        voxel_dists = Dict{Tuple{Int64, Int64, Int64}, Distribution1D}()
+        n_samples = UInt64(128)
+
+        wbounds = scene.bounds
+        diag = diagonal(wbounds)
         bmax = maximum(diag)
         n_voxels = max.(1, Int.(round.(diag / bmax * max_voxels)))
-
-        # if we were fancy, like the book we'd stop our constructor here and build the spatial dist as we render. 
-        # But we're not.
-        # so we build the whole thing meow (and not parallelized)
-        # TODO 
-        return new()
+        voxel_size = (wbounds.pMax .- wbounds.pMin) ./ n_voxels
+        
+        for x in 0:(n_voxels.x - 1)
+            for y in 0:(n_voxels.y - 1)
+                for z in 0:(n_voxels.z - 1)
+                    voxel_bounds = Bounds3(
+                        wbounds.pMin + voxel_size .* Pnt3(x,y,z),
+                        wbounds.pMin + voxel_size .* Pnt3(x+1,y+1,z+1),
+                    )
+        
+                    light_contribution = zeros(Float64, length(scene.lights))
+        
+                    for i in UInt64(1):n_samples
+                        po = lerp(
+                            Pnt3(
+                                radical_inverse(0, i),
+                                radical_inverse(1, i),
+                                radical_inverse(2, i)
+                            ), 
+                            voxel_bounds
+                        )
+                        @assert inside(po, voxel_bounds)
+                        intr = Interaction()
+                        intr.p = po
+        
+                        u = Pnt2(
+                            radical_inverse(3, i),
+                            radical_inverse(4, i)
+                        )
+        
+                        for j in 1:length(scene.lights)
+                            radiance, _, pdf_val, _, _, _ = sample_li(scene.lights[j], intr, u)
+                            if pdf_val > 0.0
+                                light_contribution[j] += y_spectrum(radiance) / pdf_val
+                            end
+                        end
+        
+                        avg_contrib = mean(light_contribution)
+                        min_contrib = avg_contrib > 0 ? avg_contrib * .001 : 1.0
+        
+                        light_contribution = max.(light_contribution, min_contrib)
+                    end
+                    
+                    voxel_dists[(Int64(x), Int64(y), Int64(z))] = Distribution1D(light_contribution)
+                end
+            end
+        end
+    return new(voxel_dists, voxel_size, wbounds)
     end
 end
 
@@ -74,4 +121,10 @@ end
 
 function lookup(ld::StaticLightDistribution, p::Pnt3)::Distribution1D
     return ld.distr
+end
+
+function lookup(ld::SpatialLightDistribution, p::Pnt3)::Distribution1D
+    @assert inside(p, ld.wbounds)
+    pp = Int64.(trunc.((p - ld.wbounds.pMin) ./ ld.voxel_size))
+    return ld.voxel_dists[(pp.x, pp.y, pp.z)]
 end
