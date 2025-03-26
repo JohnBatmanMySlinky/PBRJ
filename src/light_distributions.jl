@@ -103,13 +103,13 @@ end
 function LightDistribution(
     name::String, 
     scene::Scene, 
-    N_voxels::Int64=4^3
+    max_voxels::Int64=4^3
 )::AbstractLightDistribution
     if (name == "uniform") || (name == "power") || (length(scene.lights) == 1)
         return StaticLightDistribution(name, scene)
 
     elseif name == "spatial"
-        return SpatialLightDistribution(scene, N_voxels)
+        return SpatialLightDistribution(scene, max_voxels)
 
     else
         @assert false, "please pick one of uniform, power, spatial, or centroid_distance"

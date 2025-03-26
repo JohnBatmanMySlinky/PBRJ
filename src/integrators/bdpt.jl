@@ -16,9 +16,7 @@ function render(
     light_distr_generator = LightDistribution(
         parsed_args["light-distribution-strategy"], 
         scene,
-        parsed_args["weight-for-infinites"], 
-        parsed_args["n-voxels"], 
-        parsed_args["n-shadow-rays"], 
+        parsed_args["max-voxels"], 
     )
 
     # partition the image into tiles
