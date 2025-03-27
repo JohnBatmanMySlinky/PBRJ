@@ -423,7 +423,7 @@ function area(tri::Triangle)::Float64
 end
 
 # non-spherical angle sampling
-function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
+function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3, Pnt2, Float64}
     su0 = sqrt(u[1])
     b = Pnt2(1 - su0, u[2] * su0)
     p0, p1, p2 = get_vertices(tri)
@@ -442,7 +442,17 @@ function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
         n = -n
     end
     pdf_val = 1.0 / area(tri)
-    return p, n, pdf_val
+
+    # Compute $(u,v)$ for sampled point on triangle
+    # Get triangle texture coordinates in _uv_ array
+    if !(tri.mesh.uvs isa Nothing)
+        uv = get_uvs(tri)
+    else
+        uv = (Pnt2(0, 0), Pnt2(1, 0), Pnt2(1, 1))
+    end
+    uv_sample = b.x * uv[0+1] + b.y * uv[1+1] + (1.0-b.x-b.y) * uv[2+1]
+
+    return p, n, uv_sample, pdf_val
 end
 
 function spherical_triangle_area(a::Pnt3, b::Pnt3, c::Pnt3)::Float64
@@ -460,7 +470,7 @@ function solid_angle(p0::Pnt3, p1::Pnt3, p2::Pnt3, p::Pnt3)::Float64
     )
 end
 
-function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
+function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Pnt2, Float64}
     # not defining global vars...
     min_spherical_sample_area=3e-4
     max_spherical_sample_area=6.22
@@ -473,12 +483,12 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Fl
 
     if (solid_angle_val < min_spherical_sample_area) || (solid_angle_val > max_spherical_sample_area)
         # Sample shape by area and compute incident direction _wi_
-        ss_p, ss_n, ss_pdf = sample(tri, u)
+        ss_p, ss_n, ss_uv, ss_pdf = sample(tri, u)
         wi = normalize(Vec3(ss_p - intr.p))
         # JOHN HACK, what do with zero length fail?
 
         ss_pdf /= abs(dot(ss_n, -wi)) / distance_squared(intr.p, ss_p)
-        return ss_p, ss_n, ss_pdf
+        return ss_p, ss_n, ss_uv, ss_pdf
     end
 
     # Sample spherical triangle from reference point
@@ -501,7 +511,7 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Fl
     b, tri_pdf = sample_spherical_triangle(p0, p1, p2, intr.p, u)
     # TODO what if pdf 0?
     if tri_pdf == 0.0
-        return Pnt3(0,0,0), Nml3(0,0,0), 0.0
+        return Pnt3(0,0,0), Nml3(0,0,0), Pnt2(0, 0), 0.0
     end
     pdf_val *= tri_pdf
 
@@ -516,5 +526,15 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Fl
     elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
         n *= -1.0
     end
-    return p, n, pdf_val
+
+    # Compute $(u,v)$ for sampled point on triangle
+    # Get triangle texture coordinates in _uv_ array
+    if !(tri.mesh.uvs isa Nothing)
+        uv = get_uvs(tri)
+    else
+        uv = (Pnt2(0, 0), Pnt2(1, 0), Pnt2(1, 1))
+    end
+    uv_sample = b.x * uv[0+1] + b.y * uv[1+1] + (1.0-b.x-b.y) * uv[2+1]
+
+    return p, n, uv_sample, pdf_val
 end

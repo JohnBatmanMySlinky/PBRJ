@@ -33,7 +33,7 @@ end
 # this covers Spatial
 struct SpatialLightDistribution <: AbstractLightDistribution
     voxel_dists::Dict{Pnt3i, Distribution1D}
-    voxel_size::Pnt3i
+    voxel_size::Pnt3
     n_voxels::Pnt3i
     wbounds::Bounds3
 
