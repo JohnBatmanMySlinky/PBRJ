@@ -25,7 +25,7 @@ end
 
 # WOW BE CAREFUL OF PBRT V4 LOOKUP WITH INTEGERS VS FLOAT!!!
 function get(sg::SampledGrid, p::Pnt3)::Float64
-    sampled_bounds = Bounds3(Pnt3(0,0,0), Pnt3(sg.nx, sg.ny, sg.nz))
+    sampled_bounds = Bounds3i(Pnt3i(0,0,0), Pnt3i(sg.nx, sg.ny, sg.nz))
     if !inside_exclusive(p, sampled_bounds)
         return 0.0
     else

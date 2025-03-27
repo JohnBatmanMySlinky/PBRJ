@@ -44,7 +44,7 @@ struct Film
 
     # crop window to specify subset of image to render
     # in [0,1] range
-    cropped_pixel_bounds::Bounds2
+    cropped_pixel_bounds::Bounds2i
 
     # length of the diagonal of the films physical area in mm
     diagonal::Float64
@@ -61,7 +61,7 @@ struct Film
 
     function Film(
         full_resolution::Pnt2i,
-        cropped_pixel_bounds::Bounds2,
+        crop_window::Bounds2,
         filter::F,
         diagonal::Float64,
         scale::Float64,
@@ -71,11 +71,11 @@ struct Film
         filter_table = Matrix{Float64}(undef, filter_table_width, filter_table_width)
 
         # compute image bounds
-        @assert cropped_pixel_bounds.pMin.x < cropped_pixel_bounds.pMax.x
-        @assert cropped_pixel_bounds.pMin.y < cropped_pixel_bounds.pMax.y
-        cropped_pixel_bounds = Bounds2(
-            ceil.(full_resolution .* cropped_pixel_bounds.pMin),
-            ceil.(full_resolution .* cropped_pixel_bounds.pMax)
+        @assert crop_window.pMin.x < crop_window.pMax.x
+        @assert crop_window.pMin.y < crop_window.pMax.y
+        cropped_pixel_bounds = Bounds2i(
+            ceil.(full_resolution .* crop_window.pMin),
+            ceil.(full_resolution .* crop_window.pMax)
         )
         @info "Cropped Pixel Bounds at the source: $(cropped_pixel_bounds)"
         cropped_resolution = inclusive_sides(cropped_pixel_bounds)
@@ -178,8 +178,8 @@ end
 ########################################
 ######## Misc ##########################
 ########################################
-function get_sample_bounds(f::Union{Film, PassFilm})::Bounds2
-    return Bounds2(
+function get_sample_bounds(f::Union{Film, PassFilm})::Bounds2i
+    return Bounds2i(
         floor.(f.cropped_pixel_bounds.pMin .+ 0.5 .- f.filter.radius),
         ceil.(f.cropped_pixel_bounds.pMax .- 0.5 .+ f.filter.radius),
     )
@@ -202,7 +202,7 @@ mutable struct FilmTilePixel
 end
 
 struct FilmTile
-    pixel_bounds::Bounds2
+    pixel_bounds::Bounds2i
     filter_radius::Pnt2
     inv_filter_radius::Pnt2
     filter_table::Matrix{Float64}
@@ -212,7 +212,7 @@ struct FilmTile
     function FilmTile(f::Union{Film,PassFilm}, sample_bounds::Bounds2)
         p0 = ceil.(sample_bounds.pMin .- 0.5 .- f.filter.radius)
         p1 = floor.(sample_bounds.pMax .- 0.5 .+ f.filter.radius) .+ 1.0
-        pixel_bounds = intersection(Bounds2(p0, p1), f.cropped_pixel_bounds)
+        pixel_bounds = intersection(Bounds2i(p0, p1), f.cropped_pixel_bounds)
         tile_res = Pnt2(inclusive_sides(pixel_bounds))
         pixels = [FilmTilePixel(spectrum_from_float(0.0, 0.0, 0.0), 0) for _ in 1:tile_res.y, __ in 1:tile_res.x]
 

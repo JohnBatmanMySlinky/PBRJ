@@ -181,7 +181,7 @@ function Bounds2i()::Bounds2i
     return Bounds2i(Pnt2i(typemax(Int64)), Pnt2i(typemin(Int64)))
 end
 
-function inside_exclusive(p::Pnt3, b::Bounds3)::Bool
+function inside_exclusive(p::Pnt3, b::Union{Bounds3, Bounds3i})::Bool
     return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y) && (p.z >= b.pMin.z) && (p.z < b.pMax.z)
 end
 
@@ -189,19 +189,28 @@ function inside(p::Pnt3, b::Bounds3)::Bool
     return (p.x >= b.pMin.x) && (p.x <= b.pMax.x) && (p.y >= b.pMin.y) && (p.y <= b.pMax.y) && (p.z >= b.pMin.z) && (p.z <= b.pMax.z)
 end
 
-function inside_exclusive(p::Pnt2, b::Bounds2)::Bool
+function inside_exclusive(p::Pnt2, b::Union{Bounds2, Bounds2i})::Bool
     return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y)
 end
 
-function inclusive_sides(b::Bounds3)::Pnt3
+function inclusive_sides(b::Union{Bounds3,Bounds3i})::Pnt3
     return abs.(b.pMax - b.pMin .+ 1.0)
 end
 
-function inclusive_sides(b::Bounds2)::Pnt2
+function inclusive_sides(b::Union{Bounds2, Bounds2i})::Pnt2
     return abs.(b.pMax - b.pMin .+ 1.0)
 end
 
-function diagonal(b::Union{Bounds2, Bounds3})
+function diagonal(b::Bounds2)::Pnt2
+    return b.pMax - b.pMin
+end
+function diagonal(b::Bounds2i)::Pnt2i
+    return b.pMax - b.pMin
+end
+function diagonal(b::Bounds3)::Pnt3
+    return b.pMax - b.pMin
+end
+function diagonal(b::Bounds3i)::Pnt3i
     return b.pMax - b.pMin
 end
 
@@ -256,6 +265,12 @@ end
 
 function intersection(b1::Bounds2, b2::Bounds2)::Bounds2
     return Bounds2(
+        max.(b1.pMin, b2.pMin),
+        min.(b1.pMax, b2.pMax)
+    )
+end
+function intersection(b1::Bounds2i, b2::Bounds2i)::Bounds2i
+    return Bounds2i(
         max.(b1.pMin, b2.pMin),
         min.(b1.pMax, b2.pMax)
     )
