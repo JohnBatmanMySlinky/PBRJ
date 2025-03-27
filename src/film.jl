@@ -185,13 +185,13 @@ function get_sample_bounds(f::Union{Film, PassFilm})::Bounds2i
     )
 end
 
-function get_pixel(f::Film, p::Pnt2)::Pixel
-    pp = Int64.(p .- f.cropped_pixel_bounds.pMin .+ 1.0)
+function get_pixel(f::Film, p::Pnt2i)::Pixel
+    pp = p .- f.cropped_pixel_bounds.pMin .+ 1
     return f.pixels[pp.y, pp.x]
 end
 
-function get_pixel(f::PassFilm, p::Pnt2)::PassPixel
-    pp = Int64.(p .- f.cropped_pixel_bounds.pMin .+ 1.0)
+function get_pixel(f::PassFilm, p::Pnt2i)::PassPixel
+    pp = p .- f.cropped_pixel_bounds.pMin .+ 1
     return f.pixels[pp.y, pp.x]
 end
 
@@ -227,8 +227,8 @@ struct FilmTile
     end 
 end
 
-function get_pixel(t::FilmTile, p::Pnt2)
-    pp = Int64.(p .- t.pixel_bounds.pMin .+ 1)
+function get_pixel(t::FilmTile, p::Pnt2i)
+    pp = p .- t.pixel_bounds.pMin .+ 1
     return t.pixels[pp.y, pp.x]
 end
 
@@ -255,7 +255,7 @@ function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float
     for (j, y) in enumerate(p0.y:p1.y)
         for (i, x) in enumerate(p0.x:p1.x)
             w = t.filter_table[offsets_y[j], offsets_x[i]]
-            pixel = get_pixel(t, Pnt2(x, y))
+            pixel = get_pixel(t, Pnt2i(x, y))
             @assert sample_weight <= 1
             @assert w <= 1
             pixel.contrib_sum += spectrum * sample_weight * w
@@ -267,7 +267,7 @@ end
 function merge_film_tile!(f::Union{Film, PassFilm}, ft::FilmTile)
     for y in ft.pixel_bounds.pMin.y:ft.pixel_bounds.pMax.y
         for x in ft.pixel_bounds.pMin.x:ft.pixel_bounds.pMax.x
-            pixel = Pnt2(x, y)
+            pixel = Pnt2i(x, y)
             tile_pixel = get_pixel(ft, pixel)
             merge_pixel = get_pixel(f, pixel)
             @info "merge_film_tile: Spectrum - $(tile_pixel.contrib_sum), XYZ - $(to_XYZ(tile_pixel.contrib_sum))"
@@ -278,7 +278,7 @@ function merge_film_tile!(f::Union{Film, PassFilm}, ft::FilmTile)
 end
 
 function add_splat!(f::Union{Film, PassFilm}, p::Pnt2, v::Spectrum)
-    pp = trunc.(p)
+    pp = Pnt2i(trunc.(p))
     (!inside_exclusive(pp, f.cropped_pixel_bounds)) && (return )
     # JOHN HACK LUMINANCE CHECK
     pixel = get_pixel(f, pp)

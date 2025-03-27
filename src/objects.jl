@@ -181,7 +181,10 @@ function Bounds2i()::Bounds2i
     return Bounds2i(Pnt2i(typemax(Int64)), Pnt2i(typemin(Int64)))
 end
 
-function inside_exclusive(p::Pnt3, b::Union{Bounds3, Bounds3i})::Bool
+function inside_exclusive(p::Pnt3, b::Bounds3)::Bool
+    return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y) && (p.z >= b.pMin.z) && (p.z < b.pMax.z)
+end
+function inside_exclusive(p::Pnt3i, b::Bounds3i)::Bool
     return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y) && (p.z >= b.pMin.z) && (p.z < b.pMax.z)
 end
 
@@ -189,7 +192,10 @@ function inside(p::Pnt3, b::Bounds3)::Bool
     return (p.x >= b.pMin.x) && (p.x <= b.pMax.x) && (p.y >= b.pMin.y) && (p.y <= b.pMax.y) && (p.z >= b.pMin.z) && (p.z <= b.pMax.z)
 end
 
-function inside_exclusive(p::Pnt2, b::Union{Bounds2, Bounds2i})::Bool
+function inside_exclusive(p::Pnt2, b::Bounds2)::Bool
+    return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y)
+end
+function inside_exclusive(p::Pnt2i, b::Bounds2i)::Bool
     return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y)
 end
 
