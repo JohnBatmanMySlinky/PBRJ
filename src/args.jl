@@ -39,19 +39,11 @@ function parse_commandline()::Dict
         "--light-distribution-strategy"
             help = "strategy for sampling lights"
             arg_type = String
-            default = "uniform" # power, centroid_distance, spatial
-        "--weight-for-infinites"    
-            help = "weight for infinites in light sampling strat"
-            arg_type = Float64
-            default = 0.1
-        "--n-voxels"    
-            help = "n voxels light for sampling strat"
+            default = "uniform" # power, spatial
+        "--max-voxels"    
+            help = "voxels for light sampling strat"
             arg_type = Int
-            default = 4^3
-        "--n-shadow-rays"    
-            help = "n shadow rays for light sampling strat"
-            arg_type = Int
-            default = 3
+            default = 64
         "--file-name"
             help = "name of file"
             arg_type = String
