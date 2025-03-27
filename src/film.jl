@@ -110,7 +110,7 @@ end
 
 struct PassFilm
     # overall resolution in pixels
-    full_resolution::Pnt2
+    full_resolution::Pnt2i
 
     # crop window to specify subset of image to render
     # in [0,1] range
@@ -130,7 +130,7 @@ struct PassFilm
     scale::Float64
 
     function PassFilm(
-        full_resolution::Pnt2,
+        full_resolution::Pnt2i,
         cropped_pixel_bounds::Bounds2,
         filter::F,
         diagonal::Float64,
