@@ -16,7 +16,7 @@ function make_scene15(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     cloud_mi = MediumInterface(
         CloudMedium(
-            Bounds3(Pnt3(0), Pnt3(1)),
+            Bounds3(Pnt3(0.0), Pnt3(1.0)),
             Translate(Pnt3(0,0,0)),
             spectrum_from_float(0.01),
             spectrum_from_float(10.0),

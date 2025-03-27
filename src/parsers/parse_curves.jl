@@ -77,7 +77,7 @@ function parse_curves(fname::String, core::ShapeCore, DOWNSAMPLE::Int64=0)::Arra
     N_widths = 0
     N_points = 0
     N_parsed = 0
-    c = SVector(Pnt3(0), Pnt3(0), Pnt3(0), Pnt3(0))
+    c = SVector(Pnt3(0.0), Pnt3(0.0), Pnt3(0.0), Pnt3(0.0))
     for s in processed_content
         # read current line
         if occursin("width", s)

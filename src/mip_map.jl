@@ -30,13 +30,13 @@ struct MIPMap
 	do_trilinear::Bool
 	max_anisotropy::Float64
 	wrap_mode::Int8
-	resolution::Pnt2
+	resolution::Pnt2i
 	pyramid::Vector{Matrix{T}} where T <: Union{Spectrum, Float64}
-	pyrsize::Vector{Pnt2}
+	pyrsize::Vector{Pnt2i}
 	weight_lut::Vector{Float64}
 
 	function MIPMap(
-		resolution::Pnt2, 
+		resolution::Pnt2i, 
 		data::Vector{T} where T <: Union{Spectrum, Float64}, 
 		do_trilinear::Bool=false, 
 		max_anisotropy::Float64=8.0, 
@@ -44,10 +44,10 @@ struct MIPMap
 	)
 		resampled = false
 		res_pow_2 = Pnt2(0,0)
-		if (!ispow2(Int64(resolution.x))) || (!ispow2(Int64(resolution.y)))
+		if (!ispow2(resolution.x)) || (!ispow2(resolution.y))
 			resampled = true
 			# Resample image to power-of-two resolution
-			res_pow_2 = Pnt2(round_up_pow2(Int64(resolution.x)), round_up_pow2(Int64(resolution.y)))
+			res_pow_2 = Pnt2i(round_up_pow2(resolution.x), round_up_pow2(resolution.y))
 			@info "Resampling MIPMap from $(resolution) to $(res_pow_2). Ratio = $((res_pow_2.x * res_pow_2.y)/(resolution.x * resolution.y))"
 
 			# i = 0
@@ -59,14 +59,14 @@ struct MIPMap
 			# end
 			
 			# Resample image in $s$ direction
-			s_weights = resample_weights(Int64(resolution.x), Int64(res_pow_2.x))
-			resampled_image = Vector{typeof(data[1])}(undef, Int64(res_pow_2.x * res_pow_2.y))
+			s_weights = resample_weights(resolution.x, res_pow_2.x)
+			resampled_image = Vector{typeof(data[1])}(undef, res_pow_2.x * res_pow_2.y)
 			
 			# apply _sweights_ t zoom in $s$ direction
 			for t in 0:(resolution.y-1)
-				for s in 0:Int64(res_pow_2.x-1)
+				for s in 0:(res_pow_2.x-1)
 					# compute texel $(s,t)$ in $s$-zoomed image
-					resampled_image[Int64(t * res_pow_2.x + s + 1)] = data[1] * 0.0 # JOHN HACK LOL
+					resampled_image[t * res_pow_2.x + s + 1] = data[1] * 0.0 # JOHN HACK LOL
 					for j in 0:3
 						orig_s = s_weights[s+1].first_texel + j
 						if wrap_mode == Int8(0) # repeat
@@ -79,18 +79,18 @@ struct MIPMap
 						end
 						
 						if (orig_s >= 0) && (orig_s < resolution.x)
-							# @info "MIPMAP READ: $(s), $(t), $(t * resolution.x + orig_s) = $(data[Int64(t * resolution.x + orig_s + 1)])"
-							resampled_image[Int64(t * res_pow_2.x + s + 1)] += s_weights[s+1].weight[j+1] * data[Int64(t * resolution.x + orig_s + 1)]
+							# @info "MIPMAP READ: $(s), $(t), $(t * resolution.x + orig_s) = $(data[t * resolution.x + orig_s + 1])"
+							resampled_image[t * res_pow_2.x + s + 1] += s_weights[s+1].weight[j+1] * data[t * resolution.x + orig_s + 1]
 						end
 					end
 				end
 			end
 			
 			# resample image in $t$ direction
-			t_weights = resample_weights(Int64(resolution.y), Int64(res_pow_2.y))
-			for s in 0:Int64(res_pow_2.x - 1)
-				work_data = Vector{typeof(data[1])}(undef, Int64(res_pow_2.y))
-				for t in 0:Int64(res_pow_2.y - 1)
+			t_weights = resample_weights(resolution.y, res_pow_2.y)
+			for s in 0:(res_pow_2.x - 1)
+				work_data = Vector{typeof(data[1])}(undef, res_pow_2.y)
+				for t in 0:(res_pow_2.y - 1)
 					work_data[t+1] = data[1] * 0.0 # BIG BRAIN JOHN HACK
 					for j in 0:3
 						offset = t_weights[t+1].first_texel + j
@@ -103,13 +103,13 @@ struct MIPMap
 						end
 						
 						if (offset >= 0) && (offset < resolution.y)
-							# @info "MIPMAP READ: $(s), $(t), $(offset * res_pow_2.x + s) = $(resampled_image[Int64(offset * res_pow_2.x + s + 1)])"
-							work_data[t+1] += t_weights[t+1].weight[j+1] * resampled_image[Int64(offset * res_pow_2.x + s + 1)]
+							# @info "MIPMAP READ: $(s), $(t), $(offset * res_pow_2.x + s) = $(resampled_image[offset * res_pow_2.x + s + 1])"
+							work_data[t+1] += t_weights[t+1].weight[j+1] * resampled_image[offset * res_pow_2.x + s + 1]
 						end
 					end
 				end
-				for t in 0:Int64(res_pow_2.y - 1)
-					resampled_image[Int64(t * res_pow_2.x + s + 1)] = clamp.(work_data[t+1], 0, typemax(Float64))
+				for t in 0:(res_pow_2.y - 1)
+					resampled_image[t * res_pow_2.x + s + 1] = clamp.(work_data[t+1], 0, typemax(Float64))
 				end
 			end
 		end
@@ -119,22 +119,22 @@ struct MIPMap
 		@info "N LEVELS: $(n_levels)" 
 
 		pyramid = Vector{Matrix{typeof(data[1])}}(undef, n_levels)
-		pyrsize = Vector{Pnt2}(undef, n_levels) # JOHN HACK oh god i hope this doesnt bite me later
+		pyrsize = Vector{Pnt2i}(undef, n_levels) # JOHN HACK oh god i hope this doesnt bite me later
 		
 		# Initialize most detailed level of MIPMap
 		pyrsize[1] = resampled ? res_pow_2 : resolution
 		# JOHN HACK: this is big brain shit but in the bad way
 		# JOHN HACK TODO
 		# if you have a 5x5 matrix mat[5,5] == mat[25] so I can get rid of this reshape! I think!
-		pyramid[1] = reshape(resampled ? resampled_image : data, (Int64(pyrsize[1].x), Int64(pyrsize[1].y))) # yeehaw
+		pyramid[1] = reshape(resampled ? resampled_image : data, (pyrsize[1].x, pyrsize[1].y)) # yeehaw
 		
 
 		# @info "PYRAMID TESTING: $(pyramid[1][2+1, 6+1]) $(pyramid[1][6+1, 2+1])"
 
 		for i in 1:(n_levels-1)
 			# Initialize $i$th MIPMap level from $i-1$st level
-			s_res = Int64(max(1, pyrsize[i-1+1].x/2))
-			t_res = Int64(max(1, pyrsize[i-1+1].y/2))
+			s_res::Int64 = max(1, pyrsize[i-1+1].x ÷ 2)
+			t_res::Int64 = max(1, pyrsize[i-1+1].y ÷ 2)
 			# @info "PYR BUILD: $(i), $(s_res), $(t_res)"
 			pyramid[i+1] = zeros(typeof(data[1]), s_res, t_res)
 			pyrsize[i+1] = Pnt2(s_res, t_res)
@@ -176,8 +176,8 @@ struct MIPMap
 	end
 end
 
-function texel(l::Matrix{Spectrum}, size::Pnt2, wrap_mode::Int8, s::Int64, t::Int64)::Spectrum
-	x, y = Int64(size.x), Int64(size.y)
+function texel(l::Matrix{Spectrum}, size::Pnt2i, wrap_mode::Int8, s::Int64, t::Int64)::Spectrum
+	x, y = size.x, size.y
 	# hacky, not fucking with indexing in here. making me do that before texel is called
 	if wrap_mode == Int8(0) # repeat
 		s = s % x

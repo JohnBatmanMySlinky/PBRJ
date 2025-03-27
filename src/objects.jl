@@ -44,17 +44,32 @@ struct Pnt3 <: FieldVector{3, Float64}
     y::Float64
     z::Float64
 end
+struct Pnt3i <: FieldVector{3, Int64}
+    x::Int64
+    y::Int64
+    z::Int64
+end
 struct Pnt2 <: FieldVector{2, Float64}
     x::Float64
     y::Float64
 end
-
-function Pnt3(a::Union{Float64, Int64})::Pnt3
-    return Pnt3(a,a,a)
+struct Pnt2i <: FieldVector{2, Int64}
+    x::Int64
+    y::Int64
 end
 
-function Pnt2(a::Union{Float64, Int64})::Pnt2
+function Pnt2(a::Float64)::Pnt2
     return Pnt2(a,a)
+end
+function Pnt2i(a::Int64)::Pnt2i
+    return Pnt2i(a,a)
+end
+
+function Pnt3(a::Float64)::Pnt3
+    return Pnt3(a,a,a)
+end
+function Pnt3i(a::Int64)::Pnt3i
+    return Pnt3i(a,a,a)
 end
 
 ################################
@@ -140,16 +155,30 @@ struct Bounds3
     pMin::Pnt3
     pMax::Pnt3
 end
+struct Bounds3i
+    pMin::Pnt3i
+    pMax::Pnt3i
+end
 struct Bounds2
     pMin::Pnt2
     pMax::Pnt2
 end
+struct Bounds2i
+    pMin::Pnt2i
+    pMax::Pnt2i
+end
 
+function Bounds3()::Bounds3
+    return Bounds3(Pnt3(Inf64), Pnt3(-Inf64))
+end
+function Bounds3i()::Bounds3i
+    return Bounds3i(Pnt3i(typemax(Int64)), Pnt3i(typemin(Int64)))
+end
 function Bounds2()::Bounds2
     return Bounds2(Pnt2(Inf64), Pnt2(-Inf64))
 end
-function Bounds3()::Bounds3
-    return Bounds3(Pnt3(Inf64), Pnt3(-Inf64))
+function Bounds2i()::Bounds2i
+    return Bounds2i(Pnt2i(typemax(Int64)), Pnt2i(typemin(Int64)))
 end
 
 function inside_exclusive(p::Pnt3, b::Bounds3)::Bool
