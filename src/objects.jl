@@ -193,11 +193,17 @@ function inside_exclusive(p::Pnt2, b::Union{Bounds2, Bounds2i})::Bool
     return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y)
 end
 
-function inclusive_sides(b::Union{Bounds3,Bounds3i})::Pnt3
+function inclusive_sides(b::Bounds3)::Pnt3
+    return abs.(b.pMax - b.pMin .+ 1.0)
+end
+function inclusive_sides(b::Bounds3i)::Pnt3i
     return abs.(b.pMax - b.pMin .+ 1.0)
 end
 
-function inclusive_sides(b::Union{Bounds2, Bounds2i})::Pnt2
+function inclusive_sides(b::Bounds2)::Pnt2
+    return abs.(b.pMax - b.pMin .+ 1.0)
+end
+function inclusive_sides(b::Bounds2i)::Pnt2i
     return abs.(b.pMax - b.pMin .+ 1.0)
 end
 
@@ -217,6 +223,10 @@ end
 function Base.length(b::Bounds2)::Int64
     delta = ceil.(b.pMax .- b.pMin .+ 1.0)
     return Int64(delta.x * delta.y)
+end
+function Base.length(b::Bounds2i)::Int64
+    delta = b.pMax .- b.pMin
+    return delta.x * delta.y
 end
 
 function centroid(b::Bounds3)::Pnt3
@@ -411,14 +421,14 @@ function intersect_p(b::Bounds3, ray::AbstractRay, ray_t_max::Float64)::Tuple{Bo
     return true, t0, t1
 end
 
-function Base.iterate(b::Bounds2, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2, Integer}}
+function Base.iterate(b::Bounds2i, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2i, Integer}}
     if i > length(b)
         return nothing
     end
 
     j = i - 1
     delta = b.pMax .- b.pMin .+ 1.0
-    return b.pMin .+ Pnt2(j % delta[1], j ÷ delta[1]), i + 1
+    return b.pMin .+ Pnt2i(j % delta[1], j ÷ delta[1]), i + 1
 end
 
 function Bounds3(p::Pnt3)

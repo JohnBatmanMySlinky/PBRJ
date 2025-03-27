@@ -209,11 +209,11 @@ struct FilmTile
     filter_table_width::Int64
     pixels::Matrix{FilmTilePixel}
 
-    function FilmTile(f::Union{Film,PassFilm}, sample_bounds::Bounds2)
+    function FilmTile(f::Union{Film,PassFilm}, sample_bounds::Bounds2i)
         p0 = ceil.(sample_bounds.pMin .- 0.5 .- f.filter.radius)
         p1 = floor.(sample_bounds.pMax .- 0.5 .+ f.filter.radius) .+ 1.0
         pixel_bounds = intersection(Bounds2i(p0, p1), f.cropped_pixel_bounds)
-        tile_res = Pnt2(inclusive_sides(pixel_bounds))
+        tile_res = Pnt2i(inclusive_sides(pixel_bounds))
         pixels = [FilmTilePixel(spectrum_from_float(0.0, 0.0, 0.0), 0) for _ in 1:tile_res.y, __ in 1:tile_res.x]
 
         new(
