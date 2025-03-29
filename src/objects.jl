@@ -203,14 +203,19 @@ function inclusive_sides(b::Bounds3)::Pnt3
     return abs.(b.pMax - b.pMin .+ 1.0)
 end
 function inclusive_sides(b::Bounds3i)::Pnt3i
-    return abs.(b.pMax - b.pMin .+ 1.0)
+    return abs.(b.pMax - b.pMin .+ 1)
 end
 
 function inclusive_sides(b::Bounds2)::Pnt2
     return abs.(b.pMax - b.pMin .+ 1.0)
 end
 function inclusive_sides(b::Bounds2i)::Pnt2i
-    return abs.(b.pMax - b.pMin .+ 1.0)
+    return abs.(b.pMax - b.pMin .+ 1)
+end
+
+function area(b::Bounds2i)::Int64
+    d = b.pMax - b.pMin
+    return d.x * d.y
 end
 
 function diagonal(b::Bounds2)::Pnt2
