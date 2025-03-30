@@ -192,30 +192,78 @@ function add_splat!(f::Film, p::Pnt2, v::Spectrum)
 end
 
 function save(film::Film, splat_scale::Float64 = 1.0)::Array{RGB}
-    X, Y = size(film.pixels)
-    image = Array{Float64}(undef, X, Y, 3)
-    for y in 1:Y
-        for x in 1:X
-            pixel = film.pixels[x,y]
-            image[x, y, :] .= XYZ_to_RGB(pixel.xyz)
+    d::Pnt2i = film.cropped_pixel_bounds.pMax .- film.cropped_pixel_bounds.pMin
+    image = Array{Float64}(undef, d.x * d.y, 3)
+    offset = 0
+    for y in 1:d.y
+        for x in 1:d.x
+            pixel = film.pixels[offset + 1]
+            image[offset + 1, :] .= XYZ_to_RGB(pixel.xyz)
             # Normalize pixel with weight sum.
             filter_weight_sum = pixel.filter_weight_sum
             if filter_weight_sum != 0
                 inv_weight = 1 / filter_weight_sum
-                image[x, y, :] .= max.(0, image[x, y, :] .* inv_weight)
+                image[offset + 1, :] .= max.(0, image[offset + 1, :] .* inv_weight)
             end
             # Add splat value at pixel & scale.
             @info "save: AtomicXYZ - $(pixel.splat_xyz), XYZ - $(convert(XYZPBRT, pixel.splat_xyz)), RGB - $(XYZ_to_RGB(convert(XYZPBRT, pixel.splat_xyz)))"
             splat_rgb = XYZ_to_RGB(convert(XYZPBRT, pixel.splat_xyz))
-            image[x, y, :] .+= splat_scale .* splat_rgb
-            image[x, y, :] .*= film.scale
+            image[offset + 1, :] .+= splat_scale .* splat_rgb
+            image[offset + 1, :] .*= film.scale
+            offset += 1
         end
     end
-    newimage = zeros(RGB, X, Y)
-    for y in 1:Y
-        for x in 1:X
-            newimage[x,y] = RGB(image[x,y,1], image[x,y,2], image[x,y,3])
+    newimage = zeros(RGB, d.y, d.x)
+    offset = 0
+    for y in 1:d.y
+        for x in 1:d.x
+            newimage[y,x] = RGB(image[offset+1,1], image[offset+1,2], image[offset+1,3])
+            offset += 1
         end
     end
     return newimage
 end
+
+# void Film::WriteImage(Float splatScale) {
+#     // Convert image to RGB and compute final pixel values
+#     LOG(INFO) <<
+#         "Converting image to RGB and computing final weighted pixel values";
+#     std::unique_ptr<Float[]> rgb(new Float[3 * croppedPixelBounds.Area()]);
+#     int offset = 0;
+#     for (Point2i p : croppedPixelBounds) {
+#         // Convert pixel XYZ color to RGB
+#         Pixel &pixel = GetPixel(p);
+#         XYZToRGB(pixel.xyz, &rgb[3 * offset]);
+
+#         // Normalize pixel with weight sum
+#         Float filterWeightSum = pixel.filterWeightSum;
+#         if (filterWeightSum != 0) {
+#             Float invWt = (Float)1 / filterWeightSum;
+#             rgb[3 * offset] = std::max((Float)0, rgb[3 * offset] * invWt);
+#             rgb[3 * offset + 1] =
+#                 std::max((Float)0, rgb[3 * offset + 1] * invWt);
+#             rgb[3 * offset + 2] =
+#                 std::max((Float)0, rgb[3 * offset + 2] * invWt);
+#         }
+
+#         // Add splat value at pixel
+#         Float splatRGB[3];
+#         Float splatXYZ[3] = {pixel.splatXYZ[0], pixel.splatXYZ[1],
+#                              pixel.splatXYZ[2]};
+#         XYZToRGB(splatXYZ, splatRGB);
+#         rgb[3 * offset] += splatScale * splatRGB[0];
+#         rgb[3 * offset + 1] += splatScale * splatRGB[1];
+#         rgb[3 * offset + 2] += splatScale * splatRGB[2];
+
+#         // Scale pixel value by _scale_
+#         rgb[3 * offset] *= scale;
+#         rgb[3 * offset + 1] *= scale;
+#         rgb[3 * offset + 2] *= scale;
+#         ++offset;
+#     }
+
+#     // Write RGB image
+#     LOG(INFO) << "Writing image " << filename << " with bounds " <<
+#         croppedPixelBounds;
+#     pbrt::WriteImage(filename, &rgb[0], croppedPixelBounds, fullResolution);
+# }
