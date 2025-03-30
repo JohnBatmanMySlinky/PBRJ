@@ -15,7 +15,7 @@ struct NanoVDBMedium <: AbstractMedium
         g::Float64, 
         scale::Float64,
         fpath::String,
-        majorant_grid_res::Pnt3
+        majorant_grid_res::Pnt3i
     )
         sigma_a *= scale
         sigma_s *= scale
@@ -36,12 +36,12 @@ struct NanoVDBMedium <: AbstractMedium
         # println("Starting MajorantGridBuild")
         majorant_grid_d = NanoVDB.build_majorant_grid(
             density_float_grid,
-            Int64(majorant_grid_res.x), 
-            Int64(majorant_grid_res.y), 
-            Int64(majorant_grid_res.z),
+            majorant_grid_res.x, 
+            majorant_grid_res.y, 
+            majorant_grid_res.z,
         )
 
-        majorant_grid_size = Int64(majorant_grid_res.x * majorant_grid_res.y * majorant_grid_res.z)
+        majorant_grid_size = majorant_grid_res.x * majorant_grid_res.y * majorant_grid_res.z
 
         @assert length(majorant_grid_d) == majorant_grid_size
 

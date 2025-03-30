@@ -3,13 +3,13 @@ mutable struct SobolSampler <: AbstractSampler
     scale::Int64
     seed::Int64
     randomizer_flag::Int8
-    pixel::Pnt2
+    pixel::Pnt2i
     dimension::Int64
     sobol_index::Int64
 
     function SobolSampler(
         samples_per_pixel::Int64,
-        full_resolution::Pnt2,
+        full_resolution::Pnt2i,
         randomizer_flag::Int8,
     )
     @assert randomizer_flag < Int8(4)
@@ -25,7 +25,7 @@ mutable struct SobolSampler <: AbstractSampler
     end
 end
 
-function start_pixel_sample!(ss::SobolSampler, pixel::Pnt2, sample_index::Int64, dim::Int64=0)
+function start_pixel_sample!(ss::SobolSampler, pixel::Pnt2i, sample_index::Int64, dim::Int64=0)
     # do i need this?
     @assert sample_index != ss.samples_per_pixel
     ss.pixel = pixel

@@ -23,7 +23,7 @@ struct ImageTexture <: Texture
     )
         dat2, L, W = read_image(filename, scale)
 
-        mipmap = MIPMap(Pnt2(W, L), dat2) # NOTE THE FLIP HERE
+        mipmap = MIPMap(Pnt2i(W, L), dat2) # NOTE THE FLIP HERE
         return new(
             mapping,
             mipmap,

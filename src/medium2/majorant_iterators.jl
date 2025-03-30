@@ -19,7 +19,7 @@ end
 struct MajorantGrid
     bounds::Bounds3
     voxels::Array{Float64}
-    res::Pnt3
+    res::Pnt3i
 end
 
 mutable struct DDAMajorantIterator <: AbstractMajorantIterator
@@ -100,7 +100,7 @@ mutable struct DDAMajorantIterator <: AbstractMajorantIterator
 end
 
 function lookup(ddami::DDAMajorantIterator, x::Int64, y::Int64, z::Int64)::Float64
-    return ddami.grid.voxels[Int64(x+ddami.grid.res.x * (y + ddami.grid.res.y * z) + 1)]
+    return ddami.grid.voxels[x+ddami.grid.res.x * (y + ddami.grid.res.y * z) + 1]
 end
 
 function voxel_bounds(res::Pnt3, x::Int64, y::Int64, z::Int64)::Bounds3

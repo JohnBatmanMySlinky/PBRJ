@@ -14,7 +14,7 @@ function Ray(o::Pnt3, d::Vec3, t::Float64, tmax::Float64)
 end
 
 function Ray()::Ray
-    return Ray(Pnt3(0), Vec3(0), 0.0, typemax(Float64))
+    return Ray(Pnt3(0.0), Vec3(0), 0.0, typemax(Float64))
 end
 
 function at(r::AbstractRay, t::Float64)::Pnt3
@@ -56,8 +56,8 @@ function RayDifferential(r::Ray)::RayDifferential
         r.t,
         r.tMax,
         false,
-        Pnt3(0),
-        Pnt3(0),
+        Pnt3(0.0),
+        Pnt3(0.0),
         Vec3(0),
         Vec3(0),
         r.medium

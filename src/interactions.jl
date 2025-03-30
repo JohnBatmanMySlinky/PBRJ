@@ -12,7 +12,7 @@ mutable struct Interaction
 end
 
 function Interaction()
-    return Interaction(Pnt3(0), 0.0, Vec3(0), Nml3(0), MediumInterface(nothing))
+    return Interaction(Pnt3(0.0), 0.0, Vec3(0), Nml3(0), MediumInterface(nothing))
 end
 
 function Interaction(r::AbstractRay)::Interaction

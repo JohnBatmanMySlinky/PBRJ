@@ -9,7 +9,9 @@ struct DiffuseAreaLight <: Light
 
     function DiffuseAreaLight(
         Lemit::Spectrum, shape::Shape, two_sided::Bool, 
-        medium::Maybe{Medium}, texmap::Maybe{String}, LL::Float64
+        medium::Maybe{Medium}=nothing, 
+        texmap::Maybe{String}=nothing, 
+        LL::Float64=1.0
     )
         if texmap isa Nothing
             Lmap = nothing

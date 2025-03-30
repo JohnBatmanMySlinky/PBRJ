@@ -32,9 +32,9 @@ end
 
 # this covers Spatial
 struct SpatialLightDistribution <: AbstractLightDistribution
-    voxel_dists::Dict{Tuple{Int64, Int64, Int64}, Distribution1D}
+    voxel_dists::Dict{Pnt3i, Distribution1D}
     voxel_size::Pnt3
-    n_voxels::Pnt3
+    n_voxels::Pnt3i
     wbounds::Bounds3
 
     function SpatialLightDistribution(
@@ -44,12 +44,12 @@ struct SpatialLightDistribution <: AbstractLightDistribution
         wbounds = scene.bounds
         diag = diagonal(wbounds)
         bmax = maximum(diag)
-        n_voxels = max.(1, Int.(round.(diag / bmax * max_voxels)))
+        n_voxels = Pnt3i(max.(1, Int.(round.(diag / bmax * max_voxels))))
         voxel_size = (wbounds.pMax .- wbounds.pMin) ./ n_voxels
         n_samples = UInt64(128)
         
         # Create a shared dictionary with locks to avoid race conditions
-        voxel_dists = Dict{Tuple{Int64, Int64, Int64}, Distribution1D}()
+        voxel_dists = Dict{Pnt3i, Distribution1D}()
         dict_lock = ReentrantLock()
         
         # Create a flat array of voxel coordinates for parallelization
@@ -101,7 +101,7 @@ struct SpatialLightDistribution <: AbstractLightDistribution
             
             # Add to shared dictionary with lock protection
             lock(dict_lock) do
-                voxel_dists[(Int64(x), Int64(y), Int64(z))] = Distribution1D(light_contribution)
+                voxel_dists[Pnt3i(x,y,z)] = Distribution1D(light_contribution)
             end
         end
         
@@ -137,6 +137,6 @@ end
 function lookup(ld::SpatialLightDistribution, p::Pnt3)::Distribution1D
     # JOHN HACK
     # apparently this is more necessary than I was expecting?
-    pp = Int64.(clamp.(trunc.((p - ld.wbounds.pMin) ./ ld.voxel_size), 0, ld.n_voxels .- 1))
-    return ld.voxel_dists[(pp.x, pp.y, pp.z)]
+    pp::Pnt3i = clamp.(trunc.((p - ld.wbounds.pMin) ./ ld.voxel_size), 0, ld.n_voxels .- 1)
+    return ld.voxel_dists[pp]
 end

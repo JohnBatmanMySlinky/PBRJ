@@ -36,7 +36,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             0.877,
             4.0,
             jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"),
-            Pnt3(256, 256, 256)
+            Pnt3i(256, 256, 256)
         ),
         nothing
     )

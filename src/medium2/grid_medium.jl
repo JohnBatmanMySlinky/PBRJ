@@ -21,7 +21,7 @@ struct GridMedium <: AbstractMedium
         le::Spectrum,
         le_grid_scale::Float64=1.0,
         g::Float64=0.0,
-        majorant_grid_res::Pnt3=Pnt3(16, 16, 16)
+        majorant_grid_res::Pnt3i=Pnt3i(16, 16, 16)
     )
         nx, ny, nz, d, le_grid, temperature_grid, p0, p1 = parse_media(fpath)
         density_grid = SampledGrid(d, nx, ny, nz)
@@ -32,12 +32,12 @@ struct GridMedium <: AbstractMedium
             le_grid = SampledGrid(le_grid * le_grid_scale, nx, ny, nz)
         end
 
-        majorant_grid_d = zeros(Float64, Int64(majorant_grid_res.x * majorant_grid_res.y * majorant_grid_res.z))
+        majorant_grid_d = zeros(Float64, majorant_grid_res.x * majorant_grid_res.y * majorant_grid_res.z)
         for z in 0:(majorant_grid_res.z-1)
             for y in 0:(majorant_grid_res.y-1)
                 for x in 0:(majorant_grid_res.x-1)
-                    tmp_bounds = voxel_bounds(majorant_grid_res, Int64(x), Int64(y), Int64(z))
-                    majorant_grid_d[Int64(x+majorant_grid_res.x * (y + majorant_grid_res.y * z) + 1)] = max_value(density_grid, tmp_bounds)
+                    tmp_bounds = voxel_bounds(majorant_grid_res, x, y, z)
+                    majorant_grid_d[x+majorant_grid_res.x * (y + majorant_grid_res.y * z) + 1] = max_value(density_grid, tmp_bounds)
                 end
             end
         end
