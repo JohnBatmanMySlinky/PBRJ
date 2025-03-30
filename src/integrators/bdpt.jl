@@ -57,7 +57,7 @@ function render(
 
         # Render a single tile using BDPT
         x, y = k % width, k ÷ width
-        tile = Pnt2(x, y)
+        tile = Pnt2i(x, y)
         sampler = deepcopy(i.sampler)
 
         tb_min = sample_bounds.pMin .+ tile .* tile_size
