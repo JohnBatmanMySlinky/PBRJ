@@ -86,8 +86,8 @@ end
 ########################################
 ######## Misc ##########################
 ########################################
-function get_sample_bounds(f::Film)::Bounds2
-    return Bounds2(
+function get_sample_bounds(f::Film)::Bounds2i
+    return Bounds2i(
         floor.(f.cropped_pixel_bounds.pMin .+ 0.5 .- f.filter.radius),
         ceil.(f.cropped_pixel_bounds.pMax .- 0.5 .+ f.filter.radius),
     )
