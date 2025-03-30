@@ -83,7 +83,6 @@ struct Film
     end
 end
 
-
 ########################################
 ######## Misc ##########################
 ########################################
@@ -99,11 +98,6 @@ function get_pixel(f::Film, p::Pnt2)::Pixel
     return f.pixels[pp.y, pp.x]
 end
 
-# function get_pixel(f::PassFilm, p::Pnt2)::PassPixel
-#     pp = Int64.(p .- f.cropped_pixel_bounds.pMin .+ 1.0)
-#     return f.pixels[pp.y, pp.x]
-# end
-
 # PBR 7.9.2
 mutable struct FilmTilePixel
     contrib_sum::Spectrum
@@ -118,7 +112,7 @@ struct FilmTile
     filter_table_width::Int64
     pixels::Matrix{FilmTilePixel}
 
-    function FilmTile(f::Film, sample_bounds::Bounds2i)
+    function FilmTile(f::Film, sample_bounds::Bounds2)
         p0 = ceil.(sample_bounds.pMin .- 0.5 .- f.filter.radius)
         p1 = floor.(sample_bounds.pMax .- 0.5 .+ f.filter.radius) .+ 1.0
         pixel_bounds = intersection(Bounds2(p0, p1), f.cropped_pixel_bounds)

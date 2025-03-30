@@ -442,6 +442,16 @@ function Base.iterate(b::Bounds2i, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2i,
     return b.pMin .+ Pnt2i(j % delta[1], j ÷ delta[1]), i + 1
 end
 
+function Base.iterate(b::Bounds2, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2, Integer}}
+    if i > length(b)
+        return nothing
+    end
+
+    j = i - 1
+    delta = b.pMax .- b.pMin .+ 1.0
+    return b.pMin .+ Pnt2(j % delta[1], j ÷ delta[1]), i + 1
+end
+
 function Bounds3(p::Pnt3)
     return Bounds3(p, p)
 end

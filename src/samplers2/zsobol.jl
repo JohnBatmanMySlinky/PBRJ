@@ -9,7 +9,7 @@ mutable struct ZSobolSampler <: AbstractSampler
 
     function ZSobolSampler(
         samples_per_pixel::Int64,
-        full_resolution::Pnt2i,
+        full_resolution::Pnt2,
         randomizer_flag::Int8
     )
     @assert randomizer_flag < Int8(4)
@@ -29,7 +29,7 @@ mutable struct ZSobolSampler <: AbstractSampler
     end
 end
 
-function start_pixel_sample!(zs::ZSobolSampler, pixel::Pnt2i, sample_index::Int64, dim::Int64=0)
+function start_pixel_sample!(zs::ZSobolSampler, pixel::Pnt2, sample_index::Int64, dim::Int64=0)
     # do i need this?
     @assert sample_index != zs.samples_per_pixel
     zs.dimension = dim
