@@ -1,6 +1,3 @@
-# TODO
-# stop using Int64 all over the place here and do conversion ONCE
-
 struct ResampleWeight
 	first_texel::Int64
 	weight::Pnt4
@@ -21,7 +18,6 @@ function resample_weights(old_res::Int64, new_res::Int64)::Vector{ResampleWeight
 		)
 		weight /= sum(weight)
 		wt[i+1] = ResampleWeight(first_texel, weight)
-		# @info "ResampleWeights: $(i) $(first_texel) $(weight)"
 	end
 	return wt
 end
@@ -49,14 +45,6 @@ struct MIPMap
 			# Resample image to power-of-two resolution
 			res_pow_2 = Pnt2i(round_up_pow2(resolution.x), round_up_pow2(resolution.y))
 			@info "Resampling MIPMap from $(resolution) to $(res_pow_2). Ratio = $((res_pow_2.x * res_pow_2.y)/(resolution.x * resolution.y))"
-
-			# i = 0
-			# for x in 1:resolution.x
-			# 	for y in 1:resolution.y
-			# 		i += 1
-			# 		@info "MIPMAP: ($(x), $(y)) = $(i) = $(data[i])\n"
-			# 	end
-			# end
 			
 			# Resample image in $s$ direction
 			s_weights = resample_weights(resolution.x, res_pow_2.x)
