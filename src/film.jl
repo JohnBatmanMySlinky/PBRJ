@@ -23,7 +23,7 @@ struct Film
     filename::String
     pixels::Vector{Pixel}
     filter_table_width::Int64
-    filter_table::Matrix{Float64}
+    filter_table::Vector{Float64}
     scale::Float64
 
     function Film(
@@ -35,7 +35,6 @@ struct Film
         filename::String
     ) where F <: Filter
         filter_table_width = 16
-        filter_table = zeros(Float64, filter_table_width, filter_table_width)
 
         # compute image bounds
         @assert crop_window.pMin.x < crop_window.pMax.x
@@ -49,10 +48,13 @@ struct Film
         pixels = Pixel[Pixel() for _ in 1:area(cropped_pixel_bounds)]
 
         # precompute filter weight table
+        filter_table = zeros(Float64, filter_table_width * filter_table_width)
+        offset = 0
         for y in 0:(filter_table_width - 1)
             for x in 0:(filter_table_width - 1)
+                offset += 1
                 p = Pnt2((x + 0.5) * filter.radius.x / filter_table_width, (y + 0.5) * filter.radius.y / filter_table_width)
-                filter_table[y+1,x+1] = filter(p)
+                filter_table[offset] = filter(p)
             end
         end
 
@@ -85,7 +87,7 @@ end
 function get_pixel(f::Film, p::Pnt2i)::Pixel
     width::Int64 = f.cropped_pixel_bounds.pMax.x - f.cropped_pixel_bounds.pMin.x
     offset::Int64 = (p.x - f.cropped_pixel_bounds.pMin.x) + (p.y - f.cropped_pixel_bounds.pMin.y) * width
-    return f.pixels[offset+1]
+    return f.pixels[offset + 1]
 end
 
 # PBR 7.9.2
@@ -95,71 +97,82 @@ mutable struct FilmTilePixel
     filter_weight_sum::Float64
 end
 
+function Base.zero(::Type{FilmTilePixel})
+    return FilmTilePixel(spectrum_from_float(0.0), 0.0)
+end
+
+# CHECK
 struct FilmTile
     pixel_bounds::Bounds2i
     filter_radius::Pnt2
     inv_filter_radius::Pnt2
-    filter_table::Matrix{Float64}
+    filter_table::Vector{Float64}
     filter_table_width::Int64
     pixels::Vector{FilmTilePixel}
+
+    function FilmTile(
+        f::Film, 
+        pixel_bounds::Bounds2i
+    )::FilmTile
+        pixels = zeros(FilmTilePixel, area(pixel_bounds))
+    
+        return new(
+            pixel_bounds, 
+            f.filter.radius, 
+            1.0 ./ f.filter.radius,
+            f.filter_table, 
+            f.filter_table_width,
+            pixels,
+        )
+    end 
 end
 
-function FilmTile(f::Film, sample_bounds::Bounds2i)::FilmTile
-    p0::Pnt2i = ceil.(sample_bounds.pMin .- 0.5 .- f.filter.radius)
-    p1::Pnt2i = floor.(sample_bounds.pMax .- 0.5 .+ f.filter.radius) .+ 1
-    pixel_bounds::Bounds2i = intersection(Bounds2i(p0, p1), f.cropped_pixel_bounds)
-    pixels = [FilmTilePixel(spectrum_from_float(0.0, 0.0, 0.0), 0) for _ in 1:f.filter_table_width, __ in 1:f.filter_table_width]
-
-    return FilmTile(
-        pixel_bounds, 
-        f.filter.radius, 
-        1 ./ f.filter.radius,
-        f.filter_table, 
-        f.filter_table_width,
-        pixels,
-    )
-end 
-
-function get_pixel(t::FilmTile, p::Pnt2i)
-    pp = p .- t.pixel_bounds.pMin
-    return t.pixels[pp.y + 1, pp.x + 1]
+# CHECK
+function get_pixel(t::FilmTile, p::Pnt2i)::FilmTilePixel
+    width = t.pixel_bounds.pMax.x - t.pixel_bounds.pMin.x
+    offset = (p.x - t.pixel_bounds.pMin.x) + (p.y - t.pixel_bounds.pMin.y) * width
+    return t.pixels[offset + 1]
 end
 
-function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float64 = 1.0) where S <: Spectrum
+# CHECK
+function add_sample!(t::FilmTile, pfilm::Pnt2, LL::S, sample_weight::Float64 = 1.0) where S <: Spectrum
     # Compute sample's raster bounds.
-    discrete_point = point .- 0.5
-    p0 = ceil.(discrete_point .- t.filter_radius)
-    p1 = floor.(discrete_point .+ t.filter_radius) .+ 1
-    p0 = max.(p0, max.(t.pixel_bounds.pMin, Pnt2(1,1)))
+    p_film_discrete = pfilm .- 0.5
+    p0::Pnt2i = ceil.(p_film_discrete .- t.filter_radius)
+    p1::Pnt2i = floor.(p_film_discrete .+ t.filter_radius) .+ 1
+    p0 = max.(p0, t.pixel_bounds.pMin)
     p1 = min.(p1, t.pixel_bounds.pMax)   
 
     # Precompute x & y filter offsets.
-    offsets_x = Vector{Int64}(undef, Int(p1.x - p0.x + 1))
-    offsets_y = Vector{Int64}(undef, Int(p1.y - p0.y + 1))
-    for (i, x) in enumerate(p0.x:p1.x)
-        fx = abs((x - discrete_point.x) * t.inv_filter_radius.x * t.filter_table_width)
-        offsets_x[i] = clamp(ceil(fx), 1, t.filter_table_width)  # TODO is clipping ok?
+    ifx = Vector{Int64}(undef, p1.x - p0.x)
+    ify = Vector{Int64}(undef, p1.y - p0.y)
+    for x in p0.x:(p1.x-1)
+        fx = abs((x - p_film_discrete.x) * t.inv_filter_radius.x * t.filter_table_width)
+        ifx[x - p0.x + 1] = min(floor(fx), t.filter_table_width - 1)
     end
-    for (i, y) in enumerate(p0.y:p1.y)
-        fy = abs((y - discrete_point.y) * t.inv_filter_radius.y * t.filter_table_width)
-        offsets_y[i] = clamp(floor(fy), 1, t.filter_table_width)
+    for y in p0.y:(p1.y-1)
+        fy = abs((y - p_film_discrete.y) * t.inv_filter_radius.y * t.filter_table_width)
+        ify[y - p0.y + 1] = min(floor(fy), t.filter_table_width - 1)
     end
     # Loop over filter support & add sample to pixel array.
-    for (j, y) in enumerate(p0.y:p1.y)
-        for (i, x) in enumerate(p0.x:p1.x)
-            w = t.filter_table[offsets_y[j], offsets_x[i]]
+    for y in p0.y:(p1.y-1)
+        for x in p0.x:(p1.x-1)
+            # Evaluate filter value at $(x,y)$ pixel
+            offset = ify[y - p0.y + 1] * t.filter_table_width + ifx[x - p0.x + 1]
+            filter_weight = t.filter_table[offset + 1]
+
+            # Update pixel values with filtered sample contribution
             pixel = get_pixel(t, Pnt2i(x, y))
-            @assert sample_weight <= 1
-            @assert w <= 1
-            pixel.contrib_sum += spectrum * sample_weight * w
-            pixel.filter_weight_sum += w
+            pixel.contrib_sum += LL * sample_weight * filter_weight
+            pixel.filter_weight_sum += filter_weight
         end
     end
 end
 
+# MOSTLY CHECK
 function merge_film_tile!(f::Film, ft::FilmTile)
-    for y in ft.pixel_bounds.pMin.y:ft.pixel_bounds.pMax.y
-        for x in ft.pixel_bounds.pMin.x:ft.pixel_bounds.pMax.x
+    for y in ft.pixel_bounds.pMin.y:(ft.pixel_bounds.pMax.y-1)
+        for x in ft.pixel_bounds.pMin.x:(ft.pixel_bounds.pMax.x-1)
             pixel = Pnt2i(x, y)
             tile_pixel = get_pixel(ft, pixel)
             merge_pixel = get_pixel(f, pixel)
