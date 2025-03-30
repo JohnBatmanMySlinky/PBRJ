@@ -236,7 +236,7 @@ function Base.length(b::Bounds2)::Int64
     return Int64(delta.x * delta.y)
 end
 function Base.length(b::Bounds2i)::Int64
-    delta = b.pMax .- b.pMin
+    delta = b.pMax .- b.pMin .+ 1
     return delta.x * delta.y
 end
 

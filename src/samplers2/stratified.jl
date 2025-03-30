@@ -3,7 +3,7 @@ mutable struct StratifiedSampler <: AbstractSampler
     x_samples::Int64
     y_samples::Int64
     jitter::Bool
-    pixel::Pnt2
+    pixel::Pnt2i
     sample_index::Int64
     dimension::Int64
     seed::Int64
@@ -15,11 +15,11 @@ mutable struct StratifiedSampler <: AbstractSampler
         end
         x_samples = samples_per_pixel / d
         y_samples = samples_per_pixel / x_samples
-        return new(samples_per_pixel, x_samples, y_samples, jitter, Pnt2(-1,-1), 0, 0, seed)
+        return new(samples_per_pixel, x_samples, y_samples, jitter, Pnt2i(-1,-1), 0, 0, seed)
     end
 end
 
-function start_pixel_sample!(ss::StratifiedSampler, pixel::Pnt2, sample_index::Int64, dim::Int64=0)
+function start_pixel_sample!(ss::StratifiedSampler, pixel::Pnt2i, sample_index::Int64, dim::Int64=0)
     # avoiding blowing my foot off here... sometimes this results in an infinite while loop in permutation_element
     @assert sample_index != ss.samples_per_pixel
     ss.pixel = pixel
