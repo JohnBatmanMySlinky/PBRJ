@@ -80,8 +80,8 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     
     # Identity shape core
     identity_shape_core = ShapeCore(
-        Translate(Pnt3(0)),
-        Translate(Pnt3(0)),
+        Translate(Pnt3(0.0)),
+        Translate(Pnt3(0.0)),
         false,
         false
     )

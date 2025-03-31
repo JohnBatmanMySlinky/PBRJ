@@ -44,17 +44,32 @@ struct Pnt3 <: FieldVector{3, Float64}
     y::Float64
     z::Float64
 end
+struct Pnt3i <: FieldVector{3, Int64}
+    x::Int64
+    y::Int64
+    z::Int64
+end
 struct Pnt2 <: FieldVector{2, Float64}
     x::Float64
     y::Float64
 end
-
-function Pnt3(a::Union{Float64, Int64})::Pnt3
-    return Pnt3(a,a,a)
+struct Pnt2i <: FieldVector{2, Int64}
+    x::Int64
+    y::Int64
 end
 
-function Pnt2(a::Union{Float64, Int64})::Pnt2
+function Pnt2(a::Float64)::Pnt2
     return Pnt2(a,a)
+end
+function Pnt2i(a::Int64)::Pnt2i
+    return Pnt2i(a,a)
+end
+
+function Pnt3(a::Float64)::Pnt3
+    return Pnt3(a,a,a)
+end
+function Pnt3i(a::Int64)::Pnt3i
+    return Pnt3i(a,a,a)
 end
 
 ################################
@@ -140,19 +155,36 @@ struct Bounds3
     pMin::Pnt3
     pMax::Pnt3
 end
+struct Bounds3i
+    pMin::Pnt3i
+    pMax::Pnt3i
+end
 struct Bounds2
     pMin::Pnt2
     pMax::Pnt2
 end
-
-function Bounds2()::Bounds2
-    return Bounds2(Pnt2(Inf64), Pnt2(-Inf64))
+struct Bounds2i
+    pMin::Pnt2i
+    pMax::Pnt2i
 end
+
 function Bounds3()::Bounds3
     return Bounds3(Pnt3(Inf64), Pnt3(-Inf64))
 end
+function Bounds3i()::Bounds3i
+    return Bounds3i(Pnt3i(typemax(Int64)), Pnt3i(typemin(Int64)))
+end
+function Bounds2()::Bounds2
+    return Bounds2(Pnt2(Inf64), Pnt2(-Inf64))
+end
+function Bounds2i()::Bounds2i
+    return Bounds2i(Pnt2i(typemax(Int64)), Pnt2i(typemin(Int64)))
+end
 
 function inside_exclusive(p::Pnt3, b::Bounds3)::Bool
+    return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y) && (p.z >= b.pMin.z) && (p.z < b.pMax.z)
+end
+function inside_exclusive(p::Pnt3i, b::Bounds3i)::Bool
     return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y) && (p.z >= b.pMin.z) && (p.z < b.pMax.z)
 end
 
@@ -163,22 +195,49 @@ end
 function inside_exclusive(p::Pnt2, b::Bounds2)::Bool
     return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y)
 end
+function inside_exclusive(p::Pnt2i, b::Bounds2i)::Bool
+    return (p.x >= b.pMin.x) && (p.x < b.pMax.x) && (p.y >= b.pMin.y) && (p.y < b.pMax.y)
+end
 
 function inclusive_sides(b::Bounds3)::Pnt3
     return abs.(b.pMax - b.pMin .+ 1.0)
+end
+function inclusive_sides(b::Bounds3i)::Pnt3i
+    return abs.(b.pMax - b.pMin .+ 1)
 end
 
 function inclusive_sides(b::Bounds2)::Pnt2
     return abs.(b.pMax - b.pMin .+ 1.0)
 end
+function inclusive_sides(b::Bounds2i)::Pnt2i
+    return abs.(b.pMax - b.pMin .+ 1)
+end
 
-function diagonal(b::Union{Bounds2, Bounds3})
+function area(b::Bounds2i)::Int64
+    d = b.pMax - b.pMin
+    return d.x * d.y
+end
+
+function diagonal(b::Bounds2)::Pnt2
+    return b.pMax - b.pMin
+end
+function diagonal(b::Bounds2i)::Pnt2i
+    return b.pMax - b.pMin
+end
+function diagonal(b::Bounds3)::Pnt3
+    return b.pMax - b.pMin
+end
+function diagonal(b::Bounds3i)::Pnt3i
     return b.pMax - b.pMin
 end
 
 function Base.length(b::Bounds2)::Int64
     delta = ceil.(b.pMax .- b.pMin .+ 1.0)
     return Int64(delta.x * delta.y)
+end
+function Base.length(b::Bounds2i)::Int64
+    delta = b.pMax .- b.pMin .+ 1
+    return delta.x * delta.y
 end
 
 function centroid(b::Bounds3)::Pnt3
@@ -227,6 +286,12 @@ end
 
 function intersection(b1::Bounds2, b2::Bounds2)::Bounds2
     return Bounds2(
+        max.(b1.pMin, b2.pMin),
+        min.(b1.pMax, b2.pMax)
+    )
+end
+function intersection(b1::Bounds2i, b2::Bounds2i)::Bounds2i
+    return Bounds2i(
         max.(b1.pMin, b2.pMin),
         min.(b1.pMax, b2.pMax)
     )
@@ -365,6 +430,16 @@ function intersect_p(b::Bounds3, ray::AbstractRay, ray_t_max::Float64)::Tuple{Bo
         end
     end
     return true, t0, t1
+end
+
+function Base.iterate(b::Bounds2i, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2i, Integer}}
+    if i > length(b)
+        return nothing
+    end
+
+    j = i - 1
+    delta = b.pMax .- b.pMin .+ 1
+    return b.pMin .+ Pnt2i(j % delta[1], j ÷ delta[1]), i + 1
 end
 
 function Base.iterate(b::Bounds2, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2, Integer}}

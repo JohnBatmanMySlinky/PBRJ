@@ -12,47 +12,12 @@ mutable struct Pixel
     end
 end
 
-mutable struct PassPixel
-    # These three fields are a copy from Pixel
-    xyz::XYZPBRT
-    filter_weight_sum::Float64
-    splat_xyz::AtomicXYZPBRT
-
-    # additional fields needed for edge avoiding a-trous filter
-    albedo::XYZPBRT                 # albedo
-    depth::XYZPBRT                  # depth
-    normal::XYZPBRT                 # normal
-    position::XYZPBRT               # position
-
-    function PassPixel()
-        return new(
-            XYZPBRT(0.0, 0.0, 0.0),
-            0.0,
-            AtomicXYZPBRT(0.0, 0.0, 0.0),
-            XYZPBRT(0.0, 0.0, 0.0),
-            XYZPBRT(0.0, 0.0, 0.0),
-            XYZPBRT(0.0, 0.0, 0.0),
-            XYZPBRT(0.0, 0.0, 0.0)
-        )
-    end
-end
-
 # PBR 7.9.1
 struct Film
-    # overall resolution in pixels
-    full_resolution::Pnt2
-
-    # crop window to specify subset of image to render
-    # in [0,1] range
-    cropped_pixel_bounds::Bounds2
-
-    # length of the diagonal of the films physical area in mm
+    full_resolution::Pnt2i
+    cropped_pixel_bounds::Bounds2i
     diagonal::Float64
-
-    # filter function
     filter::F where F <: Filter
-
-    # filename
     filename::String
     pixels::Matrix{Pixel}
     filter_table_width::Int64
@@ -60,7 +25,7 @@ struct Film
     scale::Float64
 
     function Film(
-        full_resolution::Pnt2,
+        full_resolution::Pnt2i,
         cropped_pixel_bounds::Bounds2,
         filter::F,
         diagonal::Float64,
@@ -73,7 +38,7 @@ struct Film
         # compute image bounds
         @assert cropped_pixel_bounds.pMin.x < cropped_pixel_bounds.pMax.x
         @assert cropped_pixel_bounds.pMin.y < cropped_pixel_bounds.pMax.y
-        cropped_pixel_bounds = Bounds2(
+        cropped_pixel_bounds = Bounds2i(
             ceil.(full_resolution .* cropped_pixel_bounds.pMin),
             ceil.(full_resolution .* cropped_pixel_bounds.pMax)
         )
@@ -108,90 +73,18 @@ struct Film
     end
 end
 
-struct PassFilm
-    # overall resolution in pixels
-    full_resolution::Pnt2
-
-    # crop window to specify subset of image to render
-    # in [0,1] range
-    cropped_pixel_bounds::Bounds2
-
-    # length of the diagonal of the films physical area in mm
-    diagonal::Float64
-
-    # filter function
-    filter::F where F <: Filter
-
-    # filename
-    filename::String
-    pixels::Matrix{PassPixel}
-    filter_table_width::Int64
-    filter_table::Matrix{Float64}
-    scale::Float64
-
-    function PassFilm(
-        full_resolution::Pnt2,
-        cropped_pixel_bounds::Bounds2,
-        filter::F,
-        diagonal::Float64,
-        scale::Float64,
-        filename::String
-    ) where F <: Filter
-        filter_table_width = 16
-        filter_table = Matrix{Float64}(undef, filter_table_width, filter_table_width)
-
-        # compute image bounds
-        cropped_pixel_bounds = Bounds2(
-            ceil.(full_resolution .* cropped_pixel_bounds.pMin),
-            ceil.(full_resolution .* cropped_pixel_bounds.pMax)
-        )
-        cropped_resolution = inclusive_sides(cropped_pixel_bounds)
-
-
-        # allocate film image storage
-        pixels = PassPixel[
-            PassPixel() for y in 1:cropped_resolution[end], x in 1:cropped_resolution[begin]
-        ]
-
-        # precompute filter weight table
-        for y in 0:(filter_table_width - 1)
-            for x in 0:(filter_table_width - 1)
-                p = Pnt2((x + 0.5) * filter.radius.x / filter_table_width, (y + 0.5) * filter.radius.y / filter_table_width)
-                filter_table[y+1,x+1] = filter(p)
-            end
-        end
-
-        new(
-            full_resolution,
-            cropped_pixel_bounds,
-            diagonal * .001, # convert milimeters to meters
-            filter,
-            filename,
-            pixels,
-            filter_table_width,
-            filter_table,
-            scale
-        )
-    end
-end
-
 ########################################
 ######## Misc ##########################
 ########################################
-function get_sample_bounds(f::Union{Film, PassFilm})::Bounds2
-    return Bounds2(
+function get_sample_bounds(f::Film)::Bounds2i
+    return Bounds2i(
         floor.(f.cropped_pixel_bounds.pMin .+ 0.5 .- f.filter.radius),
         ceil.(f.cropped_pixel_bounds.pMax .- 0.5 .+ f.filter.radius),
     )
 end
 
-function get_pixel(f::Film, p::Pnt2)::Pixel
-    pp = Int64.(p .- f.cropped_pixel_bounds.pMin .+ 1.0)
-    return f.pixels[pp.y, pp.x]
-end
-
-function get_pixel(f::PassFilm, p::Pnt2)::PassPixel
-    pp = Int64.(p .- f.cropped_pixel_bounds.pMin .+ 1.0)
+function get_pixel(f::Film, p::Pnt2i)::Pixel
+    pp = p .- f.cropped_pixel_bounds.pMin .+ 1
     return f.pixels[pp.y, pp.x]
 end
 
@@ -202,19 +95,19 @@ mutable struct FilmTilePixel
 end
 
 struct FilmTile
-    pixel_bounds::Bounds2
+    pixel_bounds::Bounds2i
     filter_radius::Pnt2
     inv_filter_radius::Pnt2
     filter_table::Matrix{Float64}
     filter_table_width::Int64
     pixels::Matrix{FilmTilePixel}
 
-    function FilmTile(f::Union{Film,PassFilm}, sample_bounds::Bounds2)
+    function FilmTile(f::Film, sample_bounds::Bounds2i)
         p0 = ceil.(sample_bounds.pMin .- 0.5 .- f.filter.radius)
-        p1 = floor.(sample_bounds.pMax .- 0.5 .+ f.filter.radius) .+ 1.0
-        pixel_bounds = intersection(Bounds2(p0, p1), f.cropped_pixel_bounds)
-        tile_res = Pnt2(inclusive_sides(pixel_bounds))
-        pixels = [FilmTilePixel(spectrum_from_float(0.0, 0.0, 0.0), 0) for _ in 1:tile_res.y, __ in 1:tile_res.x]
+        p1 = floor.(sample_bounds.pMax .- 0.5 .+ f.filter.radius) .+ 1
+        pixel_bounds = intersection(Bounds2i(p0, p1), f.cropped_pixel_bounds)
+        tile_res = inclusive_sides(pixel_bounds)
+        pixels = FilmTilePixel[FilmTilePixel(spectrum_from_float(0.0, 0.0, 0.0), 0) for _ in 1:tile_res.y, __ in 1:tile_res.x]
 
         new(
             pixel_bounds, 
@@ -227,22 +120,22 @@ struct FilmTile
     end 
 end
 
-function get_pixel(t::FilmTile, p::Pnt2)
-    pp = Int64.(p .- t.pixel_bounds.pMin .+ 1)
+function get_pixel(t::FilmTile, p::Pnt2i)::FilmTilePixel
+    pp = p .- t.pixel_bounds.pMin .+ 1
     return t.pixels[pp.y, pp.x]
 end
 
 function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float64 = 1.0) where S <: Spectrum
     # Compute sample's raster bounds.
     discrete_point = point .- 0.5
-    p0 = ceil.(discrete_point .- t.filter_radius)
-    p1 = floor.(discrete_point .+ t.filter_radius) .+ 1
-    p0 = max.(p0, max.(t.pixel_bounds.pMin, Pnt2(1,1)))
+    p0 = Pnt2i(ceil.(discrete_point .- t.filter_radius))
+    p1 = Pnt2i(floor.(discrete_point .+ t.filter_radius) .+ 1)
+    p0 = max.(p0, max.(t.pixel_bounds.pMin, Pnt2i(1,1)))
     p1 = min.(p1, t.pixel_bounds.pMax)   
 
     # Precompute x & y filter offsets.
-    offsets_x = Vector{Int64}(undef, Int(p1.x - p0.x + 1))
-    offsets_y = Vector{Int64}(undef, Int(p1.y - p0.y + 1))
+    offsets_x = Vector{Int64}(undef, p1.x - p0.x + 1)
+    offsets_y = Vector{Int64}(undef, p1.y - p0.y + 1)
     for (i, x) in enumerate(p0.x:p1.x)
         fx = abs((x - discrete_point.x) * t.inv_filter_radius.x * t.filter_table_width)
         offsets_x[i] = clamp(ceil(fx), 1, t.filter_table_width)  # TODO is clipping ok?
@@ -255,7 +148,7 @@ function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float
     for (j, y) in enumerate(p0.y:p1.y)
         for (i, x) in enumerate(p0.x:p1.x)
             w = t.filter_table[offsets_y[j], offsets_x[i]]
-            pixel = get_pixel(t, Pnt2(x, y))
+            pixel = get_pixel(t, Pnt2i(x, y))
             @assert sample_weight <= 1
             @assert w <= 1
             pixel.contrib_sum += spectrum * sample_weight * w
@@ -264,21 +157,18 @@ function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float
     end
 end
 
-function merge_film_tile!(f::Union{Film, PassFilm}, ft::FilmTile)
-    for y in ft.pixel_bounds.pMin.y:ft.pixel_bounds.pMax.y
-        for x in ft.pixel_bounds.pMin.x:ft.pixel_bounds.pMax.x
-            pixel = Pnt2(x, y)
-            tile_pixel = get_pixel(ft, pixel)
-            merge_pixel = get_pixel(f, pixel)
-            @info "merge_film_tile: Spectrum - $(tile_pixel.contrib_sum), XYZ - $(to_XYZ(tile_pixel.contrib_sum))"
-            merge_pixel.xyz += to_XYZ(tile_pixel.contrib_sum)
-            merge_pixel.filter_weight_sum += tile_pixel.filter_weight_sum
-        end
+function merge_film_tile!(f::Film, ft::FilmTile)
+    for pixel in ft.pixel_bounds
+        tile_pixel = get_pixel(ft, pixel)
+        merge_pixel = get_pixel(f, pixel)
+        @info "merge_film_tile: Spectrum - $(tile_pixel.contrib_sum), XYZ - $(to_XYZ(tile_pixel.contrib_sum))"
+        merge_pixel.xyz += to_XYZ(tile_pixel.contrib_sum)
+        merge_pixel.filter_weight_sum += tile_pixel.filter_weight_sum
     end
 end
 
-function add_splat!(f::Union{Film, PassFilm}, p::Pnt2, v::Spectrum)
-    pp = trunc.(p)
+function add_splat!(f::Film, p::Pnt2, v::Spectrum)
+    pp = Pnt2i(trunc.(p))
     (!inside_exclusive(pp, f.cropped_pixel_bounds)) && (return )
     # JOHN HACK LUMINANCE CHECK
     pixel = get_pixel(f, pp)
@@ -312,73 +202,4 @@ function save(film::Film, splat_scale::Float64 = 1.0)::Array{RGB}
         end
     end
     return newimage
-end
-
-function save(film::PassFilm, splat_scale::Float64 = 1.0)::Array{Float64}
-
-    # JOHN HACKS
-    # only splat for full pass
-    # filter weight sum is based off of full so I think I am improperly weighting...
-
-    X, Y = size(film.pixels)
-    pass = 5 # full, albedo, depth, normal, position
-    image = Array{Float64}(undef, pass, X, Y, 3)
-    for y in 1:Y
-        for x in 1:X
-            pixel = film.pixels[y, x]
-
-            #################
-            ### full pass ###
-            #################
-            image[1, y, x, :] .= XYZ_to_RGB(pixel.xyz)
-            # Normalize pixel with weight sum.
-            filter_weight_sum = pixel.filter_weight_sum
-            if filter_weight_sum != 0
-                image[1, y, x, :] .= max.(0, image[1, y, x, :] ./ filter_weight_sum)
-            end
-            # Add splat value at pixel & scale.
-            @info "save: AtomicXYZ - $(pixel.splat_xyz), XYZ - $(convert(XYZPBRT, pixel.splat_xyz)), RGB - $(XYZ_to_RGB(convert(XYZPBRT, pixel.splat_xyz)))"
-            splat_rgb = XYZ_to_RGB(convert(XYZPBRT, pixel.splat_xyz))
-            image[1, y, x, :] .+= splat_scale .* splat_rgb
-            image[1, y, x, :] .*= film.scale
-
-            ###################
-            ### albedo pass ###
-            ###################
-            image[2, y, x, :] .= XYZ_to_RGB(pixel.albedo)
-
-            ##################
-            ### depth pass ###
-            ##################
-            image[3, y, x, :] .= XYZ_to_RGB(pixel.depth)
-
-            ###################
-            ### normal pass ###
-            ###################
-            image[4, y, x, :] .= XYZ_to_RGB(pixel.normal)
-
-            #####################
-            ### position pass ###
-            #####################
-            image[5, y, x, :] .= XYZ_to_RGB(pixel.position)
-        end
-    end
-    # normalize depth and position pass to be [0,1]
-    # also need make sure 0-1 not 1-0
-    # depth
-    max_depth = maximum(image[2, :, :, :])
-    min_depth = minimum(image[2, :, :, :])
-    image[2, :, :, :] .-= max_depth
-    image[2, :, :, :] ./= (min_depth - max_depth)
-
-    # position
-    for dim in 1:3
-        max_depth = maximum(image[5, :, :, dim])
-        min_depth = minimum(image[5, :, :, dim])
-        image[5, :, :, dim] .-= max_depth
-        image[5, :, :, dim] ./= (min_depth - max_depth)
-    end
-
-    clamp!(image, 0.0, 1.0)
-    return image
 end

@@ -100,7 +100,7 @@ function recursive_intersect(
             )
             curve_bounds = expand(curve_bounds, 0.5 * max_width)
             ray_bounds = Bounds3(
-                Pnt3(0),
+                Pnt3(0.0),
                 Pnt3(0, 0, ray_length * ray.tMax)
             )
             # @info "recursive A: curveBounds: $curve_bounds\n"

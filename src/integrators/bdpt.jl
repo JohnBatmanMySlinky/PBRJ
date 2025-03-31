@@ -20,9 +20,7 @@ function render(
     light_distr_generator = LightDistribution(
         parsed_args["light-distribution-strategy"], 
         scene,
-        parsed_args["weight-for-infinites"], 
-        parsed_args["n-voxels"], 
-        parsed_args["n-shadow-rays"], 
+        parsed_args["max-voxels"], 
     )
 
     # partition the image into tiles
@@ -59,12 +57,12 @@ function render(
 
         # Render a single tile using BDPT
         x, y = k % width, k ÷ width
-        tile = Pnt2(x, y)
+        tile = Pnt2i(x, y)
         sampler = deepcopy(i.sampler)
 
         tb_min = sample_bounds.pMin .+ tile .* tile_size
         tb_max = min.(tb_min .+ (tile_size - 1), sample_bounds.pMax)
-        tile_bounds = Bounds2(tb_min, tb_max)
+        tile_bounds = Bounds2i(tb_min, tb_max)
         film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
             @info "########################\nWorking on Pixel: $(pixel)\n########################\n\n\n"
