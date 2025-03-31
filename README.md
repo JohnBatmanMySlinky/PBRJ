@@ -84,6 +84,7 @@ Render
     - couldn't get the nanovdb bindings to work in the test directory...
 2. src/party_blob.ipynb
     - no easy way to animate via CLI so NB it is. Should make scene102-ish.
+3. Some scene files that read geometry or mediums from pbrt-v{3,4} require you to modify the target .pbrt file because my regex's are lazy.
 
 
 # Features Implemented
