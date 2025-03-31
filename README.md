@@ -108,6 +108,8 @@ Render
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- Fix up old scenes
+    - run them and squash bugs
 - Time to make my OBJ parser suck less
     - Pre-allocate arrays within parse_obj
     - Bilinear patch support for quads
@@ -116,7 +118,8 @@ Render
     - NanoVDB is fucking broken and seg-faulty and I want to cry
 - Tests
     - Analytic scenes from pbrt-v3
-    - Do more of them - especially around SampleTMaj and anything to fix the voxelation of GridMedium
+    - bash script to efficiently test all scenes
+    - Finish adding glass tests from pxl-th and look at more pbrt-v4 tests
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Performance
@@ -140,51 +143,10 @@ Render
     - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
 - combine `scratch/` and `src/notebooks`
 - PBRT Features
+    - LightBVH from pbrt-v4
     - SimplePathIntegrator
     - VolPathIntegrator
-    - Parameterized Textures: Float & Spectrum
-        We could do this as per pxl-th
-        ```
-        const TextureType = Union{Float64, Spectrum}
-        abstract type AbstractTexture end
-        struct ConstantTexture{T <: TextureType} <: Texture
-            value::T
-        end
-        function (c::ConstantTexture{T})(si::SurfaceInteraction)::T where T <: TextureType
-            return c.value
-        end
-        struct MatteMaterial <: Material
-            Kd::Texture  # really this should be spectral
-            sigma::Texture  # really this should be float
-        end
-        ```
-
-        OR since `TextureType` is only a union of 2 we could do
-        ```
-        abstract type Texture end
-        abstract type FloatTexture <: Texture end
-        abstract type SpectrumTexture <: Texture end
-        struct ConstantFloatTexture <: FloatTexture
-            value::Float64
-        end
-        struct ConstantSpectrumTexture <: SpectrumTexture
-            value::Spectrum
-        end
-        struct MatteMaterial{S <: SpectrumTexture, F <: FloatTexture} <: Material
-            Kd::S
-            sigma::F
-        end
-        ```
-
-        With that latter approach... this would be two *instances* of a SpectrumTexture, right?
-        ```
-        struct PlasticMaterial{S <: SpectrumTexture, F <: FloatTexture} <: Material
-            Kd::S
-            Ks::S
-            sigma::F
-        end
-        ```
-
+    - Seperate Textures into {Type}FloatTexture & {Type}SpectrumTexture as per pbrt-v4 and update materials accordingly
     - ~~Uniform infinite light~~
     - Work with images better
 	    - ~~MIPMap~~
@@ -192,11 +154,11 @@ Render
 	    - ~~InfiniteAreaLight~~
             - CompensatedDistribution
             - If infinite area light always uses the same width in the lookup... whats the value of a mipmp?
-        - ImageTexture implementation to use MIPMaps
+        - ~~ImageTexture implementation to use MIPMaps~~
     - ~~Add mediums~~
          - ~~Homogenous medium~~
          - ~~Grid medium~~
-         - OpenVDB
+         - ~~OpenVDB~~
     - ~~Add bi-linear patches~~
     - Add sub div surfaces
     - Robustly parse .pbrt scene files
@@ -242,36 +204,41 @@ Render
         - ~~logging~~
 
 # Bugs
+- how is path accessible to my callback?
+- remove clamp from Distribution
+    - remember my wonky plot for Sobol from work show off? Is that problematic?
 - ~~My world is upside down! Use real pbrt to debug (or pxl-th's)~~
 - ~~Sometimes objects are see through (ie when they have a really bright light behind them)~~
 - ShapeCore specification bug. what if you spec only a translate? inverse is wrong!
 - Wait do I need to be using ::Radiance and ::Reflectance??? See spectrum
 - ~~General Rotation is fucked. Cloud scene bounding box with rotation dont match. AHHHHHHHH~~
     - ~~Maybe not... might have been that hidden `data2medium` transformation. recheck this.~~
-    ```
-    AIGHT SO YOURE FUCKING TELLING ME
-    THIS
-        Scale -1 1 1
-        LookAt 0.0715308 -4.17677 5.33558 0.0720194 -3.62456 4.50187 -0.000323605 0.833706 0.552208
-    EQUALS
 
-    THIS
-    camera_transform = LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0)
+# Gotcha's
+```
+AIGHT SO YOURE FUCKING TELLING ME
+THIS
+    Scale -1 1 1
+    LookAt 0.0715308 -4.17677 5.33558 0.0720194 -3.62456 4.50187 -0.000323605 0.833706 0.552208
+EQUALS
+
+THIS
+camera_transform = LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0)
 
 
-    BUT 
-    THIS
-    TransformBegin
-        Translate -1 0 -1.2
-        Rotate 90 1 0 0
-        Include "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
-        "color sigma_a" [90 90 90] "color sigma_s" [10 10 10]
-    TransformEnd
+BUT 
+THIS
+TransformBegin
+    Translate -1 0 -1.2
+    Rotate 90 1 0 0
+    Include "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/geometry/density_render.70.pbrt"
+    "color sigma_a" [90 90 90] "color sigma_s" [10 10 10]
+TransformEnd
 
-    EQUALS
-    THIS
-    smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
-    ```
+EQUALS
+THIS
+smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
+```
 
 # Ideas
 - ~~Triangles using UInt16 when small enough?~~ I get a very small pay off when I did a quick test.
