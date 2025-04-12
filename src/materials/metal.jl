@@ -1,19 +1,19 @@
 struct Metal <: Material
-    eta::Maybe{Texture{Spectrum}}
-    k::Maybe{Texture{Spectrum}}
-    roughness::Maybe{Texture{Float64}}
-    u_roughness::Maybe{Texture{Float64}}
-    v_roughness::Maybe{Texture{Float64}}
-    bump_map::Maybe{Texture{Float64}}
+    eta::Maybe{AbstractTexture{Spectrum}}
+    k::Maybe{AbstractTexture{Spectrum}}
+    roughness::Maybe{AbstractTexture{Float64}}
+    u_roughness::Maybe{AbstractTexture{Float64}}
+    v_roughness::Maybe{AbstractTexture{Float64}}
+    bump_map::Maybe{AbstractTexture{Float64}}
     remap_roughness::Bool
 
     function Metal(
-        eta::Maybe{Texture{Spectrum}}=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperN, CopperSamples)),
-        k::Maybe{Texture{Spectrum}}=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperK, CopperSamples)),
-        roughness::Maybe{Texture{Float64}}=ConstantTexture(0.01),
-        u_roughness::Maybe{Texture{Float64}}=nothing,
-        v_roughness::Maybe{Texture{Float64}}=nothing,
-        bump_map::Maybe{Texture{Float64}}=nothing,
+        eta::Maybe{AbstractTexture{Spectrum}}=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperN, CopperSamples)),
+        k::Maybe{AbstractTexture{Spectrum}}=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperK, CopperSamples)),
+        roughness::Maybe{AbstractTexture{Float64}}=nothing,
+        u_roughness::Maybe{AbstractTexture{Float64}}=nothing,
+        v_roughness::Maybe{AbstractTexture{Float64}}=nothing,
+        bump_map::Maybe{AbstractTexture{Float64}}=nothing,
         remap_roughness::Bool=true
     )
         if !(roughness isa Nothing)

@@ -1,22 +1,22 @@
 struct HairMaterial <: Material
-	sigma_a::Maybe{Texture{Spectrum}}
-	color::Maybe{Texture{Spectrum}}
-	eumelanin::Maybe{Texture{Float64}}
-	pheomelanin::Maybe{Texture{Float64}}
-	eta::Maybe{Texture{Float64}}
-	beta_m::Maybe{Texture{Float64}}
-	beta_n::Maybe{Texture{Float64}}
-	alpha::Maybe{Texture{Float64}}
+	sigma_a::Maybe{AbstractTexture{Spectrum}}
+	color::Maybe{AbstractTexture{Spectrum}}
+	eumelanin::Maybe{AbstractTexture{Float64}}
+	pheomelanin::Maybe{AbstractTexture{Float64}}
+	eta::Maybe{AbstractTexture{Float64}}
+	beta_m::Maybe{AbstractTexture{Float64}}
+	beta_n::Maybe{AbstractTexture{Float64}}
+	alpha::Maybe{AbstractTexture{Float64}}
 	
 	function HairMaterial(
-		sigma_a::Maybe{Texture{Spectrum}},
-		color::Maybe{Texture{Spectrum}},
-		eumelanin::Maybe{Texture{Float64}},
-		pheomelanin::Maybe{Texture{Float64}},
-		eta::Maybe{Texture{Float64}},
-		beta_m::Maybe{Texture{Float64}},
-		beta_n::Maybe{Texture{Float64}},
-		alpha::Maybe{Texture{Float64}}
+		sigma_a::Maybe{AbstractTexture{Spectrum}},
+		color::Maybe{AbstractTexture{Spectrum}},
+		eumelanin::Maybe{AbstractTexture{Float64}},
+		pheomelanin::Maybe{AbstractTexture{Float64}},
+		eta::Maybe{AbstractTexture{Float64}},
+		beta_m::Maybe{AbstractTexture{Float64}},
+		beta_n::Maybe{AbstractTexture{Float64}},
+		alpha::Maybe{AbstractTexture{Float64}}
 	)
 		if !(sigma_a isa Nothing)
 			@assert (color isa Nothing) & (eumelanin isa Nothing) & (pheomelanin isa Nothing)

@@ -10,7 +10,7 @@ struct TriangleMesh
     uvs::Maybe{Vector{Pnt2}}
     uv_indices::Maybe{Vector{Int64}}
 
-    alpha_mask::Maybe{Texture}
+    alpha_mask::Maybe{AbstractTexture{Float64}}
     shading_tangent::Nothing
 
     function TriangleMesh(
@@ -26,7 +26,7 @@ struct TriangleMesh
         uvs::Maybe{Vector{Pnt2}},
         uv_indices::Maybe{Vector{Int64}},
     
-        alpha_mask::Maybe{Texture}
+        alpha_mask::Maybe{AbstractTexture{Float64}}
     )
         vertices = object_to_world.(vertices)
         normals = object_to_world.(normals)
@@ -75,7 +75,7 @@ function construct_triangle_mesh(
     uvs::Maybe{Vector{Pnt2}},
     uv_indices::Maybe{Vector{Int64}},
     
-    alpha_mask::Maybe{Texture}
+    alpha_mask::Maybe{AbstractTexture{Float64}}
 )
     mesh = TriangleMesh(
         core.object_to_world, 

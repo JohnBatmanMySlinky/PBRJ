@@ -1,4 +1,4 @@
-function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore, flip_normals::Bool, alpha_mask::Maybe{Texture})::Vector{Triangle}
+function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore, flip_normals::Bool, alpha_mask::Maybe{AbstractTexture{Float64}})::Vector{Triangle}
     flip = flip_normals ? -1.0 : 1.0
     if axis == 1
         return construct_triangle_mesh(
@@ -44,7 +44,7 @@ function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore,
     end
 end
 
-function Box(MIN::Pnt3, MAX::Pnt3, sc::ShapeCore, alpha_mask::Maybe{Texture})::Vector{Triangle}
+function Box(MIN::Pnt3, MAX::Pnt3, sc::ShapeCore, alpha_mask::Maybe{AbstractTexture{Float64}})::Vector{Triangle}
     top = Rectangle(
         Pnt2(MIN.x, MIN.z),
         Pnt2(MAX.x, MAX.z),

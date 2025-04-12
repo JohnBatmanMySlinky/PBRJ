@@ -1,6 +1,6 @@
-struct MixAddTexture{T} where T <: Union{Float64, Spectrum}
-    a::Texture{T}
-    b::Texture{T}
+struct MixAddTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
+    a::AbstractTexture{T}
+    b::AbstractTexture{T}
 end
 
 function (t::MixAddTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
@@ -9,11 +9,11 @@ function (t::MixAddTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float
     return T == Float64 ? clamp(a_tex + b_tex, 0.0, 1.0) : clamp.(a_tex + b_tex, 0.0, 1.0)
 end
 
-struct MixDirectionTexture{T} where T <: Union{Float64, Spectrum}
-    a::Texture{T}
-    b::Texture{T}
+struct MixDirectionTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
+    a::AbstractTexture{T}
+    b::AbstractTexture{T}
     dir::Vec3
-    function MixDirectionTexture{T}(a::Texture{T}, b::Texture{T}, dir::Vec3) where T <: Union{Float64, Spectrum}
+    function MixDirectionTexture{T}(a::AbstractTexture{T}, b::AbstractTexture{T}, dir::Vec3) where T <: Union{Float64, Spectrum}
         return new{T}(a, b, normalize(dir))
     end
 end
@@ -23,9 +23,9 @@ function (t::MixDirectionTexture{T})(si::SurfaceInteraction)::T where T <: Union
     return amt * t.a(si) + (1.0 - amt) * t.b(si)
 end
 
-struct MixMultTexture{T} where T <: Union{Float64, Spectrum}
-    a::Texture{T}
-    b::Texture{T}
+struct MixMultTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
+    a::AbstractTexture{T}
+    b::AbstractTexture{T}
 end
 
 function (t::MixMultTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}

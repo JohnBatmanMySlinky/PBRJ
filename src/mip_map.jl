@@ -33,11 +33,14 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 
 	function MIPMap(
 		resolution::Pnt2i, 
-		data::Vector{T} where T <: Union{Spectrum, Float64}, 
+		data::Union{Vector{Float64}, Vector{Spectrum}},
+		convert_to_float::Bool,
 		do_trilinear::Bool=false, 
 		max_anisotropy::Float64=8.0, 
 		wrap_mode::Int8=Int8(1)
 	)
+		data_type = convert_to_float ? Float64 : Spectrum
+		println("DATA TYPE: $(convert_to_float) $(data_type)")
 		resampled = false
 		res_pow_2 = Pnt2(0,0)
 		if (!ispow2(resolution.x)) || (!ispow2(resolution.y))
@@ -48,7 +51,7 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 			
 			# Resample image in $s$ direction
 			s_weights = resample_weights(resolution.x, res_pow_2.x)
-			resampled_image = Vector{typeof(data[1])}(undef, res_pow_2.x * res_pow_2.y)
+			resampled_image = Vector{data_type}(undef, res_pow_2.x * res_pow_2.y)
 			
 			# apply _sweights_ t zoom in $s$ direction
 			for t in 0:(resolution.y-1)
@@ -77,7 +80,7 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 			# resample image in $t$ direction
 			t_weights = resample_weights(resolution.y, res_pow_2.y)
 			for s in 0:(res_pow_2.x - 1)
-				work_data = Vector{typeof(data[1])}(undef, res_pow_2.y)
+				work_data = Vector{data_type}(undef, res_pow_2.y)
 				for t in 0:(res_pow_2.y - 1)
 					work_data[t+1] = data[1] * 0.0 # BIG BRAIN JOHN HACK
 					for j in 0:3
@@ -106,7 +109,7 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 		n_levels = 1 + log_2_int(UInt32(max(maximum(res_pow_2), maximum(resolution))))
 		@info "N LEVELS: $(n_levels)" 
 
-		pyramid = Vector{Matrix{typeof(data[1])}}(undef, n_levels)
+		pyramid = Vector{Matrix{data_type}}(undef, n_levels)
 		pyrsize = Vector{Pnt2i}(undef, n_levels) # JOHN HACK oh god i hope this doesnt bite me later
 		
 		# Initialize most detailed level of MIPMap
@@ -124,7 +127,7 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 			s_res::Int64 = max(1, pyrsize[i-1+1].x ÷ 2)
 			t_res::Int64 = max(1, pyrsize[i-1+1].y ÷ 2)
 			# @info "PYR BUILD: $(i), $(s_res), $(t_res)"
-			pyramid[i+1] = zeros(typeof(data[1]), s_res, t_res)
+			pyramid[i+1] = zeros(data_type, s_res, t_res)
 			pyrsize[i+1] = Pnt2(s_res, t_res)
 
 			for t in 0:(t_res-1)
@@ -152,7 +155,7 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 			end
 		end
 
-		return new{eltype(data)}(
+		return new{data_type}(
 			do_trilinear,
 			max_anisotropy,
 			wrap_mode,
@@ -167,6 +170,7 @@ end
 function texel(l::Matrix{T}, size::Pnt2i, wrap_mode::Int8, s::Int64, t::Int64)::T where {T <: Union{Spectrum, Float64}}
 	x, y = size.x, size.y
 	if wrap_mode == Int8(0) # repeat
+		@assert false # THIS IS GIVING INDEX OUT OF BOUNDS ERRORS
 		s = s % x
 		t = t % y
 	elseif wrap_mode == Int8(1) # clamp

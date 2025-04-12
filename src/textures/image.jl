@@ -7,24 +7,26 @@ struct TexInfo
     do_gamma::Bool
 end
 
-struct ImageTexture{T} where T <: Union{Float64, Spectrum}
+struct ImageTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     mapping::AbstractTextureMapping2D
     mipmap::MIPMap{T}
     texinfo::TexInfo
     channel::Int  # Only used for Float64 type
 
-    function ImageTexture{T}(
+    function ImageTexture(
         mapping::AbstractTextureMapping2D, 
         filename::String,
+        convert_to_float::Bool,
         channel::Int=0,  # Default to red channel, only used for Float64
         do_trilinear::Bool=false,
         max_anisotropy::Float64=8.0,
-        wrap_mode::Int8=Int8(0), # REPEAT, BLACK, CLAMP
+        wrap_mode::Int8=Int8(1), # REPEAT, BLACK, CLAMP
         scale::Float64=1.0,
         do_gamma::Bool=false
-    ) where T <: Union{Float64, Spectrum}
+    )
         dat2, L, W = read_image(filename, scale)
-        mipmap = MIPMap{T}(Pnt2i(W, L), dat2) # NOTE THE FLIP HERE
+        mipmap = MIPMap(Pnt2i(W, L), dat2, convert_to_float, do_trilinear, max_anisotropy, wrap_mode) # NOTE THE FLIP HERE
+        T = convert_to_float ? Float64 : Spectrum
         return new{T}(
             mapping,
             mipmap,

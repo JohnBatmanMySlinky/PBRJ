@@ -1,10 +1,10 @@
 struct Mirror <: Material
-    Kr::Texture{Spectrum}
-    bump_map::Maybe{Texture{Float64}}
+    Kr::AbstractTexture{Spectrum}
+    bump_map::Maybe{AbstractTexture{Float64}}
 
     function Mirror(
-        Kr::Texture{Spectrum}=ConstantTexture(spectrum_from_float(1.0)),
-        bump_map::Maybe{Texture{Float64}}=nothing
+        Kr::AbstractTexture{Spectrum}=ConstantTexture(spectrum_from_float(1.0)),
+        bump_map::Maybe{AbstractTexture{Float64}}=nothing
     )
         return new(Kr, bump_map)
     end

@@ -1,4 +1,4 @@
-struct ConstantTexture{T} where {T <: Union{Float64, Spectrum}}
+struct ConstantTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     value::T
 end
 

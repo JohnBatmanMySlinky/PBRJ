@@ -1,20 +1,20 @@
 # PBR 9.2.2 Plastic Material
 struct Plastic <: Material
-    Kd::Texture{Spectrum}
-    Ks::Texture{Spectrum}
-    roughness::Maybe{Texture{Float64}}
-    u_roughness::Maybe{Texture{Float64}}
-    v_roughness::Maybe{Texture{Float64}}
-    bump_map::Maybe{Texture{Float64}}
+    Kd::AbstractTexture{Spectrum}
+    Ks::AbstractTexture{Spectrum}
+    roughness::Maybe{AbstractTexture{Float64}}
+    u_roughness::Maybe{AbstractTexture{Float64}}
+    v_roughness::Maybe{AbstractTexture{Float64}}
+    bump_map::Maybe{AbstractTexture{Float64}}
     remap_roughness::Bool
 
     function Plastic(
-        Kd::Texture{Spectrum}=ConstantTexture(spectrum_from_float(0.25)),
-        Ks::Texture{Spectrum}=ConstantTexture(spectrum_from_float(0.25)),
-        roughness::Maybe{Texture{Float64}}=nothing,
-        u_roughness::Maybe{Texture{Float64}}=nothing,
-        v_roughness::Maybe{Texture{Float64}}=nothing,
-        bump_map::Maybe{Texture{Float64}}=nothing,
+        Kd::AbstractTexture{Spectrum}=ConstantTexture(spectrum_from_float(0.25)),
+        Ks::AbstractTexture{Spectrum}=ConstantTexture(spectrum_from_float(0.25)),
+        roughness::Maybe{AbstractTexture{Float64}}=nothing,
+        u_roughness::Maybe{AbstractTexture{Float64}}=nothing,
+        v_roughness::Maybe{AbstractTexture{Float64}}=nothing,
+        bump_map::Maybe{AbstractTexture{Float64}}=nothing,
         remap_roughness::Bool=true
     )
         if !(roughness isa Nothing)

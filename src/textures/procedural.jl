@@ -1,7 +1,7 @@
 ################################
 ######### Draw a Circle using UV
 ################################
-struct CircleProceduralTexture{T} where T <: Union{Float64, Spectrum}
+struct CircleProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     # these are to be specified in UV so [0,1]
     center::Pnt2
     radius::Float64
@@ -21,7 +21,7 @@ end
 ################################
 ######### Select a Corner using UV
 ################################
-struct CornerProceduralTexture{T} where T <: Union{Float64, Spectrum}
+struct CornerProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     threshold::Float64
     inside::T
     outside::T
@@ -40,7 +40,7 @@ end
 ################################
 ######### Checkers
 ################################
-struct Checker3DTexture{T} where T <: Union{Float64, Spectrum}
+struct Checker3DTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     a::T
     b::T
     scale::Pnt3

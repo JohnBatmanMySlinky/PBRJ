@@ -1,8 +1,8 @@
 # PBR 9.2.1 Matte Material
 struct Matte <: Material
-    Kd::Texture{Spectrum}
-    sigma::Texture{Float64}
-    bump_map::Maybe{Texture{Float64}}
+    Kd::AbstractTexture{Spectrum}
+    sigma::AbstractTexture{Float64}
+    bump_map::Maybe{AbstractTexture{Float64}}
 end
 
 # Equivalent to PBR's ComputeScatteringFunction

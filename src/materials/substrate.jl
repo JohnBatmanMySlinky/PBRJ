@@ -1,17 +1,17 @@
 struct Substrate <: Material
-    Kd::Texture{Spectrum}
-    Ks::Texture{Spectrum}
-    u_roughness::Maybe{Texture{Float64}}
-    v_roughness::Maybe{Texture{Float64}}
-    bump_map::Maybe{Texture{Float64}}
+    Kd::AbstractTexture{Spectrum}
+    Ks::AbstractTexture{Spectrum}
+    u_roughness::Maybe{AbstractTexture{Float64}}
+    v_roughness::Maybe{AbstractTexture{Float64}}
+    bump_map::Maybe{AbstractTexture{Float64}}
     remap_roughness::Bool
 
     function Substrate(
-        Kd::Texture{Spectrum}=ConstantTexture(spectrum_from_float(0.5)),
-        Ks::Texture{Spectrum}=ConstantTexture(spectrum_from_float(0.5)),
-        u_roughness::Maybe{Texture{Float64}}=nothing,
-        v_roughness::Maybe{Texture{Float64}}=nothing,
-        bump_map::Maybe{Texture{Float64}}=nothing,
+        Kd::AbstractTexture{Spectrum}=ConstantTexture(spectrum_from_float(0.5)),
+        Ks::AbstractTexture{Spectrum}=ConstantTexture(spectrum_from_float(0.5)),
+        u_roughness::Maybe{AbstractTexture{Float64}}=nothing,
+        v_roughness::Maybe{AbstractTexture{Float64}}=nothing,
+        bump_map::Maybe{AbstractTexture{Float64}}=nothing,
         remap_roughness::Bool=true
     )
         if u_roughness isa Nothing

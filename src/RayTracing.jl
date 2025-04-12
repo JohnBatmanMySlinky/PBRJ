@@ -29,7 +29,6 @@ abstract type Medium end
 abstract type AbstractSampler end
 abstract type Shape end
 abstract type ImplicitSurface <: Shape end
-abstract type Texture end
 abstract type MicrofacetDistribution end
 abstract type Randomizer end
 abstract type AbstractMedium end
@@ -78,6 +77,9 @@ const XXX::Spectrum, YYY::Spectrum, ZZZ::Spectrum, rgbRefl2SpectWhite::Spectrum,
     rgbRefl2SpectGreen::Spectrum, rgbRefl2SpectBlue::Spectrum, rgbIllum2SpectWhite::Spectrum, 
     rgbIllum2SpectCyan::Spectrum, rgbIllum2SpectMagenta::Spectrum, rgbIllum2SpectYellow::Spectrum, 
     rgbIllum2SpectRed::Spectrum, rgbIllum2SpectGreen::Spectrum, rgbIllum2SpectBlue::Spectrum = make_spectral_constants()
+
+abstract type AbstractTexture{T <: Union{Float64, Spectrum}} end
+
 
 include("mip_map.jl")
 # include("medium/media_parser.jl")

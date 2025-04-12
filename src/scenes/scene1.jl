@@ -3,42 +3,42 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ######## Materials ########
     ###########################
     mat_white = Matte(
-        ConstantTexture(Vec3(1, 1, 1)),
-        ConstantTexture(Vec3(0, 0, 0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_red = Matte(
-        ConstantTexture(Vec3(1, 0, 0)),
-        ConstantTexture(Vec3(0, 0, 0)),
+        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_green = Matte(
-        ConstantTexture(Vec3(0, 1, 0)),
-        ConstantTexture(Vec3(0, 0, 0)),
+        ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_blue = Matte(
-        ConstantTexture(Vec3(0, 0, 1)),
-        ConstantTexture(Vec3(0, 0, 0)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_yellow = Matte(
-        ConstantTexture(Vec3(1, 1, 0)),
-        ConstantTexture(Vec3(0, 0, 0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_gray = Matte(
-        ConstantTexture(Vec3(1, 1, 0)),
-        ConstantTexture(Vec3(0, 0, 0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_concrete = Substrate(
-        ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_BaseColor.jpg")), # kd
-        ConstantTexture(Pnt3(.15, .15, .15)), # ks
-        ConstantTexture(Pnt3(.003, .003, .003)), # u
-        ConstantTexture(Pnt3(.003, .003, .003)), # v
-        true, # remap
-        ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_Height.jpg")), # kd
+        ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_BaseColor.jpg"), false), # kd
+        ConstantTexture(spectrum_from_float(0.15, 0.15, 0.15)), # ks
+        ConstantTexture(.003), # u
+        ConstantTexture(.003), # v
+        ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_Height.jpg"), true), # bumo
+        true # remap
     )
 
     ###################################
@@ -105,8 +105,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         CornerProceduralTexture(
             ceiling_floor_corner_alpha_mask_threshold,
-            spectrum_from_float(1.0),
-            spectrum_from_float(0.0),
+            1.0,
+            0.0,
         )
     )
     for tri in floor
@@ -129,13 +129,13 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             CircleProceduralTexture(
                 Pnt2(.5, .5),
                 ceiling_whole_size/foyer_dim,
-                spectrum_from_float(1.0),
-                spectrum_from_float(0.0)
+                1.0,
+                0.0
             ),
             CornerProceduralTexture(
                 ceiling_floor_corner_alpha_mask_threshold,
-                spectrum_from_float(1.0),
-                spectrum_from_float(0.0),
+                1.0,
+                0.0,
             )
         )
     )
@@ -279,7 +279,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         mat_tmp = Matte(
             ConstantTexture(brightness),
-            ConstantTexture(Vec3(0, 0, 0)),
+            ConstantTexture(0.0),
             nothing
         )
         for tri in tmp_rec
