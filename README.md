@@ -123,20 +123,18 @@ Render
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
 - Performance
-    - convert arrays to tuples after scene construction and before rendering begins
-        - ::Tuple{Vararg{Material}}
-    - add an array of materials. store the index instead of the material in the primitive.
-    - implement a Pnt3 but it's Ints not Float to avoid some conversions
+    - add an array of materials. store the index instead of the material in the primitive. --> What about type stability tho?
     - Create a simple sample scene in Trace.jl and benchmark. Because my testing is showing no performance benefit from Float32 and Parametric Typing
         - TYPE MORE CONCRETELY, use a NB and copy pxl-th
         - Convert to Float32
     - What if I instantiated the samplers within the parallel loop instead of deepcopy'ing?
+    - Make sure I am sampling purely over the solid angle. PBRT has this covered in a test suite.
+    - triangle sampling is really slow? Is it sampling more than one light at a time is slow? 
+    - ~~convert arrays to tuples after scene construction and before rendering begins aka ::Tuple{Vararg{Material}}~~ NOPE because if big tuple it get slow
+    - ~~implement a Pnt3 but it's Ints not Float to avoid some conversions~~
     - ~~sampling over the solid angle~~
     - ~~use inplace operations where possible ie `normalize!()` vs `normalize`~~
-    - Make sure I am sampling purley over the solid angle. PBRT has this covered in a test suite.
     - ~~Liberal use of `const` in all mutable structs~~ --> revisit once I am typing more concretely
-    - `Scene` uses a vector of (abstract) lights. would a tuple of lights be better? Could I use a macro to generate scene specific struct?
-    - triangle sampling is really slow? Is it sampling more than one light at a time is slow? 
 - New stuff
     - Tidy up implicit Surfaces
         - Add kiss surface (https://mathworld.wolfram.com/KissSurface.html) aka $ x^2 + y^2 = (1-z)x^4 $
@@ -148,8 +146,6 @@ Render
     - LightBVH from pbrt-v4
     - SimplePathIntegrator
     - VolPathIntegrator
-    - Seperate Textures into {Type}FloatTexture & {Type}SpectrumTexture as per pbrt-v4 and update materials accordingly
-    - ~~Uniform infinite light~~
     - Work with images better
 	    - ~~MIPMap~~
             - OctahedralVector
@@ -157,11 +153,6 @@ Render
             - CompensatedDistribution
             - If infinite area light always uses the same width in the lookup... whats the value of a mipmp?
         - ~~ImageTexture implementation to use MIPMaps~~
-    - ~~Add mediums~~
-         - ~~Homogenous medium~~
-         - ~~Grid medium~~
-         - ~~OpenVDB~~
-    - ~~Add bi-linear patches~~
     - Add sub div surfaces
     - Robustly parse .pbrt scene files
     - Implement more materials
@@ -174,6 +165,7 @@ Render
     - Implement light BVH for more efficient sampling
     - Implement Metroplois Light Transport Integrator
     - Implement texture sampling and use those ray differentials
+    - ~~Uniform infinite light~~
     - ~~Move to EXR~~
         - ~~for env lights~~
         - ~~for final image~~
@@ -182,9 +174,14 @@ Render
         - ~~PaddedSobol~~
         - ~~ZSobol~~
         - ~~Does it matter what my hash function is?~~
+    - ~~Seperate Textures into {Type}FloatTexture & {Type}SpectrumTexture as per pbrt-v4 and update materials accordingly~~
+    - ~~Add mediums~~
+         - ~~Homogenous medium~~
+         - ~~Grid medium~~
+         - ~~OpenVDB~~
+    - ~~Add bi-linear patches~~
 - Scene work
     - Re run old scenes
-    - ~~Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.~~
     - Add lte-orb scene
     - Improve office scene 
         - Add more walls (left wall corner)
@@ -192,7 +189,7 @@ Render
         - Get reflections in back hallway looking nice and in general floor material
         - Wall material
         - use image texture!
-
+    - ~~Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.~~
 # Clean up 
     - ~~Use y(::Spectrum) and dont hack with mean~~
     - remove duplicate world_to_X and X_to_world
