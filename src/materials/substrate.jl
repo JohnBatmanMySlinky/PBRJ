@@ -1,19 +1,31 @@
-struct Substrate <: Material
-    Kd::AbstractTexture{Spectrum}
-    Ks::AbstractTexture{Spectrum}
-    u_roughness::Maybe{AbstractTexture{Float64}}
-    v_roughness::Maybe{AbstractTexture{Float64}}
-    bump_map::Maybe{AbstractTexture{Float64}}
+struct Substrate{
+    KD <: AbstractTexture{Spectrum},
+    KS <: AbstractTexture{Spectrum},
+    U <: Maybe{AbstractTexture{Float64}},
+    V <: Maybe{AbstractTexture{Float64}},
+    BM <: Maybe{AbstractTexture{Float64}}
+} <: Material
+    Kd::KD
+    Ks::KS
+    u_roughness::U
+    v_roughness::V
+    bump_map::BM
     remap_roughness::Bool
 
     function Substrate(
-        Kd::AbstractTexture{Spectrum}=ConstantTexture(spectrum_from_float(0.5)),
-        Ks::AbstractTexture{Spectrum}=ConstantTexture(spectrum_from_float(0.5)),
-        u_roughness::Maybe{AbstractTexture{Float64}}=nothing,
-        v_roughness::Maybe{AbstractTexture{Float64}}=nothing,
-        bump_map::Maybe{AbstractTexture{Float64}}=nothing,
+        Kd::KD=ConstantTexture(spectrum_from_float(0.5)),
+        Ks::KS=ConstantTexture(spectrum_from_float(0.5)),
+        u_roughness::U=nothing,
+        v_roughness::V=nothing,
+        bump_map::BM=nothing,
         remap_roughness::Bool=true
-    )
+    )::Substrate where {
+        KD <: AbstractTexture{Spectrum},
+        KS <: AbstractTexture{Spectrum},
+        U <: Maybe{AbstractTexture{Float64}},
+        V <: Maybe{AbstractTexture{Float64}},
+        BM <: Maybe{AbstractTexture{Float64}}
+    }
         if u_roughness isa Nothing
             u_roughness = ConstantTexture(0.1)
         end
@@ -21,7 +33,7 @@ struct Substrate <: Material
             v_roughness = ConstantTexture(0.1)
         end
         
-        return new(Kd, Ks, u_roughness, v_roughness, bump_map, remap_roughness)
+        return new{KD, KS, U, V, BM}(Kd, Ks, u_roughness, v_roughness, bump_map, remap_roughness)
     end
 end
 

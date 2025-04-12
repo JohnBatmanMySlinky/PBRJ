@@ -1,22 +1,36 @@
-struct Glass <: Material
-    Kr::AbstractTexture{Spectrum}
-    Kt::AbstractTexture{Spectrum}
-    u_roughness::AbstractTexture{Float64}
-    v_roughness::AbstractTexture{Float64}
-    idx::AbstractTexture{Float64}
-    bump_map::Maybe{AbstractTexture{Float64}}
+struct Glass{
+    KR <: AbstractTexture{Spectrum},
+    KT <: AbstractTexture{Spectrum},
+    U <: AbstractTexture{Float64},
+    V <: AbstractTexture{Float64},
+    I <: AbstractTexture{Float64},
+    BM <: Maybe{AbstractTexture{Float64}}
+} <: Material
+    Kr::KR
+    Kt::KT
+    u_roughness::U
+    v_roughness::V
+    idx::I
+    bump_map::BM
     remap_roughness::Bool
 
     function Glass(
-        Kr::AbstractTexture{Spectrum}=ConstantTexture(spectrum_from_float(1.0)),
-        Kt::AbstractTexture{Spectrum}=ConstantTexture(spectrum_from_float(1.0)),
-        u_roughness::AbstractTexture{Float64}=ConstantTexture(0.0),
-        v_roughness::AbstractTexture{Float64}=ConstantTexture(0.0),
-        eta::AbstractTexture{Float64}=ConstantTexture(1.5),
-        bump_map::Maybe{AbstractTexture{Float64}}=nothing,
+        Kr::KR=ConstantTexture(spectrum_from_float(1.0)),
+        Kt::KT=ConstantTexture(spectrum_from_float(1.0)),
+        u_roughness::U=ConstantTexture(0.0),
+        v_roughness::V=ConstantTexture(0.0),
+        idx::I=ConstantTexture(1.5),
+        bump_map::BM=nothing,
         remap_roughness::Bool=true
-    )::Glass
-        return new(Kr, Kt, u_roughness, v_roughness, eta, bump_map, remap_roughness)
+    )::Glass where {
+        KR <: AbstractTexture{Spectrum},
+        KT <: AbstractTexture{Spectrum},
+        U <: AbstractTexture{Float64},
+        V <: AbstractTexture{Float64},
+        I <: AbstractTexture{Float64},
+        BM <: Maybe{AbstractTexture{Float64}}
+    }
+        return new{KR, KT, U, V, I, BM}(Kr, Kt, u_roughness, v_roughness, idx, bump_map, remap_roughness)
     end
 end
 

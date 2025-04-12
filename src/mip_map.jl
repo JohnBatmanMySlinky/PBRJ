@@ -40,7 +40,6 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 		wrap_mode::Int8=Int8(1)
 	)
 		data_type = convert_to_float ? Float64 : Spectrum
-		println("DATA TYPE: $(convert_to_float) $(data_type)")
 		resampled = false
 		res_pow_2 = Pnt2(0,0)
 		if (!ispow2(resolution.x)) || (!ispow2(resolution.y))

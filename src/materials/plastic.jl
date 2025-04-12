@@ -1,22 +1,36 @@
 # PBR 9.2.2 Plastic Material
-struct Plastic <: Material
-    Kd::AbstractTexture{Spectrum}
-    Ks::AbstractTexture{Spectrum}
-    roughness::Maybe{AbstractTexture{Float64}}
-    u_roughness::Maybe{AbstractTexture{Float64}}
-    v_roughness::Maybe{AbstractTexture{Float64}}
-    bump_map::Maybe{AbstractTexture{Float64}}
+struct Plastic{
+    KD <: AbstractTexture{Spectrum},
+    KS <: AbstractTexture{Spectrum},
+    R <: Maybe{AbstractTexture{Float64}},
+    U <: Maybe{AbstractTexture{Float64}},
+    V <: Maybe{AbstractTexture{Float64}},
+    BM <: Maybe{AbstractTexture{Float64}}
+} <: Material
+    Kd::KD
+    Ks::KS
+    roughness::R
+    u_roughness::U
+    v_roughness::V
+    bump_map::BM
     remap_roughness::Bool
 
     function Plastic(
-        Kd::AbstractTexture{Spectrum}=ConstantTexture(spectrum_from_float(0.25)),
-        Ks::AbstractTexture{Spectrum}=ConstantTexture(spectrum_from_float(0.25)),
-        roughness::Maybe{AbstractTexture{Float64}}=nothing,
-        u_roughness::Maybe{AbstractTexture{Float64}}=nothing,
-        v_roughness::Maybe{AbstractTexture{Float64}}=nothing,
-        bump_map::Maybe{AbstractTexture{Float64}}=nothing,
+        Kd::KD=ConstantTexture(spectrum_from_float(0.25)),
+        Ks::KS=ConstantTexture(spectrum_from_float(0.25)),
+        roughness::R=nothing,
+        u_roughness::U=nothing,
+        v_roughness::V=nothing,
+        bump_map::BM=nothing,
         remap_roughness::Bool=true
-    )
+    )::Plastic where {
+        KD <: AbstractTexture{Spectrum},
+        KS <: AbstractTexture{Spectrum},
+        R <: Maybe{AbstractTexture{Float64}},
+        U <: Maybe{AbstractTexture{Float64}},
+        V <: Maybe{AbstractTexture{Float64}},
+        BM <: Maybe{AbstractTexture{Float64}}
+    }
         if !(roughness isa Nothing)
             @assert (u_roughness isa Nothing) & (v_roughness isa Nothing)
         else
@@ -33,7 +47,7 @@ struct Plastic <: Material
             v_roughness = ConstantTexture(0.0)
         end
         
-        return new(Kd, Ks, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
+        return new{KD, KS, R, U, V, BM}(Kd, Ks, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
     end
 end
 

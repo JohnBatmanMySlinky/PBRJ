@@ -1,21 +1,35 @@
-struct Metal <: Material
-    eta::Maybe{AbstractTexture{Spectrum}}
-    k::Maybe{AbstractTexture{Spectrum}}
-    roughness::Maybe{AbstractTexture{Float64}}
-    u_roughness::Maybe{AbstractTexture{Float64}}
-    v_roughness::Maybe{AbstractTexture{Float64}}
-    bump_map::Maybe{AbstractTexture{Float64}}
+struct Metal{
+    ETA <: Maybe{AbstractTexture{Spectrum}},
+    K <: Maybe{AbstractTexture{Spectrum}},
+    R <: Maybe{AbstractTexture{Float64}},
+    U <: Maybe{AbstractTexture{Float64}},
+    V <: Maybe{AbstractTexture{Float64}},
+    BM <: Maybe{AbstractTexture{Float64}}
+} <: Material
+    eta::ETA
+    k::K
+    roughness::R
+    u_roughness::U
+    v_roughness::V
+    bump_map::BM
     remap_roughness::Bool
 
     function Metal(
-        eta::Maybe{AbstractTexture{Spectrum}}=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperN, CopperSamples)),
-        k::Maybe{AbstractTexture{Spectrum}}=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperK, CopperSamples)),
-        roughness::Maybe{AbstractTexture{Float64}}=nothing,
-        u_roughness::Maybe{AbstractTexture{Float64}}=nothing,
-        v_roughness::Maybe{AbstractTexture{Float64}}=nothing,
-        bump_map::Maybe{AbstractTexture{Float64}}=nothing,
+        eta::ETA=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperN, CopperSamples)),
+        k::K=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperK, CopperSamples)),
+        roughness::R=nothing,
+        u_roughness::U=nothing,
+        v_roughness::V=nothing,
+        bump_map::BM=nothing,
         remap_roughness::Bool=true
-    )
+    )::Metal where {
+        ETA <: Maybe{AbstractTexture{Spectrum}},
+        K <: Maybe{AbstractTexture{Spectrum}},
+        R <: Maybe{AbstractTexture{Float64}},
+        U <: Maybe{AbstractTexture{Float64}},
+        V <: Maybe{AbstractTexture{Float64}},
+        BM <: Maybe{AbstractTexture{Float64}}
+    }
         if !(roughness isa Nothing)
             @assert (u_roughness isa Nothing) & (v_roughness isa Nothing)
         else
@@ -32,7 +46,7 @@ struct Metal <: Material
             v_roughness = ConstantTexture(0.0)
         end
         
-        return new(eta, k, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
+        return new{ETA, K, R, U, V, BM}(eta, k, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
     end
 end
 
