@@ -1,10 +1,40 @@
 # PBR 9.2.2 Plastic Material
 struct Plastic <: Material
-    Kd::Texture
-    Ks::Texture
-    roughness::Texture
-    bump_map::Maybe{Texture}
+    Kd::Texture{Spectrum}
+    Ks::Texture{Spectrum}
+    roughness::Maybe{Texture{Float64}}
+    u_roughness::Maybe{Texture{Float64}}
+    v_roughness::Maybe{Texture{Float64}}
+    bump_map::Maybe{Texture{Float64}}
     remap_roughness::Bool
+
+    function Plastic(
+        Kd::Texture{Spectrum}=ConstantTexture(spectrum_from_float(0.25)),
+        Ks::Texture{Spectrum}=ConstantTexture(spectrum_from_float(0.25)),
+        roughness::Maybe{Texture{Float64}}=nothing,
+        u_roughness::Maybe{Texture{Float64}}=nothing,
+        v_roughness::Maybe{Texture{Float64}}=nothing,
+        bump_map::Maybe{Texture{Float64}}=nothing,
+        remap_roughness::Bool=true
+    )
+        if !(roughness isa Nothing)
+            @assert (u_roughness isa Nothing) & (v_roughness isa Nothing)
+        else
+            @assert !(u_roughness isa Nothing) & !(v_roughness isa Nothing)
+        end
+        
+        if roughness isa Nothing
+            roughness = ConstantTexture(0.0)
+        end
+        if u_roughness isa Nothing
+            u_roughness = ConstantTexture(0.0)
+        end
+        if v_roughness isa Nothing
+            v_roughness = ConstantTexture(0.0)
+        end
+        
+        return new(Kd, Ks, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
+    end
 end
 
 
