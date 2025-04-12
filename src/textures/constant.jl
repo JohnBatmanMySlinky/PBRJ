@@ -1,15 +1,7 @@
-struct ConstantTexture <: Texture
-    value::Spectrum
+struct ConstantTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
+    value::T
 end
 
-function (c::ConstantTexture)(si::SurfaceInteraction)
-    return c.value
-end
-
-struct ConstantTextureFloat <: Texture
-    value::Float64
-end
-
-function (c::ConstantTextureFloat)(si::SurfaceInteraction)
-    return c.value
+function (t::ConstantTexture{T})(si::SurfaceInteraction)::T where {T <: Union{Float64, Spectrum}}
+    return t.value
 end

@@ -1,3 +1,7 @@
+function Base.convert(::Type{Float64}, s::Spectrum)
+    return y_spectrum(s)
+end
+
 function lerp(t::Float64, a::Float64, b::Float64)::Float64
     return a + t * (b - a)
 end

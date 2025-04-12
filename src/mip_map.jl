@@ -22,22 +22,24 @@ function resample_weights(old_res::Int64, new_res::Int64)::Vector{ResampleWeight
 	return wt
 end
 
-struct MIPMap
+struct MIPMap{T <: Union{Spectrum, Float64}}
 	do_trilinear::Bool
 	max_anisotropy::Float64
 	wrap_mode::Int8
 	resolution::Pnt2i
-	pyramid::Vector{Matrix{T}} where T <: Union{Spectrum, Float64}
+	pyramid::Vector{Matrix{T}}
 	pyrsize::Vector{Pnt2i}
 	weight_lut::Vector{Float64}
 
 	function MIPMap(
 		resolution::Pnt2i, 
-		data::Vector{T} where T <: Union{Spectrum, Float64}, 
+		data::Union{Vector{Float64}, Vector{Spectrum}},
+		convert_to_float::Bool,
 		do_trilinear::Bool=false, 
 		max_anisotropy::Float64=8.0, 
 		wrap_mode::Int8=Int8(1)
 	)
+		data_type = convert_to_float ? Float64 : Spectrum
 		resampled = false
 		res_pow_2 = Pnt2(0,0)
 		if (!ispow2(resolution.x)) || (!ispow2(resolution.y))
@@ -48,7 +50,7 @@ struct MIPMap
 			
 			# Resample image in $s$ direction
 			s_weights = resample_weights(resolution.x, res_pow_2.x)
-			resampled_image = Vector{typeof(data[1])}(undef, res_pow_2.x * res_pow_2.y)
+			resampled_image = Vector{data_type}(undef, res_pow_2.x * res_pow_2.y)
 			
 			# apply _sweights_ t zoom in $s$ direction
 			for t in 0:(resolution.y-1)
@@ -77,7 +79,7 @@ struct MIPMap
 			# resample image in $t$ direction
 			t_weights = resample_weights(resolution.y, res_pow_2.y)
 			for s in 0:(res_pow_2.x - 1)
-				work_data = Vector{typeof(data[1])}(undef, res_pow_2.y)
+				work_data = Vector{data_type}(undef, res_pow_2.y)
 				for t in 0:(res_pow_2.y - 1)
 					work_data[t+1] = data[1] * 0.0 # BIG BRAIN JOHN HACK
 					for j in 0:3
@@ -106,7 +108,7 @@ struct MIPMap
 		n_levels = 1 + log_2_int(UInt32(max(maximum(res_pow_2), maximum(resolution))))
 		@info "N LEVELS: $(n_levels)" 
 
-		pyramid = Vector{Matrix{typeof(data[1])}}(undef, n_levels)
+		pyramid = Vector{Matrix{data_type}}(undef, n_levels)
 		pyrsize = Vector{Pnt2i}(undef, n_levels) # JOHN HACK oh god i hope this doesnt bite me later
 		
 		# Initialize most detailed level of MIPMap
@@ -124,7 +126,7 @@ struct MIPMap
 			s_res::Int64 = max(1, pyrsize[i-1+1].x ÷ 2)
 			t_res::Int64 = max(1, pyrsize[i-1+1].y ÷ 2)
 			# @info "PYR BUILD: $(i), $(s_res), $(t_res)"
-			pyramid[i+1] = zeros(typeof(data[1]), s_res, t_res)
+			pyramid[i+1] = zeros(data_type, s_res, t_res)
 			pyrsize[i+1] = Pnt2(s_res, t_res)
 
 			for t in 0:(t_res-1)
@@ -152,7 +154,7 @@ struct MIPMap
 			end
 		end
 
-		return new(
+		return new{data_type}(
 			do_trilinear,
 			max_anisotropy,
 			wrap_mode,
@@ -164,10 +166,10 @@ struct MIPMap
 	end
 end
 
-function texel(l::Matrix{Spectrum}, size::Pnt2i, wrap_mode::Int8, s::Int64, t::Int64)::Spectrum
+function texel(l::Matrix{T}, size::Pnt2i, wrap_mode::Int8, s::Int64, t::Int64)::T where {T <: Union{Spectrum, Float64}}
 	x, y = size.x, size.y
-	# hacky, not fucking with indexing in here. making me do that before texel is called
 	if wrap_mode == Int8(0) # repeat
+		@assert false # THIS IS GIVING INDEX OUT OF BOUNDS ERRORS
 		s = s % x
 		t = t % y
 	elseif wrap_mode == Int8(1) # clamp
@@ -175,12 +177,11 @@ function texel(l::Matrix{Spectrum}, size::Pnt2i, wrap_mode::Int8, s::Int64, t::I
 		t = clamp(t, 0, y - 1)
 	elseif wrap_mode == Int8(2) # black
 		if (s < 0) || (s > x) || (t < 0) || (t > y)
-			return spectrum_from_float(0.0)
+			return T == Float64 ? 0.0 : spectrum_from_float(0.0)
 		end
 	else
 		@assert false
 	end
-	# @info "\t\t\tTexcel: ($(s), $(t))"
 	return l[s + 1, t + 1]
 end
 
@@ -188,11 +189,11 @@ function levels(mip_map::MIPMap)::Int64
 	return length(mip_map.pyramid)
 end
 
-function lerp(t::Float64, a::Spectrum, b::Spectrum)::Spectrum
+function lerp(t::Float64, a::T, b::T)::T where {T <: Union{Spectrum, Float64}}
 	return t .* a + (1.0 - t) .* b 
 end
 
-function triangle(mip_map::MIPMap, level::Int64, st::Pnt2)::Spectrum
+function triangle(mip_map::MIPMap{T}, level::Int64, st::Pnt2)::T where {T <: Union{Spectrum, Float64}}
 	level = clamp(level, 0, levels(mip_map) - 1)
 	s = st.x * mip_map.pyrsize[level + 1].x - 0.5
 	t = st.y * mip_map.pyrsize[level + 1].y - 0.5
@@ -200,17 +201,15 @@ function triangle(mip_map::MIPMap, level::Int64, st::Pnt2)::Spectrum
 	t0::Int64 = floor(t)
 	ds = s - s0
 	dt = t - t0
-	# @info "\t\ttriangle: $(level), $(s), $(t), $(s0), $(t0)"
 	return (1 - ds) * (1 - dt) * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0    , t0) + 
 		   (1 - ds) *       dt * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0    , t0 + 1) + 
 		         ds * (1 - dt) * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0 + 1, t0) + 
 				 ds *       dt * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0 + 1, t0 + 1)
 end
 
-function lookup(mip_map::MIPMap, st::Pnt2, width::Float64=0.0)::Spectrum
+function lookup(mip_map::MIPMap{T}, st::Pnt2, width::Float64=0.0)::T where {T <: Union{Spectrum, Float64}}
 	# compute MIPMap level for trilienar filtering
 	level::Float64 = levels(mip_map) - 1.0 + log2(max(width, 1e-8))
-	# @info "\tmipmap look up $(level)"
 	
 	# preform trilinear interpolation at the appropriate MIPMap level
 	if level < 0
@@ -224,7 +223,7 @@ function lookup(mip_map::MIPMap, st::Pnt2, width::Float64=0.0)::Spectrum
 	end
 end
 
-function lookup(mip_map::MIPMap, st::Pnt2, dst0::Vec2, dst1::Vec2)::Spectrum
+function lookup(mip_map::MIPMap{T}, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {T <: Union{Spectrum, Float64}}
 	if mip_map.do_trilinear
 		width = max(maximum(abs.(dst0)), maximum(abs.(dst1)))
 		return lookup(mip_map, st, width)

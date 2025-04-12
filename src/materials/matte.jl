@@ -1,8 +1,12 @@
 # PBR 9.2.1 Matte Material
-struct Matte <: Material
-    Kd::Texture
-    sigma::Texture
-    bump_map::Maybe{Texture}
+struct Matte{
+        K <: AbstractTexture{Spectrum}, 
+        S <: AbstractTexture{Float64}, 
+        B <: Maybe{AbstractTexture{Float64}}
+    } <: Material
+    Kd::K
+    sigma::S
+    bump_map::B
 end
 
 # Equivalent to PBR's ComputeScatteringFunction
@@ -18,7 +22,7 @@ function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     @info "Spectrum Kd: $(r)"
 
     # TODO implement black body check
-    sigma = mean(clamp.(m.sigma(si), 0, 90))
+    sigma = clamp(m.sigma(si), 0, 90)
     if sigma == 0.0
         add!(si.bsdf, LambertianReflection(Spectrum(r)))
     else

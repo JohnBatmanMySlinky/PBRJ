@@ -1,10 +1,54 @@
 # PBR 9.2.2 Plastic Material
-struct Plastic <: Material
-    Kd::Texture
-    Ks::Texture
-    roughness::Texture
-    bump_map::Maybe{Texture}
+struct Plastic{
+    KD <: AbstractTexture{Spectrum},
+    KS <: AbstractTexture{Spectrum},
+    R <: Maybe{AbstractTexture{Float64}},
+    U <: Maybe{AbstractTexture{Float64}},
+    V <: Maybe{AbstractTexture{Float64}},
+    BM <: Maybe{AbstractTexture{Float64}}
+} <: Material
+    Kd::KD
+    Ks::KS
+    roughness::R
+    u_roughness::U
+    v_roughness::V
+    bump_map::BM
     remap_roughness::Bool
+
+    function Plastic(
+        Kd::KD=ConstantTexture(spectrum_from_float(0.25)),
+        Ks::KS=ConstantTexture(spectrum_from_float(0.25)),
+        roughness::R=nothing,
+        u_roughness::U=nothing,
+        v_roughness::V=nothing,
+        bump_map::BM=nothing,
+        remap_roughness::Bool=true
+    )::Plastic where {
+        KD <: AbstractTexture{Spectrum},
+        KS <: AbstractTexture{Spectrum},
+        R <: Maybe{AbstractTexture{Float64}},
+        U <: Maybe{AbstractTexture{Float64}},
+        V <: Maybe{AbstractTexture{Float64}},
+        BM <: Maybe{AbstractTexture{Float64}}
+    }
+        if !(roughness isa Nothing)
+            @assert (u_roughness isa Nothing) & (v_roughness isa Nothing)
+        else
+            @assert !(u_roughness isa Nothing) & !(v_roughness isa Nothing)
+        end
+        
+        if roughness isa Nothing
+            roughness = ConstantTexture(0.0)
+        end
+        if u_roughness isa Nothing
+            u_roughness = ConstantTexture(0.0)
+        end
+        if v_roughness isa Nothing
+            v_roughness = ConstantTexture(0.0)
+        end
+        
+        return new{KD, KS, R, U, V, BM}(Kd, Ks, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
+    end
 end
 
 

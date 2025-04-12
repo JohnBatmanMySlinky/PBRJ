@@ -5,7 +5,7 @@ struct BilinearPatchMesh
         p::Vector{Pnt3}
         n::Maybe{Vector{Nml3}}
         uv::Maybe{Vector{Pnt2}}
-        alpha_mask::Maybe{Texture}
+        alpha_mask::Maybe{AbstractTexture{Float64}}
     
     function BilinearPatchMesh(
         object_to_world::Transformation,
@@ -15,7 +15,7 @@ struct BilinearPatchMesh
         p::Vector{Pnt3},
         n::Maybe{Vector{Nml3}},
         uv::Maybe{Vector{Pnt2}},
-        alpha_mask::Maybe{Texture},
+        alpha_mask::Maybe{AbstractTexture{Float64}},
     )
         p = object_to_world.(p)
         if !(n isa Nothing)
@@ -50,7 +50,7 @@ function BilinearPatchGenerator(
     p::Vector{Pnt3},
     n::Maybe{Vector{Nml3}},
     uv::Maybe{Vector{Pnt2}},
-    alpha_mask::Maybe{Texture},
+    alpha_mask::Maybe{AbstractTexture{Float64}},
 )::Vector{BilinearPatch}
     mesh = BilinearPatchMesh(
         core.object_to_world,

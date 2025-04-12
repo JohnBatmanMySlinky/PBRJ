@@ -1,23 +1,41 @@
-struct HairMaterial <: Material
-	sigma_a::Maybe{Texture}     # spectrum
-	color::Maybe{Texture}       # spectrum
-	eumelanin::Maybe{Texture}   # float
-	pheomelanin::Maybe{Texture} # float
-	eta::Maybe{Texture}         # float
-	beta_m::Maybe{Texture}      # float
-	beta_n::Maybe{Texture}      # float
-	alpha::Maybe{Texture}       # float
+struct HairMaterial{
+	SA <: Maybe{AbstractTexture{Spectrum}},
+	C <: Maybe{AbstractTexture{Spectrum}},
+	E <: Maybe{AbstractTexture{Float64}},
+	P <: Maybe{AbstractTexture{Float64}},
+	ETA <: Maybe{AbstractTexture{Float64}},
+	BM <: Maybe{AbstractTexture{Float64}},
+	BN <: Maybe{AbstractTexture{Float64}},
+	A <: Maybe{AbstractTexture{Float64}}
+} <: Material
+	sigma_a::SA
+	color::C
+	eumelanin::E
+	pheomelanin::P
+	eta::ETA
+	beta_m::BM
+	beta_n::BN
+	alpha::A
 	
 	function HairMaterial(
-		sigma_a::Maybe{Texture},
-		color::Maybe{Texture},
-		eumelanin::Maybe{Texture},
-		pheomelanin::Maybe{Texture},
-		eta::Maybe{Texture},
-		beta_m::Maybe{Texture},
-		beta_n::Maybe{Texture},
-		alpha::Maybe{Texture}
-	)
+		sigma_a::SA,
+		color::C,
+		eumelanin::E,
+		pheomelanin::P,
+		eta::ETA,
+		beta_m::BM,
+		beta_n::BN,
+		alpha::A
+	)::HairMaterial where {
+		SA <: Maybe{AbstractTexture{Spectrum}},
+		C <: Maybe{AbstractTexture{Spectrum}},
+		E <: Maybe{AbstractTexture{Float64}},
+		P <: Maybe{AbstractTexture{Float64}},
+		ETA <: Maybe{AbstractTexture{Float64}},
+		BM <: Maybe{AbstractTexture{Float64}},
+		BN <: Maybe{AbstractTexture{Float64}},
+		A <: Maybe{AbstractTexture{Float64}}
+	}
 		if !(sigma_a isa Nothing)
 			@assert (color isa Nothing) & (eumelanin isa Nothing) & (pheomelanin isa Nothing)
 		elseif !(color isa Nothing)
@@ -27,19 +45,19 @@ struct HairMaterial <: Material
 		end
 
 		if eta isa Nothing
-			eta = ConstantTextureFloat(1.55)
+			eta = ConstantTexture(1.55)
 		end
 		if beta_m isa Nothing
-			beta_m = ConstantTextureFloat(0.3)
+			beta_m = ConstantTexture(0.3)
 		end
 		if beta_n isa Nothing
-			beta_n = ConstantTextureFloat(0.3)
+			beta_n = ConstantTexture(0.3)
 		end
 		if alpha isa Nothing
-			alpha = ConstantTextureFloat(2.0)
+			alpha = ConstantTexture(2.0)
 		end
 		
-		return new(sigma_a, color, eumelanin, pheomelanin, eta, beta_m, beta_n, alpha)
+		return new{SA, C, E, P, ETA, BM, BN, A}(sigma_a, color, eumelanin, pheomelanin, eta, beta_m, beta_n, alpha)
 	end
 end
 

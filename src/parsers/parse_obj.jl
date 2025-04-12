@@ -53,7 +53,7 @@ function parse_obj(
     object_to_world::RayTracing.Transformation, 
     reverse_orientation::Bool, 
     transform_swaps_handedness::Bool,
-    alpha_mask::RayTracing.Maybe{RayTracing.Texture},
+    alpha_mask::RayTracing.Maybe{RayTracing.AbstractTexture{Float64}},
 )
 	vertices = RayTracing.Pnt3[]
     vertex_indices = Int[]

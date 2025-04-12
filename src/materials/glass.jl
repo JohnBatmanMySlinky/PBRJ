@@ -1,22 +1,36 @@
-struct Glass <: Material
-    Kr::Texture
-    Kt::Texture
-    u_roughness::Texture
-    v_roughness::Texture
-    idx::Texture
-    bump_map::Maybe{Texture}
+struct Glass{
+    KR <: AbstractTexture{Spectrum},
+    KT <: AbstractTexture{Spectrum},
+    U <: AbstractTexture{Float64},
+    V <: AbstractTexture{Float64},
+    I <: AbstractTexture{Float64},
+    BM <: Maybe{AbstractTexture{Float64}}
+} <: Material
+    Kr::KR
+    Kt::KT
+    u_roughness::U
+    v_roughness::V
+    idx::I
+    bump_map::BM
     remap_roughness::Bool
 
     function Glass(
-        Kr::Texture=ConstantTexture(Pnt3(1.0)),
-        Kt::Texture=ConstantTexture(Pnt3(1.0)),
-        u_roughness::Texture=ConstantTexture(Pnt3(0.0)),
-        v_roughness::Texture=ConstantTexture(Pnt3(0.0)),
-        eta::Texture=ConstantTexture(Pnt3(1.5)),
-        bump_map::Maybe{Texture}=nothing,
+        Kr::KR=ConstantTexture(spectrum_from_float(1.0)),
+        Kt::KT=ConstantTexture(spectrum_from_float(1.0)),
+        u_roughness::U=ConstantTexture(0.0),
+        v_roughness::V=ConstantTexture(0.0),
+        idx::I=ConstantTexture(1.5),
+        bump_map::BM=nothing,
         remap_roughness::Bool=true
-    )::Glass
-        return new(Kr, Kt, u_roughness, v_roughness, eta, bump_map, remap_roughness)
+    )::Glass where {
+        KR <: AbstractTexture{Spectrum},
+        KT <: AbstractTexture{Spectrum},
+        U <: AbstractTexture{Float64},
+        V <: AbstractTexture{Float64},
+        I <: AbstractTexture{Float64},
+        BM <: Maybe{AbstractTexture{Float64}}
+    }
+        return new{KR, KT, U, V, I, BM}(Kr, Kt, u_roughness, v_roughness, idx, bump_map, remap_roughness)
     end
 end
 
@@ -24,12 +38,12 @@ end
 function (g::Glass)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Type{T}) where T <: TransportMode
     # if bump map, update si
     if !(g.bump_map isa Nothing)
-        bump!(p, si)
+        bump!(g, si)
     end
     
-    eta::Float64 = mean(g.idx(si))
-    urough::Float64 = mean(g.u_roughness(si))
-    vrough::Float64 = mean(g.v_roughness(si))
+    eta::Float64 = g.idx(si)
+    urough::Float64 = g.u_roughness(si)
+    vrough::Float64 = g.v_roughness(si)
     KR::Spectrum = g.Kr(si)
     KT::Spectrum = g.Kt(si)
 

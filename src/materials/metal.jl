@@ -1,24 +1,52 @@
-struct Metal <: Material
-    eta::Texture
-    k::Texture
-    roughness::Texture
-    u_roughness::Maybe{Texture}
-    v_roughness::Maybe{Texture}
-    bump_map::Maybe{Texture}
+struct Metal{
+    ETA <: Maybe{AbstractTexture{Spectrum}},
+    K <: Maybe{AbstractTexture{Spectrum}},
+    R <: Maybe{AbstractTexture{Float64}},
+    U <: Maybe{AbstractTexture{Float64}},
+    V <: Maybe{AbstractTexture{Float64}},
+    BM <: Maybe{AbstractTexture{Float64}}
+} <: Material
+    eta::ETA
+    k::K
+    roughness::R
+    u_roughness::U
+    v_roughness::V
+    bump_map::BM
     remap_roughness::Bool
 
     function Metal(
-        eta::Texture=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperN, CopperSamples)),
-        k::Texture=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperK, CopperSamples)),
-        roughness::Texture=ConstantTexture(spectrum_from_float(.01)),
-        u_roughness::Maybe{Texture}=nothing,
-        v_roughness::Maybe{Texture}=nothing,
-        bump_map::Maybe{Texture}=nothing,
+        eta::ETA=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperN, CopperSamples)),
+        k::K=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperK, CopperSamples)),
+        roughness::R=nothing,
+        u_roughness::U=nothing,
+        v_roughness::V=nothing,
+        bump_map::BM=nothing,
         remap_roughness::Bool=true
-    )::Metal
-        @info "Metal eta: $eta"
-        @info "Metal k: $k"
-        return new(eta, k, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
+    )::Metal where {
+        ETA <: Maybe{AbstractTexture{Spectrum}},
+        K <: Maybe{AbstractTexture{Spectrum}},
+        R <: Maybe{AbstractTexture{Float64}},
+        U <: Maybe{AbstractTexture{Float64}},
+        V <: Maybe{AbstractTexture{Float64}},
+        BM <: Maybe{AbstractTexture{Float64}}
+    }
+        if !(roughness isa Nothing)
+            @assert (u_roughness isa Nothing) & (v_roughness isa Nothing)
+        else
+            @assert !(u_roughness isa Nothing) & !(v_roughness isa Nothing)
+        end
+        
+        if roughness isa Nothing
+            roughness = ConstantTexture(0.0)
+        end
+        if u_roughness isa Nothing
+            u_roughness = ConstantTexture(0.0)
+        end
+        if v_roughness isa Nothing
+            v_roughness = ConstantTexture(0.0)
+        end
+        
+        return new{ETA, K, R, U, V, BM}(eta, k, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
     end
 end
 
