@@ -47,9 +47,8 @@ struct Film
 
 
         # allocate film image storage
-        pixels = Pixel[
-            Pixel() for y in 1:cropped_resolution[end], x in 1:cropped_resolution[begin]
-        ]
+        pixels = Pixel[Pixel() for y in 1:(cropped_resolution.y - 1), x in 1:(cropped_resolution.x - 1)]
+        @assert length(pixels) == length(cropped_pixel_bounds)
 
         # precompute filter weight table
         for y in 0:(filter_table_width - 1)
@@ -130,7 +129,7 @@ function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float
     discrete_point = point .- 0.5
     p0 = Pnt2i(ceil.(discrete_point .- t.filter_radius))
     p1 = Pnt2i(floor.(discrete_point .+ t.filter_radius) .+ 1)
-    p0 = max.(p0, max.(t.pixel_bounds.pMin, Pnt2i(1,1)))
+    p0 = max.(p0, t.pixel_bounds.pMin)
     p1 = min.(p1, t.pixel_bounds.pMax)   
 
     # Precompute x & y filter offsets.

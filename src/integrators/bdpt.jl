@@ -28,9 +28,8 @@ function render(
     @info "Sample Bounds $(sample_bounds)"
     sample_extent = diagonal(sample_bounds)
     tile_size = 16
-    width, height = Int64.(floor.((sample_extent .+ tile_size) ./ tile_size))
-    total_tiles = width * height - 1
-    print("Rendering " * num2str(total_tiles + 1) * " tiles\n")
+    n_x_tiles, n_y_tiles = Int64.(floor.((sample_extent .+ tile_size .- 1) ./ tile_size))
+    total_tiles = n_x_tiles * n_y_tiles
 
     # progress stuff
     prog = Progress(total_tiles)
@@ -40,7 +39,7 @@ function render(
 
     print("Utilizing $(Threads.nthreads()) threads\n\n")
     # the multi-threaded loop
-    Threads.@threads for k in 0:total_tiles
+    Threads.@threads for k in 0:(total_tiles-1)
         # this is a bullshit ass hack
         for wtf in 1:length(scene.b.primitives)
             if !(scene.b.primitives[wtf].mi.inside isa Nothing)
@@ -56,7 +55,7 @@ function render(
         end
 
         # Render a single tile using BDPT
-        x, y = k % width, k ÷ width
+        x, y = k % n_x_tiles, k ÷ n_x_tiles
         tile = Pnt2i(x, y)
         sampler = deepcopy(i.sampler)
 

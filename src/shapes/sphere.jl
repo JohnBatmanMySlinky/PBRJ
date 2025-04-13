@@ -84,7 +84,7 @@ function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64
     # improve Interaction
     p *= s.radius ./ distance(p, Pnt3(0,0,0))
     if p.x == 0 && p.y == 0
-        p = Pnt3(1e-5 * radius, p.y, p.z)
+        p = Pnt3(1e-5 * s.radius, p.y, p.z)
     end
 
     # compute phi
