@@ -31,7 +31,7 @@ function radical_inverse(prime_index::Int64, a::UInt64)::Float64
     return min(reversed_digits * inv_base_M, 1.0-eps());
 end
 
-function sobol_interval_to_index(m::UInt32, frame::UInt64, p::Pnt2)::Int64
+function sobol_interval_to_index(m::UInt32, frame::UInt64, p::Pnt2i)::Int64
     if m == 0
         return frame
     end

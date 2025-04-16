@@ -1,6 +1,0 @@
-julia -t 1 ../src/RayTracing.jl --render-simple false --image-dim 500 --samples-per-pixel 2 --file-name "../renders/wow.png"
-julia -t 2 ../src/RayTracing.jl --render-simple false --image-dim 500 --samples-per-pixel 2 --file-name "../renders/wow.png"
-julia -t 4 ../src/RayTracing.jl --render-simple false --image-dim 500 --samples-per-pixel 2 --file-name "../renders/wow.png"
-julia -t 8 ../src/RayTracing.jl --render-simple false --image-dim 500 --samples-per-pixel 2 --file-name "../renders/wow.png"
-julia -t 16 ../src/RayTracing.jl --render-simple false --image-dim 500 --samples-per-pixel 2 --file-name "../renders/wow.png"
-julia -t 32 ../src/RayTracing.jl --render-simple false --image-dim 500 --samples-per-pixel 2 --file-name "../renders/wow.png"
