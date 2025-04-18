@@ -584,7 +584,7 @@ function MIS_weight(
 
     @info """Inventory
     qs, $qs
-    pt, $pt
+    pt, $pt - $(camera_vertices[pt])
     qsMinus, $qs_minus
     ptMinus, $pt_minus
     """
