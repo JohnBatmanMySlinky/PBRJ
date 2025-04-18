@@ -144,6 +144,7 @@ end
 function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # get triangle vertices
     p0, p1, p2 = get_vertices(tri)
+    @info "\t\tTRIANGLE: Vertices - $p0, $p1, $p2"
     
     # perform ray-triangle intersection test
     ## transform vertices to ray coord space
@@ -220,7 +221,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     determinate = duv13[1] * duv23[2] - duv13[2] * duv23[1]
     degenerateUV = abs(determinate) < 1e-8
     if !degenerateUV
-        invdet = 1.0/determinate
+        inv_det = 1.0/determinate
         dpdu = Vec3(( duv23[2]*dp13 - duv13[2]*dp23) * inv_det)
         dpdv = Vec3((-duv23[1]*dp13 + duv13[1]*dp23) * inv_det)
     end
@@ -234,7 +235,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         dpdu = Vec3(dpu)
         dpdv = Vec3(dpv)
     end
-    # @info "TRIANGLE: dpdu=$(dpdu), dpdv=$(dpdv)"
+    @info "\t\tTriangle: dpdu=$(dpdu), dpdv=$(dpdv)"
 
     # interpolate uv coords and hit point
     phit = b0 * p0 + b1 * p1 + b2 * p2
@@ -265,17 +266,16 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
 
     # Override surface normal in _isect_ for triangle
     interaction.core.n = interaction.shading.n = Nml3(normalize(cross(dp13, dp23)))
-    # @info "Original normal: $(interaction.core.n)"
+    @info "Original normal: $(interaction.core.n)"
     if tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
-        # @info "FLIPPED NORMAL"
+        @info "FLIPPED NORMAL"
         interaction.core.n = interaction.shading.n = -interaction.core.n    
     end
 
     # TODO making shading tangents real
-    # TODO JOHN HACK FOR NORMAL FLAG
-    normal_flag = sum(sum.(tri.mesh.normals)) == 0.0
-    if !(normal_flag) || !(tri.mesh.shading_tangent isa Nothing)
+    if !(tri.mesh.normals isa Nothing) || !(tri.mesh.shading_tangent isa Nothing)
         # Initialize _Triangle_ shading geometry
+        @info "NOOOOOOOOO"
 
         # Compute shading normal _ns_ for triangle
         if !(tri.mesh.normals isa Nothing)
@@ -307,14 +307,14 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
 
         # Compute shading bitangent _ts_ for triangle and adjust _ss_
         ts = cross(ss, ns)
-        # @info "TRIANGLE: ts=$(ts), ss=$(ss), ns=$(ns)"
+        @info "TRIANGLE: ts=$(ts), ss=$(ss), ns=$(ns)"
         if length_squared(ts) > 0.0
             ts = normalize(ts)
             ss = cross(ts, ns)
         else
             _, ss, ts = orthonormal_basis(Vec3(ns))
         end
-        # @info "TRIANGLE AGAIN: ts=$(ts), ss=$(ss), ns=$(ns)"
+        @info "TRIANGLE AGAIN: ts=$(ts), ss=$(ss), ns=$(ns)"
 
         # Compute $\dndu$ and $\dndv$ for triangle shading geometry
         if !(tri.mesh.normals isa Nothing)
@@ -349,8 +349,11 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         if tri.core.reverse_orientation
             ts = -ts
         end
+        @info "OYE $(interaction.core.n)"
         set_shading_geomerty!(interaction, ss, ts, dndu, dndv, true)
+        @info "Original Normal Post Shading Geom: $(interaction.core.n)"
     end
+    @info "Original Normal AT THE END: $(interaction)"
     return true, t, interaction 
 end
 

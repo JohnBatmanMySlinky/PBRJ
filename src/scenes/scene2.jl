@@ -3,7 +3,7 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     lights = Light[]
 
     mat_gray = Matte(
-        ConstantTexture(spectrum_from_float(.4, .4, .4)),
+        ConstantTexture(spectrum_from_float(.5, .5, .5)),
         ConstantTexture(0.0),
         nothing
     )

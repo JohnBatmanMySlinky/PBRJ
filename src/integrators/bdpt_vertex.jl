@@ -284,15 +284,15 @@ function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
 end
 
 function pdf_light_origin(sampled::Vertex, scene::Scene, v::Vertex, light_distr::Distribution1D, light_num::Int64)::Float64
-    @info "MISWEIGHT <<a4>> shenanigans is is in pdfLightOrigin"
+    # @info "MISWEIGHT <<a4>> shenanigans is is in pdfLightOrigin"
     w = p(v) - p(sampled)
     (dot(w,w) == 0.0) && (return 0.0)
     w = Vec3(normalize(w))
     if is_infinite_light(sampled)
-        @info "MISWEIGHT <<a4>> shenanigans is in InfiniteLightDensity"
+        # @info "MISWEIGHT <<a4>> shenanigans is in InfiniteLightDensity"
         return infinite_light_density(scene.lights, light_distr, w)
     else
-        @info "MISWEIGHT <<a4>> shenanigans is NOT in InfiniteLightDensity"
+        # @info "MISWEIGHT <<a4>> shenanigans is NOT in InfiniteLightDensity"
         light = sampled.type == VTLight ? sampled.ei.light : sampled.si.primitive.area_light
         pdf_choice = discrete_pdf(light_distr, light_num)
         pdf_pos, _ = pdf_le(light, Ray(p(sampled), w, time(sampled), typemax(Float64)), ng(sampled))
@@ -304,7 +304,7 @@ function pdf_light(v0::Vertex, scene::Scene, v1::Vertex)::Float64
     w = Vec3(p(v1) - p(v0))
     invdist2 = 1/length_squared(w)
     w *= sqrt(invdist2)
-    @info "PLSPLS: apparently its not an infinite light? $(is_infinite_light(v0))"
+    # @info "PLSPLS: apparently its not an infinite light? $(is_infinite_light(v0))"
     if is_infinite_light(v0)
         # Compute planar sampling density for infinite light sources
         wb = world_bounds(scene.b)

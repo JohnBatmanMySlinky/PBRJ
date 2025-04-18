@@ -140,7 +140,7 @@ end
 
 function empty_surface_interation()::SurfaceInteraction
     return InstantiateSurfaceInteraction(
-        Pnt3(1), 
+        Pnt3(1,1,1), 
         0.0,
         Vec3(1,1,1),
         Pnt2(.5, .5),

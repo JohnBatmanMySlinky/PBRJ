@@ -564,9 +564,13 @@ function MIS_weight(
     (s + t == 2) && (return 1.0)
     sum_ri = 0.0
 
-    for i in reverse(1:(t-1))
-        @info "MISWEIGHT LOOP: $(i)"
+    for i in 0:(t-1)
+        @info "MISWEIGHT LOOP CAMERA BEFORE: $(i)"
         @info "\t\tRev $(camera_vertices[i+1].pdf_rev), Fwd $(camera_vertices[i+1].pdf_fwd)"
+    end
+    for i in 0:(s)
+        @info "MISWEIGHT LOOP LIGHT BEFORE: $(i)"
+        @info "\t\tRev $(light_vertices[i+1].pdf_rev), Fwd $(light_vertices[i+1].pdf_fwd)"
     end
 
     # Temporarily update vertex properties for current strategy
@@ -578,7 +582,12 @@ function MIS_weight(
     qs_minus = (s > 1) ? s-2+1 : 0 # --> LIGHT
     pt_minus = (t > 1) ? t-2+1 : 0 # --> CAMERA
 
-    @info "MISWEIGHTLOOP: s $(s), t $(t), qs $(qs), qs_mins $(qs_minus), pt $(pt), pt_minus $(pt_minus)"
+    @info """Inventory
+    qs, $qs
+    pt, $pt
+    qsMinus, $qs_minus
+    ptMinus, $pt_minus
+    """
 
     # LOG INITIAL STATE
     logg = Dict{Tuple{Int64,Int64}, VertexLog}()
@@ -620,7 +629,7 @@ function MIS_weight(
     end
 
     if s==1 && t==2
-        @info "MISWEIGHT: <<a1>> $(camera_vertices[1+1].pdf_rev)"
+        # @info "MISWEIGHT: <<a1>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Mark connection vertices as non-degenerate
@@ -629,7 +638,7 @@ function MIS_weight(
     (qs > 0) && (light_vertices[qs].delta = false)
 
     if s==1 && t==2
-        @info "MISWEIGHT: <<a2,a3>> $(camera_vertices[1+1].pdf_rev)"
+        # @info "MISWEIGHT: <<a2,a3>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Update reverse density of vertex $\pt{}_{t-1}$
@@ -637,7 +646,7 @@ function MIS_weight(
     if pt > 0 
         if s > 0
             if qs_minus == 0
-                @info "BOOP"
+                # @info "BOOP"
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, nothing, camera_vertices[pt])
             else
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, light_vertices[qs_minus], camera_vertices[pt])
@@ -647,10 +656,10 @@ function MIS_weight(
         end
     end
 
-    @info "HAHA: pt: $pt, s: $s, qsMiuns: $qs_minus"
+    # @info "HAHA: pt: $pt, s: $s, qsMiuns: $qs_minus"
 
     if s==1 && t==2
-        @info "MISWEIGHT: <<a4>> $(camera_vertices[1+1].pdf_rev)"
+        # @info "MISWEIGHT: <<a4>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Update reverse density of vertex $\pt{}_{t-2}$
@@ -664,7 +673,7 @@ function MIS_weight(
     end
 
     if s==1 && t==2
-        @info "MISWEIGHT: <<a5>> $(camera_vertices[1+1].pdf_rev)"
+        # @info "MISWEIGHT: <<a5>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Update reverse density of vertices $\pq{}_{s-1}$ and $\pq{}_{s-2}$
@@ -681,17 +690,17 @@ function MIS_weight(
     end
 
     if s==1 && t==2
-        @info "MISWEIGHT: <<a6,a7>> $(camera_vertices[1+1].pdf_rev)"
+        # @info "MISWEIGHT: <<a6,a7>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Consider hypothetical connection strategies along the camera subpath
     ri = 1.0
     for i in reverse(1:(t-1))
-        @info "MISWEIGHT LOOP: $(i)"
+        # @info "MISWEIGHT LOOP: $(i)"
         ri *= remap0(camera_vertices[i+1].pdf_rev) / remap0(camera_vertices[i+1].pdf_fwd)
         if !camera_vertices[i+1].delta && !camera_vertices[i-1+1].delta
             sum_ri += ri
-            @info "MISWEIGHT: Camera Subpath: sumRi: $(sum_ri) ri: $(ri) aka $(remap0(camera_vertices[i+1].pdf_rev)) / $(remap0(camera_vertices[i+1].pdf_fwd))"
+            # @info "MISWEIGHT: Camera Subpath: sumRi: $(sum_ri) ri: $(ri) aka $(remap0(camera_vertices[i+1].pdf_rev)) / $(remap0(camera_vertices[i+1].pdf_fwd))"
         end
     end
 
@@ -702,7 +711,7 @@ function MIS_weight(
         ri *= remap0(light_vertices[i+1].pdf_rev) / remap0(light_vertices[i+1].pdf_fwd)
         delta_light_vertex = i > 0 ? light_vertices[i-1+1].delta : is_delta_light(light_vertices[0+1].ei.light)
         if !light_vertices[i+1].delta && !delta_light_vertex
-            @info "MISWEIGHT: Light Subpath: sumRi: $(sum_ri) ri: $(ri)"
+            # @info "MISWEIGHT: Light Subpath: sumRi: $(sum_ri) ri: $(ri)"
             sum_ri += ri
         end
     end

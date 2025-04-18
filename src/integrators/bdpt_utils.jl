@@ -19,10 +19,10 @@ function infinite_light_density(lights::Vector{Light}, light_distr::Distribution
         light = lights[i]
         if is_infinite_light(light)
             pdf += pdf_li(light, empty_surface_interation(), -w) * light_distr.func[i]
-            @info "MISWEIGHT <<a4>> SHENANIGANS: pdf $(pdf)"
+            # @info "MISWEIGHT <<a4>> SHENANIGANS: pdf $(pdf)"
         end
     end
-    @info "MISWEIGHT <<a4>> SHENANIGANS: func_int $(light_distr.func_int) count $(length(light_distr.func))"
+    # @info "MISWEIGHT <<a4>> SHENANIGANS: func_int $(light_distr.func_int) count $(length(light_distr.func))"
     return pdf / (light_distr.func_int * length(light_distr.func))
 end
 
