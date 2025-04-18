@@ -3,21 +3,21 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     lights = Light[]
 
     mat_gray = Matte(
-        ConstantTexture(Vec3(.4, .4, .4)),
-        ConstantTexture(Vec3(0, 0, 0)),
+        ConstantTexture(spectrum_from_float(.4, .4, .4)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_white = Matte(
-        ConstantTexture(Vec3(1.0, 1.0, 1.0)),
-        ConstantTexture(Vec3(0, 0, 0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_glass = Glass(
-        ConstantTexture(Pnt3(.85, .85, 1.0)),
-        ConstantTexture(Pnt3(.85, .85, 1.0)),
-        ConstantTexture(Pnt3(0.0)),
-        ConstantTexture(Pnt3(0.0)),
-        ConstantTexture(Pnt3(1.25)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.25),
         nothing,
         true
     )
@@ -25,10 +25,10 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # GEOMETRY
     # blue sphere
     glass_translate = Translate(Pnt3(0,0,0)) 
-    glass =  parse_obj(
+    glass = parse_obj(
         "../ref/caustic-glass/caustic_glass.obj",
         glass_translate,
-        true,
+        false,
         false,
         nothing
     )
@@ -39,12 +39,10 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # floor
     floor_transform = Translate(Pnt3(0,0,0))
-    floor = Rectangle(
-        Pnt2(-15, -15), 
-        Pnt2(15, 15), 
-        1.456639051,
-        2, 
-        ShapeCore(floor_transform, Inv(floor_transform), false, false),
+    floor = parse_obj(
+        "../ref/caustic-glass/floor.obj",
+        floor_transform,
+        false,
         false,
         nothing
     )
@@ -52,26 +50,34 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(tri, mat_gray, nothing))
     end
 
-    # spot light
-    spot_light = SpotLight(
-        LookAt(Pnt3(0,5,9), Pnt3(-5, 2.75, 0), Vec3(0,-1,0)), 
-        spectrum_from_float(1390.8113403320, 1180.6366500854, 1050.3887557983 ), 
-        30.0, 
-        5.0
-    )
-    push!(lights, spot_light)
-
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
+    # spot light
+    spot_light = SpotLight(
+        LookAt(Pnt3(0,5,9), Pnt3(-5, 2.75, 0), Vec3(0,-1,0)), 
+        spectrum_from_float(139.8113403320, 118.6366500854, 105.3887557983 ), 
+        30.0, 
+        5.0
+    )
+    push!(lights, spot_light)
+
+    l_2_w = Translate(Pnt3(0,0,0))
+    light = UniformInfiniteLight(
+        world_bounds(bvh), 
+        l_2_w, 
+        Spectrum(0.1, 0.1, 0.1), 
+    )
+    push!(lights, light)
+
     # Instantiate a Filter
-    filter = BoxFilter(Pnt2(.25, .25))
+    filter = BoxFilter(Pnt2(.5, .5))
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
