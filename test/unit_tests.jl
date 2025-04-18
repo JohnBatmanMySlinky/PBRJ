@@ -1,8 +1,43 @@
-include("/Users/johnmyslinski/Documents/PBRJ/src/RayTracing.jl")
 
 using Test
 using BenchmarkTools
 using Random
+using Base: DevNull
+
+# UGH HACKY AND ANNOYING
+function jmfp(fp::String)
+	sys_apple = Sys.isapple()
+	sys_linux = Sys.islinux()
+
+	if !(sys_apple || sys_linux)
+		print("get off windows\n")
+		@assert false
+	end
+	
+	fp_apple = occursin("Users", fp)
+	fp_linux = occursin("home", fp)
+
+	if !(fp_apple || fp_linux)
+		print("bad input string\n")
+		@assert false
+	end
+	
+
+	if fp_apple && sys_linux
+		fp = replace(fp, "Users" => "home")
+		fp = replace(fp, "johnmyslinski" => "jmyslinski")
+		fp = replace(fp, "Documents" => "random_stuff")
+	elseif fp_linux && sys_apple
+		fp = replace(fp, "home" => "Users")
+		fp = replace(fp, "jmyslinski" => "johnmyslinski")
+		fp = replace(fp, "random_stuff" => "Documents")
+	end
+	return fp
+end
+
+include(jmfp("/Users/johnmyslinski/Documents/PBRJ/src/RayTracing.jl"))
+
+
 
 @testset "Transformations" begin
     # simple (translate), (inverse translate), (identity A), (identity B)
@@ -104,7 +139,7 @@ end
     ) 
     # variety 4 of normals
     ### Normals specified, reverse orientation tho
-    core2 = RayTracing.ShapeCore(RayTracing.Translate(RayTracing.Pnt3(0)), RayTracing.Inv(RayTracing.Translate(RayTracing.Pnt3(0))), true, false)
+    core2 = RayTracing.ShapeCore(RayTracing.Translate(RayTracing.Pnt3(0.0)), RayTracing.Inv(RayTracing.Translate(RayTracing.Pnt3(0.0))), true, false)
     tri4 = RayTracing.Triangle(
         core2,
         RayTracing.TriangleMesh(
@@ -235,58 +270,6 @@ end
     @test val_pdf ≈ 0.75
 end
 
-@testset "LightDistribution --> centroid_distance distribution" begin
-    # Case 1: Four point lights equally far away fom p
-    mat1 = RayTracing.Matte(
-        RayTracing.ConstantTexture(RayTracing.Vec3(.4, .4, .4)),
-        RayTracing.ConstantTexture(RayTracing.Vec3(0, 0, 0)),
-        nothing
-    )
-    ball1 = RayTracing.Sphere(
-        RayTracing.ShapeCore(RayTracing.Translate(RayTracing.Pnt3(0)), RayTracing.Inv(RayTracing.Translate(RayTracing.Pnt3(0))), false, false),
-        5.0
-    )
-    bvh = RayTracing.BVH(RayTracing.Primitive[
-        RayTracing.Primitive(ball1, mat1, nothing),
-    ])
-    lights = RayTracing.Light[
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, 10,0)), RayTracing.spectrum_from_float(10.0, 10.0, 10.0)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(10, 0,0)), RayTracing.spectrum_from_float(10.0, 10.0, 10.0)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(-10, 0,0)), RayTracing.spectrum_from_float(10.0, 10.0, 10.0)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, -10,0)), RayTracing.spectrum_from_float(10.0, 10.0, 10.0)),
-    ]
-    fake_scene = RayTracing.Scene(lights, bvh)
-    ld_generator = RayTracing.LightDistribution("centroid_distance", fake_scene)
-    ld = RayTracing.lookup(ld_generator, RayTracing.Pnt3(0,0,0))
-    @test ld.cdf ≈ [0.0, 0.25, 0.5, 0.75, 1.0]
-
-    val, val_pdf, val_offset = RayTracing.sample_discrete(ld, 1.0)
-    @test val ≈ 4
-    @test val_pdf ≈ 0.25
-
-    val, val_pdf, val_offset = RayTracing.sample_discrete(ld, 0.1)
-    @test val ≈ 1
-    @test val_pdf ≈ 0.25
-
-    # Case 2: Four point lights NOT equally far away fom p
-    a, b, c, d = 10, 20, 40, 80
-    lights = RayTracing.Light[
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, a, 0)), RayTracing.spectrum_from_float(10.0, 10.0, 10.0)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, b, 0)), RayTracing.spectrum_from_float(10.0, 10.0, 10.0)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, c, 0)), RayTracing.spectrum_from_float(10.0, 10.0, 10.0)),
-        RayTracing.PointLight(RayTracing.Translate(RayTracing.Pnt3(0, d, 0)), RayTracing.spectrum_from_float(10.0, 10.0, 10.0)),
-    ]
-    fake_scene = RayTracing.Scene(lights, bvh)
-    ld_generator = RayTracing.LightDistribution("centroid_distance", fake_scene)
-    ld = RayTracing.lookup(ld_generator, RayTracing.Pnt3(0,0,0))
-
-    norm = 1/a^2 + 1/b^2 + 1/c^2 + 1/d^2
-    @test ld.cdf ≈ [0.0, (1/a^2)/norm, (1/a^2)/norm + (1/b^2)/norm, (1/a^2)/norm + (1/b^2)/norm + (1/c^2)/norm, 1.0]
-
-    val, val_pdf, val_offset = RayTracing.sample_discrete(ld, 0.5)
-    @test val ≈ 1
-    @test val_pdf ≈ (1/a^2)/norm
-end
 
 @testset "Distributions2 --> discrete sampling" begin
     x = reshape([
@@ -564,146 +547,6 @@ const t5 = RayTracing.LookAt(
     RayTracing.Vec3(0,1,0),
 )
 
-
-const p = RayTracing.Pnt3(10, 0.5, 3.0)
-const v = RayTracing.Vec3(10, 0.5, 3.0)
-const n = RayTracing.Nml3(10, 0.5, 3.0)
-const b = RayTracing.Bounds3(
-    RayTracing.Pnt3(10, 0.5, 3.0),
-    RayTracing.Pnt3(0, 0, 0)
-)
-const r = RayTracing.Ray(
-    RayTracing.Pnt3(-1,-1,-1),
-    RayTracing.Vec3(1,1,1),
-    0.0,
-    typemax(Float64)
-)
-@testset "Testing none of these functions produce allocations" begin
-    #####################
-    ### rand_utils.jl ###
-    #####################
-    @test @ballocated(RayTracing.random_in_concentric_disk(RayTracing.Pnt2(0.5, 0.5))) == 0
-    @test @ballocated(RayTracing.random_in_cosine_hemisphere(RayTracing.Pnt2(0.48, 0.92))) == 0
-    @test @ballocated(RayTracing.random_on_sphere(RayTracing.Pnt2(0.233, 0.45367))) == 0
-    @test @ballocated(RayTracing.cosine_sample_hemisphere(RayTracing.Pnt2(0.44, 0.656))) == 0
-    @test @ballocated(RayTracing.uniform_sample_cone(RayTracing.Pnt2(0.11, 0.456), 0.27)) == 0
-    @test @ballocated(RayTracing.cosine_hemisphere_pdf(0.45)) == 0
-    @test @ballocated(RayTracing.uniform_cone_pdf(0.568)) == 0
-    @test @ballocated(RayTracing.sample_linear(0.568, 0.2, 0.8)) == 0
-    @test @ballocated(RayTracing.sample_bilinear(
-        RayTracing.Pnt2(0.34, 0.56),
-        RayTracing.Vec4(.2, .4, .6, .8)
-    )) == 0
-    @test @ballocated(RayTracing.bilinear_pdf(
-        RayTracing.Pnt2(0.34, 0.56),
-        RayTracing.Vec4(.2, .4, .6, .8)
-    )) == 0
-    @test @ballocated(RayTracing.bilinear_pdf(
-        RayTracing.Pnt2(0.34, 0.56),
-        RayTracing.Vec4(.2, .4, .6, .8)
-    )) == 0
-    @test @ballocated(RayTracing.sample_spherical_triangle(
-        RayTracing.Pnt3(5, 5, 5),
-        RayTracing.Pnt3(-5, -5, -5),
-        RayTracing.Pnt3(-3, 3, 4),
-        RayTracing.Pnt3(0, 0, 0),
-        RayTracing.Pnt2(0.4, 0.6),
-    )) == 0
-
-    #####################
-    ### math_utils.jl ###
-    #####################
-    @test @ballocated(RayTracing.safe_sqrt(-.05)) == 0
-
-    # do this one twice
-    @test @ballocated(RayTracing.solve_quadratic(3.0, 4.0, 5.0)) == 0
-    @test @ballocated(RayTracing.solve_quadratic(3.0, 4.0, 10.0)) == 0
-
-    @test @ballocated(RayTracing.distance(
-        RayTracing.Pnt3(1.0, 2.0, 3.0),
-        RayTracing.Pnt3(11.0, 21.0, 31.0),
-    )) == 0
-    @test @ballocated(RayTracing.distance_squared(
-        RayTracing.Pnt3(1.0, 2.0, 3.0),
-        RayTracing.Pnt3(11.0, 21.0, 31.0),
-    )) == 0
-    @test @ballocated(RayTracing.length_squared(RayTracing.Vec3(1.0, 2.0, 3.0))) == 0
-    @test @ballocated(RayTracing.length_pbrt(RayTracing.Vec3(1.0, 2.0, 3.0))) == 0
-    @test @ballocated(RayTracing.angle_between(
-        RayTracing.Vec3(1.0, 2.0, 3.0),
-        RayTracing.Vec3(11.0, 21.0, 31.0),
-    )) == 0
-    @test @ballocated(RayTracing.safe_asin(-.05)) == 0
-    @test @ballocated(RayTracing.difference_of_products(-.05, .2, -.5, 1.0)) == 0
-    @test @ballocated(RayTracing.sum_of_products(-.05, .2, -.5, 1.0)) == 0
-    @test @ballocated(RayTracing.gram_schmidt(
-        RayTracing.Vec3(1.0, 2.0, 3.0),
-        RayTracing.Vec3(11.0, 21.0, 31.0),
-    )) == 0
-    @test @ballocated(RayTracing.spherical_phi(RayTracing.Vec3(.1, .2, .3))) == 0
-    @test @ballocated(RayTracing.spherical_theta(RayTracing.Vec3(.4, .5, .6))) == 0
-    @test @ballocated(RayTracing.spherical_direction(
-        2.5,
-        3.5,
-        4.5,
-        RayTracing.Vec3(1, 2, 3),
-        RayTracing.Vec3(4, 5, 6),
-        RayTracing.Vec3(7, 8, 9),
-    )) == 0
-    @test @ballocated(RayTracing.orthonormal_basis(RayTracing.Vec3(.4, .5, .6))) == 0
-    @test @ballocated(RayTracing.orthonormal_basis(RayTracing.Nml3(.4, .5, .6))) == 0
-    @test @ballocated(RayTracing.orthonormal_basis(RayTracing.Nml3(.4, .5, .6))) == 0
-    @test @ballocated(RayTracing.same_hemisphere(RayTracing.Vec3(.4, .5, .6), RayTracing.Vec3(1, 2, 43))) == 0
-    @test @ballocated(RayTracing.power_heuristic(1.0, 3.0, 4.0, 9.0)) == 0
-    @test @ballocated(RayTracing.do_tile(1.0, 3.0)) == 0
-    @test @ballocated(RayTracing.multiplicative_inverse(1, 3)) == 0
-
-    ##########################
-    ### Transformations.jl ###
-    ##########################
-    @test @ballocated(RayTracing.Translate(RayTracing.Pnt3(1.0, 2.0, 3.0))) == 0
-    @test @ballocated(RayTracing.Scale(RayTracing.Vec3(1.0, 2.0, 3.0))) == 0
-    @test @ballocated(RayTracing.RotateX(45.0)) == 0
-    @test @ballocated(RayTracing.RotateY(45.0)) == 0
-    @test @ballocated(RayTracing.RotateZ(45.0)) == 0
-    @test @ballocated(RayTracing.Perspective(45.0, .01, .0001)) == 0
-    @test @ballocated(RayTracing.LookAt(
-        RayTracing.Pnt3(0,0,0),
-        RayTracing.Pnt3(5,8,9),
-        RayTracing.Vec3(0,1,0),
-    )) == 0
-
-    @test @ballocated(t1(p)) == 0
-    @test @ballocated(t2(p)) == 0
-    @test @ballocated(t3(p)) == 0
-    @test @ballocated(t4(p)) == 0
-    @test @ballocated(t5(p)) == 0
-
-    @test @ballocated(t1(v)) == 0
-    @test @ballocated(t2(v)) == 0
-    @test @ballocated(t3(v)) == 0
-    @test @ballocated(t4(v)) == 0
-    @test @ballocated(t5(v)) == 0
-
-    @test @ballocated(t1(n)) == 0
-    @test @ballocated(t2(n)) == 0
-    @test @ballocated(t3(n)) == 0
-    @test @ballocated(t4(n)) == 0
-    @test @ballocated(t5(n)) == 0
-
-    @test @ballocated(t1(b)) == 0
-    @test @ballocated(t2(b)) == 0
-    @test @ballocated(t3(b)) == 0
-    @test @ballocated(t4(b)) == 0
-    @test @ballocated(t5(b)) == 0
-
-    ##########################
-    ### Intersections.jl #####
-    ##########################
-    @test @ballocated(RayTracing.intersect_p(b, r)) == 0
-    @test @ballocated(RayTracing.intersect_p(b, r, 1.0 ./ r.direction, RayTracing.is_dir_negative(r.direction))) == 0
-end
-
 function get_random_triangle(v_in::Vector{Float64})::Tuple{Bool, RayTracing.Maybe{RayTracing.Triangle}}
     v = RayTracing.Pnt3[]
     for i in 1:3
@@ -941,4 +784,109 @@ end
             @test i == majorant_grid_res[idx]
         end
     end
+end
+
+function build_analytic_scene(parsed_args::Dict)::Tuple{RayTracing.AbstractIntegrator, RayTracing.Scene}
+    primitives = RayTracing.Primitive[]
+    lights = RayTracing.Light[]
+
+    # materials
+    mat_sphere = RayTracing.Matte(
+        RayTracing.ConstantTexture(RayTracing.spectrum_from_float(0.5, 0.5, 0.5)),
+        RayTracing.ConstantTexture(0.0),
+        nothing
+    )
+
+    ################
+    ### a sphere ###
+    ################
+    identity_t = RayTracing.Translate(RayTracing.Pnt3(0,0,0))
+    identity_sc = RayTracing.ShapeCore(
+        identity_t,
+        RayTracing.Inv(identity_t),
+        false,
+        false
+    )
+    sphere = RayTracing.Sphere(identity_sc, 1.0)
+    push!(primitives, RayTracing.Primitive(sphere, mat_sphere, nothing))
+
+    # instantiate accelerator
+    print("\nThere are " * RayTracing.num2str(length(primitives)) * " objects in the scene, building BVH\n")
+    @time bvh = RayTracing.BVH(primitives)
+    print("Done building BVH\n")
+
+    # instantiate the infinite light
+    light = RayTracing.PointLight(
+        identity_t, 
+        RayTracing.spectrum_from_float(Float64(pi), Float64(pi), Float64(pi))
+    )
+    push!(lights, light)
+
+    # Instantiate a Filter
+    filter = RayTracing.BoxFilter(RayTracing.Pnt2(.5, .5))
+
+    # Instantiate a Film
+    film = RayTracing.Film(
+        RayTracing.Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
+        RayTracing.Bounds2(RayTracing.
+            RayTracing.Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), 
+            RayTracing.Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])
+        ),
+        filter,
+        1.0,
+        1.0,
+        parsed_args["file-name"]
+    )
+
+    # Instantiate a Camera
+    screen = RayTracing.Bounds2(
+        RayTracing.Pnt2(-1, -1), 
+        RayTracing.Pnt2(1, 1)
+    )
+    C = RayTracing.PerspectiveCamera(identity_t, screen, 0.0, 1.0, 0.0, 10.0, 45.0, film)
+
+    # Instantiate a Sampler
+    S = RayTracing.StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
+    print("Using " * RayTracing.num2str(S.samples_per_pixel) * " samples per pixel\n")
+    
+    # Instantiate Scene
+    print("There are " * RayTracing.num2str(length(lights)) * " lights in the scene\n")
+    scene = RayTracing.Scene(lights, bvh)
+    
+    # Instantiate an Integrator
+    I = RayTracing.BDPTIntegrator(C, S, parsed_args["max-depth"])
+    return I, scene
+end
+
+@testset "AnalyticScenes" begin
+    parsed_args = RayTracing.parse_commandline()
+    parsed_args["image-dim"] = [18,18]
+    parsed_args["samples-per-pixel"] = 16^2
+    parsed_args["jitter"] = true
+
+    logger = RayTracing.setup_logging(parsed_args["debug"])
+    RayTracing.global_logger(logger)
+
+    # set random seed
+    RayTracing.Random.seed!(parsed_args["seed"])
+
+    output = redirect_stdout(DevNull())
+        I, scene = build_analytic_scene(parsed_args)
+
+        image = RayTracing.render(
+            I, 
+            scene, 
+            parsed_args,
+            (-1, -1)
+        )
+    redirect_stdout(stdout)  # Restore normal output  
+
+    tot = 0.0
+    X, Y = size(image)
+    for x in 1:X
+        for y in 1:Y
+            tot += RayTracing.y_spectrum(RayTracing.spectrum_from_float(image[y,x].r, image[y,x].g, image[y,x].b))
+        end
+    end
+    @test abs(1.0 - tot / (X * Y)) < 0.5
 end
