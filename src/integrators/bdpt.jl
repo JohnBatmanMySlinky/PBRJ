@@ -646,17 +646,19 @@ function MIS_weight(
     if pt > 0 
         if s > 0
             if qs_minus == 0
-                # @info "BOOP"
+                @info "A"
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, nothing, camera_vertices[pt])
             else
+                @info "B"
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, light_vertices[qs_minus], camera_vertices[pt])
             end
         else
+            @info "C"
             camera_vertices[pt].pdf_rev = pdf_light_origin(camera_vertices[pt], scene, camera_vertices[pt_minus], light_distr, light_num)
         end
     end
 
-    # @info "HAHA: pt: $pt, s: $s, qsMiuns: $qs_minus"
+    @info "pt, $pt - $(camera_vertices[pt])"
 
     if s==1 && t==2
         # @info "MISWEIGHT: <<a4>> $(camera_vertices[1+1].pdf_rev)"
