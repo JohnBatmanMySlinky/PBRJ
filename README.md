@@ -203,6 +203,7 @@ Render
         - ~~logging~~
 
 # Bugs
+- IF FILM FILTER < 0.5 I GET BLACK LINES
 - how is path accessible to my callback?
 - remove clamp from Distribution
     - remember my wonky plot for Sobol from work show off? Is that problematic?

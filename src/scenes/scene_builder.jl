@@ -1,6 +1,11 @@
 """
 scene 1: indoor office ✅
+    - use better materials (floor)
+    - add geometry
 scene 2: caustic glass 🟨
+    - https://www.pbrt.org/scenes-v3_images/f16-9c.jpg
+    - black lines in glass are missing in mine
+    - fov and dimensions are differnet
 scene 3: AOIntegrator + dragon ✅
 scene 4: cornell box ✅
 scene 5: soft bodies ✅
