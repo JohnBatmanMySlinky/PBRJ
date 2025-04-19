@@ -7,8 +7,12 @@ scene 2: caustic glass 🟨
     - black lines in glass are missing in mine
     - fov and dimensions are differnet
 scene 3: AOIntegrator + dragon ✅
+    - floor is uneven :/
 scene 4: cornell box ✅
+    - need to mess with medium params to make it a bit less dense
 scene 5: soft bodies ✅
+    - better material? 
+    - infinite light?
 scene 6: goursat ✅
 scene 7: julia logo ✅
 scene 8: an anemic leafless procedural tree ✅
