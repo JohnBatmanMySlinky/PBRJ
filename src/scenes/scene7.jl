@@ -5,27 +5,27 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # MATERIALS
     mat_gray = Matte(
         ConstantTexture(spectrum_from_float(.4, .4, .4)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_white = Matte(
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_julia_green = Matte(
         ConstantTexture(spectrum_from_float(0.22, 0.596, .149)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_julia_purple = Matte(
         ConstantTexture(spectrum_from_float(0.584, .345, .698)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_julia_red = Matte(
         ConstantTexture(spectrum_from_float(.235, .2, .796)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     #######################
@@ -185,7 +185,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,

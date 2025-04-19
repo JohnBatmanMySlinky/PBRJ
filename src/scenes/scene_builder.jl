@@ -14,7 +14,11 @@ scene 5: soft bodies ✅
     - better material? 
     - infinite light?
 scene 6: goursat ✅
-scene 7: julia logo ✅
+    - better material? 
+    - infinite light?
+    - something fucky with the normals...
+scene 7: julia logo w/ tea pots ✅
+    - more interesting floor. maybe water???
 scene 8: an anemic leafless procedural tree ✅
 scene 9: a boringly material'd orb 🟨
 scene 10: a cloud + SimpleVolPathIntegrator ✅

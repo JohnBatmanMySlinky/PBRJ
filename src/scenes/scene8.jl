@@ -5,27 +5,27 @@ function make_scene8(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # MATERIALS
     mat_gray = Matte(
         ConstantTexture(spectrum_from_float(.4, .4, .4)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_white = Matte(
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_julia_green = Matte(
         ConstantTexture(spectrum_from_float(0.22, 0.596, .149)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_julia_purple = Matte(
         ConstantTexture(spectrum_from_float(0.584, .345, .698)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_julia_red = Matte(
         ConstantTexture(spectrum_from_float(.235, .2, .796)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     #######################
