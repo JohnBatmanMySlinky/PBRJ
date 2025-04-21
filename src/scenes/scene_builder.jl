@@ -28,6 +28,7 @@ scene 13: DISNEY CLOUD 🟨
 scene 14: Anemone 🟨
 scene 15: procedural clouds 🟨
 scene 16: elevator hallway 🟨
+scene 17: barcelona pavillion
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
 scene 100: Furry Bunny from pbrt-v4 ✅ (just dont use HairBSDF)
 scene 101: SF3D CUP 🔴 (obj parser sucks)
@@ -66,6 +67,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene15(parsed_args)
     elseif parsed_args["scene-number"] == 16
         return make_scene16(parsed_args)
+    elseif parsed_args["scene-number"] == 17
+        return make_scene17(parsed_args)
     elseif parsed_args["scene-number"] == 99
         return make_scene99(parsed_args)
     elseif parsed_args["scene-number"] == 100
