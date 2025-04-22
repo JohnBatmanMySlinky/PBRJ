@@ -1,20 +1,30 @@
 struct BilinearPatchMesh
         n_patches::Int64
-        n_vertices::Int64
-        indices::Vector{Int64}
+
         p::Vector{Pnt3}
+        p_indices::Vector{Int64}
+
         n::Maybe{Vector{Nml3}}
+        n_indices::Vector{Int64}
+
         uv::Maybe{Vector{Pnt2}}
+        uv_indices::Vector{Int64}
+
         alpha_mask::Maybe{AbstractTexture{Float64}}
     
     function BilinearPatchMesh(
         object_to_world::Transformation,
         n_patches::Int64,
-        n_vertices::Int64,
-        indices::Vector{Int64},
+
         p::Vector{Pnt3},
+        p_indices::Vector{Int64},
+
         n::Maybe{Vector{Nml3}},
+        n_indices::Vector{Int64},
+
         uv::Maybe{Vector{Pnt2}},
+        uv_indices::Vector{Int64},
+
         alpha_mask::Maybe{AbstractTexture{Float64}},
     )
         p = object_to_world.(p)
@@ -23,11 +33,12 @@ struct BilinearPatchMesh
         end
         return new(
             n_patches,
-            n_vertices,
-            indices,
             p,
+            p_indices,
             n,
+            n_indices,
             uv,
+            uv_indices,
             alpha_mask
         )
         
@@ -45,21 +56,31 @@ end
 function BilinearPatchGenerator(
     core::ShapeCore,
     n_patches::Int64,
-    n_vertices::Int64,
-    indices::Vector{Int64},
+
     p::Vector{Pnt3},
+    p_indices::Vector{Int64},
+
     n::Maybe{Vector{Nml3}},
+    n_indices::Vector{Int64},
+
     uv::Maybe{Vector{Pnt2}},
+    uv_indices::Vector{Int64},
+
     alpha_mask::Maybe{AbstractTexture{Float64}},
 )::Vector{BilinearPatch}
     mesh = BilinearPatchMesh(
         core.object_to_world,
         n_patches,
-        n_vertices,
-        indices,
+
         p,
+        p_indices,
+
         n,
+        n_indices,
+
         uv,
+        uv_indices,
+
         alpha_mask,
     )
 
@@ -67,10 +88,10 @@ function BilinearPatchGenerator(
     for i in 0:(n_patches-1)
         # Store area of bilinear patch in area
         # Get bilinear patch vertices in p00, p01, p10, and p11
-        p00 = mesh.p[mesh.indices[i+0+1]+1]
-        p10 = mesh.p[mesh.indices[i+1+1]+1]
-        p01 = mesh.p[mesh.indices[i+2+1]+1]
-        p11 = mesh.p[mesh.indices[i+3+1]+1]
+        p00 = mesh.p[mesh.p_indices[i+0+1]]
+        p10 = mesh.p[mesh.p_indices[i+1+1]]
+        p01 = mesh.p[mesh.p_indices[i+2+1]]
+        p11 = mesh.p[mesh.p_indices[i+3+1]]
         if is_rectangle(p00, p10, p01, p11)
             area = distance(p00, p01) * distance(p00, p10)
         else
@@ -160,10 +181,26 @@ function area(blp::BilinearPatch)::Float64
 end
 
 @inline function get_p(blp::BilinearPatch)::Tuple{Pnt3, Pnt3, Pnt3, Pnt3}
-    return (blp.mesh.p[blp.mesh.indices[blp.i + 0] + 1],
-        blp.mesh.p[blp.mesh.indices[blp.i + 1] + 1], 
-        blp.mesh.p[blp.mesh.indices[blp.i + 2] + 1], 
-        blp.mesh.p[blp.mesh.indices[blp.i + 3] + 1]
+    return (blp.mesh.p[blp.mesh.p_indices[blp.i + 0] + 1],
+        blp.mesh.p[blp.mesh.p_indices[blp.i + 1] + 1], 
+        blp.mesh.p[blp.mesh.p_indices[blp.i + 2] + 1], 
+        blp.mesh.p[blp.mesh.p_indices[blp.i + 3] + 1]
+    )
+end
+
+@inline function get_n(blp::BilinearPatch)::Tuple{Nml3, Nml3, Nml3, Nml3}
+    return (blp.mesh.n[blp.mesh.p_indices[blp.i + 0] + 1],
+        blp.mesh.n[blp.mesh.n_indices[blp.i + 1] + 1], 
+        blp.mesh.n[blp.mesh.n_indices[blp.i + 2] + 1], 
+        blp.mesh.n[blp.mesh.n_indices[blp.i + 3] + 1]
+    )
+end
+
+@inline function get_uv(blp::BilinearPatch)::Tuple{Pnt2, Pnt2, Pnt2, Pnt2}
+    return (blp.mesh.uv[blp.mesh.uv_indices[blp.i + 0] + 1],
+        blp.mesh.uv[blp.mesh.uv_indices[blp.i + 1] + 1], 
+        blp.mesh.uv[blp.mesh.uv_indices[blp.i + 2] + 1], 
+        blp.mesh.uv[blp.mesh.uv_indices[blp.i + 3] + 1]
     )
 end
 
