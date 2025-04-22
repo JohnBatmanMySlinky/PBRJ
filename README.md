@@ -108,6 +108,8 @@ Render
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- parse_obj's FIN::Vector{Any} is gong to kill performance
+- decouple mesh from triangle and bilinear patch, that's got to be adding massive overhead..... 
 - Fix up old scenes
     - run them and squash bugs
 - Time to make my OBJ parser suck less
