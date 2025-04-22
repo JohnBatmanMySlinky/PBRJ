@@ -9,15 +9,17 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     
-    tris = parse_obj(
+    parsed_things = parse_obj(
         "/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry/mesh_00001.obj",
         Translate(Pnt3(0,0,0)),
         false,
         false,
         nothing
     )
-    for tri in tris
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+    for tris in parsed_things
+        for tri in tris
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
     end
 
     # instantiate accelerator
