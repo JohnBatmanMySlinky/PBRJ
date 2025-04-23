@@ -85,32 +85,32 @@ function publish!(
             sc,
             length(vertex_indices)÷3,
         
-            vertices,
-            vertex_indices,
+            deepcopy(vertices),
+            deepcopy(vertex_indices),
         
-            normals,
-            normal_indices,
+            deepcopy(normals),
+            deepcopy(normal_indices),
         
-            uvs,
-            uv_indices,
+            deepcopy(uvs),
+            deepcopy(uv_indices),
         
-            alpha_mask
+            deepcopy(alpha_mask)
         )
     elseif NFACE == 4
         shapes = BilinearPatchGenerator(
             sc,
             length(vertex_indices) ÷ 4,
 
-            vertices,
-            vertex_indices,
+            deepcopy(vertices),
+            deepcopy(vertex_indices),
 
-            normals,
-            normal_indices,
+            deepcopy(normals),
+            deepcopy(normal_indices),
 
-            uvs,
-            uv_indices,
+            deepcopy(uvs),
+            deepcopy(uv_indices),
 
-            alpha_mask
+            deepcopy(alpha_mask)
         )
     else
         @assert false
