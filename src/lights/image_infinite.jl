@@ -13,7 +13,7 @@ struct InfiniteLight <: Light
     function InfiniteLight(bounds::Bounds3, light_to_world::Transformation, LL::Spectrum, texmap::String, do_octahedral::Bool)
         dat2, L, W = read_image(texmap, LL)
 
-        Lmap = MIPMap(Pnt2(W, L), dat2) # NOTE THE FLIP HERE
+        Lmap = MIPMap(Pnt2i(W, L), dat2, false) # NOTE THE FLIP HERE
 
         world_center, world_radius = bounding_sphere(bounds)
         # world_center = Pnt3( 0.0449999571, 1.04499996, -0.75000006 )

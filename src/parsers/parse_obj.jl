@@ -206,15 +206,6 @@ function parse_obj(
                         alpha_mask
                     )
 
-                    # reset
-                    vertices = RayTracing.Pnt3[]
-                    vertex_indices = Int[]
-                
-                    uvs = RayTracing.Pnt2[]
-                    uv_indices = Int[]
-                
-                    normals = RayTracing.Nml3[]
-                    normal_indices = Int[]
                 end
             elseif cmd == "s"
                 @warn "Skipping something: $line"

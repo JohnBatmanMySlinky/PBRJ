@@ -181,26 +181,26 @@ function area(blp::BilinearPatch)::Float64
 end
 
 @inline function get_p(blp::BilinearPatch)::Tuple{Pnt3, Pnt3, Pnt3, Pnt3}
-    return (blp.mesh.p[blp.mesh.p_indices[blp.i + 0] + 1],
-        blp.mesh.p[blp.mesh.p_indices[blp.i + 1] + 1], 
-        blp.mesh.p[blp.mesh.p_indices[blp.i + 2] + 1], 
-        blp.mesh.p[blp.mesh.p_indices[blp.i + 3] + 1]
+    return (blp.mesh.p[blp.mesh.p_indices[blp.i + 0]],
+        blp.mesh.p[blp.mesh.p_indices[blp.i + 1]], 
+        blp.mesh.p[blp.mesh.p_indices[blp.i + 2]], 
+        blp.mesh.p[blp.mesh.p_indices[blp.i + 3]]
     )
 end
 
 @inline function get_n(blp::BilinearPatch)::Tuple{Nml3, Nml3, Nml3, Nml3}
-    return (blp.mesh.n[blp.mesh.p_indices[blp.i + 0] + 1],
-        blp.mesh.n[blp.mesh.n_indices[blp.i + 1] + 1], 
-        blp.mesh.n[blp.mesh.n_indices[blp.i + 2] + 1], 
-        blp.mesh.n[blp.mesh.n_indices[blp.i + 3] + 1]
+    return (blp.mesh.n[blp.mesh.p_indices[blp.i + 0]],
+        blp.mesh.n[blp.mesh.n_indices[blp.i + 1]], 
+        blp.mesh.n[blp.mesh.n_indices[blp.i + 2]], 
+        blp.mesh.n[blp.mesh.n_indices[blp.i + 3]]
     )
 end
 
 @inline function get_uv(blp::BilinearPatch)::Tuple{Pnt2, Pnt2, Pnt2, Pnt2}
-    return (blp.mesh.uv[blp.mesh.uv_indices[blp.i + 0] + 1],
-        blp.mesh.uv[blp.mesh.uv_indices[blp.i + 1] + 1], 
-        blp.mesh.uv[blp.mesh.uv_indices[blp.i + 2] + 1], 
-        blp.mesh.uv[blp.mesh.uv_indices[blp.i + 3] + 1]
+    return (blp.mesh.uv[blp.mesh.uv_indices[blp.i + 0]],
+        blp.mesh.uv[blp.mesh.uv_indices[blp.i + 1]], 
+        blp.mesh.uv[blp.mesh.uv_indices[blp.i + 2]], 
+        blp.mesh.uv[blp.mesh.uv_indices[blp.i + 3]]
     )
 end
 
