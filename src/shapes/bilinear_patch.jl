@@ -181,7 +181,8 @@ function area(blp::BilinearPatch)::Float64
 end
 
 @inline function get_p(blp::BilinearPatch)::Tuple{Pnt3, Pnt3, Pnt3, Pnt3}
-    return (blp.mesh.p[blp.mesh.p_indices[blp.i + 0]],
+    return (
+        blp.mesh.p[blp.mesh.p_indices[blp.i + 0]],
         blp.mesh.p[blp.mesh.p_indices[blp.i + 1]], 
         blp.mesh.p[blp.mesh.p_indices[blp.i + 2]], 
         blp.mesh.p[blp.mesh.p_indices[blp.i + 3]]
@@ -189,7 +190,8 @@ end
 end
 
 @inline function get_n(blp::BilinearPatch)::Tuple{Nml3, Nml3, Nml3, Nml3}
-    return (blp.mesh.n[blp.mesh.p_indices[blp.i + 0]],
+    return (
+        blp.mesh.n[blp.mesh.n_indices[blp.i + 0]],
         blp.mesh.n[blp.mesh.n_indices[blp.i + 1]], 
         blp.mesh.n[blp.mesh.n_indices[blp.i + 2]], 
         blp.mesh.n[blp.mesh.n_indices[blp.i + 3]]
@@ -197,7 +199,8 @@ end
 end
 
 @inline function get_uv(blp::BilinearPatch)::Tuple{Pnt2, Pnt2, Pnt2, Pnt2}
-    return (blp.mesh.uv[blp.mesh.uv_indices[blp.i + 0]],
+    return (
+        blp.mesh.uv[blp.mesh.uv_indices[blp.i + 0]],
         blp.mesh.uv[blp.mesh.uv_indices[blp.i + 1]], 
         blp.mesh.uv[blp.mesh.uv_indices[blp.i + 2]], 
         blp.mesh.uv[blp.mesh.uv_indices[blp.i + 3]]
@@ -227,32 +230,32 @@ function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bo
     dvdt = 1.0
 
     if !(blp.mesh.uv isa Nothing)
-        @assert false # don't be here
-        # # Compute texture coordinates for bilinear patch intersection point
-        # uv00, uv10, uv01, uv11 = get_uvs(blp)
-        # st = lerp(uv.x, lerp(uv.y, uv00, uv01), lerp(uv.y, uv10, uv11))
+        # Compute texture coordinates for bilinear patch intersection point
+        uv00, uv10, uv01, uv11 = get_uv(blp)
+        st = lerp(uv.x, lerp(uv.y, uv00, uv01), lerp(uv.y, uv10, uv11))
 
-        # # Update bilinear patch $\dpdu$ and $\dpdv$ accounting for $(s,t)$
-        # # Compute partial derivatives of $(u,v)$ with respect to $(s,t)$
-        # dstdu::Vec2 = lerp(uv.y, uv10, uv11) - lerp(uv.y, uv00, uv01)
-        # dstdv::Vec2 = lerp(uv.x, uv01, uv11) - lerp(uv.x, uv00, uv10)
-        # duds = abs(dstdu.x) < 1e-8 ? 0.0 : 1.0 / dstdu.x
-        # dvds = abs(dstdv.x) < 1e-8 ? 0.0 : 1.0 / dstdv.x
-        # dudt = abs(dstdu.y) < 1e-8 ? 0.0 : 1.0 / dstdu.y
-        # dvdt = abs(dstdv.y) < 1e-8 ? 0.0 : 1.0 / dstdv.y
+        # Update bilinear patch $\dpdu$ and $\dpdv$ accounting for $(s,t)$
+        # Compute partial derivatives of $(u,v)$ with respect to $(s,t)$
+        dstdu::Vec2 = lerp(uv.y, uv10, uv11) - lerp(uv.y, uv00, uv01)
+        dstdv::Vec2 = lerp(uv.x, uv01, uv11) - lerp(uv.x, uv00, uv10)
+        duds = abs(dstdu.x) < 1e-8 ? 0.0 : 1.0 / dstdu.x
+        dvds = abs(dstdv.x) < 1e-8 ? 0.0 : 1.0 / dstdv.x
+        dudt = abs(dstdu.y) < 1e-8 ? 0.0 : 1.0 / dstdu.y
+        dvdt = abs(dstdv.y) < 1e-8 ? 0.0 : 1.0 / dstdv.y
 
-        # # Compute partial derivatives of $\pt{}$ with respect to $(s,t)$
-        # dpds::Vec3 = dpdu * duds + dpdv * dvds
-        # dpdt::Vec3 = dpdu * dudt + dpdv * dvdt
+        # Compute partial derivatives of $\pt{}$ with respect to $(s,t)$
+        dpds::Vec3 = dpdu * duds + dpdv * dvds
+        dpdt::Vec3 = dpdu * dudt + dpdv * dvdt
 
-        # # Set _dpdu_ and _dpdv_ to updated partial derivatives
-        # if (cross(dpds, dpdt) != Vec3(0, 0, 0))
-        #     if (dot(cross(dpdu, dpdv), cross(dpds, dpdt)) < 0.0)
-        #         dpdt = -dpdt
-        #     # @assert dot(normalize(cross(dpdu, dpdv)), normalize(cross(dpds, dpdt))) > -1e-3
-        #     dpdu = dpds
-        #     dpdv = dpdt
-        # end
+        # Set _dpdu_ and _dpdv_ to updated partial derivatives
+        if (cross(dpds, dpdt) != Vec3(0, 0, 0))
+            if (dot(cross(dpdu, dpdv), cross(dpds, dpdt)) < 0.0)
+                dpdt = -dpdt
+            end
+            # @assert dot(normalize(cross(dpdu, dpdv)), normalize(cross(dpds, dpdt))) > -1e-3
+            dpdu = dpds
+            dpdv = dpdt
+        end
     end
 
     # Find partial derivatives $\dndu$ and $\dndv$ for bilinear patch
@@ -301,23 +304,22 @@ function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bo
 
     # Compute bilinear patch shading normal if necessary
     if !(blp.mesh.n isa Nothing)
-        @assert false # don't be here
-        # # Compute shading normals for bilinear patch intersection point
-        # n00, n10, n01, n11 = get_n(blp)
-        # ns::Nml3 = lerp(uv.x, lerp(uv.y, n00, n01), lerp(uv.y, n10, n11))
-        # if (length_squared(ns) > 0.0)
-        #     ns = normalize(ns)
-        #     # Set shading geometry for bilinear patch intersection
-        #     dndu::Nml3 = lerp(uv.y, n10, n11) - lerp(uv.y, n00, n01)
-        #     dndv::Nml3 = lerp(uv.x, n01, n11) - lerp(uv.x, n00, n10)
-        #     # Update $\dndu$ and $\dndv$ to account for $(s,t)$ parameterization
-        #     dnds::Nml3 = dndu * duds + dndv * dvds
-        #     dndt::Nml3 = dndu * dudt + dndv * dvdt
-        #     dndu = dnds
-        #     dndv = dndt
+        # Compute shading normals for bilinear patch intersection point
+        n00, n10, n01, n11 = get_n(blp)
+        ns::Nml3 = lerp(uv.x, lerp(uv.y, n00, n01), lerp(uv.y, n10, n11))
+        if (length_squared(ns) > 0.0)
+            ns = normalize(ns)
+            # Set shading geometry for bilinear patch intersection
+            dndu = lerp(uv.y, n10, n11) - lerp(uv.y, n00, n01)
+            dnd = lerp(uv.x, n01, n11) - lerp(uv.x, n00, n10)
+            # Update $\dndu$ and $\dndv$ to account for $(s,t)$ parameterization
+            dnds = dndu * duds + dndv * dvds
+            dndt = dndu * dudt + dndv * dvdt
+            dndu = dnds
+            dndv = dndt
 
-        #     set_shading_geomerty!(isect, dpdu, dpdv, dndus, dndvs, true)
-        # end
+            set_shading_geomerty!(isect, dpdu, dpdv, dndu, dndv, true)
+        end
     end
     return true, t, isect
 end

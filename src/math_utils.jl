@@ -30,7 +30,7 @@ function distance_squared(p1::Pnt3, p2::Pnt3)::Float64
     return dot(p, p)
 end
 
-function length_squared(v::Union{Vec3, Vec2})::Float64
+function length_squared(v::T)::Float64 where {T <: Union{Vec3, Vec2, Nml3}}
     return sum(v.^2)
 end
 
@@ -80,7 +80,7 @@ function lerp(t::Float64, a::Float64, b::Float64)::Float64
     return a + t * (b - a)
 end
 
-function lerp(t::Float64, a::Pnt3, b::Pnt3)::Pnt3
+function lerp(t::Float64, a::T, b::T)::T where {T <: Union{Pnt3, Pnt2, Nml3}}
     return a .+ t .* (b - a)
 end
 
