@@ -66,11 +66,20 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     push!(lights, light)
 
     # Instantiate a Camera
-    look_from = Pnt3(-15, 6, -10) #-15, 6, -1
-    look_at = Pnt3(0, 0, -5)
+    # pre-rotate X
+    # positive Z is up
+    # positive -X is from pool to house
+    # positive Y is side to side of pool
+
+    # post rotate X
+    # z = side to side pool
+    # y is up and down
+    # x is pool to house. +x is away from house
+    look_from = Pnt3(20, 3, -10) 
+    look_at = Pnt3(0, 0, 0)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 45.0, film)
+    C = PerspectiveCamera(RotateX(90.0) * LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 45.0, film)
 
     # Instantiate a Sampler
     S = ZSobolSampler(parsed_args["samples-per-pixel"], film.full_resolution, Int8(2))
