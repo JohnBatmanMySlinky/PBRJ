@@ -59,26 +59,32 @@ function publish!(
     # if face only specifies a single set of indices but we get normals
     # as seen in teapot.obj
     if (length(normals) > 0) & (length(normal_indices) == 0)
-        @assert length(vertices) == length(normals)
-        normal_indices = vertex_indices
+        if length(vertices) == length(normals)
+            normal_indices = vertex_indices
+        end
     end
 
     # if face only specifies a single set of indices but we get uvs
     # as seen in teapot.obj
     if (length(uvs) > 0) & (length(uv_indices) == 0)
-        @assert length(vertices) == length(uvs)
-        uv_indices = vertex_indices
+        if length(vertices) == length(uvs)
+            uv_indices = vertex_indices
+        end
     end
 
     @assert mod(length(vertex_indices), NFACE) == 0
     @assert mod(length(uv_indices), NFACE) == 0
     @assert mod(length(normal_indices), NFACE) == 0
 
-    normals = length(normals)>0 ? normals : nothing
-    normal_indices = length(normal_indices)>0 ? normal_indices : nothing
+    if !((length(normals) > 0) && (length(normal_indices) > 0))
+        normals = nothing
+        normal_indices = nothing
+    end
+    if !((length(uvs) > 0) && (length(uv_indices) > 0))
+        uvs = nothing
+        uv_indices = nothing
+    end
 
-    uvs = length(uvs)>0 ? uvs : nothing
-    uv_indices = length(uv_indices)>0 ? uv_indices : nothing
 
     if NFACE == 3
         shapes = RayTracing.construct_triangle_mesh(
@@ -205,6 +211,11 @@ function parse_obj(
                         sc,
                         alpha_mask
                     )
+
+                    # RESET THE INDICES
+                    vertex_indices = Int[]
+                    uv_indices = Int[]
+                    normal_indices = Int[]
 
                 end
             elseif cmd == "s"

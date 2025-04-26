@@ -35,7 +35,7 @@ for ply_file in "$PLY_DIR"/*.ply; do
         echo "Converting: $filename"
         
         # Run Blender to convert the file
-        "$BLENDER" --background --python-expr "import bpy; bpy.ops.import_mesh.ply(filepath='$ply_file'); bpy.ops.export_scene.obj(filepath='$obj_file')"
+        "$BLENDER" --background --python convert_ply_to_obj.py "$ply_file" "$obj_file"
         
         # Check if conversion was successful
         if [ -f "$obj_file" ]; then
