@@ -8,17 +8,32 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
-    
-    parsed_things = parse_obj(
-        "/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry/mesh_00001.obj",
-        Translate(Pnt3(0,0,0)),
-        false,
-        false,
-        nothing
-    )
-    for tris in parsed_things
-        for tri in tris
-            push!(primitives, Primitive(tri, mat_gray, nothing))
+
+    dirpath = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry/"
+    objs = String[]
+    for (_, _, files) in walkdir(dirpath)
+        # LAZILY ignoring nested folders
+        for file in files
+            if endswith(file, ".obj")
+                push!(objs, file)
+            end
+        end
+    end
+    for obj_file in objs
+        if obj_file != "mesh_00114.obj"
+            obj_path = joinpath(dirpath, obj_file)
+            objects = parse_obj(
+                obj_path,
+                Translate(Pnt3(0,0,0)),
+                false,
+                false,
+                nothing
+            )
+            for object in objects
+                for mesh in object
+                    push!(primitives, Primitive(mesh, mat_gray, nothing))
+                end
+            end
         end
     end
 
@@ -51,11 +66,11 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     push!(lights, light)
 
     # Instantiate a Camera
-    look_from = Pnt3(-10, 2.25, 10)
-    look_at = Pnt3(7, 1.75, -3)
+    look_from = Pnt3(-15, 6, -10) #-15, 6, -1
+    look_at = Pnt3(0, 0, -5)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), screen, 0.0, 1.0, 0.0, 1e6, 45.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 45.0, film)
 
     # Instantiate a Sampler
     S = ZSobolSampler(parsed_args["samples-per-pixel"], film.full_resolution, Int8(2))

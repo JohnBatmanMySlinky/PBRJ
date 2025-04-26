@@ -13,4 +13,4 @@ bpy.ops.object.select_all(action='SELECT')
 bpy.ops.object.delete()
 
 bpy.ops.import_mesh.ply(filepath=ply_file)
-bpy.ops.export_scene.obj(filepath=obj_file)
+bpy.ops.export_scene.obj(filepath=obj_file, axis_forward="Z", axis_up="Y")
