@@ -70,7 +70,7 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 						
 						if (orig_s >= 0) && (orig_s < resolution.x)
 							# @info "MIPMAP READ: $(s), $(t), $(t * resolution.x + orig_s) = $(data[t * resolution.x + orig_s + 1])"
-							resampled_image[t * res_pow_2.x + s + 1] += s_weights[s+1].weight[j+1] * data[t * resolution.x + orig_s + 1]
+							resampled_image[t * res_pow_2.x + s + 1] = resampled_image[t * res_pow_2.x + s + 1] .+ s_weights[s+1].weight[j+1] .* data[t * resolution.x + orig_s + 1]
 						end
 					end
 				end
