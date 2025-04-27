@@ -8,6 +8,32 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
+    mat_water = Glass(
+        ConstantTexture(spectrum_from_float(1.0)),
+        ConstantTexture(spectrum_from_float(1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/water-raindrop.png"), 
+            true,
+            0,
+            false,
+            8.0,
+            Int8(1),
+            .005,
+            false
+        ),
+        true
+    )
+    mat_pebble_ground = Uber()
+
+    mat_dict = Dict{String, Material}()
+    mat_dict["mesh_00002.obj"] = mat_water
+    mat_dict["mesh_00048.obj"] = mat_pebble_ground
+
+    commented_out = ["mesh_00113.obj", "mesh_00112.obj"]
 
     dirpath = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry/"
     objs = String[]
@@ -20,7 +46,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
     end
     for obj_file in objs
-        if obj_file != "mesh_00114.obj"
+        if !(obj_file in commented_out)
             obj_path = joinpath(dirpath, obj_file)
             objects = parse_obj(
                 obj_path,
@@ -31,7 +57,12 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             )
             for object in objects
                 for mesh in object
-                    push!(primitives, Primitive(mesh, mat_gray, nothing))
+                    if obj_file in keys(mat_dict)
+                        tmp_mat = mat_dict[obj_file]
+                    else
+                        tmp_mat = mat_gray
+                    end
+                    push!(primitives, Primitive(mesh, tmp_mat, nothing))
                 end
             end
         end
