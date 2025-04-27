@@ -32,7 +32,7 @@ struct Uber{
         uroughness::UR=nothing,
         vroughness::VR=nothing,
         eta::E=ConstantTexture(1.5),
-        opacity::O=ConstantTexture(spectrum_from_float(0.0)),
+        opacity::O=ConstantTexture(spectrum_from_float(1.0)),
         bump_map::BM=nothing,
         remap_roughness::Bool=true
     )::Uber where {
@@ -68,7 +68,7 @@ function (u::Uber)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Typ
     t = clamp.(spectrum_from_float(1.0) - op, 0.0, 1.0)
     if !is_black(t)
         si.bsdf = BSDF(si)
-        add!(si.bsdf, SpecularTransmisssion(t, 1.0, 1.0, mode))
+        add!(si.bsdf, SpecularTransmission(t, 1.0, 1.0, mode))
     else
         si.bsdf = BSDF(si, e)
     end
@@ -91,7 +91,7 @@ function (u::Uber)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Typ
         else
             vrough = urough
         end
-        if u.remap_rougness
+        if u.remap_roughness
             urough = roughness_to_alpha(urough)
             vrough = roughness_to_alpha(vrough)
         end
