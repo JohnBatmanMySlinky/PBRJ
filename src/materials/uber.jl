@@ -55,3 +55,59 @@ struct Uber{
     end
 end
 
+
+# Equivalent to PBR's ComputeScatteringFunction
+function (u::Uber)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Type{T}) where T <: TransportMode
+    # if bump map, update si
+    if !(u.bump_map isa Nothing)
+        bump!(u, si)
+    end
+
+    e = u.eta(si)
+    op = clamp.(u.opacity(si), 0.0, 1.0)
+    t = clamp.(spectrum_from_float(1.0) - op, 0.0, 1.0)
+    if !is_black(t)
+        si.bsdf = BSDF(si)
+        add!(si.bsdf, SpecularTransmisssion(t, 1.0, 1.0, mode))
+    else
+        si.bsdf = BSDF(si, e)
+    end
+
+    kd = op * clamp.(u.Kd(si), 0.0, 1.0)
+    if !is_black(kd)
+        add!(si.bsdf, LambertianReflection(kd))
+    end
+
+    ks = op * clamp.(u.Ks(si), 0.0, 1.0)
+    if !is_black(ks)
+        fresnel = FresnelDielectric(1.0, e)
+        if !(u.uroughness isa Nothing)
+            urough = u.uroughness(si)
+        else
+            urough = u.roughness(si)
+        end
+        if !(u.vroughness isa Nothing)
+            vrough = u.vroughness(si)
+        else
+            vrough = urough
+        end
+        if u.remap_rougness
+            urough = roughness_to_alpha(urough)
+            vrough = roughness_to_alpha(vrough)
+        end
+        distrib = TrowbridgeReitzDistribution(urough, vrough)
+        add!(si.bsdf, MicrofacetReflection(ks, distrib, fresnel))
+    end
+
+    kr = op * clamp.(u.Kr(si), 0.0, 1.0)
+    if !is_black(kr)
+        fresnel = FresnelDielectric(1.0, e)
+        add!(si.bsdf, SpecularReflection(kr, fresnel))
+    end
+
+    kt = op * clamp.(u.Kt(si), 0.0, 1.0)
+    if !is_black(kt)
+        add!(si.bsdf, SpecularTransmission(kt, 1.0, e, mode))
+    end
+end
+
