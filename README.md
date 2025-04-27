@@ -112,7 +112,6 @@ Render
 - i see some Mat3([]) that need to re factored in bilinear patch
 - parse_obj's FIN::Vector{Any} is gong to kill performance
 - fix old scenes that now broke with parser_obj::FIN
-- check my assertion that no mixed tris and quads holds. please god.
 - decouple mesh from triangle and bilinear patch, that's got to be adding massive overhead..... 
 - Fix up old scenes
     - run them and squash bugs
