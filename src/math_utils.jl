@@ -30,11 +30,11 @@ function distance_squared(p1::Pnt3, p2::Pnt3)::Float64
     return dot(p, p)
 end
 
-function length_squared(v::Union{Vec3, Vec2})::Float64
+function length_squared(v::Union{Vec3, Vec2, Pnt3})::Float64
     return sum(v.^2)
 end
 
-function length_pbrt(v::Union{Vec3, Vec2})::Float64
+function length_pbrt(v::Union{Vec3, Vec2, Pnt3})::Float64
     return sqrt(length_squared(v))
 end
 
