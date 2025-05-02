@@ -90,11 +90,11 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         false
     )
-    s2 = SDF_Sphere(s2_sc, 0.5)
+    s2 = SDF_Sphere(s2_sc, 1.0)
 
     func = SDFFunction(0.5, sdf_smooth_union)
 
-    bs = Sphere(Pnt3(0,0,0), 2.0)
+    bs = Sphere(Pnt3(0,0,0), 5.0)
 
     tree = SDFNode(func, identity_shape_core, bs, SDFNode(s1), SDFNode(s2))
 
@@ -123,7 +123,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(10, 15, 5)
+    look_from = Pnt3(10, 7, 5)
     look_at = Pnt3(0, 0, 0)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
