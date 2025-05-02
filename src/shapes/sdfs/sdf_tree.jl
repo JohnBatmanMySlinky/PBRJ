@@ -25,7 +25,7 @@ end
 
 function f(node::SDFNode, pp::Pnt3)::Float64
     if node.contents isa ImplicitSurface
-        return f(node.contents, node.core.world_to_object(pp))
+        return f(node.contents, node.contents.core.world_to_object(pp))
     elseif node.contents isa SDFFunction
         @assert !((node.left isa Nothing) && (node.right isa Nothing))
 
@@ -40,4 +40,11 @@ end
 function f(s::ImplicitSurface, t::Float64, r::AbstractRay)
     pp = at(r,t)
     return f(s,pp)
+end
+
+function ObjectBounds(s::ImplicitSurface)::Bounds3
+    return Bounds3(
+        Pnt3(-s.bounding_sphere.radius, -s.bounding_sphere.radius, -s.bounding_sphere.radius),
+        Pnt3(s.bounding_sphere.radius,   s.bounding_sphere.radius,   s.bounding_sphere.radius),
+    )
 end
