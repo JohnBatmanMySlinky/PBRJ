@@ -46,7 +46,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     mat_pavet = Substrate(
         ImageTexture(
-            UVMapping2D(), 
+            UVMapping2D(0.1, 0.1, 0.0, 0.0), 
             jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/Mies-BCN_M081.png"), 
             false,
             0,
@@ -91,7 +91,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     mat_wood = Substrate(
         ImageTexture(
-            UVMapping2D(), 
+            UVMapping2D(), # JOHN SCALE 
             jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/Mies-BCN_M081bump.png"), 
             false
         ),
