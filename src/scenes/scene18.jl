@@ -70,8 +70,39 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(tri, mat_gray, nothing))
     end
 
+    #########################
+    ########## SDF ##########
+    #########################
 
-    # PUT SDF HERE
+    tmp = Pnt3(0.0, 0.0, 0.0)
+    s1_sc = ShapeCore(
+        Translate(tmp),
+        Inv(Translate(tmp)),
+        false,
+        false
+    )
+    s1 = SDF_Box(s1_sc, Vec3(1,1,1))
+
+    tmp = Pnt3(0.0, 0.5, 0.0)
+    s2_sc = ShapeCore(
+        Translate(tmp),
+        Inv(Translate(tmp)),
+        false,
+        false
+    )
+    s2 = SDF_Sphere(s2_sc, 0.5)
+
+    func = SDFFunction(0.5, sdf_smooth_union)
+
+    bs = Sphere(Pnt3(0,0,0), 2.0)
+
+    tree = SDFNode(func, identity_shape_core, bs, SDFNode(s1), SDFNode(s2))
+
+    push!(primitives, Primitive(tree, mat_blue, nothing))
+
+
+    #########################
+    #########################
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
