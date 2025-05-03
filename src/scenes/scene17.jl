@@ -29,7 +29,8 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     mat_pebble_ground = Uber(
         ImageTexture(
-            UVMapping2D(),
+            # 800 x 590
+            UVMapping2D(1.0, 1.0, 0.0, 0.0), 
             jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/rocks.png"),
             false
         ),
@@ -46,7 +47,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     mat_pavet = Substrate(
         ImageTexture(
-            UVMapping2D(0.1, 0.1, 0.0, 0.0), 
+            UVMapping2D(), 
             jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/Mies-BCN_M081.png"), 
             false,
             0,
@@ -92,7 +93,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_wood = Substrate(
         ImageTexture(
             UVMapping2D(), # JOHN SCALE 
-            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/Mies-BCN_M081bump.png"), 
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/wood.png"), 
             false
         ),
         ConstantTexture(spectrum_from_float(.1)),
@@ -123,6 +124,24 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(1.0),
         ConstantTexture(spectrum_from_float(1.0)),
         nothing
+    )
+
+    mat_wax = Uber(
+        ConstantTexture(spectrum_from_float(0.639999986)),
+        ConstantTexture(spectrum_from_float(0.5)),
+        ConstantTexture(spectrum_from_float(0.0)),
+        ConstantTexture(spectrum_from_float(0.0)),
+        ConstantTexture(0.0104080001),
+        nothing,
+        nothing,
+        ConstantTexture(1.0),
+        ConstantTexture(spectrum_from_float(1.0)),
+        nothing
+    )
+
+    mat_metal = Metal(
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/barcelona-pavilion/spds/Al.eta.spd"))),
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/barcelona-pavilion/spds/Al.k.spd"))),
     )
 
     mat_dict = Dict{String, Material}()
@@ -191,7 +210,39 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # 52
     mat_dict["mesh_00114.obj"] = mat_grass
 
-    commented_out = ["mesh_00113.obj", "mesh_00112.obj"]
+    # 52 + 6 = 58
+    mat_dict["mesh_00004.obj"] = mat_wax
+    mat_dict["mesh_00006.obj"] = mat_wax
+    mat_dict["mesh_00016.obj"] = mat_wax
+    mat_dict["mesh_00018.obj"] = mat_wax
+    mat_dict["mesh_00022.obj"] = mat_wax
+    mat_dict["mesh_00024.obj"] = mat_wax
+
+    # 58 + 21 = 79
+    mat_dict["mesh_00027.obj"] = mat_metal
+    mat_dict["mesh_00053.obj"] = mat_metal
+    mat_dict["mesh_00054.obj"] = mat_metal
+    mat_dict["mesh_00055.obj"] = mat_metal
+    mat_dict["mesh_00056.obj"] = mat_metal
+    mat_dict["mesh_00057.obj"] = mat_metal
+    mat_dict["mesh_00063.obj"] = mat_metal
+    mat_dict["mesh_00064.obj"] = mat_metal
+    mat_dict["mesh_00065.obj"] = mat_metal
+    mat_dict["mesh_00066.obj"] = mat_metal
+    mat_dict["mesh_00067.obj"] = mat_metal
+    mat_dict["mesh_00068.obj"] = mat_metal
+    mat_dict["mesh_00069.obj"] = mat_metal
+    mat_dict["mesh_00070.obj"] = mat_metal
+    mat_dict["mesh_00071.obj"] = mat_metal
+    mat_dict["mesh_00073.obj"] = mat_metal
+    mat_dict["mesh_00091.obj"] = mat_metal
+    mat_dict["mesh_00098.obj"] = mat_metal
+    mat_dict["mesh_00102.obj"] = mat_metal
+    mat_dict["mesh_00106.obj"] = mat_metal
+    mat_dict["mesh_00110.obj"] = mat_metal
+
+    commented_out = ["mesh_00113.obj", "mesh_00112.obj", "mesh_00002.obj"]
+    commented_in = ["mesh_00048.obj"]
 
     dirpath = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry/"
     objs = String[]
@@ -204,7 +255,8 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
     end
     for obj_file in objs
-        if !(obj_file in commented_out)
+        # if !(obj_file in commented_out)
+        if obj_file in commented_in
             obj_path = joinpath(dirpath, obj_file)
             objects = parse_obj(
                 obj_path,
