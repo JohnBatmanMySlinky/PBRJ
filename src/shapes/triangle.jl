@@ -212,7 +212,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     if !(tri.mesh.uvs isa Nothing)
         uv = get_uvs(tri)
     else
-        uv = (Pnt2(0, 0), Pnt2(1, 0), Pnt2(1, 1))
+        uv = (Pnt2(0, 0), Pnt2(0, 1), Pnt2(1, 1))
     end
     duv13 = uv[1] - uv[3]
     duv23 = uv[2] - uv[3]
