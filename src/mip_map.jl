@@ -172,6 +172,22 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 			end
 		end
 
+		# debugging crap
+		# for i in 1:length(pyramid)	
+		# 	println("saving mip map for debug")
+		# 	tmp = zeros(RGB, pyrsize[i].x, pyrsize[i].y)
+		# 	for x in 1:pyrsize[i].x
+		# 		for y in 1:pyrsize[i].y
+		# 			tmp[x, y] = RGB(
+		# 				pyramid[i][x, y][1],
+		# 				pyramid[i][x, y][2],
+		# 				pyramid[i][x, y][3],
+		# 			)
+		# 		end
+		# 	end
+		# 	OpenEXR.save("MIPMAP_$(i).exr", tmp)
+		# end
+		# @assert false
 
     	weight_lut = zeros(Float64, 128) # JOHN HACK HARDCODING
 		# Initialize EWA filter weights if needed
@@ -268,8 +284,8 @@ function lookup(mip_map::MIPMap{T}, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {
 	# clamp ellipse eccentricity if too large
 	if (minor_length * mip_map.max_anisotropy < major_length) && (minor_length > 0)
 		scale = major_length / (minor_length * mip_map.max_anisotropy)
-		dst1 .*= scale
-		minor_length .*= scale
+		dst1 = dst1 * scale
+		minor_length = minor_length * scale
 	end
 	if minor_length == 0.0
 		return triangle(mip_map, 0, st)
@@ -282,17 +298,17 @@ function lookup(mip_map::MIPMap{T}, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {
 end
 
 function EWA(mip_map::MIPMap{T}, level::Int64, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {T <: Union{Spectrum, Float64}}
-	if level >= levels(mip_map)
+	if level >= levels(mip_map) + 1 # JOHN INDEXING ADDITION
 		return texel(mip_map.pyramid[levels(mip_map) - 1 + 1], mip_map.pyrsize[levels(mip_map) - 1 + 1], mip_map.wrap_mode, 0, 0)
 	end
 
 	# Convert EWA coordinates to appropriate scale for level
 	st = Pnt2(
-		st.x * mip_map.pyrsize[level-1].x - 0.5,
-		st.y * mip_map.pyrsize[level-1].y - 0.5
+		st.x * mip_map.pyrsize[level+1].x - 0.5,
+		st.y * mip_map.pyrsize[level+1].y - 0.5
 	)
-	dst0::Vec2 = dst0 .* mip_map.pyrsize[level-1]
-	dst1::Vec2 = dst1 .* mip_map.pyrsize[level-1]
+	dst0::Vec2 = dst0 .* mip_map.pyrsize[level+1]
+	dst1::Vec2 = dst1 .* mip_map.pyrsize[level+1]
 
 	# Compute ellipse coefficients to bound EWA filter region
 	A = dst0[1+1] * dst0[1+1] + dst1[1+1] * dst1[1+1] + 1
@@ -309,10 +325,10 @@ function EWA(mip_map::MIPMap{T}, level::Int64, st::Pnt2, dst0::Vec2, dst1::Vec2)
 	invDet = 1 / det;
 	uSqrt = sqrt(det * C)
 	vSqrt = sqrt(A * det)
-	s0 = ceil(st[0+1] - 2 * invDet * uSqrt)
-	s1 = floor(st[0+1] + 2 * invDet * uSqrt)
-	t0 = ceil(st[1+1] - 2 * invDet * vSqrt)
-	t1 = floor(st[1+1] + 2 * invDet * vSqrt)
+	s0::Int64 = ceil(st[0+1] - 2 * invDet * uSqrt)
+	s1::Int64 = floor(st[0+1] + 2 * invDet * uSqrt)
+	t0::Int64 = ceil(st[1+1] - 2 * invDet * vSqrt)
+	t1::Int64 = floor(st[1+1] + 2 * invDet * vSqrt)
 
 	# Scan over ellipse bound and compute quadratic equation
 	total = mip_map.pyramid[1][1] * 0.0
@@ -324,9 +340,9 @@ function EWA(mip_map::MIPMap{T}, level::Int64, st::Pnt2, dst0::Vec2, dst1::Vec2)
 			# Compute squared radius and filter texel if inside ellipse
 			r2 = A * ss * ss + B * ss * tt + C * tt * tt
 			if r2 < 1.0
-				index::Int64 = min(floor(r2 * WeightLUTSize), length(mip_map.weight_lut) - 1) # HARD CODE
+				index::Int64 = min(floor(r2 * length(mip_map.weight_lut)), length(mip_map.weight_lut) - 1) # HARD CODE
 				weight = mip_map.weight_lut[index+1]
-				total = total + texel(mip_map.pyramid[level+1], mip_map.pyramid_size[level+1], is, it) * weight
+				total = total + texel(mip_map.pyramid[level+1], mip_map.pyrsize[level+1], mip_map.wrap_mode, is, it) * weight
 				sumWts += weight
 			end
 		end
