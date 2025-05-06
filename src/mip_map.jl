@@ -37,7 +37,7 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 		convert_to_float::Bool,
 		do_trilinear::Bool=false, 
 		max_anisotropy::Float64=8.0, 
-		wrap_mode::Int8=Int8(1)
+		wrap_mode::Int8=Int8(0)
 	)
 		data_type = convert_to_float ? Float64 : Spectrum
 		resampled = false
@@ -71,7 +71,6 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 					for j in 0:3
 						orig_s = s_weights[s+1].first_texel + j
 						if wrap_mode == Int8(0) # repeat
-							@assert false
 							orig_s = orig_s % resolution.x
 						elseif wrap_mode == Int8(1) # clamp
 							orig_s = clamp(orig_s, 0, resolution.x - 1)
@@ -211,12 +210,38 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 	end
 end
 
+function mirror_wrap_uv(uv, resolution)
+    # Handle each dimension separately
+    u, v = uv
+    width, height = resolution
+    
+    # Process U coordinate
+    u_normalized = u / width
+    u_integer = floor(u_normalized)
+    u_fractional = u_normalized - u_integer
+    
+    if mod(u_integer, 2) == 1
+        u_fractional = 1 - u_fractional
+    end
+    
+    # Process V coordinate
+    v_normalized = v / height
+    v_integer = floor(v_normalized)
+    v_fractional = v_normalized - v_integer
+    
+    if mod(v_integer, 2) == 1
+        v_fractional = 1 - v_fractional
+    end
+    
+    # Scale back to the resolution
+    return (u_fractional * width, v_fractional * height)
+end
+
 function texel(l::Matrix{T}, size::Pnt2i, wrap_mode::Int8, s::Int64, t::Int64)::T where {T <: Union{Spectrum, Float64}}
 	x, y = size.x, size.y
 	if wrap_mode == Int8(0) # repeat
-		@assert false # THIS IS GIVING INDEX OUT OF BOUNDS ERRORS
-		s = s % x
-		t = t % y
+		s = mod(s, x)
+		t = mod(t, y)
 	elseif wrap_mode == Int8(1) # clamp
 		s = clamp(s, 0, x - 1)
 		t = clamp(t, 0, y - 1)

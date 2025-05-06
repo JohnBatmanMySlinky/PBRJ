@@ -21,7 +21,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     #         0,
     #         false,
     #         8.0,
-    #         Int8(1),
+    #         Int8(0),
     #         .005,
     #         false
     #     ),
@@ -55,7 +55,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     #         0,
     #         false,
     #         8.0,
-    #         Int8(1),
+    #         Int8(0),
     #         0.639999986,
     #         false
     #     ),
@@ -77,7 +77,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     #         0,
     #         false,
     #         8.0,
-    #         Int8(1),
+    #         Int8(0),
     #         0.639999986,
     #         false
     #     ),
@@ -112,7 +112,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     #         0,
     #         false,
     #         8.0,
-    #         Int8(1),
+    #         Int8(0),
     #         0.3,
     #         false
     #     ),
@@ -150,6 +150,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     #2
     mat_dict["mesh_00048.obj"] = mat_pebble_ground
+    mat_dict["mesh_00048_copy.obj"] = mat_pebble_ground
 
     # 2 + 19 = 21
     # mat_dict["mesh_00001.obj"] = mat_pavet
@@ -241,7 +242,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # mat_dict["mesh_00110.obj"] = mat_metal
 
     commented_out = ["mesh_00113.obj", "mesh_00112.obj", "mesh_00002.obj"]
-    commented_in = ["mesh_00048.obj"]
+    commented_in = ["mesh_00048_copy.obj"]
 
     dirpath = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry/"
     objs = String[]
