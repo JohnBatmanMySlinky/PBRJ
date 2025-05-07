@@ -1,16 +1,11 @@
-import bpy
-import sys
+import plyfile
+from pathlib import Path
+import os
 
-argv = sys.argv
-
-ply_file = argv[-2]
-obj_file = argv[-1]
-
-assert ply_file.endswith(".ply")
-assert obj_file.endswith(".obj")
-
-bpy.ops.object.select_all(action='SELECT')
-bpy.ops.object.delete()
-
-bpy.ops.import_mesh.ply(filepath=ply_file)
-bpy.ops.export_scene.obj(filepath=obj_file, axis_forward="Z", axis_up="Y")
+for root, _, fnames in os.walk('/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry'):
+    for fname in fnames:
+        if fname.endswith(".ply"):
+            path = Path(root, fname)
+            data = plyfile.PlyData.read(path)
+            data.text = True
+            data.write(Path(root, fname.replace(".ply", "_ascii.ply")))
