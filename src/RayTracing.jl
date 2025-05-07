@@ -47,6 +47,7 @@ const SpectrumType = Union{Reflectance, Illuminant}
 
 const ShadowEpsilon::Float64 = 0.00001
 
+include("materials/fourier_bsdf_table.jl")
 include("utils.jl")
 include("nanovdb/julia_part.jl")
 include("primes.jl")
@@ -147,6 +148,7 @@ include("reflection/microfacet_distributions.jl")
 include("reflection/microfacet.jl")
 include("reflection/bxdf.jl")
 include("reflection/hair.jl")
+include("reflection/fourier")
 include("materials/bsdf.jl")
 include("materials/matte.jl")
 include("materials/plastic.jl")
@@ -156,6 +158,7 @@ include("materials/glass.jl")
 include("materials/metal.jl")
 include("materials/hair.jl")
 include("materials/uber.jl")
+include("materials/fourier.jl")
 include("textures/constant.jl")
 include("textures/image.jl")
 include("textures/procedural.jl")

@@ -412,3 +412,19 @@ end
 #     }
 #     return uv
 # }
+
+# Fourier Interpolation Definitions
+function fourier_interpolation(a::Float6, m::Int64, cosPhi::Float64)::Float64
+    value = 0.0
+    # Initialize cosine iterates
+    cosKMinusOnePhi = cosPhi
+    cosKPhi = 1
+    for k in 0:(m-1)
+        # Add the current summand and update the cosine iterates
+        value += a[k+1] * cosKPhi
+        cosKPlusOnePhi = 2 * cosPhi * cosKPhi - cosKMinusOnePhi
+        cosKMinusOnePhi = cosKPhi
+        cosKPhi = cosKPlusOnePhi
+    end
+    return value
+end

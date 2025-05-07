@@ -139,6 +139,90 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/barcelona-pavilion/spds/Al.eta.spd"))),
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/barcelona-pavilion/spds/Al.k.spd"))),
     )
+    mat_glass_architectural = Glass()
+    mat_black_glossy = Plastic(
+        ConstantTexture(spectrum_from_float(0.02, 0.02, 0.02)),
+        ConstantTexture(spectrum_from_float(0.02, 0.02, 0.02)),
+        ConstantTexture(0.0104080001),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_white_mat = Matte(
+        ConstantTexture(spectrum_from_float(0.6, 0.6, 0.6)),
+        ConstantTexture(20.0),
+        nothing
+    )
+    mat_marble = Substrate(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/Mies-BCN_M01.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.2, 0.2, 0.2)),
+        ConstantTexture(0.001),
+        ConstantTexture(0.001),
+        nothing,
+        true
+    )
+    mat_concrete_mies_bcn_m121 = Uber(
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/Mies-BCN_M121.png"), 
+            false,
+            0,
+            false,
+            8.0,
+            Int8(0),
+            0.639999986,
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
+        ConstantTexture(spectrum_from_float(0.0)),
+        ConstantTexture(spectrum_from_float(0.0)),
+        ConstantTexture(0.0104080001),
+        nothing,
+        nothing,
+        ConstantTexture(1.0),
+        ConstantTexture(spectrum_from_float(1.0)),
+        nothing,
+        true
+    ) 
+    mat_marmol_verde = Substrate(
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/Mies-BCN_M11.png"), 
+            false,
+        ),
+        ConstantTexture(spectrum_from_float(0.2, 0.2, 0.2)),
+        ConstantTexture(0.001),
+        ConstantTexture(0.001),
+        nothing,
+        true
+    )
+    mat_caulk = Matte(
+        ConstantTexture(spectrum_from_float(0.4, 0.4, 0.4)),
+        ConstantTexture(20.0),
+        nothing
+    )
+    mat_material = Uber(
+        ConstantTexture(spectrum_from_float(0.639999986, 0.639999986, 0.639999986)),
+        ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0104080001),
+        nothing,
+        nothing,
+        ConstantTexture(1.0),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        nothing,
+        true
+    )
+    mat_leather = Fourier(
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/bsdfs/leather.bsdf"),
+        nothing
+    )
 
     mat_dict = Dict{String, Material}()
 
@@ -236,6 +320,68 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["mesh_00102_ascii.obj"] = mat_metal
     mat_dict["mesh_00106_ascii.obj"] = mat_metal
     mat_dict["mesh_00110_ascii.obj"] = mat_metal
+
+    # 79 + 6 = 85
+    mat_dict["mesh_00028_ascii.obj"] = mat_glass_architectural
+    mat_dict["mesh_00058_ascii.obj"] = mat_glass_architectural
+    mat_dict["mesh_00059_ascii.obj"] = mat_glass_architectural
+    mat_dict["mesh_00060_ascii.obj"] = mat_glass_architectural
+    mat_dict["mesh_00061_ascii.obj"] = mat_glass_architectural
+    mat_dict["mesh_00062_ascii.obj"] = mat_glass_architectural
+
+    # 85 + 2 = 87
+    mat_dict["mesh_00029_ascii.obj"] = mat_black_glossy
+    mat_dict["mesh_00089_ascii.obj"] = mat_black_glossy
+
+    # 87 + 2 = 89
+    mat_dict["mesh_00030_ascii.obj"] = mat_white_mat
+    mat_dict["mesh_00090_ascii.obj"] = mat_white_mat
+
+    # 89 + 1 = 90
+    mat_dict["mesh_00072_ascii.obj"] = mat_marble
+
+    # 90 + 15 = 105
+    mat_dict["mesh_00074_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00075_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00076_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00077_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00078_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00079_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00080_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00081_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00082_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00083_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00084_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00085_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00086_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00087_ascii.obj"] = mat_concrete_mies_bcn_m121
+    mat_dict["mesh_00088_ascii.obj"] = mat_concrete_mies_bcn_m121
+
+    # 105 + 2 = 107
+    mat_dict["mesh_00092_ascii.obj"] = mat_marmol_verde
+    mat_dict["mesh_00093_ascii.obj"] = mat_marmol_verde
+
+    # 107 + 1 = 108
+    mat_dict["mesh_00094_ascii.obj"] = mat_caulk
+
+    # 108 + 1 = 109
+    mat_dict["mesh_00095_ascii.obj"] = mat_material
+
+    # 109 + 12 = 121
+    # JOHN HACK SUPPOSED TO BE LEATHER
+    mat_dict["mesh_00096_ascii.obj"] = mat_leather
+    mat_dict["mesh_00097_ascii.obj"] = mat_leather
+    mat_dict["mesh_00099_ascii.obj"] = mat_leather
+    mat_dict["mesh_00100_ascii.obj"] = mat_leather
+    mat_dict["mesh_00101_ascii.obj"] = mat_leather
+    mat_dict["mesh_00103_ascii.obj"] = mat_leather
+    mat_dict["mesh_00104_ascii.obj"] = mat_leather
+    mat_dict["mesh_00105_ascii.obj"] = mat_leather
+    mat_dict["mesh_00107_ascii.obj"] = mat_leather
+    mat_dict["mesh_00108_ascii.obj"] = mat_leather
+    mat_dict["mesh_00109_ascii.obj"] = mat_leather
+    mat_dict["mesh_00111_ascii.obj"] = mat_leather
+
 
     commented_out = ["mesh_00113_ascii.obj", "mesh_00112_ascii.obj"]
 
