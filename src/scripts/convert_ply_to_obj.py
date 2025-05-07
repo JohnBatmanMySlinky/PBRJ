@@ -152,4 +152,4 @@ def convert_ply_to_obj(ply_file, obj_file):
 for root, _, fnames in os.walk('/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry'):
     for fname in fnames:
         if fname.endswith("_ascii.ply"):
-            convert_ply_to_obj(Path(root, fname), Path(root, fname.replace(".ply", ".obj")))
+            convert_ply_to_obj(Path(root, fname), Path(root, fname.replace("_ascii.ply", "_ascii.obj")))
