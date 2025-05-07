@@ -414,7 +414,7 @@ end
 # }
 
 # Fourier Interpolation Definitions
-function fourier_interpolation(a::Float6, m::Int64, cosPhi::Float64)::Float64
+function fourier_interpolation(a::Float64, m::Int64, cosPhi::Float64)::Float64
     value = 0.0
     # Initialize cosine iterates
     cosKMinusOnePhi = cosPhi

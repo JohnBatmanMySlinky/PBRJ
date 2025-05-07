@@ -164,11 +164,11 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 				end
 			end
 
-			for s in 0:(s_res-1)
-				for t in 0:(t_res-1)
-					@info "PYRAMID: ($i, $(s), $(t)) $(pyramid[i+1][s+1,t+1])"
-				end
-			end
+			# for s in 0:(s_res-1)
+			# 	for t in 0:(t_res-1)
+			# 		# @info "PYRAMID: ($i, $(s), $(t)) $(pyramid[i+1][s+1,t+1])"
+			# 	end
+			# end
 		end
 
 		# debugging crap
