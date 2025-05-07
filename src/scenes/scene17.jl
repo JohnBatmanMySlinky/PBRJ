@@ -143,109 +143,108 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict = Dict{String, Material}()
 
     # 1
-    mat_dict["mesh_00002.obj"] = mat_water
+    mat_dict["mesh_00002_ascii.obj"] = mat_water
 
     #2
-    mat_dict["mesh_00048.obj"] = mat_pebble_ground
-    mat_dict["mesh_00048_copy.obj"] = mat_pebble_ground
+    mat_dict["mesh_00048_ascii.obj"] = mat_pebble_ground
 
     # 2 + 19 = 21
-    mat_dict["mesh_00001.obj"] = mat_pavet
-    mat_dict["mesh_00031.obj"] = mat_pavet
-    mat_dict["mesh_00032.obj"] = mat_pavet
-    mat_dict["mesh_00033.obj"] = mat_pavet
-    mat_dict["mesh_00034.obj"] = mat_pavet
-    mat_dict["mesh_00035.obj"] = mat_pavet
-    mat_dict["mesh_00036.obj"] = mat_pavet
-    mat_dict["mesh_00037.obj"] = mat_pavet
-    mat_dict["mesh_00038.obj"] = mat_pavet
-    mat_dict["mesh_00039.obj"] = mat_pavet
-    mat_dict["mesh_00040.obj"] = mat_pavet
-    mat_dict["mesh_00041.obj"] = mat_pavet
-    mat_dict["mesh_00042.obj"] = mat_pavet
-    mat_dict["mesh_00043.obj"] = mat_pavet
-    mat_dict["mesh_00044.obj"] = mat_pavet
-    mat_dict["mesh_00045.obj"] = mat_pavet
-    mat_dict["mesh_00046.obj"] = mat_pavet
-    mat_dict["mesh_00047.obj"] = mat_pavet
-    mat_dict["mesh_00052.obj"] = mat_pavet
+    mat_dict["mesh_00001_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00031_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00032_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00033_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00034_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00035_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00036_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00037_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00038_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00039_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00040_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00041_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00042_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00043_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00044_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00045_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00046_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00047_ascii.obj"] = mat_pavet
+    mat_dict["mesh_00052_ascii.obj"] = mat_pavet
 
     # 21 + 18 = 39
-    mat_dict["mesh_00049.obj"] = mat_concrete
-    mat_dict["mesh_00050.obj"] = mat_concrete
-    mat_dict["mesh_00051.obj"] = mat_concrete
-    mat_dict["mesh_00074.obj"] = mat_concrete
-    mat_dict["mesh_00075.obj"] = mat_concrete
-    mat_dict["mesh_00076.obj"] = mat_concrete
-    mat_dict["mesh_00077.obj"] = mat_concrete
-    mat_dict["mesh_00078.obj"] = mat_concrete
-    mat_dict["mesh_00079.obj"] = mat_concrete
-    mat_dict["mesh_00080.obj"] = mat_concrete
-    mat_dict["mesh_00081.obj"] = mat_concrete
-    mat_dict["mesh_00082.obj"] = mat_concrete
-    mat_dict["mesh_00083.obj"] = mat_concrete
-    mat_dict["mesh_00084.obj"] = mat_concrete
-    mat_dict["mesh_00085.obj"] = mat_concrete
-    mat_dict["mesh_00086.obj"] = mat_concrete
-    mat_dict["mesh_00087.obj"] = mat_concrete
-    mat_dict["mesh_00088.obj"] = mat_concrete
+    mat_dict["mesh_00049_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00050_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00051_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00074_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00075_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00076_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00077_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00078_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00079_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00080_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00081_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00082_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00083_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00084_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00085_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00086_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00087_ascii.obj"] = mat_concrete
+    mat_dict["mesh_00088_ascii.obj"] = mat_concrete
 
     # 39 + 12 = 51
-    mat_dict["mesh_00007.obj"] = mat_wood
-    mat_dict["mesh_00008.obj"] = mat_wood
-    mat_dict["mesh_00009.obj"] = mat_wood
-    mat_dict["mesh_00010.obj"] = mat_wood
-    mat_dict["mesh_00011.obj"] = mat_wood
-    mat_dict["mesh_00012.obj"] = mat_wood
-    mat_dict["mesh_00013.obj"] = mat_wood
-    mat_dict["mesh_00014.obj"] = mat_wood
-    mat_dict["mesh_00019.obj"] = mat_wood
-    mat_dict["mesh_00020.obj"] = mat_wood
-    mat_dict["mesh_00025.obj"] = mat_wood
-    mat_dict["mesh_00026.obj"] = mat_wood
+    mat_dict["mesh_00007_ascii.obj"] = mat_wood
+    mat_dict["mesh_00008_ascii.obj"] = mat_wood
+    mat_dict["mesh_00009_ascii.obj"] = mat_wood
+    mat_dict["mesh_00010_ascii.obj"] = mat_wood
+    mat_dict["mesh_00011_ascii.obj"] = mat_wood
+    mat_dict["mesh_00012_ascii.obj"] = mat_wood
+    mat_dict["mesh_00013_ascii.obj"] = mat_wood
+    mat_dict["mesh_00014_ascii.obj"] = mat_wood
+    mat_dict["mesh_00019_ascii.obj"] = mat_wood
+    mat_dict["mesh_00020_ascii.obj"] = mat_wood
+    mat_dict["mesh_00025_ascii.obj"] = mat_wood
+    mat_dict["mesh_00026_ascii.obj"] = mat_wood
 
     # 52
-    mat_dict["mesh_00114.obj"] = mat_grass
+    mat_dict["mesh_00114_ascii.obj"] = mat_grass
 
     # 52 + 6 = 58
-    mat_dict["mesh_00004.obj"] = mat_wax
-    mat_dict["mesh_00006.obj"] = mat_wax
-    mat_dict["mesh_00016.obj"] = mat_wax
-    mat_dict["mesh_00018.obj"] = mat_wax
-    mat_dict["mesh_00022.obj"] = mat_wax
-    mat_dict["mesh_00024.obj"] = mat_wax
+    mat_dict["mesh_00004_ascii.obj"] = mat_wax
+    mat_dict["mesh_00006_ascii.obj"] = mat_wax
+    mat_dict["mesh_00016_ascii.obj"] = mat_wax
+    mat_dict["mesh_00018_ascii.obj"] = mat_wax
+    mat_dict["mesh_00022_ascii.obj"] = mat_wax
+    mat_dict["mesh_00024_ascii.obj"] = mat_wax
 
     # 58 + 21 = 79
-    mat_dict["mesh_00027.obj"] = mat_metal
-    mat_dict["mesh_00053.obj"] = mat_metal
-    mat_dict["mesh_00054.obj"] = mat_metal
-    mat_dict["mesh_00055.obj"] = mat_metal
-    mat_dict["mesh_00056.obj"] = mat_metal
-    mat_dict["mesh_00057.obj"] = mat_metal
-    mat_dict["mesh_00063.obj"] = mat_metal
-    mat_dict["mesh_00064.obj"] = mat_metal
-    mat_dict["mesh_00065.obj"] = mat_metal
-    mat_dict["mesh_00066.obj"] = mat_metal
-    mat_dict["mesh_00067.obj"] = mat_metal
-    mat_dict["mesh_00068.obj"] = mat_metal
-    mat_dict["mesh_00069.obj"] = mat_metal
-    mat_dict["mesh_00070.obj"] = mat_metal
-    mat_dict["mesh_00071.obj"] = mat_metal
-    mat_dict["mesh_00073.obj"] = mat_metal
-    mat_dict["mesh_00091.obj"] = mat_metal
-    mat_dict["mesh_00098.obj"] = mat_metal
-    mat_dict["mesh_00102.obj"] = mat_metal
-    mat_dict["mesh_00106.obj"] = mat_metal
-    mat_dict["mesh_00110.obj"] = mat_metal
+    mat_dict["mesh_00027_ascii.obj"] = mat_metal
+    mat_dict["mesh_00053_ascii.obj"] = mat_metal
+    mat_dict["mesh_00054_ascii.obj"] = mat_metal
+    mat_dict["mesh_00055_ascii.obj"] = mat_metal
+    mat_dict["mesh_00056_ascii.obj"] = mat_metal
+    mat_dict["mesh_00057_ascii.obj"] = mat_metal
+    mat_dict["mesh_00063_ascii.obj"] = mat_metal
+    mat_dict["mesh_00064_ascii.obj"] = mat_metal
+    mat_dict["mesh_00065_ascii.obj"] = mat_metal
+    mat_dict["mesh_00066_ascii.obj"] = mat_metal
+    mat_dict["mesh_00067_ascii.obj"] = mat_metal
+    mat_dict["mesh_00068_ascii.obj"] = mat_metal
+    mat_dict["mesh_00069_ascii.obj"] = mat_metal
+    mat_dict["mesh_00070_ascii.obj"] = mat_metal
+    mat_dict["mesh_00071_ascii.obj"] = mat_metal
+    mat_dict["mesh_00073_ascii.obj"] = mat_metal
+    mat_dict["mesh_00091_ascii.obj"] = mat_metal
+    mat_dict["mesh_00098_ascii.obj"] = mat_metal
+    mat_dict["mesh_00102_ascii.obj"] = mat_metal
+    mat_dict["mesh_00106_ascii.obj"] = mat_metal
+    mat_dict["mesh_00110_ascii.obj"] = mat_metal
 
-    commented_out = []
+    commented_out = ["mesh_00113_ascii.obj", "mesh_00112_ascii.obj"]
 
     dirpath = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry/"
     objs = String[]
     for (_, _, files) in walkdir(dirpath)
         # LAZILY ignoring nested folders
         for file in files
-            if endswith(file, ".obj")
+            if endswith(file, "_ascii.obj")
                 push!(objs, file)
             end
         end
@@ -311,11 +310,11 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # z = side to side pool
     # y is up and down
     # x is pool to house. +x is away from house
-    look_from = Pnt3(20, 3, -10) 
-    look_at = Pnt3(0, 0, 0)
+    look_from = Pnt3(-10, 2.25, 10) 
+    look_at = Pnt3(7, 1.75, -3)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(RotateX(90.0) * LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 45.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 45.0, film)
 
     # Instantiate a Sampler
     S = ZSobolSampler(parsed_args["samples-per-pixel"], film.full_resolution, Int8(2))
