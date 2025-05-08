@@ -455,7 +455,8 @@ function sample_catmull_rom_2D(
     # Map _u_ to a spline interval by inverting the interpolated _cdf_
     max_val = interpolate(cdf, size2 - 1)
     u *= max_value
-    idx = FindInterval(size2, [&](int i) { return interpolate(cdf, i) <= u; });
+    # idx = FindInterval(size2, [&](int i) { return interpolate(cdf, i) <= u; });
+    i = searchsortedfirst(values, X, by=x -> f(x))
 
     # Look up node positions and interpolated function values
     f0 = interpolate(values, idx)
