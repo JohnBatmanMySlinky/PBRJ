@@ -456,7 +456,7 @@ function sample_catmull_rom_2D(
     max_val = interpolate(cdf, size2 - 1)
     u *= max_val
     # idx = FindInterval(size2, [&](int i) { return interpolate(cdf, i) <= u; });
-    i = searchsortedfirst(cdf, size2, by=x -> interpolate(cdf, x))
+    idx = searchsortedfirst(cdf, size2, by = x -> interpolate(cdf, x))
 
     # Look up node positions and interpolated function values
     f0 = interpolate(values, idx)
@@ -529,6 +529,54 @@ function sample_catmull_rom_2D(
     return (x0 + width * t, fhat, fhat / maximum)
 end
 
+function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::Tuple{Bool, Int64, Vector{Float64}}
+    # Return _false_ if _x_ is out of bounds
+    if !((x >= nodes[0+1]) && (x <= nodes[size - 1 + 1]))
+        return (false, 0, 0.0)
+    end
+
+    # Search for the interval _idx_ containing _x_
+    # idx = FindInterval(size, [&](int i) { return nodes[i] <= x; })
+    idx = searchsortedfirst(cdf, size2, by = y -> nodes[y+1])
+    offset = idx - 1
+    x0 = nodes[idx + 1]
+    x1 = nodes[idx + 1 + 1]
+
+    # Compute the  t parameter and powers
+    t = (x - x0) / (x1 - x0)
+    t2 = t * t
+    t3 = t2 * t
+
+    # Compute initial node weights  w_1 and  w_2
+    weights[1 + 1] = 2 * t3 - 3 * t2 + 1
+    weights[2 + 1] = -2 * t3 + 3 * t2
+
+    # Compute first node weight  w_0
+    if (idx > 0)
+        w0 = (t3 - 2 * t2 + t) * (x1 - x0) / (x1 - nodes[idx - 1 + 1])
+        weights[0 + 1] = -w0
+        weights[2 + 1] += w0
+    else
+        w0 = t3 - 2 * t2 + t
+        weights[0] = 0.0
+        weights[1] -= w0
+        weights[2] += w0
+    end
+
+    # Compute last node weight  w_3
+    if (idx + 2 < size)
+        w3 = (t3 - t2) * (x1 - x0) / (nodes[idx + 2] - x0)
+        weights[1] -= w3
+        weights[3] = w3
+    else
+        w3 = t3 - t2
+        weights[1] -= w3
+        weights[2] += w3
+        weights[3] = 0
+    end
+    return (true, offset, weights)
+}
+
 """
 // Spline Interpolation Definitions
 Float CatmullRom(int size, const Float *nodes, const Float *values, Float x) {
@@ -551,49 +599,6 @@ Float CatmullRom(int size, const Float *nodes, const Float *values, Float x) {
     Float t = (x - x0) / (x1 - x0), t2 = t * t, t3 = t2 * t;
     return (2 * t3 - 3 * t2 + 1) * f0 + (-2 * t3 + 3 * t2) * f1 +
            (t3 - 2 * t2 + t) * d0 + (t3 - t2) * d1;
-}
-
-bool CatmullRomWeights(int size, const Float *nodes, Float x, int *offset,
-                       Float *weights) {
-    // Return _false_ if _x_ is out of bounds
-    if (!(x >= nodes[0] && x <= nodes[size - 1])) return false;
-
-    // Search for the interval _idx_ containing _x_
-    int idx = FindInterval(size, [&](int i) { return nodes[i] <= x; });
-    *offset = idx - 1;
-    Float x0 = nodes[idx], x1 = nodes[idx + 1];
-
-    // Compute the  t parameter and powers
-    Float t = (x - x0) / (x1 - x0), t2 = t * t, t3 = t2 * t;
-
-    // Compute initial node weights  w_1 and  w_2
-    weights[1] = 2 * t3 - 3 * t2 + 1;
-    weights[2] = -2 * t3 + 3 * t2;
-
-    // Compute first node weight  w_0
-    if (idx > 0) {
-        Float w0 = (t3 - 2 * t2 + t) * (x1 - x0) / (x1 - nodes[idx - 1]);
-        weights[0] = -w0;
-        weights[2] += w0;
-    } else {
-        Float w0 = t3 - 2 * t2 + t;
-        weights[0] = 0;
-        weights[1] -= w0;
-        weights[2] += w0;
-    }
-
-    // Compute last node weight  w_3
-    if (idx + 2 < size) {
-        Float w3 = (t3 - t2) * (x1 - x0) / (nodes[idx + 2] - x0);
-        weights[1] -= w3;
-        weights[3] = w3;
-    } else {
-        Float w3 = t3 - t2;
-        weights[1] -= w3;
-        weights[2] += w3;
-        weights[3] = 0;
-    }
-    return true;
 }
 
 Float SampleCatmullRom(int n, const Float *x, const Float *f, const Float *F,
