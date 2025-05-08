@@ -1,6 +1,6 @@
 struct FourierBSDF <: AbstractBxDF
-    bsdf_table::FourierBSDFTable
-    mode::TransportMode
+    table::FourierBSDFTable
+    mode::Type{T} where T <: TransportMode
     type::UInt8
 end
 
@@ -59,16 +59,16 @@ function f(f::FourierBSDF, wo::Vec3, wi::Vec3)::Spectrum
     end
 end
 
-function sample_f(bxdf::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
+function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
     # Sample zenith angle component for _FourierBSDF_
     mu_O = cos_theta(wo)
     mu_I, pdf_mu = SampleCatmullRom2D(
-        bsdfTable.nMu, 
-        bsdfTable.nMu, 
-        bsdfTable.mu,                           
-        bsdfTable.mu,
-        bsdfTable.a0, 
-        bsdfTable.cdf,
+        f.table.nMu, 
+        f.table.nMu, 
+        f.table.mu,                           
+        f.table.mu,
+        f.table.a0, 
+        f.table.cdf,
         mu_O, 
         u[1+1], 
         nothing
@@ -106,7 +106,7 @@ function sample_f(bxdf::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::T
     end
 
     # Importance sample the luminance Fourier expansion
-    Y, pdf_phi, phi = SampleFourier(ak, bsdfTable.recip, mMax, u[0+1])
+    Y, pdf_phi, phi = SampleFourier(ak, f.table.recip, mMax, u[0+1])
     pdf_val = max(0.0, pdf_phi * pdf_mu)
 
     # Compute the scattered direction for _FourierBSDF_
@@ -144,8 +144,8 @@ function sample_f(bxdf::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::T
     if (f.table.nChannels == 1) 
         return spectrum_from_float(Y * scale)
     end
-    R = fourier_interpolation(ak + 1 * bsdfTable.mMax, mMax, cos_phi)
-    B = fourier_interpolation(ak + 2 * bsdfTable.mMax, mMax, cos_phi)
+    R = fourier_interpolation(ak + 1 * f.table.mMax, mMax, cos_phi)
+    B = fourier_interpolation(ak + 2 * f.table.mMax, mMax, cos_phi)
     G = 1.39829 * Y - 0.100913 * B - 0.297375 * R
     return clamp.(spectrum_from_float(R * scale, G * scale, B * scale), 0.0, 1.0) # JOHN HACK ON CLAMP
 end

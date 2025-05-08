@@ -386,7 +386,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     commented_out = ["mesh_00113_ascii.obj", "mesh_00112_ascii.obj"]
     commented_in = ["mesh_00048_ascii.obj"]
 
-    dirpath = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry/"
+    dirpath = jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry/")
     objs = String[]
     for (_, _, files) in walkdir(dirpath)
         # LAZILY ignoring nested folders
@@ -443,7 +443,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         world_bounds(bvh),
         light_t,
         spectrum_from_float(1.0),
-        "/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/sky.exr",
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/sky.exr"),
         false
     )
     push!(lights, light)
