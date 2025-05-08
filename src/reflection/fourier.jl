@@ -62,7 +62,7 @@ end
 function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
     # Sample zenith angle component for _FourierBSDF_
     mu_O = cos_theta(wo)
-    mu_I, pdf_mu = SampleCatmullRom2D(
+    mu_I, _, pdf_mu = sample_catmull_rom_2D(
         f.table.nMu, 
         f.table.nMu, 
         f.table.mu,                           
@@ -71,7 +71,6 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
         f.table.cdf,
         mu_O, 
         u[1+1], 
-        nothing
     )
 
     # Compute Fourier coefficients $a_k$ for $(\mu_I, \mu_O)$
