@@ -310,7 +310,7 @@ end
 
 function equal_area_square_to_sphere(p::Pnt2)::Vec3
     @assert (p.x >= 0) && (p.x <= 1) && (p.y >= 0) && (p.y <= 1)
-    # Transform _p_ to $[-1,1]^2$ and compute absolute values
+    # Transform _p_ to [-1,1]^2 and compute absolute values
     u = 2.0 * p.x - 1.0
     v = 2.0 * p.y - 1.0
     up = abs(u) 
@@ -321,13 +321,13 @@ function equal_area_square_to_sphere(p::Pnt2)::Vec3
     d = abs(signedDistance)
     r = 1.0 - d
 
-    # Compute angle $\phi$ for square to sphere mapping
+    # Compute angle phi for square to sphere mapping
     phi = (r == 0 ? 1.0 : (vp - up) / r + 1.0) * pi / 4.0
 
-    # Find $z$ coordinate for spherical direction
+    # Find z coordinate for spherical direction
     z = copysign(1 - r^2, signedDistance)
 
-    # Compute $\cos\phi$ and $\sin\phi$ for original quadrant and return vector
+    # Compute cosphi and sinphi for original quadrant and return vector
     cosPhi = copysign(cos(phi), u)
     sinPhi = copysign(sin(phi), v)
     return Vec3(
@@ -454,9 +454,9 @@ function sample_catmull_rom_2D(
 
     # Map _u_ to a spline interval by inverting the interpolated _cdf_
     max_val = interpolate(cdf, size2 - 1)
-    u *= max_value
+    u *= max_val
     # idx = FindInterval(size2, [&](int i) { return interpolate(cdf, i) <= u; });
-    i = searchsortedfirst(values, X, by=x -> f(x))
+    i = searchsortedfirst(cdf, size2, by=x -> interpolate(cdf, x))
 
     # Look up node positions and interpolated function values
     f0 = interpolate(values, idx)
@@ -482,7 +482,7 @@ function sample_catmull_rom_2D(
 
     # Invert definite integral over spline segment and return solution
 
-    # Set initial guess for $ t$ by importance sampling a linear interpolant
+    # Set initial guess for  t by importance sampling a linear interpolant
     if (f0 != f1)
         t = (f0 - sqrt(max(0.0, f0 * f0 + 2.0 * u * (f1 - f0)))) / (f0 - f1)
     else
@@ -563,14 +563,14 @@ bool CatmullRomWeights(int size, const Float *nodes, Float x, int *offset,
     *offset = idx - 1;
     Float x0 = nodes[idx], x1 = nodes[idx + 1];
 
-    // Compute the $t$ parameter and powers
+    // Compute the  t parameter and powers
     Float t = (x - x0) / (x1 - x0), t2 = t * t, t3 = t2 * t;
 
-    // Compute initial node weights $w_1$ and $w_2$
+    // Compute initial node weights  w_1 and  w_2
     weights[1] = 2 * t3 - 3 * t2 + 1;
     weights[2] = -2 * t3 + 3 * t2;
 
-    // Compute first node weight $w_0$
+    // Compute first node weight  w_0
     if (idx > 0) {
         Float w0 = (t3 - 2 * t2 + t) * (x1 - x0) / (x1 - nodes[idx - 1]);
         weights[0] = -w0;
@@ -582,7 +582,7 @@ bool CatmullRomWeights(int size, const Float *nodes, Float x, int *offset,
         weights[2] += w0;
     }
 
-    // Compute last node weight $w_3$
+    // Compute last node weight  w_3
     if (idx + 2 < size) {
         Float w3 = (t3 - t2) * (x1 - x0) / (nodes[idx + 2] - x0);
         weights[1] -= w3;
@@ -602,7 +602,7 @@ Float SampleCatmullRom(int n, const Float *x, const Float *f, const Float *F,
     u *= F[n - 1];
     int i = FindInterval(n, [&](int i) { return F[i] <= u; });
 
-    // Look up $x_i$ and function values of spline segment _i_
+    // Look up  x_i and function values of spline segment _i_
     Float x0 = x[i], x1 = x[i + 1];
     Float f0 = f[i], f1 = f[i + 1];
     Float width = x1 - x0;
@@ -623,7 +623,7 @@ Float SampleCatmullRom(int n, const Float *x, const Float *f, const Float *F,
 
     // Invert definite integral over spline segment and return solution
 
-    // Set initial guess for $t$ by importance sampling a linear interpolant
+    // Set initial guess for  t by importance sampling a linear interpolant
     Float t;
     if (f0 != f1)
         t = (f0 - std::sqrt(std::max((Float)0, f0 * f0 + 2 * u * (f1 - f0)))) /
@@ -679,7 +679,7 @@ Float IntegrateCatmullRom(int n, const Float *x, const Float *values,
     Float sum = 0;
     cdf[0] = 0;
     for (int i = 0; i < n - 1; ++i) {
-        // Look up $x_i$ and function values of spline segment _i_
+        // Look up  x_i and function values of spline segment _i_
         Float x0 = x[i], x1 = x[i + 1];
         Float f0 = values[i], f1 = values[i + 1];
         Float width = x1 - x0;
@@ -712,7 +712,7 @@ Float InvertCatmullRom(int n, const Float *x, const Float *values, Float u) {
     // Map _u_ to a spline interval by inverting _values_
     int i = FindInterval(n, [&](int i) { return values[i] <= u; });
 
-    // Look up $x_i$ and function values of spline segment _i_
+    // Look up  x_i and function values of spline segment _i_
     Float x0 = x[i], x1 = x[i + 1];
     Float f0 = values[i], f1 = values[i + 1];
     Float width = x1 - x0;
@@ -773,7 +773,7 @@ Float SampleFourier(const Float *ak, const Float *recip, int m, Float u,
     double a = 0, b = Pi, phi = 0.5 * Pi;
     double F, f;
     while (true) {
-        // Evaluate $ F(\ phi)$ and its derivative $ f(\ phi)$
+        // Evaluate  F( phi) and its derivative  f( phi)
 
         // Initialize sine and cosine iterates
         double cosPhi = std::cos(phi);
@@ -799,7 +799,7 @@ Float SampleFourier(const Float *ak, const Float *recip, int m, Float u,
         }
         F -= u * ak[0] * Pi;
 
-        // Update bisection bounds using updated $\phi$
+        // Update bisection bounds using updated phi
         if (F > 0)
             b = phi;
         else
@@ -808,13 +808,13 @@ Float SampleFourier(const Float *ak, const Float *recip, int m, Float u,
         // Stop the Fourier bisection iteration if converged
         if (std::abs(F) < 1e-6f || b - a < 1e-6f) break;
 
-        // Perform a Newton step given $ f(\ phi)$ and $ F(\ phi)$
+        // Perform a Newton step given  f( phi) and  F( phi)
         phi -= F / f;
 
-        // Fall back to a bisection step when $\ phi$ is out of bounds
+        // Fall back to a bisection step when  phi is out of bounds
         if (!(phi > a && phi < b)) phi = 0.5f * (a + b);
     }
-    // Potentially flip $\phi$ and return the result
+    // Potentially flip  phi and return the result
     if (flip) phi = 2 * Pi - phi;
     *pdf = (Float)(Inv2Pi * f / ak[0]);
     *phiPtr = (Float)phi;
