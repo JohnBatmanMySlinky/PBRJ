@@ -437,7 +437,7 @@ function sample_catmull_rom_2D(
 )::Tuple{Float64, Float64, Float64}
     # Determine offset and coefficients for the _alpha_ parameter
     check, offset, weights = catmull_rom_weights(size1, nodes1, alpha)
-    if not check
+    if !check
         return 0.0, 0.0, 0.0
     end
 
@@ -445,8 +445,8 @@ function sample_catmull_rom_2D(
     function interpolate(array::Vector{Float64}, idx::Int64)::Float64
         value = 0.0
         for i in 0:3
-            if weights[i] != 0.0
-                value += array[(offset + i) * size2 + idx + 1] * weights[i]
+            if weights[i + 1] != 0.0
+                value += array[(offset + i) * size2 + idx + 1] * weights[i + 1]
             end
         end
         return value
@@ -456,7 +456,7 @@ function sample_catmull_rom_2D(
     max_val = interpolate(cdf, size2 - 1)
     u *= max_val
     # idx = FindInterval(size2, [&](int i) { return interpolate(cdf, i) <= u; });
-    idx = searchsortedfirst(cdf, size2, by = x -> interpolate(cdf, x))
+    idx = findfirst(v -> interpolate(cdf, v) <= u, 1:size2) - 1
 
     # Look up node positions and interpolated function values
     f0 = interpolate(values, idx)
@@ -530,6 +530,7 @@ function sample_catmull_rom_2D(
 end
 
 function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::Tuple{Bool, Int64, Vector{Float64}}
+    weights = zeros(Float64, 4)
     # Return _false_ if _x_ is out of bounds
     if !((x >= nodes[0+1]) && (x <= nodes[size - 1 + 1]))
         return (false, 0, 0.0)
@@ -537,7 +538,8 @@ function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::T
 
     # Search for the interval _idx_ containing _x_
     # idx = FindInterval(size, [&](int i) { return nodes[i] <= x; })
-    idx = searchsortedfirst(cdf, size2, by = y -> nodes[y+1])
+    idx = findfirst(v -> nodes[v] <= x, 1:size) - 1
+
     offset = idx - 1
     x0 = nodes[idx + 1]
     x1 = nodes[idx + 1 + 1]
@@ -558,9 +560,9 @@ function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::T
         weights[2 + 1] += w0
     else
         w0 = t3 - 2 * t2 + t
-        weights[0] = 0.0
-        weights[1] -= w0
-        weights[2] += w0
+        weights[0 + 1] = 0.0
+        weights[1 + 1] -= w0
+        weights[2 + 1] += w0
     end
 
     # Compute last node weight  w_3
@@ -575,7 +577,7 @@ function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::T
         weights[3] = 0
     end
     return (true, offset, weights)
-}
+end
 
 """
 // Spline Interpolation Definitions

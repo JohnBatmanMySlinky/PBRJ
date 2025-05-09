@@ -108,6 +108,7 @@ Render
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- Fourier math utils to use Binary instead of Linear Search
 - SDF should be super doable. Same thing as implicit surface imo.
 - get rid of deep copys in parser
 - i see some Mat3([]) that need to re factored in bilinear patch
