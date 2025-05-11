@@ -435,11 +435,14 @@ function sample_catmull_rom_2D(
     values::Vector{Float64}, cdf::Vector{Float64},
     alpha::Float64, u::Float64,
 )::Tuple{Float64, Float64, Float64}
+    @info "FourierBSDF::SampleCatmullRom2D"
     # Determine offset and coefficients for the _alpha_ parameter
     check, offset, weights = catmull_rom_weights(size1, nodes1, alpha)
     if !check
         return 0.0, 0.0, 0.0
     end
+    @info "FourierBSDF::SampleCatmullRom2D: offset = $offset"
+    @info "FourierBSDF::SampleCatmullRom2D: weights = $weights"
 
     # Define a lambda function to interpolate table entries
     function interpolate(array::Vector{Float64}, idx::Int64)::Float64
@@ -532,26 +535,36 @@ end
 function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::Tuple{Bool, Int64, Vector{Float64}}
     weights = zeros(Float64, 4)
     # Return _false_ if _x_ is out of bounds
+    @info "FourierBSDF::CatmullRomWeights"
     if !((x >= nodes[0+1]) && (x <= nodes[size - 1 + 1]))
         return (false, 0, 0.0)
     end
 
     # Search for the interval _idx_ containing _x_
     # idx = FindInterval(size, [&](int i) { return nodes[i] <= x; })
-    idx = findfirst(v -> nodes[v] <= x, 1:size) - 1
+    idx = findlast(v -> nodes[v] <= x, 1:size) - 1
+    @info "FourierBSDF::CatmullRomWeights size $size"
+    @info "FourierBSDF::CatmullRomWeights x $x"
+    @info "FourierBSDF::CatmullRomWeights idx $idx"
 
     offset = idx - 1
     x0 = nodes[idx + 1]
     x1 = nodes[idx + 1 + 1]
+    @info "FourierBSDF::CatmullRomWeights x0 $x0"
+    @info "FourierBSDF::CatmullRomWeights x1 $x1"
 
     # Compute the  t parameter and powers
     t = (x - x0) / (x1 - x0)
     t2 = t * t
     t3 = t2 * t
+    @info "FourierBSDF::CatmullRomWeights t $t"
+    @info "FourierBSDF::CatmullRomWeights t2 $t2"
+    @info "FourierBSDF::CatmullRomWeights t3 $t3"
 
     # Compute initial node weights  w_1 and  w_2
     weights[1 + 1] = 2 * t3 - 3 * t2 + 1
     weights[2 + 1] = -2 * t3 + 3 * t2
+    @info "FourierBSDF::CatmullRomWeights weights $weights"
 
     # Compute first node weight  w_0
     if (idx > 0)
@@ -564,18 +577,20 @@ function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::T
         weights[1 + 1] -= w0
         weights[2 + 1] += w0
     end
+    @info "FourierBSDF::CatmullRomWeights weights $weights"
 
     # Compute last node weight  w_3
     if (idx + 2 < size)
-        w3 = (t3 - t2) * (x1 - x0) / (nodes[idx + 2] - x0)
-        weights[1] -= w3
-        weights[3] = w3
+        w3 = (t3 - t2) * (x1 - x0) / (nodes[idx + 2 + 1] - x0)
+        weights[1 + 1] -= w3
+        weights[3 + 1] = w3
     else
         w3 = t3 - t2
-        weights[1] -= w3
-        weights[2] += w3
-        weights[3] = 0
+        weights[1 + 1] -= w3
+        weights[2 + 1] += w3
+        weights[3 + 1] = 0.0
     end
+    @info "FourierBSDF::CatmullRomWeights weights $weights"
     return (true, offset, weights)
 end
 

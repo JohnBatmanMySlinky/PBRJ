@@ -5,6 +5,7 @@ struct FourierBSDF <: AbstractBxDF
 end
 
 function f(f::FourierBSDF, wo::Vec3, wi::Vec3)::Spectrum
+    @info "FourierBSDF::f"
     # Find the zenith angle cosines and azimuth difference angle
     mu_I = cos_theta(-wi)
     mu_O = cos_theta(wo)
@@ -60,6 +61,9 @@ function f(f::FourierBSDF, wo::Vec3, wi::Vec3)::Spectrum
 end
 
 function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
+    @info "FourierBSDF::sample_f"
+    @info "FourierBSDF::sample_f: wo = $wo"
+    @info "FourierBSDF::sample_f: u = $u"
     # Sample zenith angle component for _FourierBSDF_
     mu_O = cos_theta(wo)
     mu_I, _, pdf_mu = sample_catmull_rom_2D(
@@ -151,6 +155,7 @@ end
 
 
 function compute_pdf(f::FourierBSDF, wo::Vec3, wi::Vec3)::Float64
+    @info "FourierBSDF::compute_pdf"
     # Find the zenith angle cosines and azimuth difference angle
     mu_I = cos_theta(-wi)
     mu_O = cos_theta(wo)
