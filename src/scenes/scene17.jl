@@ -384,7 +384,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
 
     commented_out = ["mesh_00113_ascii.obj", "mesh_00112_ascii.obj"]
-    commented_in = ["mesh_00048_ascii.obj"]
+        commented_in = ["mesh_00048_ascii.obj"]
 
     dirpath = jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/geometry/")
     objs = String[]

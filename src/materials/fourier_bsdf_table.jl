@@ -122,7 +122,7 @@ function read_fourier_bsdf_table(filename::String)::FourierBSDFTable
         # Compute reciprocals
         table.recip = Vector{Float64}(undef, table.mMax)
         for i in 1:table.mMax
-            table.recip[i] = 1.0 / i
+            table.recip[i] = 1.0 / (i-1)
         end
         
         return table
