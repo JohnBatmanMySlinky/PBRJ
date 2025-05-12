@@ -13,8 +13,8 @@ function f(f::FourierBSDF, wo::Vec3, wi::Vec3)::Spectrum
     
     # Compute Fourier coefficients $a_k$ for $(\mu_I, \mu_O)$
     # Determine offsets and weights for $\mu_I$ and $\mu_O$
-    check_I, offset_I, weights_I = get_weights_and_offset(f.table)
-    check_O, offset_O, weights_O = get_weights_and_offset(f.table)
+    check_I, offset_I, weights_I = get_weights_and_offset(f.table, mu_I)
+    check_O, offset_O, weights_O = get_weights_and_offset(f.table, mu_O)
     if (!check_I) || (!check_O)
         return spectrum_from_float(0.0)
     end
@@ -79,8 +79,8 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
 
     # Compute Fourier coefficients $a_k$ for $(\mu_I, \mu_O)$
     # Determine offsets and weights for $\mu_I$ and $\mu_O$
-    check_I, offset_I, weights_I = get_weights_and_offset(f.table)
-    check_O, offset_O, weights_O = get_weights_and_offset(f.table)
+    check_I, offset_I, weights_I = get_weights_and_offset(f.table, mu_I)
+    check_O, offset_O, weights_O = get_weights_and_offset(f.table, mu_O)
     if (!check_I) || (!check_O)
         return spectrum_from_float(0.0)
     end
@@ -89,19 +89,21 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
     # Compute Fourier coefficients $a_k$ for $(\mu_I, \mu_O)$
 
     # Allocate storage to accumulate _ak_ coefficients
-    ak = zeros(f.table.mMax * f.table.nChannels)
+    ak = zeros(Float64, f.table.mMax * f.table.nChannels)
 
     # Accumulate weighted sums of nearby $a_k$ coefficients
+    mMax = 0
     for b in 0:3
         for a in 0:3
             # Add contribution of _(a, b)_ to $a_k$ values
-            weight = weights_I[a+1] * weights_O[b+1]
+            weight = weights_I[a + 1] * weights_O[b + 1]
             if weight != 0.0
                 ap, m = get_ak(f.table, offset_I + a, offset_O + b)
-                mMax = max(f.table.mMax, m)
+                mMax = max(mMax, m)
                 for c in 0:(f.table.nChannels - 1)
-                    for k in 0:(m-1)
-                        ak[c * mMax + k + 1] += weight * ap[c * m + k + 1]
+                    for k in 0:(m - 1)
+                        ak[c * f.table.mMax + k + 1] += weight * ap[c * m + k + 1]
+                        @info "FourierBSDF::Sample_f::a_k: b: $b, a: $a, c: $c, k: $k, $m, ap: $(ap[c * m + k + 1])"
                     end
                 end
             end
@@ -163,8 +165,8 @@ function compute_pdf(f::FourierBSDF, wo::Vec3, wi::Vec3)::Float64
 
     # Compute Fourier coefficients $a_k$ for $(\mu_I, \mu_O)$
     # Determine offsets and weights for $\mu_I$ and $\mu_O$
-    check_I, offset_I, weights_I = get_weights_and_offset(f.table)
-    check_O, offset_O, weights_O = get_weights_and_offset(f.table)
+    check_I, offset_I, weights_I = get_weights_and_offset(f.table, mu_I)
+    check_O, offset_O, weights_O = get_weights_and_offset(f.table, mu_O)
     if (!check_I) || (!check_O)
         return spectrum_from_float(0.0)
     end

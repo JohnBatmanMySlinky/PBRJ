@@ -23,24 +23,14 @@ mutable struct FourierBSDFTable
     end
 end
 
-"""
-    GetAk(table::FourierBSDFTable, offsetI::Int, offsetO::Int)
-
-Get Fourier coefficients for a specific incoming and outgoing direction.
-"""
 function get_ak(table::FourierBSDFTable, offsetI::Int, offsetO::Int)
     idx = offsetO * table.nMu + offsetI
-    m_val = table.m[idx]
-    return table.a[table.aOffset[idx]+1:table.aOffset[idx]+m_val], m_val
+    m_val = table.m[idx + 1]
+    return table.a[table.aOffset[idx + 1]:table.aOffset[idx + 1] + m_val], m_val
 end
 
-"""
-    GetWeightsAndOffset(table::FourierBSDFTable, cosTheta::Float64)
-
-Calculate interpolation weights and offset for the given cosine value.
-"""
-function get_weights_and_offset(table::FourierBSDFTable, cosTheta::Float64)
-    return catmull_rom_weights(table.nMu, table.mu, cosTheta, table.offset, table.weights)
+function get_weights_and_offset(table::FourierBSDFTable, cos_theta::Float64)::Tuple{Bool, Int64, Vector{Float64}}
+    return catmull_rom_weights(table.nMu, table.mu, cos_theta)
 end
 
 """

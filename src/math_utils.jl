@@ -413,6 +413,25 @@ end
 #     return uv
 # }
 
+
+# fuck it we binary search
+function find_interval(size::Int64, predicate::Function)::Int64
+    first = 0
+    len = size
+    while len > 0
+        half = len >> 1
+        middle = first + half
+        # Bisect range based on value of _pred_ at _middle_
+        if predicate(middle)
+            first = middle + 1
+            len -= half + 1
+        else
+            len = half
+        end
+    end
+    return clamp(first - 1, 0, size - 2)
+end
+
 # Fourier Interpolation Definitions
 function fourier_interpolation(a::Float64, m::Int64, cosPhi::Float64)::Float64
     value = 0.0
@@ -457,9 +476,12 @@ function sample_catmull_rom_2D(
 
     # Map _u_ to a spline interval by inverting the interpolated _cdf_
     max_val = interpolate(cdf, size2 - 1)
-    u *= max_val
-    # idx = FindInterval(size2, [&](int i) { return interpolate(cdf, i) <= u; });
-    idx = findfirst(v -> interpolate(cdf, v) <= u, 1:size2) - 1
+    @info "FourierBSDF::SampleCatmullRom2D: max_val = $max_val"
+    u_scaled = u * max_val
+    @info "FourierBSDF::SampleCatmullRom2D: u = $u"
+    @info "FourierBSDF::SampleCatmullRom2D: u_scaled = $u_scaled"
+    idx = find_interval(size2, z -> interpolate(cdf, z) <= u_scaled)
+    @info "FourierBSDF::SampleCatmullRom2D: idx = $idx"
 
     # Look up node positions and interpolated function values
     f0 = interpolate(values, idx)
@@ -469,7 +491,7 @@ function sample_catmull_rom_2D(
     width = x1 - x0
 
     # Re-scale _u_ using the interpolated _cdf_
-    u = (u - interpolate(cdf, idx)) / width
+    u_scaled = (u_scaled - interpolate(cdf, idx)) / width
 
     # Approximate derivatives using finite differences of the interpolant
     if (idx > 0)
@@ -487,9 +509,9 @@ function sample_catmull_rom_2D(
 
     # Set initial guess for  t by importance sampling a linear interpolant
     if (f0 != f1)
-        t = (f0 - sqrt(max(0.0, f0 * f0 + 2.0 * u * (f1 - f0)))) / (f0 - f1)
+        t = (f0 - sqrt(max(0.0, f0 * f0 + 2.0 * u_scaled * (f1 - f0)))) / (f0 - f1)
     else
-        t = u / f0
+        t = u_scaled / f0
     end
     a = 0.0
     b = 1.0
@@ -518,18 +540,18 @@ function sample_catmull_rom_2D(
         end
 
         # Update bisection bounds using updated _t_
-        if (Fhat - u < 0.0)
+        if (Fhat - u_scaled < 0.0)
             a = t
         else
             b = t
         end
 
         # Perform a Newton step
-        t -= (Fhat - u) / fhat
+        t -= (Fhat - u_scaled) / fhat
     end
 
     # Return the sample position and function value
-    return (x0 + width * t, fhat, fhat / maximum)
+    return (x0 + width * t, fhat, fhat / max_val)
 end
 
 function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::Tuple{Bool, Int64, Vector{Float64}}
@@ -541,8 +563,7 @@ function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::T
     end
 
     # Search for the interval _idx_ containing _x_
-    # idx = FindInterval(size, [&](int i) { return nodes[i] <= x; })
-    idx = findlast(v -> nodes[v] <= x, 1:size) - 1
+    idx = find_interval(size, v -> nodes[v] <= x)
     @info "FourierBSDF::CatmullRomWeights size $size"
     @info "FourierBSDF::CatmullRomWeights x $x"
     @info "FourierBSDF::CatmullRomWeights idx $idx"
