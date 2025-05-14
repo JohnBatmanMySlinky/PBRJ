@@ -448,6 +448,76 @@ function fourier_interpolation(a::Float64, m::Int64, cosPhi::Float64)::Float64
     return value
 end   
 
+function sample_fourier(ak::Vector{Float64}, recip::Vector{Float64}, m::Int64, u::Float64)::Tuple{Float64, Float64, Float64}
+    # Pick a side and declare bisection variables
+    flip = u >= 0.5
+    if flip
+        u = 1.0 - 2.0 * (u - 0.5)
+    else
+        u *= 2
+    end
+    a = 0.0
+    b = pi
+    phi = 0.5 * pi
+    f_val = 0.0
+    F_val = 0.0
+    while true
+        # Evaluate  F( phi) and its derivative  f( phi)
+
+        # Initialize sine and cosine iterates
+        cosPhi = cos(phi)
+        sinPhi = sqrt(max(0.0, 1 - cosPhi * cosPhi))
+        cosPhiPrev = cosPhi
+        cosPhiCur = 1.0
+        sinPhiPrev = -sinPhi
+        sinPhiCur = 0
+
+        # Initialize _F_ and _f_ with the first series term
+        F_val = ak[0 + 1] * phi
+        f_val = ak[0 + 1]
+        for k in 1:(m - 1)
+            # Compute next sine and cosine iterates
+            sinPhiNext = 2.0 * cosPhi * sinPhiCur - sinPhiPrev
+            cosPhiNext = 2.0 * cosPhi * cosPhiCur - cosPhiPrev
+            sinPhiPrev = sinPhiCur
+            sinPhiCur = sinPhiNext
+            cosPhiPrev = cosPhiCur
+            cosPhiCur = cosPhiNext
+
+            # Add the next series term to _F_ and _f_
+            F_val += ak[k + 1] * recip[k + 1] * sinPhiNext
+            f_val += ak[k + 1] * cosPhiNext
+        end
+        F_val -= u * ak[0 + 1] * pi
+
+        # Update bisection bounds using updated phi
+        if F_val > 0
+            b = phi
+        else
+            a = phi
+        end
+
+        # Stop the Fourier bisection iteration if converged
+        if (abs(F_val) < 1e-6) || (b - a < 1e-6)
+            break
+        end
+
+        # Perform a Newton step given  f( phi) and  F( phi)
+        phi -= F_val / f_val
+
+        # Fall back to a bisection step when  phi is out of bounds
+        if (!(phi > a && phi < b)) 
+            phi = 0.5 * (a + b)
+        end
+    end
+    # Potentially flip  phi and return the result
+    if flip
+        phi = 2 * pi - phi
+    end
+    return f_val, f_val / (ak[0 + 1] * 2 * pi), phi
+end
+
+# Spline Interpolation Definitions
 function sample_catmull_rom_2D(
     size1::Int64, size2::Int64,
     nodes1::Vector{Float64}, nodes2::Vector{Float64}, 
@@ -616,7 +686,6 @@ function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::T
 end
 
 """
-// Spline Interpolation Definitions
 Float CatmullRom(int size, const Float *nodes, const Float *values, Float x) {
     if (!(x >= nodes[0] && x <= nodes[size - 1])) return 0;
     int idx = FindInterval(size, [&](int i) { return nodes[i] <= x; });
@@ -805,62 +874,4 @@ Float InvertCatmullRom(int n, const Float *x, const Float *values, Float u) {
 }
 
 // Fourier Interpolation Definitions
-Float SampleFourier(const Float *ak, const Float *recip, int m, Float u,
-                    Float *pdf, Float *phiPtr) {
-    // Pick a side and declare bisection variables
-    bool flip = (u >= 0.5);
-    if (flip)
-        u = 1 - 2 * (u - .5f);
-    else
-        u *= 2;
-    double a = 0, b = Pi, phi = 0.5 * Pi;
-    double F, f;
-    while (true) {
-        // Evaluate  F( phi) and its derivative  f( phi)
-
-        // Initialize sine and cosine iterates
-        double cosPhi = std::cos(phi);
-        double sinPhi = std::sqrt(std::max(0., 1 - cosPhi * cosPhi));
-        double cosPhiPrev = cosPhi, cosPhiCur = 1;
-        double sinPhiPrev = -sinPhi, sinPhiCur = 0;
-
-        // Initialize _F_ and _f_ with the first series term
-        F = ak[0] * phi;
-        f = ak[0];
-        for (int k = 1; k < m; ++k) {
-            // Compute next sine and cosine iterates
-            double sinPhiNext = 2 * cosPhi * sinPhiCur - sinPhiPrev;
-            double cosPhiNext = 2 * cosPhi * cosPhiCur - cosPhiPrev;
-            sinPhiPrev = sinPhiCur;
-            sinPhiCur = sinPhiNext;
-            cosPhiPrev = cosPhiCur;
-            cosPhiCur = cosPhiNext;
-
-            // Add the next series term to _F_ and _f_
-            F += ak[k] * recip[k] * sinPhiNext;
-            f += ak[k] * cosPhiNext;
-        }
-        F -= u * ak[0] * Pi;
-
-        // Update bisection bounds using updated phi
-        if (F > 0)
-            b = phi;
-        else
-            a = phi;
-
-        // Stop the Fourier bisection iteration if converged
-        if (std::abs(F) < 1e-6f || b - a < 1e-6f) break;
-
-        // Perform a Newton step given  f( phi) and  F( phi)
-        phi -= F / f;
-
-        // Fall back to a bisection step when  phi is out of bounds
-        if (!(phi > a && phi < b)) phi = 0.5f * (a + b);
-    }
-    // Potentially flip  phi and return the result
-    if (flip) phi = 2 * Pi - phi;
-    *pdf = (Float)(Inv2Pi * f / ak[0]);
-    *phiPtr = (Float)phi;
-    return f;
-}
 """

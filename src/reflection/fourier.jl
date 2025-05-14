@@ -82,7 +82,7 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
     check_I, offset_I, weights_I = get_weights_and_offset(f.table, mu_I)
     check_O, offset_O, weights_O = get_weights_and_offset(f.table, mu_O)
     if (!check_I) || (!check_O)
-        return spectrum_from_float(0.0)
+        return Vec3(0.0, 0.0, 0.0), spectrum_from_float(0.0), 0.0, type
     end
 
     # Sample zenith angle component for _FourierBSDF_
@@ -98,7 +98,7 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
             # Add contribution of _(a, b)_ to $a_k$ values
             weight = weights_I[a + 1] * weights_O[b + 1]
             if weight != 0.0
-                ap, m = get_ak(f.table, offset_I + a, offset_O + b)
+                ap, m = get_ak(f.table, offset_I + a, offset_O + b, f.table.nChannels - 1)
                 mMax = max(mMax, m)
                 for c in 0:(f.table.nChannels - 1)
                     for k in 0:(m - 1)
@@ -111,13 +111,13 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
     end
 
     # Importance sample the luminance Fourier expansion
-    Y, pdf_phi, phi = SampleFourier(ak, f.table.recip, mMax, u[0+1])
+    Y, pdf_phi, phi = sample_fourier(ak, f.table.recip, mMax, u[0+1])
     pdf_val = max(0.0, pdf_phi * pdf_mu)
 
     # Compute the scattered direction for _FourierBSDF_
     sin2ThetaI = max(0.0, 1.0 - mu_I ^ 2)
     norm = sqrt(sin2ThetaI / sin_2_theta(wo))
-    if isinfinite(norm) 
+    if isinf(norm)
         norm = 0.0
     end
     sin_phi = sin(phi) 
@@ -141,18 +141,19 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
 
     # Evaluate remaining Fourier expansions for angle $\phi$
     scale = mu_I != 0.0 ? (1.0 / abs(mu_I)) : 0.0
-    if ((mode == Radiance) && (mu_I * mu_O > 0.0))
+    if ((f.mode == Radiance) && (mu_I * mu_O > 0.0))
         eta = mu_I > 0.0 ? 1 / f.table.eta : f.table.eta
         scale *= eta * eta
     end
 
     if (f.table.nChannels == 1) 
-        return spectrum_from_float(Y * scale)
+        return wi, spectrum_from_float(Y * scale), pdf_val, type
     end
     R = fourier_interpolation(ak + 1 * f.table.mMax, mMax, cos_phi)
     B = fourier_interpolation(ak + 2 * f.table.mMax, mMax, cos_phi)
     G = 1.39829 * Y - 0.100913 * B - 0.297375 * R
-    return clamp.(spectrum_from_float(R * scale, G * scale, B * scale), 0.0, 1.0) # JOHN HACK ON CLAMP
+    # JOHN HACK ON CLAMP
+    return wi, clamp.(spectrum_from_float(R * scale, G * scale, B * scale), 0.0, 1.0), pdf_val, type
 end
 
 

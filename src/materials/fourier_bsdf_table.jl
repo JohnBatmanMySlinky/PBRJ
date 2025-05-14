@@ -23,10 +23,11 @@ mutable struct FourierBSDFTable
     end
 end
 
-function get_ak(table::FourierBSDFTable, offsetI::Int, offsetO::Int)
+function get_ak(table::FourierBSDFTable, offsetI::Int, offsetO::Int, c::Int64)
     idx = offsetO * table.nMu + offsetI
     m_val = table.m[idx + 1]
-    return table.a[table.aOffset[idx + 1]:table.aOffset[idx + 1] + m_val], m_val
+    len = c * m_val + (m_val - 1)
+    return table.a[table.aOffset[idx + 1]:(table.aOffset[idx + 1] + len)], m_val
 end
 
 function get_weights_and_offset(table::FourierBSDFTable, cos_theta::Float64)::Tuple{Bool, Int64, Vector{Float64}}
