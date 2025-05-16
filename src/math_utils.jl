@@ -633,7 +633,7 @@ function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::T
     end
 
     # Search for the interval _idx_ containing _x_
-    idx = find_interval(size, v -> nodes[v] <= x)
+    idx = find_interval(size, v -> nodes[v] <= x) - 1
     @info "FourierBSDF::CatmullRomWeights size $size"
     @info "FourierBSDF::CatmullRomWeights x $x"
     @info "FourierBSDF::CatmullRomWeights idx $idx"

@@ -103,7 +103,7 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
                 for c in 0:(f.table.nChannels - 1)
                     for k in 0:(m - 1)
                         ak[c * f.table.mMax + k + 1] += weight * ap[c * m + k + 1]
-                        @info "FourierBSDF::Sample_f::a_k: b: $b, a: $a, c: $c, k: $k, $m, ap: $(ap[c * m + k + 1])"
+                        @info "FourierBSDF::Sample_f::a_k: b: $b, a: $a, c: $c, k: $k, m: $m, ap: $(ap[c * m + k + 1])"
                     end
                 end
             end
@@ -112,6 +112,7 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
 
     # Importance sample the luminance Fourier expansion
     Y, pdf_phi, phi = sample_fourier(ak, f.table.recip, mMax, u[0+1])
+    @info "FourierBSDF::Sample_f::sample_fourier: $Y, $pdf_phi, $phi"
     pdf_val = max(0.0, pdf_phi * pdf_mu)
 
     # Compute the scattered direction for _FourierBSDF_
