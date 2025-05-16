@@ -172,23 +172,25 @@ function compute_pdf(f::FourierBSDF, wo::Vec3, wi::Vec3)::Float64
     check_I, offset_I, weights_I = get_weights_and_offset(f.table, mu_I)
     check_O, offset_O, weights_O = get_weights_and_offset(f.table, mu_O)
     if (!check_I) || (!check_O)
-        return spectrum_from_float(0.0)
+        return 0.0
     end
 
     # Allocate storage to accumulate _ak_ coefficients
     ak = zeros(f.table.mMax * f.table.nChannels)
 
     # Accumulate weighted sums of nearby $a_k$ coefficients
+    mMax = 0
     for b in 0:3
         for a in 0:3
             # Add contribution of _(a, b)_ to $a_k$ values
-            weight = weights_I[a+1] * weights_O[b+1]
+            weight = weights_I[a + 1] * weights_O[b + 1]
             if weight != 0.0
-                ap, m = get_ak(f.table, offset_I + a, offset_O + b)
-                mMax = max(f.table.mMax, m)
+                ap, m = get_ak(f.table, offset_I + a, offset_O + b, f.table.nChannels - 1)
+                mMax = max(mMax, m)
                 for c in 0:(f.table.nChannels - 1)
-                    for k in 0:(m-1)
-                        ak[c * mMax + k + 1] += weight * ap[c * m + k + 1]
+                    for k in 0:(m - 1)
+                        ak[c * f.table.mMax + k + 1] += weight * ap[c * m + k + 1]
+                        # @info "FourierBSDF::Sample_f::a_k: b: $b, a: $a, c: $c,@info "FourierBSDF::Sample_f::sample_fourier: $Y, $pdf_phi, $phi" k: $k, m: $m, ap: $(ap[c * m + k + 1])"
                     end
                 end
             end
@@ -198,13 +200,11 @@ function compute_pdf(f::FourierBSDF, wo::Vec3, wi::Vec3)::Float64
     # Evaluate probability of sampling _wi_
     rho = 0.0
     for o in 0:3
-        if weights[o+1] == 0
+        if weights_O[o + 1] == 0.0
             continue
         end
-        rho += weightsO[o] *
-            f.table.cdf[(offsetO + o) * f.table.nMu + f.table.nMu - 1 + 1] *
-            (2 * pi)
+        rho += weights_O[o + 1] * f.table.cdf[(offset_O + o) * f.table.nMu + f.table.nMu - 1 + 1] * (2 * pi)
     end
-    Y = fourier_interpolation(ak, mMax, cos_phi)
-    return (rho > 0 && Y > 0) ? (Y / rho) : 0
+    Y = fourier_interpolation(ak, 0, mMax, cos_phi)
+    return (rho > 0.0 && Y > 0.0) ? (Y / rho) : 0.0
 end

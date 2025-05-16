@@ -461,7 +461,11 @@ function sample_fourier(ak::Vector{Float64}, recip::Vector{Float64}, m::Int64, u
     phi = 0.5 * pi
     f_val = 0.0
     F_val = 0.0
+    ITER = 0
+    MAX_ITER = 1_000
     while true
+        ITER += 1
+        (ITER > MAX_ITER) && break
         # Evaluate  F( phi) and its derivative  f( phi)
 
         # Initialize sine and cosine iterates
@@ -587,8 +591,11 @@ function sample_catmull_rom_2D(
     b = 1.0
     Fhat = 0.0
     fhat = 0.0
-
+    ITER = 0
+    MAX_ITER = 1_000
     while true
+        ITER += 1
+        (ITER > MAX_ITER) && break
         # Fall back to a bisection step when _t_ is out of bounds
         if (!(t >= a && t <= b)) 
             t = 0.5 * (a + b)
@@ -774,16 +781,6 @@ Float SampleCatmullRom(int n, const Float *x, const Float *f, const Float *F,
     if (fval) *fval = fhat;
     if (pdf) *pdf = fhat / F[n - 1];
     return x0 + width * t;
-}
-
-Float SampleCatmullRom2D(int size1, int size2, const Float *nodes1,
-                         const Float *nodes2, const Float *values,
-                         const Float *cdf, Float alpha, Float u, Float *fval,
-                         Float *pdf) {
-
-
-
-
 }
 
 Float IntegrateCatmullRom(int n, const Float *x, const Float *values,
