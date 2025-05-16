@@ -23,16 +23,17 @@ function f(f::FourierBSDF, wo::Vec3, wi::Vec3)::Spectrum
     ak = zeros(f.table.mMax * f.table.nChannels)
 
     # Accumulate weighted sums of nearby $a_k$ coefficients
+    mMax = 0
     for b in 0:3
         for a in 0:3
             # Add contribution of _(a, b)_ to $a_k$ values
-            weight = weights_I[a+1] * weights_O[b+1]
+            weight = weights_I[a + 1] * weights_O[b + 1]
             if weight != 0.0
-                ap, m = get_ak(f.table, offset_I + a, offset_O + b)
-                mMax = max(f.table.mMax, m)
+                ap, m = get_ak(f.table, offset_I + a, offset_O + b, f.table.nChannels - 1)
+                mMax = max(mMax, m)
                 for c in 0:(f.table.nChannels - 1)
-                    for k in 0:(m-1)
-                        ak[c * mMax + k + 1] += weight * ap[c * m + k + 1]
+                    for k in 0:(m - 1)
+                        ak[c * f.table.mMax + k + 1] += weight * ap[c * m + k + 1]
                     end
                 end
             end
@@ -40,11 +41,11 @@ function f(f::FourierBSDF, wo::Vec3, wi::Vec3)::Spectrum
     end
 
     # Evaluate Fourier expansion for angle $\phi$
-    Y = max(0.0, Fourier(ak, mMax, cos_phi))
+    Y = max(0.0, fourier_interpolation(ak, 0, mMax, cos_phi))
     scale = (mu_I != 0.0 ? (1.0 / abs(mu_I)) : 0.0)
 
     # Update _scale_ to account for adjoint light transport
-    if ((mode == Radiance) && (mu_I * mu_O > 0.0))
+    if ((f.mode == Radiance) && (mu_I * mu_O > 0.0))
         eta = mu_I > 0.0 ? 1.0 / f.table.eta : f.table.eta
         scale *= eta * eta
     end
@@ -53,8 +54,8 @@ function f(f::FourierBSDF, wo::Vec3, wi::Vec3)::Spectrum
         return spectrum_from_float(Y * scale)
     else
         # Compute and return RGB colors for tabulated BSDF
-        R = fourier_interpolation(ak + 1 * f.table.mMax, f.table.mMax, cos_phi)
-        B = fourier_interpolation(ak + 2 * f.table.mMax, f.table.mMax, cos_phi)
+        R = fourier_interpolation(ak, 1 * f.table.mMax, f.table.mMax, cos_phi)
+        B = fourier_interpolation(ak, 2 * f.table.mMax, f.table.mMax, cos_phi)
         G = 1.39829 * Y - 0.100913 * B - 0.297375 * R
         return clamp.(spectrum_from_float(R * scale, G * scale, B * scale), 0.0, 1.0) # JOHN HACK ON CLAMP
     end
@@ -103,7 +104,7 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
                 for c in 0:(f.table.nChannels - 1)
                     for k in 0:(m - 1)
                         ak[c * f.table.mMax + k + 1] += weight * ap[c * m + k + 1]
-                        @info "FourierBSDF::Sample_f::a_k: b: $b, a: $a, c: $c, k: $k, m: $m, ap: $(ap[c * m + k + 1])"
+                        # @info "FourierBSDF::Sample_f::a_k: b: $b, a: $a, c: $c,@info "FourierBSDF::Sample_f::sample_fourier: $Y, $pdf_phi, $phi" k: $k, m: $m, ap: $(ap[c * m + k + 1])"
                     end
                 end
             end
@@ -143,17 +144,18 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
     # Evaluate remaining Fourier expansions for angle $\phi$
     scale = mu_I != 0.0 ? (1.0 / abs(mu_I)) : 0.0
     if ((f.mode == Radiance) && (mu_I * mu_O > 0.0))
-        eta = mu_I > 0.0 ? 1 / f.table.eta : f.table.eta
+        eta = mu_I > 0.0 ? 1.0 / f.table.eta : f.table.eta
         scale *= eta * eta
     end
 
     if (f.table.nChannels == 1) 
         return wi, spectrum_from_float(Y * scale), pdf_val, type
     end
-    R = fourier_interpolation(ak + 1 * f.table.mMax, mMax, cos_phi)
-    B = fourier_interpolation(ak + 2 * f.table.mMax, mMax, cos_phi)
+    R = fourier_interpolation(ak, 1 * f.table.mMax, mMax, cos_phi)
+    B = fourier_interpolation(ak, 2 * f.table.mMax, mMax, cos_phi)
     G = 1.39829 * Y - 0.100913 * B - 0.297375 * R
     # JOHN HACK ON CLAMP
+    @info "FourierBSDF::Sample_f::RETURN: $wi, $(clamp.(spectrum_from_float(R * scale, G * scale, B * scale), 0.0, 1.0)) $pdf_val $type"
     return wi, clamp.(spectrum_from_float(R * scale, G * scale, B * scale), 0.0, 1.0), pdf_val, type
 end
 
