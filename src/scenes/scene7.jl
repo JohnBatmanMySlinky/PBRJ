@@ -137,20 +137,26 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     rotate_y = 45.0
     teapot_t1 = Translate(Pnt3(0, teapot_y_shift, asdf/2.0)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
     teapot1 = parse_obj("../ref/teapot.obj", teapot_t1, false, false, nothing) 
-    for tri in teapot1
-        push!(primitives, Primitive(tri, mat_julia_red, nothing))
+    for tris in teapot1
+        for tri in tris
+            push!(primitives, Primitive(tri, mat_julia_red, nothing))
+        end
     end
 
     teapot_t2 = Translate(Pnt3(0, teapot_y_shift, -asdf/2.0)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
     teapot2 = parse_obj("../ref/teapot.obj", teapot_t2, false, false, nothing) 
-    for tri in teapot2
-        push!(primitives, Primitive(tri, mat_julia_purple, nothing))
+    for tris in teapot2
+        for tri in tris
+            push!(primitives, Primitive(tri, mat_julia_purple, nothing))
+        end
     end
 
     teapot_t3 = Translate(Pnt3(0, teapot_y_shift + sqrt(asdf^2 - (asdf/2.0)^2), 0)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
     teapot3 = parse_obj("../ref/teapot.obj", teapot_t3, false, false, nothing) 
-    for tri in teapot3
-        push!(primitives, Primitive(tri, mat_julia_green, nothing))
+    for tris in teapot3
+        for tri in tris
+            push!(primitives, Primitive(tri, mat_julia_green, nothing))
+        end
     end
 
     # instantiate lights

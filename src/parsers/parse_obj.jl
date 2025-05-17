@@ -148,7 +148,7 @@ function parse_obj(
 
     sc = ShapeCore(
         object_to_world, 
-        object_to_world,
+        Inv(object_to_world),
         reverse_orientation, 
         transform_swaps_handedness
     )
