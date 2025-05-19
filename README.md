@@ -108,7 +108,9 @@ Render
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- regression test suite with simple RMSE report
 - Fourier to use immutable struct
+- Fourier BSDF convergence is hacked
 - SDF should be super doable. Same thing as implicit surface imo.
 - get rid of deep copys in parser
 - i see some Mat3([]) that need to re factored in bilinear patch
