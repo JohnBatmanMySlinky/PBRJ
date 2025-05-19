@@ -10,7 +10,8 @@ mutable struct ZSobolSampler <: AbstractSampler
     function ZSobolSampler(
         samples_per_pixel::Int64,
         full_resolution::Pnt2i,
-        randomizer_flag::Int8
+        randomizer_flag::Int8,
+        seed::Int64
     )
     @assert randomizer_flag < Int8(4)
     log_2_samples_per_pixel = Int64(floor(log2(samples_per_pixel)))
@@ -20,7 +21,7 @@ mutable struct ZSobolSampler <: AbstractSampler
     return new(
             log_2_samples_per_pixel,
             samples_per_pixel,
-            0,
+            seed,
             n_base_4_digits,
             randomizer_flag,
             UInt64(0),
