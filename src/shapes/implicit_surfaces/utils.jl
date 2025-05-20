@@ -30,17 +30,22 @@ function intersect_t(s::ImplicitSurface, r::AbstractRay)::Float64
     # doesn't intersect sphere, NEXT
     if !check
         return -1.0
+    else
+        @info "Implicit Surface Bounding Sphere Intersection: $(at(r, t0)), $(t0)"
     end
 
     # TODO some checks t0 & t1 aren't negative?
 
-    if check
-        @info "Implicit Surface Bounding Sphere Intersection: $(at(r, t0)), $(t0)"
+    # skipping solve if start point is zero
+    if tmp_solve(0.0) == 0.0
+        solutions = [0.0]
+    elseif tmp_solve(t1 * 1.1) == 0.0
+        solutions = [t1 * 1.1]
+    else
+        @info "Entering Solve: $r"
+        solutions = find_zeros(tmp_solve, 0.0, t1*1.1) # HACKY
+        @info "Exiting Solve: $solutions"
     end
-
-    # solve
-    # HOW TO SET BOUNDS
-    solutions = find_zeros(tmp_solve, 0.0, t1*1.1) # HACKY
 
     @info "ImplicitSurfaceIntersectionTest: ray: $(r), solutions: $(solutions), bounding_sphere bounds: ($(t0/1.1), $(t1*1.1))"
 
@@ -49,7 +54,8 @@ function intersect_t(s::ImplicitSurface, r::AbstractRay)::Float64
     end
 
     # find intersection time
-    t = minimum(solutions)
+    _, idx = findmin(abs.(solutions))
+    t = solutions[idx]
 
     if t > r.tMax
         return -1.0
