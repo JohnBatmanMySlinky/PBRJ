@@ -1,16 +1,3 @@
-################
-### ABSTRACT ###
-################
-
-# Base abstract type for all SDF components
-# abstract type ImplicitSurface end
-
-# Primitive SDF shapes inherit from this
-abstract type SDFPrimitive <: ImplicitSurface end
-
-# Operations (union, intersection, etc.) inherit from this
-abstract type SDFOperation <: ImplicitSurface end
-
 #############
 ### UTILS ###
 #############
@@ -74,6 +61,7 @@ end
 ##################
 ### PRIMITIVES ###
 ##################
+# https://iquilezles.org/articles/distfunctions/
 
 struct SDFSphere <: SDFPrimitive
     radius::Float64
@@ -83,6 +71,12 @@ end
 
 struct SDFBox <: SDFPrimitive
     half_extents::RayTracing.Pnt3  # half-width, half-height, half-depth
+    core::RayTracing.ShapeCore
+    bounding_sphere::RayTracing.Sphere
+end
+
+struct SDFTorus <: SDFPrimitive
+    t::Vec2
     core::RayTracing.ShapeCore
     bounding_sphere::RayTracing.Sphere
 end
@@ -113,6 +107,7 @@ function evaluate(op::SDFUnion, p::RayTracing.Pnt3)::Float64
     b = evaluate(op.right, p)
     
     # Smooth union formula
+    # https://iquilezles.org/articles/smin/
     if op.k > 0
         k2 = op.k * 6.0
         h = max( k2-abs(a-b), 0.0 )/k2

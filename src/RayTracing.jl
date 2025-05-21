@@ -29,6 +29,8 @@ abstract type Medium end
 abstract type AbstractSampler end
 abstract type Shape end
 abstract type ImplicitSurface <: Shape end
+abstract type SDFPrimitive <: ImplicitSurface end
+abstract type SDFOperation <: ImplicitSurface end
 abstract type MicrofacetDistribution end
 abstract type Randomizer end
 abstract type AbstractMedium end
