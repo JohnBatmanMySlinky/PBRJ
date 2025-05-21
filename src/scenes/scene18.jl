@@ -75,21 +75,35 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     #########################
 
     # Create two primitive shapes
-    sphere = SDFSphere(
-        1.0, 
-        RayTracing.ShapeCore(
-            Translate(Pnt3(0, 1, 0)),
-            Inv(Translate(Pnt3(0, 1, 0))),
-            false,
-            false
-        ), 
-        RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 1.0 * 1.1)
+    # sphere = SDFSphere(
+    #     1.0, 
+    #     RayTracing.ShapeCore(
+    #         Translate(Pnt3(0, 1, 0)),
+    #         Inv(Translate(Pnt3(0, 1, 0))),
+    #         false,
+    #         false
+    #     ), 
+    #     RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 1.0 * 1.1)
+    # )
+    # box = SDFBox(RayTracing.Pnt3(1.0, 1.0, 1.0), RayTracing.ShapeCore(), RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 3.0 * 1.1))
+
+    # # Create a union of the two shapes
+    # union_shape = SDFUnion(0.1, sphere, box, ShapeCore())
+
+    # push!(primitives, Primitive(union_shape, mat_blue, nothing))
+
+    torus = SDFTorus(
+        Vec2(2.0, 1.0),
+        ShapeCore(),
+        Sphere(Pnt3(0,0,0), 2.1)
     )
-    box = SDFBox(RayTracing.Pnt3(1.0, 1.0, 1.0), RayTracing.ShapeCore(), RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 3.0 * 1.1))
-
-    # Create a union of the two shapes
-    union_shape = SDFUnion(0.1, sphere, box, ShapeCore())
-
+    frame_box = SDFFrameBox(
+        Pnt3(3.0, 1.0, 3.0),
+        0.1,
+        ShapeCore(),
+        Sphere(Pnt3(0,0,0), 6.0 * sqrt(2.0))
+    )
+    union_shape = SDFUnion(0.1, torus, frame_box, ShapeCore())
     push!(primitives, Primitive(union_shape, mat_blue, nothing))
 
 

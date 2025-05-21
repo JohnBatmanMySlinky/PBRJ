@@ -58,6 +58,14 @@ function ObjectBounds(s::SDFUnion)::Bounds3
     )
 end
 
+function ObjectBounds(s::SDFPrimitive)::Bounds3
+    r = s.bounding_sphere.radius
+    return Bounds3(
+        Pnt3(-r, -r, -r),
+        Pnt3(r, r, r),
+    )
+end
+
 ##################
 ### PRIMITIVES ###
 ##################
@@ -81,6 +89,13 @@ struct SDFTorus <: SDFPrimitive
     bounding_sphere::RayTracing.Sphere
 end
 
+struct SDFFrameBox <: SDFPrimitive
+    b::Pnt3
+    e::Float64
+    core::ShapeCore
+    bounding_sphere::Sphere
+end
+
 ###################
 ### EVALUTATION ###
 ###################
@@ -99,6 +114,22 @@ function evaluate(shape::SDFBox, p::RayTracing.Pnt3)::Float64
     # Box SDF implementation
     q = abs.(local_p) .- shape.half_extents
     return RayTracing.norm(max.(q, 0.0)) + min(maximum(q), 0.0)
+end
+
+function evaluate(shape::SDFTorus, p::RayTracing.Pnt3)::Float64
+    q = Vec2(sqrt(p.x^2 + p.z^2) - shape.t.x, p.y)
+    return sqrt(q.x^2 + q.y^2) - shape.t.y
+end
+
+function evaluate(shape::SDFFrameBox, p::Pnt3)::Float64
+    p = abs.(p) .- shape.b
+    q = abs.(p .+ shape.e) .- shape.e
+    
+    case1 = length_pbrt(max.(Pnt3(p.x, q.y, q.z), 0.0)) + min(max(p.x, max(q.y, q.z)), 0.0)
+    case2 = length_pbrt(max.(Pnt3(q.x, p.y, q.z), 0.0)) + min(max(q.x, max(p.y, q.z)), 0.0)
+    case3 = length_pbrt(max.(Pnt3(q.x, q.y, p.z), 0.0)) + min(max(q.x, max(q.y, p.z)), 0.0)
+    
+    return min(min(case1, case2), case3)
 end
 
 # Operation evaluations
