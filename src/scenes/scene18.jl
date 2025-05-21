@@ -74,31 +74,23 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ########## SDFTree ##########
     #########################
 
-    tmp = Pnt3(0.0, 0.0, 0.0)
-    s1_sc = ShapeCore(
-        Translate(tmp),
-        Inv(Translate(tmp)),
-        false,
-        false
+    # Create two primitive shapes
+    sphere = SDFSphere(
+        1.0, 
+        RayTracing.ShapeCore(
+            Translate(Pnt3(0, 1, 0)),
+            Inv(Translate(Pnt3(0, 1, 0))),
+            false,
+            false
+        ), 
+        RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 1.0 * 1.1)
     )
-    s1 = SDF_Box(s1_sc, Vec3(1,1,1))
+    box = SDFBox(RayTracing.Pnt3(1.0, 1.0, 1.0), RayTracing.ShapeCore(), RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 3.0 * 1.1))
 
-    tmp = Pnt3(0.0, 0.0, 0.0)
-    s2_sc = ShapeCore(
-        Translate(tmp),
-        Inv(Translate(tmp)),
-        false,
-        false
-    )
-    s2 = SDF_Sphere(s2_sc, 1.0)
+    # Create a union of the two shapes
+    union_shape = SDFUnion(0.1, sphere, box, ShapeCore())
 
-    func = SDFSmoothUnion(0.5)
-
-    bs = Sphere(Pnt3(0,0,0), 2.0)
-
-    tree = SDFNode(func, identity_shape_core, bs, SDFNode(s1), SDFNode(s2))
-
-    push!(primitives, Primitive(tree, mat_blue, nothing))
+    push!(primitives, Primitive(union_shape, mat_blue, nothing))
 
 
     #########################
