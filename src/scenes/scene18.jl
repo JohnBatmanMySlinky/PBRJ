@@ -71,7 +71,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     end
 
     #########################
-    ########## SDF ##########
+    ########## SDFTree ##########
     #########################
 
     tmp = Pnt3(0.0, 0.0, 0.0)
@@ -83,7 +83,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     s1 = SDF_Box(s1_sc, Vec3(1,1,1))
 
-    tmp = Pnt3(0.0, 0.5, 0.0)
+    tmp = Pnt3(0.0, 0.0, 0.0)
     s2_sc = ShapeCore(
         Translate(tmp),
         Inv(Translate(tmp)),
@@ -92,9 +92,9 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     s2 = SDF_Sphere(s2_sc, 1.0)
 
-    func = SDFFunction(0.5, sdf_smooth_union)
+    func = SDFSmoothUnion(0.5)
 
-    bs = Sphere(Pnt3(0,0,0), 5.0)
+    bs = Sphere(Pnt3(0,0,0), 2.0)
 
     tree = SDFNode(func, identity_shape_core, bs, SDFNode(s1), SDFNode(s2))
 

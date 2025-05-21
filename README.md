@@ -108,6 +108,10 @@ Render
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- SDFs
+    - each individual box and sphere work the union sucks
+        - is my bounding sphere? hmmm doesn't look like it...
+    - need a bounding sphere method for my tree...
 - Fix up old scenes
     - run them and squash bugs
 - Time to make my OBJ parser suck less

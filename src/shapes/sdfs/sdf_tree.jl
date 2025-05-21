@@ -1,9 +1,3 @@
-# wrapper around SDF Functions. Holds the function and K smoothing parameter
-struct SDFFunction
-    k::Float64
-    F::Function
-end
-
 # The Tree
 struct SDFNode <: ImplicitSurface
     contents::Union{SDFFunction, ImplicitSurface}
@@ -31,7 +25,7 @@ function f(node::SDFNode, pp::Pnt3)::Float64
 
         l = f(node.left, node.left.contents.core.world_to_object(pp))
         r = f(node.right, node.right.contents.core.world_to_object(pp))
-        return node.contents.F(l, r, node.contents.k)
+        return node.contents(l, r)
     else
         @assert false
     end
