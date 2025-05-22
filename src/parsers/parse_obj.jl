@@ -29,10 +29,6 @@ function parse_face!(
     normal_indices::Vector{Int}
 )
 	parts = split(strip(line))[2:end]
-    
-    if length(parts) != 3
-        throw(ArgumentError("Invalid face format on line: $line"))
-    end
 	
 	for part in parts
 		indices = split(part, "/")
@@ -46,6 +42,87 @@ function parse_face!(
             push!(normal_indices, parse(Int, indices[3]))
         end
     end
+end
+
+function publish!(
+    FIN::Vector{Any}, 
+    NFACE::Int64,
+    vertices::Vector{Pnt3},
+    vertex_indices::Vector{Int},
+    uvs::Vector{Pnt2},
+    uv_indices::Vector{Int},
+    normals::Vector{Nml3},
+    normal_indices::Vector{Int},
+    sc::ShapeCore,
+    alpha_mask::Maybe{AbstractTexture{Float64}}
+)
+    # if face only specifies a single set of indices but we get normals
+    # as seen in teapot.obj
+    if (length(normals) > 0) & (length(normal_indices) == 0)
+        if length(vertices) == length(normals)
+            normal_indices = vertex_indices
+        end
+    end
+
+    # if face only specifies a single set of indices but we get uvs
+    # as seen in teapot.obj
+    if (length(uvs) > 0) & (length(uv_indices) == 0)
+        if length(vertices) == length(uvs)
+            uv_indices = vertex_indices
+        end
+    end
+
+    @assert mod(length(vertex_indices), NFACE) == 0
+    @assert mod(length(uv_indices), NFACE) == 0
+    @assert mod(length(normal_indices), NFACE) == 0
+
+    if !((length(normals) > 0) && (length(normal_indices) > 0))
+        normals = nothing
+        normal_indices = nothing
+    end
+    if !((length(uvs) > 0) && (length(uv_indices) > 0))
+        uvs = nothing
+        uv_indices = nothing
+    end
+
+
+    if NFACE == 3
+        shapes = RayTracing.construct_triangle_mesh(
+            sc,
+            length(vertex_indices)÷3,
+        
+            deepcopy(vertices),
+            deepcopy(vertex_indices),
+        
+            deepcopy(normals),
+            deepcopy(normal_indices),
+        
+            deepcopy(uvs),
+            deepcopy(uv_indices),
+        
+            deepcopy(alpha_mask)
+        )
+    elseif NFACE == 4
+        shapes = BilinearPatchGenerator(
+            sc,
+            length(vertex_indices) ÷ 4,
+
+            deepcopy(vertices),
+            deepcopy(vertex_indices),
+
+            deepcopy(normals),
+            deepcopy(normal_indices),
+
+            deepcopy(uvs),
+            deepcopy(uv_indices),
+
+            deepcopy(alpha_mask)
+        )
+    else
+        @assert false
+    end
+
+    push!(FIN, shapes)
 end
 
 function parse_obj(
@@ -63,6 +140,19 @@ function parse_obj(
 
 	normals = RayTracing.Nml3[]
 	normal_indices = Int[]
+
+    # JOHN TOOD
+    # massive container of abstract shit
+    FIN = []
+    global NFACE = -1
+
+    sc = ShapeCore(
+        object_to_world, 
+        Inv(object_to_world),
+        reverse_orientation, 
+        transform_swaps_handedness
+    )
+
 	
 	open(file_path) do file
 		for line in eachline(file)
@@ -81,6 +171,10 @@ function parse_obj(
             elseif cmd == "vn"
                 push!(normals, parse_normal(line))
             elseif cmd == "f"
+                global NFACE = length(split(strip(line))[2:end])
+                if !((NFACE == 3) || (NFACE == 4))
+                    throw(ArgumentError("Invalid face format on line: $line - NFACE: $NFACE"))
+                end
                 parse_face!(line, vertex_indices, uv_indices, normal_indices)
             elseif cmd == "mtllib"
                 @warn "Skipping material: $line"
@@ -92,8 +186,38 @@ function parse_obj(
                 @warn "Skipping group: $line"
                 continue
             elseif cmd == "o"
-                @warn "Skipping object: $line"
-                continue
+                # as seen in barcelona_pavillion mesh_00001.obj...
+                # multiple objects in one OBJ & mixed tris and quads :(
+
+                if length(vertices) == 0
+                    @assert NFACE == -1 # shouldn't be set yet
+                    #################################################
+                    # if we haven;t gotten any vertices yet, continue
+                    #################################################
+                    continue
+                else
+                    ######################
+                    # proceed to publish
+                    ######################
+                    publish!(
+                        FIN, 
+                        NFACE,
+                        vertices,
+                        vertex_indices,
+                        uvs,
+                        uv_indices,
+                        normals,
+                        normal_indices,
+                        sc,
+                        alpha_mask
+                    )
+
+                    # RESET THE INDICES
+                    vertex_indices = Int[]
+                    uv_indices = Int[]
+                    normal_indices = Int[]
+
+                end
             elseif cmd == "s"
                 @warn "Skipping something: $line"
                 continue
@@ -106,43 +230,18 @@ function parse_obj(
 		end
 	end
 
-    # if face only specifies a single set of indices but we get normals
-    # as seen in teapot.obj
-    if (length(normals) > 0) & (length(normal_indices) == 0)
-        @assert length(vertices) == length(normals)
-        normal_indices = vertex_indices
-    end
-
-    # if face only specifies a single set of indices but we get uvs
-    # as seen in teapot.obj
-    if (length(uvs) > 0) & (length(uv_indices) == 0)
-        @assert length(vertices) == length(uvs)
-        uv_indices = vertex_indices
-    end
-
-    @assert mod(length(vertex_indices), 3) == 0
-    @assert mod(length(uv_indices), 3) == 0
-    @assert mod(length(normal_indices), 3) == 0
-
-    normals = length(normals)>0 ? normals : nothing
-    normal_indices = length(normal_indices)>0 ? normal_indices : nothing
-
-    uvs = length(uvs)>0 ? uvs : nothing
-    uv_indices = length(uv_indices)>0 ? uv_indices : nothing
-
-	return RayTracing.construct_triangle_mesh(
-        RayTracing.ShapeCore(object_to_world, RayTracing.Inv(object_to_world), reverse_orientation, transform_swaps_handedness),
-        length(vertex_indices)÷3,
-    
+    publish!(
+        FIN, 
+        NFACE,
         vertices,
         vertex_indices,
-    
-        normals,
-        normal_indices,
-    
         uvs,
         uv_indices,
-    
+        normals,
+        normal_indices,
+        sc,
         alpha_mask
     )
+
+	return FIN
 end

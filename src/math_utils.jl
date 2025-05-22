@@ -30,7 +30,7 @@ function distance_squared(p1::Pnt3, p2::Pnt3)::Float64
     return dot(p, p)
 end
 
-function length_squared(v::Union{Vec3, Vec2})::Float64
+function length_squared(v::T)::Float64 where {T <: Union{Vec3, Vec2, Nml3}}
     return sum(v.^2)
 end
 
@@ -80,7 +80,7 @@ function lerp(t::Float64, a::Float64, b::Float64)::Float64
     return a + t * (b - a)
 end
 
-function lerp(t::Float64, a::Pnt3, b::Pnt3)::Pnt3
+function lerp(t::Float64, a::T, b::T)::T where {T <: Union{Pnt3, Pnt2, Nml3}}
     return a .+ t .* (b - a)
 end
 
@@ -310,7 +310,7 @@ end
 
 function equal_area_square_to_sphere(p::Pnt2)::Vec3
     @assert (p.x >= 0) && (p.x <= 1) && (p.y >= 0) && (p.y <= 1)
-    # Transform _p_ to $[-1,1]^2$ and compute absolute values
+    # Transform _p_ to [-1,1]^2 and compute absolute values
     u = 2.0 * p.x - 1.0
     v = 2.0 * p.y - 1.0
     up = abs(u) 
@@ -321,13 +321,13 @@ function equal_area_square_to_sphere(p::Pnt2)::Vec3
     d = abs(signedDistance)
     r = 1.0 - d
 
-    # Compute angle $\phi$ for square to sphere mapping
+    # Compute angle phi for square to sphere mapping
     phi = (r == 0 ? 1.0 : (vp - up) / r + 1.0) * pi / 4.0
 
-    # Find $z$ coordinate for spherical direction
+    # Find z coordinate for spherical direction
     z = copysign(1 - r^2, signedDistance)
 
-    # Compute $\cos\phi$ and $\sin\phi$ for original quadrant and return vector
+    # Compute cosphi and sinphi for original quadrant and return vector
     cosPhi = copysign(cos(phi), u)
     sinPhi = copysign(sin(phi), v)
     return Vec3(
@@ -412,3 +412,463 @@ end
 #     }
 #     return uv
 # }
+
+
+# fuck it we binary search
+function find_interval(size::Int64, predicate::Function)::Int64
+    first = 0
+    len = size
+    while len > 0
+        half = len >> 1
+        middle = first + half
+        # Bisect range based on value of _pred_ at _middle_
+        if predicate(middle)
+            first = middle + 1
+            len -= half + 1
+        else
+            len = half
+        end
+    end
+    return clamp(first - 1, 0, size - 2)
+end
+
+# Fourier Interpolation Definitions
+function fourier_interpolation(a::Vector{Float64}, offset::Int64, m::Int64, cosPhi::Float64)::Float64
+    value = 0.0
+    # Initialize cosine iterates
+    cosKMinusOnePhi = cosPhi
+    cosKPhi = 1
+    for k in 0:(m-1)
+        # Add the current summand and update the cosine iterates
+        value += a[offset + k + 1] * cosKPhi
+        cosKPlusOnePhi = 2 * cosPhi * cosKPhi - cosKMinusOnePhi
+        cosKMinusOnePhi = cosKPhi
+        cosKPhi = cosKPlusOnePhi
+    end
+    return value
+end   
+
+function sample_fourier(ak::Vector{Float64}, recip::Vector{Float64}, m::Int64, u::Float64)::Tuple{Float64, Float64, Float64}
+    # Pick a side and declare bisection variables
+    flip = u >= 0.5
+    if flip
+        u = 1.0 - 2.0 * (u - 0.5)
+    else
+        u *= 2
+    end
+    a = 0.0
+    b = pi
+    phi = 0.5 * pi
+    f_val = 0.0
+    F_val = 0.0
+    ITER = 0
+    MAX_ITER = 1_000
+    while true
+        ITER += 1
+        (ITER > MAX_ITER) && break
+        # Evaluate  F( phi) and its derivative  f( phi)
+
+        # Initialize sine and cosine iterates
+        cosPhi = cos(phi)
+        sinPhi = sqrt(max(0.0, 1 - cosPhi * cosPhi))
+        cosPhiPrev = cosPhi
+        cosPhiCur = 1.0
+        sinPhiPrev = -sinPhi
+        sinPhiCur = 0
+
+        # Initialize _F_ and _f_ with the first series term
+        F_val = ak[0 + 1] * phi
+        f_val = ak[0 + 1]
+        for k in 1:(m - 1)
+            # Compute next sine and cosine iterates
+            sinPhiNext = 2.0 * cosPhi * sinPhiCur - sinPhiPrev
+            cosPhiNext = 2.0 * cosPhi * cosPhiCur - cosPhiPrev
+            sinPhiPrev = sinPhiCur
+            sinPhiCur = sinPhiNext
+            cosPhiPrev = cosPhiCur
+            cosPhiCur = cosPhiNext
+
+            # Add the next series term to _F_ and _f_
+            F_val += ak[k + 1] * recip[k + 1] * sinPhiNext
+            f_val += ak[k + 1] * cosPhiNext
+        end
+        F_val -= u * ak[0 + 1] * pi
+
+        # Update bisection bounds using updated phi
+        if F_val > 0
+            b = phi
+        else
+            a = phi
+        end
+
+        # Stop the Fourier bisection iteration if converged
+        if (abs(F_val) < 1e-6) || (b - a < 1e-6)
+            break
+        end
+
+        # Perform a Newton step given  f( phi) and  F( phi)
+        phi -= F_val / f_val
+
+        # Fall back to a bisection step when  phi is out of bounds
+        if (!(phi > a && phi < b)) 
+            phi = 0.5 * (a + b)
+        end
+    end
+    # Potentially flip  phi and return the result
+    if flip
+        phi = 2 * pi - phi
+    end
+    return f_val, f_val / (ak[0 + 1] * 2 * pi), phi
+end
+
+# Spline Interpolation Definitions
+function sample_catmull_rom_2D(
+    size1::Int64, size2::Int64,
+    nodes1::Vector{Float64}, nodes2::Vector{Float64}, 
+    values::Vector{Float64}, cdf::Vector{Float64},
+    alpha::Float64, u::Float64,
+)::Tuple{Float64, Float64, Float64}
+    @info "FourierBSDF::SampleCatmullRom2D"
+    # Determine offset and coefficients for the _alpha_ parameter
+    check, offset, weights = catmull_rom_weights(size1, nodes1, alpha)
+    if !check
+        return 0.0, 0.0, 0.0
+    end
+    @info "FourierBSDF::SampleCatmullRom2D: offset = $offset"
+    @info "FourierBSDF::SampleCatmullRom2D: weights = $weights"
+
+    # Define a lambda function to interpolate table entries
+    function interpolate(array::Vector{Float64}, idx::Int64)::Float64
+        value = 0.0
+        for i in 0:3
+            if weights[i + 1] != 0.0
+                value += array[(offset + i) * size2 + idx + 1] * weights[i + 1]
+            end
+        end
+        return value
+    end
+
+    # Map _u_ to a spline interval by inverting the interpolated _cdf_
+    max_val = interpolate(cdf, size2 - 1)
+    @info "FourierBSDF::SampleCatmullRom2D: max_val = $max_val"
+    u_scaled = u * max_val
+    @info "FourierBSDF::SampleCatmullRom2D: u = $u"
+    @info "FourierBSDF::SampleCatmullRom2D: u_scaled = $u_scaled"
+    idx = find_interval(size2, z -> interpolate(cdf, z) <= u_scaled)
+    @info "FourierBSDF::SampleCatmullRom2D: idx = $idx"
+
+    # Look up node positions and interpolated function values
+    f0 = interpolate(values, idx)
+    f1 = interpolate(values, idx + 1)
+    x0 = nodes2[idx + 1]
+    x1 = nodes2[idx + 1 + 1]
+    width = x1 - x0
+
+    # Re-scale _u_ using the interpolated _cdf_
+    u_scaled = (u_scaled - interpolate(cdf, idx)) / width
+
+    # Approximate derivatives using finite differences of the interpolant
+    if (idx > 0)
+        d0 = width * (f1 - interpolate(values, idx - 1)) / (x1 - nodes2[idx - 1 + 1])
+    else
+        d0 = f1 - f0
+    end
+    if (idx + 2 < size2)
+        d1 = width * (interpolate(values, idx + 2) - f0) / (nodes2[idx + 2 + 1] - x0)
+    else
+        d1 = f1 - f0
+    end
+
+    # Invert definite integral over spline segment and return solution
+
+    # Set initial guess for  t by importance sampling a linear interpolant
+    if (f0 != f1)
+        t = (f0 - sqrt(max(0.0, f0 * f0 + 2.0 * u_scaled * (f1 - f0)))) / (f0 - f1)
+    else
+        t = u_scaled / f0
+    end
+    a = 0.0
+    b = 1.0
+    Fhat = 0.0
+    fhat = 0.0
+    ITER = 0
+    MAX_ITER = 1_000
+    while true
+        ITER += 1
+        (ITER > MAX_ITER) && break
+        # Fall back to a bisection step when _t_ is out of bounds
+        if (!(t >= a && t <= b)) 
+            t = 0.5 * (a + b)
+        end
+
+        # Evaluate target function and its derivative in Horner form
+        Fhat = t * (f0 +
+                    t * (0.5 * d0 +
+                         t * ((1.0 / 3.0) * (-2.0 * d0 - d1) + f1 - f0 +
+                              t * (0.25 * (d0 + d1) + 0.5 * (f0 - f1)))))
+        fhat = f0 +
+               t * (d0 +
+                    t * (-2.0 * d0 - d1 + 3.0 * (f1 - f0) +
+                         t * (d0 + d1 + 2.0 * (f0 - f1))))
+
+        # Stop the iteration if converged
+        if ((abs(Fhat - u) < 1e-6) || (b - a < 1e-6)) 
+            break
+        end
+
+        # Update bisection bounds using updated _t_
+        if (Fhat - u_scaled < 0.0)
+            a = t
+        else
+            b = t
+        end
+
+        # Perform a Newton step
+        t -= (Fhat - u_scaled) / fhat
+    end
+
+    # Return the sample position and function value
+    return (x0 + width * t, fhat, fhat / max_val)
+end
+
+function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::Tuple{Bool, Int64, Vector{Float64}}
+    weights = zeros(Float64, 4)
+    # Return _false_ if _x_ is out of bounds
+    @info "FourierBSDF::CatmullRomWeights"
+    if !((x >= nodes[0+1]) && (x <= nodes[size - 1 + 1]))
+        return (false, 0, 0.0)
+    end
+
+    # Search for the interval _idx_ containing _x_
+    idx = find_interval(size, v -> nodes[v] <= x) - 1
+    @info "FourierBSDF::CatmullRomWeights size $size"
+    @info "FourierBSDF::CatmullRomWeights x $x"
+    @info "FourierBSDF::CatmullRomWeights idx $idx"
+
+    offset = idx - 1
+    x0 = nodes[idx + 1]
+    x1 = nodes[idx + 1 + 1]
+    @info "FourierBSDF::CatmullRomWeights x0 $x0"
+    @info "FourierBSDF::CatmullRomWeights x1 $x1"
+
+    # Compute the  t parameter and powers
+    t = (x - x0) / (x1 - x0)
+    t2 = t * t
+    t3 = t2 * t
+    @info "FourierBSDF::CatmullRomWeights t $t"
+    @info "FourierBSDF::CatmullRomWeights t2 $t2"
+    @info "FourierBSDF::CatmullRomWeights t3 $t3"
+
+    # Compute initial node weights  w_1 and  w_2
+    weights[1 + 1] = 2 * t3 - 3 * t2 + 1
+    weights[2 + 1] = -2 * t3 + 3 * t2
+    @info "FourierBSDF::CatmullRomWeights weights $weights"
+
+    # Compute first node weight  w_0
+    if (idx > 0)
+        w0 = (t3 - 2 * t2 + t) * (x1 - x0) / (x1 - nodes[idx - 1 + 1])
+        weights[0 + 1] = -w0
+        weights[2 + 1] += w0
+    else
+        w0 = t3 - 2 * t2 + t
+        weights[0 + 1] = 0.0
+        weights[1 + 1] -= w0
+        weights[2 + 1] += w0
+    end
+    @info "FourierBSDF::CatmullRomWeights weights $weights"
+
+    # Compute last node weight  w_3
+    if (idx + 2 < size)
+        w3 = (t3 - t2) * (x1 - x0) / (nodes[idx + 2 + 1] - x0)
+        weights[1 + 1] -= w3
+        weights[3 + 1] = w3
+    else
+        w3 = t3 - t2
+        weights[1 + 1] -= w3
+        weights[2 + 1] += w3
+        weights[3 + 1] = 0.0
+    end
+    @info "FourierBSDF::CatmullRomWeights weights $weights"
+    return (true, offset, weights)
+end
+
+"""
+Float CatmullRom(int size, const Float *nodes, const Float *values, Float x) {
+    if (!(x >= nodes[0] && x <= nodes[size - 1])) return 0;
+    int idx = FindInterval(size, [&](int i) { return nodes[i] <= x; });
+    Float x0 = nodes[idx], x1 = nodes[idx + 1];
+    Float f0 = values[idx], f1 = values[idx + 1];
+    Float width = x1 - x0;
+    Float d0, d1;
+    if (idx > 0)
+        d0 = width * (f1 - values[idx - 1]) / (x1 - nodes[idx - 1]);
+    else
+        d0 = f1 - f0;
+
+    if (idx + 2 < size)
+        d1 = width * (values[idx + 2] - f0) / (nodes[idx + 2] - x0);
+    else
+        d1 = f1 - f0;
+
+    Float t = (x - x0) / (x1 - x0), t2 = t * t, t3 = t2 * t;
+    return (2 * t3 - 3 * t2 + 1) * f0 + (-2 * t3 + 3 * t2) * f1 +
+           (t3 - 2 * t2 + t) * d0 + (t3 - t2) * d1;
+}
+
+Float SampleCatmullRom(int n, const Float *x, const Float *f, const Float *F,
+                       Float u, Float *fval, Float *pdf) {
+    // Map _u_ to a spline interval by inverting _F_
+    u *= F[n - 1];
+    int i = FindInterval(n, [&](int i) { return F[i] <= u; });
+
+    // Look up  x_i and function values of spline segment _i_
+    Float x0 = x[i], x1 = x[i + 1];
+    Float f0 = f[i], f1 = f[i + 1];
+    Float width = x1 - x0;
+
+    // Approximate derivatives using finite differences
+    Float d0, d1;
+    if (i > 0)
+        d0 = width * (f1 - f[i - 1]) / (x1 - x[i - 1]);
+    else
+        d0 = f1 - f0;
+    if (i + 2 < n)
+        d1 = width * (f[i + 2] - f0) / (x[i + 2] - x0);
+    else
+        d1 = f1 - f0;
+
+    // Re-scale _u_ for continous spline sampling step
+    u = (u - F[i]) / width;
+
+    // Invert definite integral over spline segment and return solution
+
+    // Set initial guess for  t by importance sampling a linear interpolant
+    Float t;
+    if (f0 != f1)
+        t = (f0 - std::sqrt(std::max((Float)0, f0 * f0 + 2 * u * (f1 - f0)))) /
+            (f0 - f1);
+    else
+        t = u / f0;
+    Float a = 0, b = 1, Fhat, fhat;
+    while (true) {
+        // Fall back to a bisection step when _t_ is out of bounds
+        if (!(t > a && t < b)) t = 0.5f * (a + b);
+
+        // Evaluate target function and its derivative in Horner form
+        Fhat = t * (f0 +
+                    t * (.5f * d0 +
+                         t * ((1.f / 3.f) * (-2 * d0 - d1) + f1 - f0 +
+                              t * (.25f * (d0 + d1) + .5f * (f0 - f1)))));
+        fhat = f0 +
+               t * (d0 +
+                    t * (-2 * d0 - d1 + 3 * (f1 - f0) +
+                         t * (d0 + d1 + 2 * (f0 - f1))));
+
+        // Stop the iteration if converged
+        if (std::abs(Fhat - u) < 1e-6f || b - a < 1e-6f) break;
+
+        // Update bisection bounds using updated _t_
+        if (Fhat - u < 0)
+            a = t;
+        else
+            b = t;
+
+        // Perform a Newton step
+        t -= (Fhat - u) / fhat;
+    }
+
+    // Return the sample position and function value
+    if (fval) *fval = fhat;
+    if (pdf) *pdf = fhat / F[n - 1];
+    return x0 + width * t;
+}
+
+Float IntegrateCatmullRom(int n, const Float *x, const Float *values,
+                          Float *cdf) {
+    Float sum = 0;
+    cdf[0] = 0;
+    for (int i = 0; i < n - 1; ++i) {
+        // Look up  x_i and function values of spline segment _i_
+        Float x0 = x[i], x1 = x[i + 1];
+        Float f0 = values[i], f1 = values[i + 1];
+        Float width = x1 - x0;
+
+        // Approximate derivatives using finite differences
+        Float d0, d1;
+        if (i > 0)
+            d0 = width * (f1 - values[i - 1]) / (x1 - x[i - 1]);
+        else
+            d0 = f1 - f0;
+        if (i + 2 < n)
+            d1 = width * (values[i + 2] - f0) / (x[i + 2] - x0);
+        else
+            d1 = f1 - f0;
+
+        // Keep a running sum and build a cumulative distribution function
+        sum += ((d0 - d1) * (1.f / 12.f) + (f0 + f1) * .5f) * width;
+        cdf[i + 1] = sum;
+    }
+    return sum;
+}
+
+Float InvertCatmullRom(int n, const Float *x, const Float *values, Float u) {
+    // Stop when _u_ is out of bounds
+    if (!(u > values[0]))
+        return x[0];
+    else if (!(u < values[n - 1]))
+        return x[n - 1];
+
+    // Map _u_ to a spline interval by inverting _values_
+    int i = FindInterval(n, [&](int i) { return values[i] <= u; });
+
+    // Look up  x_i and function values of spline segment _i_
+    Float x0 = x[i], x1 = x[i + 1];
+    Float f0 = values[i], f1 = values[i + 1];
+    Float width = x1 - x0;
+
+    // Approximate derivatives using finite differences
+    Float d0, d1;
+    if (i > 0)
+        d0 = width * (f1 - values[i - 1]) / (x1 - x[i - 1]);
+    else
+        d0 = f1 - f0;
+    if (i + 2 < n)
+        d1 = width * (values[i + 2] - f0) / (x[i + 2] - x0);
+    else
+        d1 = f1 - f0;
+
+    // Invert the spline interpolant using Newton-Bisection
+    Float a = 0, b = 1, t = .5f;
+    Float Fhat, fhat;
+    while (true) {
+        // Fall back to a bisection step when _t_ is out of bounds
+        if (!(t > a && t < b)) t = 0.5f * (a + b);
+
+        // Compute powers of _t_
+        Float t2 = t * t, t3 = t2 * t;
+
+        // Set _Fhat_ using Equation (8.27)
+        Fhat = (2 * t3 - 3 * t2 + 1) * f0 + (-2 * t3 + 3 * t2) * f1 +
+               (t3 - 2 * t2 + t) * d0 + (t3 - t2) * d1;
+
+        // Set _fhat_ using Equation (not present)
+        fhat = (6 * t2 - 6 * t) * f0 + (-6 * t2 + 6 * t) * f1 +
+               (3 * t2 - 4 * t + 1) * d0 + (3 * t2 - 2 * t) * d1;
+
+        // Stop the iteration if converged
+        if (std::abs(Fhat - u) < 1e-6f || b - a < 1e-6f) break;
+
+        // Update bisection bounds using updated _t_
+        if (Fhat - u < 0)
+            a = t;
+        else
+            b = t;
+
+        // Perform a Newton step
+        t -= (Fhat - u) / fhat;
+    }
+    return x0 + t * width;
+}
+
+// Fourier Interpolation Definitions
+"""

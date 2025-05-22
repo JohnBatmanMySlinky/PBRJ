@@ -20,7 +20,7 @@ struct ImageTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
         channel::Int=0,  # Default to red channel, only used for Float64
         do_trilinear::Bool=false,
         max_anisotropy::Float64=8.0,
-        wrap_mode::Int8=Int8(1), # REPEAT, BLACK, CLAMP
+        wrap_mode::Int8=Int8(0), # REPEAT, BLACK, CLAMP
         scale::Float64=1.0,
         do_gamma::Bool=false
     )

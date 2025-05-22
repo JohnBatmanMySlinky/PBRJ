@@ -1,7 +1,7 @@
 struct Metal{
-    ETA <: Maybe{AbstractTexture{Spectrum}},
-    K <: Maybe{AbstractTexture{Spectrum}},
-    R <: Maybe{AbstractTexture{Float64}},
+    ETA <: AbstractTexture{Spectrum},
+    K <: AbstractTexture{Spectrum},
+    R <: AbstractTexture{Float64},
     U <: Maybe{AbstractTexture{Float64}},
     V <: Maybe{AbstractTexture{Float64}},
     BM <: Maybe{AbstractTexture{Float64}}
@@ -17,15 +17,15 @@ struct Metal{
     function Metal(
         eta::ETA=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperN, CopperSamples)),
         k::K=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperK, CopperSamples)),
-        roughness::R=nothing,
+        roughness::R=ConstantTexture(0.1),
         u_roughness::U=nothing,
         v_roughness::V=nothing,
         bump_map::BM=nothing,
         remap_roughness::Bool=true
     )::Metal where {
-        ETA <: Maybe{AbstractTexture{Spectrum}},
-        K <: Maybe{AbstractTexture{Spectrum}},
-        R <: Maybe{AbstractTexture{Float64}},
+        ETA <: AbstractTexture{Spectrum},
+        K <: AbstractTexture{Spectrum},
+        R <: AbstractTexture{Float64},
         U <: Maybe{AbstractTexture{Float64}},
         V <: Maybe{AbstractTexture{Float64}},
         BM <: Maybe{AbstractTexture{Float64}}
@@ -34,18 +34,7 @@ struct Metal{
             @assert (u_roughness isa Nothing) & (v_roughness isa Nothing)
         else
             @assert !(u_roughness isa Nothing) & !(v_roughness isa Nothing)
-        end
-        
-        if roughness isa Nothing
-            roughness = ConstantTexture(0.0)
-        end
-        if u_roughness isa Nothing
-            u_roughness = ConstantTexture(0.0)
-        end
-        if v_roughness isa Nothing
-            v_roughness = ConstantTexture(0.0)
-        end
-        
+        end        
         return new{ETA, K, R, U, V, BM}(eta, k, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
     end
 end
@@ -92,8 +81,8 @@ function (m::Metal)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     si.bsdf = BSDF(si)
 
     # JOHN TODO fair amount of kludging in here
-    u_rough::Float64 = (m.u_roughness isa Nothing) ? y_spectrum(m.roughness(si)) : y_spectrum(m.u_roughness(si))
-    v_rough::Float64 = (m.v_roughness isa Nothing) ? y_spectrum(m.roughness(si)) : y_spectrum(m.v_roughness(si))
+    u_rough::Float64 = (m.u_roughness isa Nothing) ? m.roughness(si) : m.u_roughness(si)
+    v_rough::Float64 = (m.v_roughness isa Nothing) ? m.roughness(si) : m.v_roughness(si)
 
     @info "uRough PRE: $u_rough"
     @info "vRough PRE: $v_rough"

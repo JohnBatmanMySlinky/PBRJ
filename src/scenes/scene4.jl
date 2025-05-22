@@ -5,27 +5,27 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # MATERIALS
     mat_gray = Matte(
         ConstantTexture(spectrum_from_float(0.725, 0.71, 0.68)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_white = Matte(
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_red = Matte(
         ConstantTexture(spectrum_from_float(0.63, 0.065, 0.05)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_green = Matte(
         ConstantTexture(spectrum_from_float(0.14, 0.45, 0.091)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_blue = Matte(
         ConstantTexture(spectrum_from_float(0.14, 0.09, 0.68)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
 
@@ -182,11 +182,11 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Done building BVH\n")
 
     # Instantiate a Filter
-    filter = BoxFilter(Pnt2(.1, .1))
+    filter = BoxFilter(Pnt2(.5, .5))
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
@@ -202,7 +202,6 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 
     # Instantiate a Sampler
-    # S = ZSobolSampler(parsed_args["samples-per-pixel"], film.full_resolution, Int8(2))
     S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     

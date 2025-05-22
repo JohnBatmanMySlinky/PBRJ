@@ -5,17 +5,17 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # materials
     mat_inner = Matte(
         ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_outer = Matte(
         ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_stand = Matte(
         ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
 
@@ -70,7 +70,7 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,

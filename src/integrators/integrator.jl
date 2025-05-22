@@ -24,7 +24,7 @@ function render(
 
         tb_min = sample_bounds.pMin .+ tile .* tile_size
         tb_max = min.(tb_min .+ (tile_size - 1), sample_bounds.pMax)
-        tile_bounds = Bounds2(tb_min, tb_max)
+        tile_bounds = Bounds2i(tb_min, tb_max)
         film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
             for sample_index in 1:sampler.samples_per_pixel

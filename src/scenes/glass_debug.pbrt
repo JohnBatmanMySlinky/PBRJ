@@ -1,0 +1,40 @@
+LookAt -5.5 7 -5.5
+        -4.75 2.25 0
+        0 1 0
+Camera "perspective" 
+        "float fov" [ 30 ] 
+Film "image" 
+        "integer xresolution" [ 100 ] 
+        "integer yresolution" [ 100 ] 
+        "string filename" "glass.exr"
+	"float scale" [ 1.5 ]
+	"float cropwindow" [ 0.5 0.51 0.5 0.51 ] 
+
+Sampler "random" "integer pixelsamples" 1
+Integrator "bdpt" "integer maxdepth" 20
+
+#############################################
+WorldBegin
+
+LightSource "spot" 
+        "point from" [ 0 5 9 ] 
+        "point to" [ -5 2.7500000000 0 ] 
+        "rgb I" [ 139.8113403320 118.6366500854 105.3887557983 ] 
+
+AttributeBegin
+    LightSource "infinite" 
+            "rgb L" [ 0.10000000 0.10000000 0.10000000 ] 
+AttributeEnd
+
+AttributeBegin
+    Material "glass" 
+            "float index" [ 1.2500000000 ] 
+    Shape "plymesh" "string filename" "/Users/johnmyslinski/Documents/pbrt-v3-scenes/caustic-glass/geometry/mesh_00001.ply" 
+AttributeEnd
+
+AttributeBegin
+    Material "matte" 
+    Shape "plymesh" "string filename" "/Users/johnmyslinski/Documents/pbrt-v3-scenes/caustic-glass/geometry/mesh_00002.ply" 
+AttributeEnd
+
+WorldEnd

@@ -18,7 +18,7 @@ struct Plastic{
     function Plastic(
         Kd::KD=ConstantTexture(spectrum_from_float(0.25)),
         Ks::KS=ConstantTexture(spectrum_from_float(0.25)),
-        roughness::R=nothing,
+        roughness::R=ConstantTexture(0.01),
         u_roughness::U=nothing,
         v_roughness::V=nothing,
         bump_map::BM=nothing,
@@ -35,16 +35,6 @@ struct Plastic{
             @assert (u_roughness isa Nothing) & (v_roughness isa Nothing)
         else
             @assert !(u_roughness isa Nothing) & !(v_roughness isa Nothing)
-        end
-        
-        if roughness isa Nothing
-            roughness = ConstantTexture(0.0)
-        end
-        if u_roughness isa Nothing
-            u_roughness = ConstantTexture(0.0)
-        end
-        if v_roughness isa Nothing
-            v_roughness = ConstantTexture(0.0)
         end
         
         return new{KD, KS, R, U, V, BM}(Kd, Ks, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
