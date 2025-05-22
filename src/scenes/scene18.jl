@@ -74,6 +74,10 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ########## SDFTree ##########
     #########################
 
+    ################
+    ### OPTION 1 ###
+    ################
+
     # Create two primitive shapes
     # sphere = SDFSphere(
     #     1.0, 
@@ -92,18 +96,22 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # push!(primitives, Primitive(union_shape, mat_blue, nothing))
 
+    ###############
+    ## OPTION 2 ###
+    ###############
+
     torus = SDFTorus(
         Vec2(2.0, 1.0),
         ShapeCore(),
         Sphere(Pnt3(0,0,0), 2.1)
     )
     frame_box = SDFFrameBox(
-        Pnt3(3.0, 1.0, 3.0),
+        Pnt3(2.0, 3.0, 2.0),
         0.1,
         ShapeCore(),
         Sphere(Pnt3(0,0,0), 6.0 * sqrt(2.0))
     )
-    union_shape = SDFUnion(0.1, torus, frame_box, ShapeCore())
+    union_shape = SDFUnion(0.5, torus, frame_box, ShapeCore())
     push!(primitives, Primitive(union_shape, mat_blue, nothing))
 
 
