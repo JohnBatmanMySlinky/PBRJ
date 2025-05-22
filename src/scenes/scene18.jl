@@ -13,6 +13,16 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
+    mat_red = Matte(
+        ConstantTexture(spectrum_from_float(0.9, 0.05, 0.1)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_green = Matte(
+        ConstantTexture(spectrum_from_float(0.1, 0.92, 0.15)),
+        ConstantTexture(0.0),
+        nothing
+    )
 
     # instantiate objects
     identity_shape_core = ShapeCore()
@@ -74,31 +84,41 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ########## SDFTree ##########
     #########################
 
-    ################
-    ### OPTION 1 ###
-    ################
+    ##############
+    ### Part 1 ###
+    ##############
 
     # Create two primitive shapes
-    # sphere = SDFSphere(
-    #     1.0, 
-    #     RayTracing.ShapeCore(
-    #         Translate(Pnt3(0, 1, 0)),
-    #         Inv(Translate(Pnt3(0, 1, 0))),
-    #         false,
-    #         false
-    #     ), 
-    #     RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 1.0 * 1.1)
-    # )
-    # box = SDFBox(RayTracing.Pnt3(1.0, 1.0, 1.0), RayTracing.ShapeCore(), RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 3.0 * 1.1))
+    sphere = SDFSphere(
+        1.0, 
+        RayTracing.ShapeCore(
+            Translate(Pnt3(0, 1, 0)),
+            Inv(Translate(Pnt3(0, 1, 0))),
+            false,
+            false
+        ), 
+        RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 1.0 * 1.1)
+    )
+    box = SDFBox(RayTracing.Pnt3(1.0, 1.0, 1.0), RayTracing.ShapeCore(), RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 3.0 * 1.1))
 
-    # # Create a union of the two shapes
-    # union_shape = SDFUnion(0.1, sphere, box, ShapeCore())
+    # Create a union of the two shapes
+    u_t = Translate(Pnt3(5, 0, 0))
+    union_shape = SDFUnion(
+        0.1, 
+        sphere, 
+        box, 
+        ShapeCore(
+            u_t,
+            Inv(u_t),
+            false,
+            false
+        )
+    )
+    # push!(primitives, Primitive(union_shape, mat_red, nothing))
 
-    # push!(primitives, Primitive(union_shape, mat_blue, nothing))
-
-    ###############
-    ## OPTION 2 ###
-    ###############
+    #############
+    ## PART 2 ###
+    #############
 
     torus = SDFTorus(
         Vec2(2.0, 1.0),
@@ -112,7 +132,21 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         Sphere(Pnt3(0,0,0), 6.0 * sqrt(2.0))
     )
     union_shape = SDFUnion(0.5, torus, frame_box, ShapeCore())
-    push!(primitives, Primitive(union_shape, mat_blue, nothing))
+    # push!(primitives, Primitive(union_shape, mat_blue, nothing))
+
+    #############
+    ## PART 3 ###
+    #############
+
+    c_t = Translate(Pnt3(0, 0, 0))
+    rounded_cone = SDFRoundedCone(
+        2.0,
+        1.0,
+        3.0,
+        ShapeCore(c_t, Inv(c_t), false, false),
+        Sphere(Pnt3(0, 0, 0), 6.0)
+    )
+    push!(primitives, Primitive(rounded_cone, mat_green, nothing))
 
 
     #########################
@@ -141,7 +175,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_at = Pnt3(0, 0, 0)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 30.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 60.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])

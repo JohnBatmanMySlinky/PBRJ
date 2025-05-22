@@ -96,6 +96,14 @@ struct SDFFrameBox <: SDFPrimitive
     bounding_sphere::Sphere
 end
 
+struct SDFRoundedCone <: SDFPrimitive
+    r1::Float64
+    r2::Float64
+    h::Float64
+    core::ShapeCore
+    bounding_sphere::Sphere
+end
+
 ###################
 ### EVALUTATION ###
 ###################
@@ -130,6 +138,24 @@ function evaluate(shape::SDFFrameBox, p::Pnt3)::Float64
     case3 = length_pbrt(max.(Pnt3(q.x, q.y, p.z), 0.0)) + min(max(q.x, max(q.y, p.z)), 0.0)
     
     return min(min(case1, case2), case3)
+end
+
+function evaluate(shape::SDFRoundedCone, p::Pnt3)::Float64
+    # Sampling independent computations
+    b = (shape.r1 - shape.r2) / shape.h
+    a = sqrt(1.0 - b * b)
+    
+    # Sampling dependent computations
+    q = Vec2(sqrt(p.x^2 + p.z^2), p.y)
+    k = dot(q, Vec2(-b, a))
+    
+    if k < 0.0
+        return length_pbrt(q) - shape.r1
+    elseif k > a * shape.h
+        return length_pbrt(q - Vec2(0.0, shape.h)) - shape.r2
+    else
+        return dot(q, Vec2(a, b)) - shape.r1
+    end
 end
 
 # Operation evaluations
