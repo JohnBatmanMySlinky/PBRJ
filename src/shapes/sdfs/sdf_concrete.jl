@@ -117,6 +117,21 @@ struct SDFQuad <: SDFPrimitive
     d::Vec3
     core::ShapeCore
     bounding_sphere::Sphere
+
+    function SDFQuad(a::Vec3, b::Vec3, c::Vec3, d::Vec3, core::ShapeCore, bounding_sphere::Sphere)::SDFQuad
+        ba = b - a
+        ad = a - d
+        nor = cross(ba, ad)
+        plane_tolerance = 1e-10
+        nor_normalized = nor / norm(nor)
+    
+        # let's make sure your vertices aren't ordered incorrectly
+        @assert abs(dot(nor_normalized, b - a)) < plane_tolerance "Vertices are not coplanar - check vertex ordering"
+        @assert abs(dot(nor_normalized, c - a)) < plane_tolerance "Vertices are not coplanar - check vertex ordering"  
+        @assert abs(dot(nor_normalized, d - a)) < plane_tolerance "Vertices are not coplanar - check vertex ordering"
+        @assert norm(nor) > plane_tolerance "Degenerate quadrilateral - vertices are collinear or coincident"
+        return new(a, b, c, d, core, bounding_sphere)
+    end
 end
 
 ###################
@@ -186,7 +201,42 @@ function evaluate(shape::SDFHexagonalPrism, p::Pnt3)::Float64
 end
 
 function evaluate(shape::SDFQuad, p::Pnt3)::Float64
+    ba = shape.b - shape.a
+    pa = p       - shape.a
+    cb = shape.c - shape.b
+    pb = p       - shape.b  
+    dc = shape.d - shape.c
+    pc = p       - shape.c
+    ad = shape.a - shape.d
+    pd = p       - shape.d
+    
+    nor = cross(ba, ad)
 
+    dot2(v) = dot(v, v)
+    
+    inside_test = (sign(dot(cross(ba, nor), pa)) +
+                   sign(dot(cross(cb, nor), pb)) + 
+                   sign(dot(cross(dc, nor), pc)) +
+                   sign(dot(cross(ad, nor), pd)))
+    
+    if inside_test < 3
+        dist_ba = dot2(ba * clamp(dot(ba, pa) / dot2(ba), 0.0, 1.0) - pa)
+        dist_cb = dot2(cb * clamp(dot(cb, pb) / dot2(cb), 0.0, 1.0) - pb)
+        dist_dc = dot2(dc * clamp(dot(dc, pc) / dot2(dc), 0.0, 1.0) - pc)
+        dist_ad = dot2(ad * clamp(dot(ad, pd) / dot2(ad), 0.0, 1.0) - pd)
+        
+        return sqrt(min(dist_ba, dist_cb, dist_dc, dist_ad))
+    else
+        return sqrt(dot(nor, pa)^2 / dot2(nor))
+    end
+end
+
+# OK NOTE THIS...
+function normal(shape::SDFQuad, ::Pnt3)::Nml3
+    edge1 = shape.b - shape.a
+    edge2 = shape.d - shape.a  # or (c - b) depending on your preference
+    normal = cross(edge1, edge2)
+    return normalize(normal)
 end
 
 # Operation evaluations

@@ -125,19 +125,19 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ShapeCore(c_t, Inv(c_t), false, false),
         Sphere(Pnt3(0, 0, 0), 6.0)
     )
-    # push!(primitives, Primitive(rounded_cone, mat_green, nothing))
+    push!(primitives, Primitive(rounded_cone, mat_green, nothing))
 
     #############
     ## PART 3 ###
     #############
 
     quad = SDFQuad(
-        Vec3(25, -3, 25),
-        Vec3(25, -3, -25),
-        Vec3(-25, -3, 25),
         Vec3(-25, -3, -25),
+        Vec3(25, -3, -25),
+        Vec3(25, -3, 25),
+        Vec3(-25, -3, 25),
         ShapeCore(),
-        Sphere(Pnt3(0,0,0), 25 * sqrt(2.0))
+        Sphere(Pnt3(0,-3,0), 25.0 * sqrt(2.0))
     )
     push!(primitives, Primitive(quad, mat_gray, nothing))
 
