@@ -93,7 +93,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false
         )
     )
-    # push!(primitives, Primitive(union_shape, mat_red, nothing))
+    push!(primitives, Primitive(union_shape, mat_red, nothing))
 
     #############
     ## PART 2 ###
@@ -111,7 +111,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         Sphere(Pnt3(0,0,0), 6.0 * sqrt(2.0))
     )
     union_shape = SDFUnion(0.5, torus, frame_box, ShapeCore())
-    # push!(primitives, Primitive(union_shape, mat_blue, nothing))
+    push!(primitives, Primitive(union_shape, mat_blue, nothing))
 
     #############
     ## PART 3 ###
