@@ -104,6 +104,21 @@ struct SDFRoundedCone <: SDFPrimitive
     bounding_sphere::Sphere
 end
 
+struct SDFHexagonalPrism <: SDFPrimitive
+    h::Vec2
+    core::ShapeCore
+    bounding_sphere::Sphere
+end
+
+struct SDFQuad <: SDFPrimitive
+    a::Vec3
+    b::Vec3
+    c::Vec3
+    d::Vec3
+    core::ShapeCore
+    bounding_sphere::Sphere
+end
+
 ###################
 ### EVALUTATION ###
 ###################
@@ -156,6 +171,22 @@ function evaluate(shape::SDFRoundedCone, p::Pnt3)::Float64
     else
         return dot(q, Vec2(a, b)) - shape.r1
     end
+end
+
+function evaluate(shape::SDFHexagonalPrism, p::Pnt3)::Float64
+    k = Vec3(-0.8660254, 0.5, 0.57735)
+    p = abs.(p)
+    pxy = sqrt(p.x^2 + p.y^2)
+    pxy -= 2.0 * min(dot(sqrt(k.x^2 + k.y^2), pxy), 0.0) * sqrt(k.x^2 + k.y^2)
+    d = Vec2(
+        length_pbrt(pxy .- Vec2(clamp(p.x , -k.z * shape.h.x, k.z * shape.h.x), shape.h.x)) * sign(p.y - shape.h.x),
+        p.z - shape.h.y
+    )
+    return min(max(d.x, d.y), 0.0) + length_pbrt(max.(d, 0.0))
+end
+
+function evaluate(shape::SDFQuad, p::Pnt3)::Float64
+
 end
 
 # Operation evaluations

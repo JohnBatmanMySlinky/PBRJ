@@ -15,6 +15,8 @@ scene 13: DISNEY CLOUD 🟨
 scene 14: Anemone 🟨
 scene 15: procedural clouds 🟨
 scene 16: elevator hallway 🟨
+scene 18: SDFs baby!
+    - hexaonal prism kinda fucked
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
 scene 100: Furry Bunny from pbrt-v4 ✅ (just dont use HairBSDF)
 scene 101: SF3D CUP 🔴 (obj parser sucks)

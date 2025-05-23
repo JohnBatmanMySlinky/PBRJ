@@ -59,27 +59,6 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(lights, spot_light4)
 
-    floor_t = Translate(Pnt3(0, -3.0, 0))
-    floor_sc = ShapeCore(
-        floor_t,
-        Inv(floor_t),
-        false,
-        false
-    )
-    floor = Rectangle(
-        Pnt2(-25, -25), 
-        Pnt2(25, 25), 
-        0.0,
-        2, 
-        floor_sc,
-        # identity_shape_core,
-        false,
-        nothing
-    )
-    for tri in floor
-        push!(primitives, Primitive(tri, mat_gray, nothing))
-    end
-
     #########################
     ########## SDFTree ##########
     #########################
@@ -138,7 +117,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ## PART 3 ###
     #############
 
-    c_t = Translate(Pnt3(0, 0, 0))
+    c_t = Translate(Pnt3(0, 0, 5))
     rounded_cone = SDFRoundedCone(
         2.0,
         1.0,
@@ -146,8 +125,21 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ShapeCore(c_t, Inv(c_t), false, false),
         Sphere(Pnt3(0, 0, 0), 6.0)
     )
-    push!(primitives, Primitive(rounded_cone, mat_green, nothing))
+    # push!(primitives, Primitive(rounded_cone, mat_green, nothing))
 
+    #############
+    ## PART 3 ###
+    #############
+
+    quad = SDFQuad(
+        Vec3(25, -3, 25),
+        Vec3(25, -3, -25),
+        Vec3(-25, -3, 25),
+        Vec3(-25, -3, -25),
+        ShapeCore(),
+        Sphere(Pnt3(0,0,0), 25 * sqrt(2.0))
+    )
+    push!(primitives, Primitive(quad, mat_gray, nothing))
 
     #########################
     #########################
@@ -175,7 +167,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_at = Pnt3(0, 0, 0)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 60.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 70.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
