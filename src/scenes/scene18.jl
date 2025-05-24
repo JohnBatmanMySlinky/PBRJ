@@ -81,7 +81,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     box = SDFBox(RayTracing.Pnt3(1.0, 1.0, 1.0), RayTracing.ShapeCore(), RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 3.0 * 1.1))
 
     # Create a union of the two shapes
-    u_t = Translate(Pnt3(5, 0, 0))
+    u_t = Translate(Pnt3(7, 0, 0))
     union_shape = SDFUnion(
         0.1, 
         sphere, 
@@ -117,27 +117,35 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ## PART 3 ###
     #############
 
-    c_t = Translate(Pnt3(0, 0, 5))
     rounded_cone = SDFRoundedCone(
         2.0,
         1.0,
         3.0,
-        ShapeCore(c_t, Inv(c_t), false, false),
+        ShapeCore(),
         Sphere(Pnt3(0, 0, 0), 6.0)
     )
-    push!(primitives, Primitive(rounded_cone, mat_green, nothing))
+    h_t = RotateY(-90.0)
+    hexagonal_prism = SDFHexagonalPrism(
+        Vec2(1.0, 8.0),
+        ShapeCore(h_t, Inv(h_t), false, false),
+        Sphere(Pnt3(0,0,0), 10.0)
+    )
+    u_t = Translate(Pnt3(0, 0, 6))
+    union_shape = SDFUnion(0.5, rounded_cone, hexagonal_prism, ShapeCore(u_t, Inv(u_t), false, false))
+    push!(primitives, Primitive(union_shape, mat_green, nothing))
 
     #############
     ## PART 3 ###
     #############
 
+    s = 100
     quad = SDFQuad(
-        Vec3(-25, -3, -25),
-        Vec3(25, -3, -25),
-        Vec3(25, -3, 25),
-        Vec3(-25, -3, 25),
+        Vec3(-s, -3, -s),
+        Vec3(s, -3, -s),
+        Vec3(s, -3, s),
+        Vec3(-s, -3, s),
         ShapeCore(),
-        Sphere(Pnt3(0,-3,0), 25.0 * sqrt(2.0))
+        Sphere(Pnt3(0,-3,0), s * sqrt(2.0))
     )
     push!(primitives, Primitive(quad, mat_gray, nothing))
 
@@ -148,6 +156,16 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
+
+    l_2_w = Translate(Pnt3(0,0,0))
+    light = InfiniteLight(
+        world_bounds(bvh), 
+        l_2_w, 
+        Spectrum(1.0, 1.0, 1.0), 
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/clouds/textures/sky.exr"),
+        true
+    )
+    push!(lights, light)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.5, .5))
@@ -167,7 +185,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_at = Pnt3(0, 0, 0)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 70.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 75.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])

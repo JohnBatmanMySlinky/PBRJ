@@ -142,7 +142,6 @@ end
 function evaluate(shape::SDFSphere, p::RayTracing.Pnt3)::Float64
     # Transform point to object space
     local_p = shape.core.world_to_object(p)
-    # Sphere SDF: length(p) - radius
     return RayTracing.norm(local_p) - shape.radius
 end
 
@@ -155,28 +154,37 @@ function evaluate(shape::SDFBox, p::RayTracing.Pnt3)::Float64
 end
 
 function evaluate(shape::SDFTorus, p::RayTracing.Pnt3)::Float64
-    q = Vec2(sqrt(p.x^2 + p.z^2) - shape.t.x, p.y)
+    # Transform point to object space
+    local_p = shape.core.world_to_object(p)
+
+    q = Vec2(sqrt(local_p.x^2 + local_p.z^2) - shape.t.x, local_p.y)
     return sqrt(q.x^2 + q.y^2) - shape.t.y
 end
 
 function evaluate(shape::SDFFrameBox, p::Pnt3)::Float64
-    p = abs.(p) .- shape.b
-    q = abs.(p .+ shape.e) .- shape.e
+    # Transform point to object space
+    local_p = shape.core.world_to_object(p)
+
+    local_p = abs.(local_p) .- shape.b
+    q = abs.(local_p .+ shape.e) .- shape.e
     
-    case1 = length_pbrt(max.(Pnt3(p.x, q.y, q.z), 0.0)) + min(max(p.x, max(q.y, q.z)), 0.0)
-    case2 = length_pbrt(max.(Pnt3(q.x, p.y, q.z), 0.0)) + min(max(q.x, max(p.y, q.z)), 0.0)
-    case3 = length_pbrt(max.(Pnt3(q.x, q.y, p.z), 0.0)) + min(max(q.x, max(q.y, p.z)), 0.0)
+    case1 = length_pbrt(max.(Pnt3(local_p.x, q.y, q.z), 0.0)) + min(max(local_p.x, max(q.y, q.z)), 0.0)
+    case2 = length_pbrt(max.(Pnt3(q.x, local_p.y, q.z), 0.0)) + min(max(q.x, max(local_p.y, q.z)), 0.0)
+    case3 = length_pbrt(max.(Pnt3(q.x, q.y, local_p.z), 0.0)) + min(max(q.x, max(q.y, local_p.z)), 0.0)
     
     return min(min(case1, case2), case3)
 end
 
 function evaluate(shape::SDFRoundedCone, p::Pnt3)::Float64
+    # Transform point to object space
+    local_p = shape.core.world_to_object(p)
+
     # Sampling independent computations
     b = (shape.r1 - shape.r2) / shape.h
     a = sqrt(1.0 - b * b)
     
     # Sampling dependent computations
-    q = Vec2(sqrt(p.x^2 + p.z^2), p.y)
+    q = Vec2(sqrt(local_p.x^2 + local_p.z^2), local_p.y)
     k = dot(q, Vec2(-b, a))
     
     if k < 0.0
@@ -189,26 +197,43 @@ function evaluate(shape::SDFRoundedCone, p::Pnt3)::Float64
 end
 
 function evaluate(shape::SDFHexagonalPrism, p::Pnt3)::Float64
+    # Transform point to object space
+    local_p = shape.core.world_to_object(p)
+
     k = Vec3(-0.8660254, 0.5, 0.57735)
-    p = abs.(p)
-    pxy = sqrt(p.x^2 + p.y^2)
-    pxy -= 2.0 * min(dot(sqrt(k.x^2 + k.y^2), pxy), 0.0) * sqrt(k.x^2 + k.y^2)
-    d = Vec2(
-        length_pbrt(pxy .- Vec2(clamp(p.x , -k.z * shape.h.x, k.z * shape.h.x), shape.h.x)) * sign(p.y - shape.h.x),
-        p.z - shape.h.y
-    )
+    
+    p_abs = abs.(local_p)
+    
+    xy = Vec2(p_abs.x, p_abs.y)
+    k_xy = Vec2(k.x, k.y)
+    dot_product = dot(k_xy, xy)
+    offset = 2.0 * min(dot_product, 0.0) * k_xy
+    xy_projected = xy - offset
+    
+    clamped_x = clamp(xy_projected.x, -k.z * shape.h.x, k.z * shape.h.x)
+    target_point = Vec2(clamped_x, shape.h.x)
+    
+    d1 = length_pbrt(xy_projected - target_point) * sign(xy_projected.y - shape.h.x)
+    d2 = p_abs.z - shape.h.y
+    
+    d = Vec2(d1, d2)
+    
+    # Return final distance
     return min(max(d.x, d.y), 0.0) + length_pbrt(max.(d, 0.0))
 end
 
 function evaluate(shape::SDFQuad, p::Pnt3)::Float64
+    # Transform point to object space
+    local_p = shape.core.world_to_object(p)
+
     ba = shape.b - shape.a
-    pa = p       - shape.a
+    pa = local_p       - shape.a
     cb = shape.c - shape.b
-    pb = p       - shape.b  
+    pb = local_p       - shape.b  
     dc = shape.d - shape.c
-    pc = p       - shape.c
+    pc = local_p       - shape.c
     ad = shape.a - shape.d
-    pd = p       - shape.d
+    pd = local_p       - shape.d
     
     nor = cross(ba, ad)
 
