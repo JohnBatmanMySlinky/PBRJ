@@ -75,10 +75,12 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Inv(Translate(Pnt3(0, 1, 0))),
             false,
             false
-        ), 
-        RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 1.0 * 1.1)
+        )
     )
-    box = SDFBox(RayTracing.Pnt3(1.0, 1.0, 1.0), RayTracing.ShapeCore(), RayTracing.Sphere(RayTracing.Pnt3(0,0,0), 3.0 * 1.1))
+    box = SDFBox(
+        RayTracing.Pnt3(1.0, 1.0, 1.0), 
+        RayTracing.ShapeCore()
+    )
 
     # Create a union of the two shapes
     u_t = Translate(Pnt3(7, 0, 0))
@@ -101,14 +103,12 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     torus = SDFTorus(
         Vec2(2.0, 1.0),
-        ShapeCore(),
-        Sphere(Pnt3(0,0,0), 2.1)
+        ShapeCore()
     )
     frame_box = SDFFrameBox(
         Pnt3(2.0, 3.0, 2.0),
         0.1,
-        ShapeCore(),
-        Sphere(Pnt3(0,0,0), 6.0 * sqrt(2.0))
+        ShapeCore()
     )
     union_shape = SDFUnion(0.5, torus, frame_box, ShapeCore())
     push!(primitives, Primitive(union_shape, mat_blue, nothing))
@@ -122,13 +122,11 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         1.0,
         3.0,
         ShapeCore(),
-        Sphere(Pnt3(0, 0, 0), 6.0)
     )
     h_t = RotateY(-90.0)
     hexagonal_prism = SDFHexagonalPrism(
         Vec2(1.0, 8.0),
-        ShapeCore(h_t, Inv(h_t), false, false),
-        Sphere(Pnt3(0,0,0), 10.0)
+        ShapeCore(h_t, Inv(h_t), false, false)
     )
     u_t = Translate(Pnt3(0, 0, 6))
     union_shape = SDFUnion(0.5, rounded_cone, hexagonal_prism, ShapeCore(u_t, Inv(u_t), false, false))
@@ -145,7 +143,6 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         Vec3(s, -3, s),
         Vec3(-s, -3, s),
         ShapeCore(),
-        Sphere(Pnt3(0,-3,0), s * sqrt(2.0))
     )
     push!(primitives, Primitive(quad, mat_gray, nothing))
 

@@ -75,18 +75,42 @@ struct SDFSphere <: SDFPrimitive
     radius::Float64
     core::RayTracing.ShapeCore
     bounding_sphere::RayTracing.Sphere
+
+    function SDFSphere(radius::Float64, core::ShapeCore)
+        return new(
+            radius,
+            core,
+            Sphere(Pnt3(0, 0, 0), radius * 1.01) # radius * buffer
+        )
+    end
 end
 
 struct SDFBox <: SDFPrimitive
     half_extents::RayTracing.Pnt3  # half-width, half-height, half-depth
     core::RayTracing.ShapeCore
     bounding_sphere::RayTracing.Sphere
+
+    function SDFBox(half_extents::Pnt3, core::ShapeCore)
+        return new(
+            half_extents,
+            core,
+            Sphere(Pnt3(0, 0, 0), maximum(half_extents) * 2.0 * sqrt(2.0) * 1.01) # max half extent * double it * square * buffer
+        )
+    end
 end
 
 struct SDFTorus <: SDFPrimitive
     t::Vec2
     core::RayTracing.ShapeCore
     bounding_sphere::RayTracing.Sphere
+
+    function SDFTorus(t::Vec2, core::ShapeCore)
+        return new(
+            t,
+            core,
+            Sphere(Pnt3(0, 0, 0), maximum(t) * 1.01) # maximum radius * buffer
+        )
+    end
 end
 
 struct SDFFrameBox <: SDFPrimitive
@@ -94,6 +118,15 @@ struct SDFFrameBox <: SDFPrimitive
     e::Float64
     core::ShapeCore
     bounding_sphere::Sphere
+
+    function SDFFrameBox(b::Pnt3, e::Float64, core::ShapeCore)
+        return new(
+            b,
+            e,
+            core,
+            Sphere(Pnt3(0, 0, 0), maximum(b) * 2.0 * sqrt(2.0) * 1.01) # max half extent * double it * square * buffer
+        )
+    end
 end
 
 struct SDFRoundedCone <: SDFPrimitive
@@ -102,12 +135,30 @@ struct SDFRoundedCone <: SDFPrimitive
     h::Float64
     core::ShapeCore
     bounding_sphere::Sphere
+
+    function SDFRoundedCone(r1::Float64, r2::Float64, h::Float64, core::ShapeCore)
+        return new(
+            r1,
+            r2,
+            h,
+            core,
+            Sphere(Pnt3(0, 0, 0), max(r1, r2, h) * 2.0 * 1.5) # max size * double * buffer
+        )
+    end
 end
 
 struct SDFHexagonalPrism <: SDFPrimitive
     h::Vec2
     core::ShapeCore
     bounding_sphere::Sphere
+
+    function SDFHexagonalPrism(h::Vec2, core::ShapeCore)
+        return new(
+            h,
+            core,
+            Sphere(Pnt3(0, 0, 0), maximum(h) * 2.0 * 1.5) # maximum height * double * buffer
+        )
+    end
 end
 
 struct SDFQuad <: SDFPrimitive
@@ -118,7 +169,7 @@ struct SDFQuad <: SDFPrimitive
     core::ShapeCore
     bounding_sphere::Sphere
 
-    function SDFQuad(a::Vec3, b::Vec3, c::Vec3, d::Vec3, core::ShapeCore, bounding_sphere::Sphere)::SDFQuad
+    function SDFQuad(a::Vec3, b::Vec3, c::Vec3, d::Vec3, core::ShapeCore)::SDFQuad
         ba = b - a
         ad = a - d
         nor = cross(ba, ad)
@@ -130,7 +181,19 @@ struct SDFQuad <: SDFPrimitive
         @assert abs(dot(nor_normalized, c - a)) < plane_tolerance "Vertices are not coplanar - check vertex ordering"  
         @assert abs(dot(nor_normalized, d - a)) < plane_tolerance "Vertices are not coplanar - check vertex ordering"
         @assert norm(nor) > plane_tolerance "Degenerate quadrilateral - vertices are collinear or coincident"
-        return new(a, b, c, d, core, bounding_sphere)
+
+        MAX = max(maximum(a), maximum(b), maximum(d), maximum(d))
+        MIN = min(minimum(a), minimum(b), minimum(d), minimum(d))
+        CENTER = Pnt3((a + b + c + d) ./ 4.0)
+
+        return new(
+            a, 
+            b, 
+            c, 
+            d, 
+            core, 
+            Sphere(CENTER, (MAX - MIN) * 1.01) # extent * buffer
+        )
     end
 end
 
