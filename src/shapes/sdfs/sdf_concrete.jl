@@ -234,7 +234,7 @@ end
 # OK NOTE THIS...
 function normal(shape::SDFQuad, ::Pnt3)::Nml3
     edge1 = shape.b - shape.a
-    edge2 = shape.d - shape.a  # or (c - b) depending on your preference
+    edge2 = shape.d - shape.a
     normal = cross(edge1, edge2)
     return normalize(normal)
 end
