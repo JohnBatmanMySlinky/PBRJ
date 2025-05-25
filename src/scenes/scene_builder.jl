@@ -28,6 +28,8 @@ scene 13: DISNEY CLOUD 🟨
 scene 14: Anemone 🟨
 scene 15: procedural clouds 🟨
 scene 16: elevator hallway 🟨
+scene 18: SDFs baby!
+    - hexaonal prism kinda fucked
 scene 17: barcelona pavillion 🟨
     - add background trees
     - remove fourier material convergence hack
@@ -69,6 +71,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene15(parsed_args)
     elseif parsed_args["scene-number"] == 16
         return make_scene16(parsed_args)
+    elseif parsed_args["scene-number"] == 18
+        return make_scene18(parsed_args)
     elseif parsed_args["scene-number"] == 17
         return make_scene17(parsed_args)
     elseif parsed_args["scene-number"] == 99

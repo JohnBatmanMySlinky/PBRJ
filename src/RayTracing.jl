@@ -29,6 +29,8 @@ abstract type Medium end
 abstract type AbstractSampler end
 abstract type Shape end
 abstract type ImplicitSurface <: Shape end
+abstract type SDFPrimitive <: ImplicitSurface end
+abstract type SDFOperation <: ImplicitSurface end
 abstract type MicrofacetDistribution end
 abstract type Randomizer end
 abstract type AbstractMedium end
@@ -114,6 +116,7 @@ include("shapes/cylindar.jl")
 include("shapes/box.jl")
 include("shapes/lsystem.jl")
 include("shapes/bilinear_patch.jl")
+include("shapes/sdfs/sdf_concrete.jl")
 include("accelerators/bvh_naive.jl")
 include("accelerators/bvh_pbr_pxlth.jl")
 include("shapes/implicit_surfaces/utils.jl")
@@ -205,6 +208,7 @@ include("scenes/scene13.jl")
 include("scenes/scene14.jl")
 include("scenes/scene15.jl")
 include("scenes/scene16.jl")
+include("scenes/scene18.jl")
 include("scenes/scene17.jl")
 include("scenes/scene99.jl")
 include("scenes/scene100.jl")

@@ -34,7 +34,7 @@ function length_squared(v::T)::Float64 where {T <: Union{Vec3, Vec2, Nml3}}
     return sum(v.^2)
 end
 
-function length_pbrt(v::Union{Vec3, Vec2})::Float64
+function length_pbrt(v::Union{Vec3, Vec2, Pnt3})::Float64
     return sqrt(length_squared(v))
 end
 

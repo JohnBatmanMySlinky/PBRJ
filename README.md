@@ -108,6 +108,9 @@ Render
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- SDFs
+    - displacements!!! https://iquilezles.org/articles/distfunctions/
+        - try again with quad!
 - regression test suite with simple RMSE report
 - Fourier to use immutable struct
 - Fourier BSDF convergence is hacked
