@@ -111,6 +111,15 @@ Render
 - SDFs
     - displacements!!! https://iquilezles.org/articles/distfunctions/
         - try again with quad!
+- regression test suite with simple RMSE report
+- Fourier to use immutable struct
+- Fourier BSDF convergence is hacked
+- SDF should be super doable. Same thing as implicit surface imo.
+- get rid of deep copys in parser
+- i see some Mat3([]) that need to re factored in bilinear patch
+- parse_obj's FIN::Vector{Any} is gong to kill performance
+- fix old scenes that now broke with parser_obj::FIN
+- decouple mesh from triangle and bilinear patch, that's got to be adding massive overhead..... 
 - Fix up old scenes
     - run them and squash bugs
 - Time to make my OBJ parser suck less
@@ -206,6 +215,7 @@ Render
         - ~~logging~~
 
 # Bugs
+- IF FILM FILTER < 0.5 I GET BLACK LINES
 - how is path accessible to my callback?
 - remove clamp from Distribution
     - remember my wonky plot for Sobol from work show off? Is that problematic?

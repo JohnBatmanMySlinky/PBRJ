@@ -304,7 +304,7 @@ function pdf_light(v0::Vertex, scene::Scene, v1::Vertex)::Float64
     w = Vec3(p(v1) - p(v0))
     invdist2 = 1/length_squared(w)
     w *= sqrt(invdist2)
-    @info "PLSPLS: apparently its not an infinite light? $(is_infinite_light(v0))"
+    # @info "PLSPLS: apparently its not an infinite light? $(is_infinite_light(v0))"
     if is_infinite_light(v0)
         # Compute planar sampling density for infinite light sources
         wb = world_bounds(scene.b)

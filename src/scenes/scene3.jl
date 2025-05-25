@@ -7,7 +7,7 @@ function make_scene3(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # MATERIALS
     mat_white = Matte(
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
 
@@ -50,11 +50,11 @@ function make_scene3(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Done building BVH\n")
 
     # Instantiate a Filter
-    filter = BoxFilter(Pnt2(.1, .1))
+    filter = BoxFilter(Pnt2(.5, .5))
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,

@@ -15,24 +15,17 @@ struct Substrate{
     function Substrate(
         Kd::KD=ConstantTexture(spectrum_from_float(0.5)),
         Ks::KS=ConstantTexture(spectrum_from_float(0.5)),
-        u_roughness::U=nothing,
-        v_roughness::V=nothing,
+        u_roughness::U=ConstantTexture(0.1),
+        v_roughness::V=ConstantTexture(0.1),
         bump_map::BM=nothing,
         remap_roughness::Bool=true
     )::Substrate where {
         KD <: AbstractTexture{Spectrum},
         KS <: AbstractTexture{Spectrum},
-        U <: Maybe{AbstractTexture{Float64}},
-        V <: Maybe{AbstractTexture{Float64}},
+        U <: AbstractTexture{Float64},
+        V <: AbstractTexture{Float64},
         BM <: Maybe{AbstractTexture{Float64}}
-    }
-        if u_roughness isa Nothing
-            u_roughness = ConstantTexture(0.1)
-        end
-        if v_roughness isa Nothing
-            v_roughness = ConstantTexture(0.1)
-        end
-        
+    }        
         return new{KD, KS, U, V, BM}(Kd, Ks, u_roughness, v_roughness, bump_map, remap_roughness)
     end
 end

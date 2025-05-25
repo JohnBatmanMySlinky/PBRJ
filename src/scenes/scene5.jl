@@ -5,20 +5,19 @@ function make_scene5(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # MATERIALS
     mat_gray = Matte(
         ConstantTexture(spectrum_from_float(.4, .4, .4)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_blue = Matte(
         ConstantTexture(spectrum_from_float(0.05, 0.05, .9)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_white = Matte(
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
-    mat_metal = Metal()
 
     # instantiate objects
     identity_shape_core = ShapeCore(
@@ -132,7 +131,7 @@ function make_scene5(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
@@ -148,7 +147,12 @@ function make_scene5(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 55.0, film)
 
     # Instantiate a Sampler
-    S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))
+    S = ZSobolSampler(
+        parsed_args["samples-per-pixel"], 
+        Pnt2i(
+            parsed_args["image-dim"][1], 
+            parsed_args["image-dim"][2]
+        ), Int8(2))
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene

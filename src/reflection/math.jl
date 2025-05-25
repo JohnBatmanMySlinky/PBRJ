@@ -22,7 +22,7 @@ cos_2_phi(w::Vec3) = cos_phi(w)^2
 sin_2_phi(w::Vec3) = sin_phi(w)^2
 
 function cos_d_phi(wa::Vec3, wb::Vec3)
-    return clamp((wa.x * wb.x + wa.y * wb.y) / sqrt((wa.x^2 + wa.y^2) * (wb.x^2 + wb.y^2), -1, 1))
+    return clamp((wa.x * wb.x + wa.y * wb.y) / sqrt((wa.x^2 + wa.y^2) * (wb.x^2 + wb.y^2)), -1, 1)
 end
 
 function reflect(wo::Vec3, n::Vec3)::Vec3

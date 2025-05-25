@@ -1,27 +1,62 @@
-include("../RayTracing.jl")
+using Images
+using FileIO
+using Statistics
+
+function calculate_rmse(img1, img2)
+    # Convert images to float arrays for calculation
+    arr1 = Float64.(channelview(img1))
+    arr2 = Float64.(channelview(img2))
+    
+    # Calculate squared differences
+    squared_diff = (arr1 .- arr2).^2
+    
+    # Calculate mean squared error
+    mse = mean(squared_diff)
+    
+    # Calculate RMSE
+    rmse = sqrt(mse)
+    
+    return rmse
+end
 
 function main()
-    # absoluate crap because RayTracing uses args so something fucky is up
-    img1_path = "/home/jmyslinski/random_stuff/PBRJ/src/ld-9-centroid-distance.exr"
-    img2_path = "/home/jmyslinski/random_stuff/PBRJ/src/ld-9-power.exr"
-
-    # Load the images
-    test, test_L, test_W = RayTracing.read_image(img2_path, RayTracing.spectrum_from_float(1.0))
-    baseline, baseline_L, baseline_W = RayTracing.read_image(img1_path, RayTracing.spectrum_from_float(1.0))
-
-    # Calculate RMSE between the two images
-    tot = RayTracing.spectrum_from_float(0.0)
-    i = 0
-    for y in 1:test_L
-        for x in 1:test_W
-            i += 1
-            tot = tot + (test[i] - baseline[i]) .^ 2
-        end
+    # Check if correct number of arguments provided
+    if length(ARGS) != 2
+        println("Usage: julia compare_images.jl <path_to_image1.png> <path_to_image2.png>")
+        exit(1)
     end
-    rmse = RayTracing.sqrt.(tot ./ (test_L * test_W))
-
-    # Output the result
-    print("The RMSE between the two images is: $rmse\n")
+    
+    # Get file paths from command line arguments
+    file1 = ARGS[1]
+    file2 = ARGS[2]
+    
+    # Check if files exist
+    if !isfile(file1) || !isfile(file2)
+        println("Error: One or both image files do not exist.")
+        exit(1)
+    end
+    
+    # Load images
+    try
+        img1 = load(file1)
+        img2 = load(file2)
+        
+        # Check if images are the same size
+        if size(img1) != size(img2)
+            println("Error: Images must be the same size.")
+            exit(1)
+        end
+        
+        # Calculate RMSE
+        rmse = calculate_rmse(img1, img2)
+        
+        # Print result
+        println("RMSE between the images: ", rmse)
+        
+    catch e
+        println("Error loading or processing images: ", e)
+        exit(1)
+    end
 end
 
 # Run the main function

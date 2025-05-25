@@ -1,11 +1,24 @@
 """
 scene 1: indoor office ✅
+    - use better materials (floor)
+    - add geometry
 scene 2: caustic glass 🟨
+    - https://www.pbrt.org/scenes-v3_images/f16-9c.jpg
+    - black lines in glass are missing in mine
+    - fov and dimensions are differnet
 scene 3: AOIntegrator + dragon ✅
+    - floor is uneven :/
 scene 4: cornell box ✅
+    - need to mess with medium params to make it a bit less dense
 scene 5: soft bodies ✅
+    - better material? 
+    - infinite light?
 scene 6: goursat ✅
-scene 7: julia logo ✅
+    - better material? 
+    - infinite light?
+    - something fucky with the normals...
+scene 7: julia logo w/ tea pots ✅
+    - more interesting floor. maybe water???
 scene 8: an anemic leafless procedural tree ✅
 scene 9: a boringly material'd orb 🟨
 scene 10: a cloud + SimpleVolPathIntegrator ✅
@@ -17,6 +30,9 @@ scene 15: procedural clouds 🟨
 scene 16: elevator hallway 🟨
 scene 18: SDFs baby!
     - hexaonal prism kinda fucked
+scene 17: barcelona pavillion 🟨
+    - add background trees
+    - remove fourier material convergence hack
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
 scene 100: Furry Bunny from pbrt-v4 ✅ (just dont use HairBSDF)
 scene 101: SF3D CUP 🔴 (obj parser sucks)
@@ -57,6 +73,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene16(parsed_args)
     elseif parsed_args["scene-number"] == 18
         return make_scene18(parsed_args)
+    elseif parsed_args["scene-number"] == 17
+        return make_scene17(parsed_args)
     elseif parsed_args["scene-number"] == 99
         return make_scene99(parsed_args)
     elseif parsed_args["scene-number"] == 100
