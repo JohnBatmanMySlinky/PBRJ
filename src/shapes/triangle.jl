@@ -1,60 +1,21 @@
-struct TriangleMesh
-    n_triangles::Int64
-
-    vertices::Vector{Pnt3}
-    vertex_indices::Vector{Int64}
-
-    normals::Maybe{Vector{Nml3}}
-    normal_indices::Maybe{Vector{Int64}}
-
-    uvs::Maybe{Vector{Pnt2}}
-    uv_indices::Maybe{Vector{Int64}}
-
+struct Triangle <: Shape
+    core::ShapeCore
+    vertices::SVector{3, Pnt3}
+    normals::Maybe{SVector{3, Nml3}}
+    uvs::Maybe{SVector{3, Pnt2}}
     alpha_mask::Maybe{AbstractTexture{Float64}}
     shading_tangent::Nothing
 
-    function TriangleMesh(
-        object_to_world::Transformation, 
-        n_triangles::Int64,
-
-        vertices::Vector{Pnt3},
-        vertex_indices::Vector{Int64},
-    
-        normals::Maybe{Vector{Nml3}},
-        normal_indices::Maybe{Vector{Int64}},
-    
-        uvs::Maybe{Vector{Pnt2}},
-        uv_indices::Maybe{Vector{Int64}},
-    
+    function Triangle(
+        shape_core::ShapeCore,
+        vertices::SVector{3, Pnt3},
+        normals::Maybe{SVector{3, Nml3}},
+        uvs::Maybe{SVector{3, Pnt2}},
         alpha_mask::Maybe{AbstractTexture{Float64}}
     )
-        vertices = object_to_world.(vertices)
-        normals = object_to_world.(normals)
-        new(
-            n_triangles,
-
-            vertices,
-            vertex_indices,
-
-            normals,
-            normal_indices,
-
-            uvs,
-            uv_indices,
-
-            alpha_mask,
-            nothing
-        )
-    end
-end
-
-struct Triangle <: Shape
-    core::ShapeCore
-    mesh::TriangleMesh
-    i::Int64
-    
-    function Triangle(core::ShapeCore, mesh::TriangleMesh, i::Int64)
-        new(core, mesh, i*3+1)
+        vertices = shape_core.object_to_world.(vertices)
+        normals = shape_core.object_to_world.(normals)
+        return new(shape_core, vertices, normals, uvs, alpha_mask, nothing)
     end
 end
 
@@ -77,22 +38,31 @@ function construct_triangle_mesh(
     
     alpha_mask::Maybe{AbstractTexture{Float64}}
 )
-    mesh = TriangleMesh(
-        core.object_to_world, 
-        n_triangles, 
-
-        vertices, 
-        vertex_indices, 
-
-        normals, 
-        normal_indices, 
-
-        uvs,
-        uv_indices,
-        
-        alpha_mask
-    )
-    return [Triangle(core, mesh, i) for i in 0:n_triangles - 1]
+    tris = Vector{Triangle}(undef, n_triangles)
+    for i in 0:(n_triangles - 1)
+        ii = 3 * i + 1
+        tris[i + 1] = Triangle(
+            core,
+            SVector(
+                vertices[vertex_indices[ii + 0]], 
+                vertices[vertex_indices[ii + 1]], 
+                vertices[vertex_indices[ii + 2]]
+            ),
+            normals isa Nothing ? nothing : SVector(
+                normals[normal_indices[ii + 0]], 
+                normals[normal_indices[ii + 1]], 
+                normals[normal_indices[ii + 2]]
+            ),
+            uvs isa Nothing ? nothing : SVector(
+                uvs[uv_indices[ii + 0]], 
+                uvs[uv_indices[ii + 1]], 
+                uvs[uv_indices[ii + 2]]
+            ),
+            alpha_mask
+        )
+    end
+    
+    return tris
 end
 
 ###################################################
@@ -107,7 +77,9 @@ function ObjectBounds(tri::Triangle)::Bounds3
     # triangles have their vertices already in world space so go backwards because
     # results of this function are transformed back
     # ugh
-    p0, p1, p2 = tri.core.world_to_object.(get_vertices(tri))
+    p0 = tri.core.world_to_object(tri.vertices[1])
+    p1 = tri.core.world_to_object(tri.vertices[2])
+    p2 = tri.core.world_to_object(tri.vertices[3])
     # TODO why must I do this
     buffer = Float64[0, 0, 0]
     for i in 1:3
@@ -118,24 +90,6 @@ function ObjectBounds(tri::Triangle)::Bounds3
     return world_bounds(world_bounds(Bounds3(p0-buffer, p0+buffer), Bounds3(p1-buffer, p1+buffer)), Bounds3(p2-buffer, p2+buffer))
 end
 
-##############################
-####### Helper Functions #####
-##############################
-
-@inline function get_vertices(t::Triangle)::Tuple{Pnt3, Pnt3, Pnt3}
-    return t.mesh.vertices[t.mesh.vertex_indices[t.i + 0]], t.mesh.vertices[t.mesh.vertex_indices[t.i + 1]], t.mesh.vertices[t.mesh.vertex_indices[t.i + 2]]
-end
-
-@inline function get_normals(t::Triangle)::Tuple{Nml3, Nml3, Nml3}
-    # TODO implement ability to NOT have normals
-    return t.mesh.normals[t.mesh.normal_indices[t.i + 0]], t.mesh.normals[t.mesh.normal_indices[t.i + 1]], t.mesh.normals[t.mesh.normal_indices[t.i + 2]]
-end
-
-@inline function get_uvs(t::Triangle)::Tuple{Pnt2, Pnt2, Pnt2}
-    # TODO implement ability to NOT have UVs
-    return t.mesh.uvs[t.mesh.uv_indices[t.i + 0]], t.mesh.uvs[t.mesh.uv_indices[t.i + 1]], t.mesh.uvs[t.mesh.uv_indices[t.i + 2]]
-end
-
 ##################################################
 ######### Intersect ##############################
 ##################################################
@@ -143,7 +97,9 @@ end
 # PBR 3.6.2
 function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # get triangle vertices
-    p0, p1, p2 = get_vertices(tri)
+    p0 = tri.vertices[1]
+    p1 = tri.vertices[2]
+    p2 = tri.vertices[3]
     @info "\t\tTRIANGLE: Vertices - $p0, $p1, $p2"
     
     # perform ray-triangle intersection test
@@ -209,8 +165,8 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     t = t_scaled * inv_det
 
     # Compute triangle partial derivatives
-    if !(tri.mesh.uvs isa Nothing)
-        uv = get_uvs(tri)
+    if !(tri.uvs isa Nothing)
+        uv = tri.uvs
     else
         uv = (Pnt2(0, 0), Pnt2(0, 1), Pnt2(1, 1))
     end
@@ -242,7 +198,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     uvhit = b0 * uv[1] + b1 * uv[2] + b2 * uv[3]
 
     # Test intersection against alpha texture, if present
-    if !(tri.mesh.alpha_mask isa Nothing)
+    if !(tri.alpha_mask isa Nothing)
         si = InstantiateSurfaceInteraction(
                 phit,
                 0.0,
@@ -256,7 +212,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
                 nothing,
                 nothing
             )
-        if tri.mesh.alpha_mask(si) == spectrum_from_float(1.0, 1.0, 1.0)
+        if tri.alpha_mask(si) == spectrum_from_float(1.0, 1.0, 1.0)
             return false, 0.0, si
         end
     end
@@ -273,13 +229,15 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     end
 
     # TODO making shading tangents real
-    if !(tri.mesh.normals isa Nothing) || !(tri.mesh.shading_tangent isa Nothing)
+    if !(tri.normals isa Nothing) || !(tri.shading_tangent isa Nothing)
         # Initialize _Triangle_ shading geometry
         @info "NOOOOOOOOO"
 
         # Compute shading normal _ns_ for triangle
-        if !(tri.mesh.normals isa Nothing)
-            n1, n2, n3 = get_normals(tri)
+        if !(tri.normals isa Nothing)
+            n1 = tri.normals[1]
+            n2 = tri.normals[2]
+            n3 = tri.normals[3]
             ns = normalize(
                 b0 * n1 + b1 * n2 + b2 * n3
             )
@@ -293,7 +251,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         end
 
         # Compute shading tangent _ss_ for triangle
-        if !(tri.mesh.shading_tangent isa Nothing)
+        if !(tri.shading_tangent isa Nothing)
             s1, s2, s3 = get_shading_tangents(tri)
             ss = b0 * s1 + b1 * s2 + b2 * s3
             if norm(ss)^2 > 0 
@@ -317,8 +275,10 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         @info "TRIANGLE AGAIN: ts=$(ts), ss=$(ss), ns=$(ns)"
 
         # Compute $\dndu$ and $\dndv$ for triangle shading geometry
-        if !(tri.mesh.normals isa Nothing)
-            n1, n2, n3 = get_normals(tri)
+        if !(tri.normals isa Nothing)
+            n0 = tri.normals[1]
+            n1 = tri.normals[2]
+            n2 = tri.normals[3]
             # Compute deltas for triangle partial derivatives of normal
             duv02 = uv[1] - uv[3]
             duv12 = uv[2] - uv[3]
@@ -359,7 +319,9 @@ end
 
 function intersect_p(tri::Triangle, ray::AbstractRay, ::Bool=false)::Bool
     # get triangle vertices
-    p0, p1, p2 = get_vertices(tri)
+    p0 = tri.vertices[1]
+    p1 = tri.vertices[2]
+    p2 = tri.vertices[3]
     
     # perform ray-triangle intersection test
     ## transform vertices to ray coord space
@@ -420,7 +382,9 @@ function intersect_p(tri::Triangle, ray::AbstractRay, ::Bool=false)::Bool
 end
 
 function area(tri::Triangle)::Float64
-    p0, p1, p2 = tri.core.world_to_object.(get_vertices(tri))
+    p0 = tri.core.world_to_object(tri.vertices[1])
+    p1 = tri.core.world_to_object(tri.vertices[2])
+    p2 = tri.core.world_to_object(tri.vertices[3])
     c = cross(p1 - p0, p2 - p0)
     return 0.5 * sqrt(dot(c, c))
 end
@@ -429,12 +393,16 @@ end
 function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3, Pnt2, Float64}
     su0 = sqrt(u[1])
     b = Pnt2(1 - su0, u[2] * su0)
-    p0, p1, p2 = get_vertices(tri)
+    p0 = tri.vertices[1]
+    p1 = tri.vertices[2]
+    p2 = tri.vertices[3]
     p = b[1] * p0 + b[2] * p1 + (1-b[1]-b[2]) * p2
     n = normalize(Vec3(cross(p1-p0, p2-p0)))
 
-    if !(tri.mesh.normals isa Nothing)
-        n1, n2, n3 = get_normals(tri)
+    if !(tri.normals isa Nothing)
+        n1 = tri.normals[1]
+        n2 = tri.normals[2]
+        n3 = tri.normals[3]
         ns = b[1] * n1 + b[2] * n2  + (1-b[1]-b[2]) * n3
         n = face_forward(n,ns)
         # MORE JOHN HACKS
@@ -448,8 +416,8 @@ function sample(tri::Triangle, u::Pnt2)::Tuple{Pnt3, Nml3, Pnt2, Float64}
 
     # Compute $(u,v)$ for sampled point on triangle
     # Get triangle texture coordinates in _uv_ array
-    if !(tri.mesh.uvs isa Nothing)
-        uv = get_uvs(tri)
+    if !(tri.uvs isa Nothing)
+        uv = tri.uvs
     else
         uv = (Pnt2(0, 0), Pnt2(1, 0), Pnt2(1, 1))
     end
@@ -479,7 +447,9 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Pn
     max_spherical_sample_area=6.22
 
     # Get triangle vertices in _p0_, _p1_, and _p2_
-    p0, p1, p2 = get_vertices(tri)
+    p0 = tri.vertices[1]
+    p1 = tri.vertices[2]
+    p2 = tri.vertices[3]
 
     # Use uniform area sampling for numerically unstable cases
     solid_angle_val = solid_angle(p0, p1, p2, intr.p)
@@ -522,8 +492,10 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Pn
     p = b[1] * p0 + b[2] * p1 + b[3] * p2
     # Compute surface normal for sampled point on triangle
     n = normalize(Nml3(cross(p1 - p0, p2 - p0)))
-    if !(tri.mesh.normals isa Nothing)
-        n0, n1, n2 = get_normals(tri)
+    if !(tri.normals isa Nothing)
+        n0 = tri.normals[1]
+        n1 = tri.normals[2]
+        n2 = tri.normals[3]
         ns = b[1] * n0 + b[2] * n1 + (1.0 - b[1] - b[2]) * n2
         n = face_forward(n, ns)
     elseif tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
@@ -532,8 +504,8 @@ function sample(tri::Triangle, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Pn
 
     # Compute $(u,v)$ for sampled point on triangle
     # Get triangle texture coordinates in _uv_ array
-    if !(tri.mesh.uvs isa Nothing)
-        uv = get_uvs(tri)
+    if !(tri.uvs isa Nothing)
+        uv = tri.uvs
     else
         uv = (Pnt2(0, 0), Pnt2(1, 0), Pnt2(1, 1))
     end
