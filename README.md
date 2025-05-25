@@ -111,7 +111,6 @@ Render
 - SDFs
     - displacements!!! https://iquilezles.org/articles/distfunctions/
         - try again with quad!
-    - put calculatable bounding sphere in constructor
 - Fix up old scenes
     - run them and squash bugs
 - Time to make my OBJ parser suck less
