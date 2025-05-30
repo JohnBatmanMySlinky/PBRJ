@@ -20,6 +20,7 @@ scene 6: goursat ✅
 scene 7: julia logo w/ tea pots ✅
     - more interesting floor. maybe water???
 scene 8: an anemic leafless procedural tree ✅
+    - add leaves
 scene 9: a boringly material'd orb 🟨
 scene 10: a cloud + SimpleVolPathIntegrator ✅
 scene 11: infinite light show off & material testing ✅
@@ -28,11 +29,11 @@ scene 13: DISNEY CLOUD 🟨
 scene 14: Anemone 🟨
 scene 15: procedural clouds 🟨
 scene 16: elevator hallway 🟨
-scene 18: SDFs baby!
-    - hexaonal prism kinda fucked
 scene 17: barcelona pavillion 🟨
     - add background trees
     - remove fourier material convergence hack
+scene 18: SDFs baby!
+    - hexaonal prism kinda fucked
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
 scene 100: Furry Bunny from pbrt-v4 ✅ (just dont use HairBSDF)
 scene 101: SF3D CUP 🔴 (obj parser sucks)
@@ -71,10 +72,10 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene15(parsed_args)
     elseif parsed_args["scene-number"] == 16
         return make_scene16(parsed_args)
-    elseif parsed_args["scene-number"] == 18
-        return make_scene18(parsed_args)
     elseif parsed_args["scene-number"] == 17
         return make_scene17(parsed_args)
+    elseif parsed_args["scene-number"] == 18
+        return make_scene18(parsed_args)
     elseif parsed_args["scene-number"] == 99
         return make_scene99(parsed_args)
     elseif parsed_args["scene-number"] == 100

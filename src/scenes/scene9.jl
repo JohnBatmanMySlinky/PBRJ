@@ -25,34 +25,40 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mesh012_translate = Translate(Pnt3(0,0,0)) 
     mesh0 =  parse_obj(
-        "../ref/lte-orb/mesh-0.obj", # inner
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/lte-orb/geometry/mesh-0_ascii.obj"), # inner
         mesh012_translate,
         true,
         false,
         nothing
     )
-    for tri in mesh0
-        push!(primitives, Primitive(tri, mat_inner, nothing))
+    for tris in mesh0
+        for tri in tris
+            push!(primitives, Primitive(tri, mat_inner, nothing))
+        end
     end
     mesh1 =  parse_obj(
-        "../ref/lte-orb/mesh-1.obj", # base
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/lte-orb/geometry/mesh-1_ascii.obj"), # base
         mesh012_translate,
         true,
         false,
         nothing
     )
-    for tri in mesh1
-        push!(primitives, Primitive(tri, mat_stand, nothing))
+    for tris in mesh1
+        for tri in tris
+            push!(primitives, Primitive(tri, mat_stand, nothing))
+        end
     end
     mesh2 =  parse_obj(
-        "../ref/lte-orb/mesh-2.obj", # outer
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/lte-orb/geometry/mesh-2_ascii.obj"), # outer
         mesh012_translate,
         true,
         false,
         nothing
     )
-    for tri in mesh2
-        push!(primitives, Primitive(tri, mat_outer, nothing))
+    for tris in mesh2
+        for tri in tris
+            push!(primitives, Primitive(tri, mat_outer, nothing))
+        end
     end
 
     # instantiate accelerator
@@ -62,7 +68,13 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # instantiate the infinite light
     l_2_w = Rotate(-90.0, Vec3(1,0,0))
-    light = InfiniteLight(world_bounds(bvh), l_2_w, Spectrum(1.4, 1.4, 1.4), "/Users/johnmyslinski/Documents/pbrt-v4-scenes/lte-orb/textures/small_rural_road_equiarea.exr")
+    light = InfiniteLight(
+        world_bounds(bvh), 
+        l_2_w, 
+        Spectrum(1.4, 1.4, 1.4), 
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/lte-orb/textures/small_rural_road_equiarea.exr"),
+        true
+    )
     push!(lights, light)
 
     # Instantiate a Filter
@@ -79,14 +91,8 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-
-
-    # 0.16432909667491913, -0.8644996881484985, -0.6155436635017395
-    # 0.27579671144485474, -0.9914534687995911, -0.6511322855949402
-    # 0.2510230839252472, -0.9913325309753418, -0.6673218607902527
-
-    look_from = Pnt3(0.0, -0.55, -0.25)
-    look_at = Pnt3(0, 0.7, 0)
+    look_from = Pnt3(0.2, 0.4, -0.5)
+    look_at = Pnt3(0, 0.1, 0)
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
     C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
