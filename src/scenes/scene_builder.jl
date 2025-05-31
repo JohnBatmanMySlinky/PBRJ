@@ -21,7 +21,8 @@ scene 7: julia logo w/ tea pots ✅
     - more interesting floor. maybe water???
 scene 8: an anemic leafless procedural tree ✅
     - add leaves
-scene 9: a boringly material'd orb 🟨
+scene 9: lte orb
+    - get more interesting measured bsdf's
 scene 10: a cloud + SimpleVolPathIntegrator ✅
 scene 11: infinite light show off & material testing ✅
 scene 12: v4 smoke plume ✅
