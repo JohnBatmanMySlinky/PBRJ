@@ -23,11 +23,12 @@ scene 8: an anemic leafless procedural tree ✅
     - add leaves
 scene 9: lte orb
     - get more interesting measured bsdf's
-scene 10: a cloud + SimpleVolPathIntegrator ✅
+scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅
+    - parser broken
 scene 11: infinite light show off & material testing ✅
-scene 12: v4 smoke plume ✅
-scene 13: DISNEY CLOUD 🟨
-scene 14: Anemone 🟨
+scene 12: v4 smoke plume (v3 GridMedium) ✅
+scene 13: DISNEY CLOUD (v4 NanoVDBMedium) 🟨
+scene 14: Anemone (v4 GridMedium) 🟨
 scene 15: procedural clouds 🟨
 scene 16: elevator hallway 🟨
 scene 17: barcelona pavillion 🟨
