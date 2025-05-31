@@ -14,7 +14,9 @@ struct Triangle <: Shape
         alpha_mask::Maybe{AbstractTexture{Float64}}
     )
         vertices = shape_core.object_to_world.(vertices)
-        normals = shape_core.object_to_world.(normals)
+        if !(normals isa Nothing)
+            normals = shape_core.object_to_world.(normals)
+        end
         return new(shape_core, vertices, normals, uvs, alpha_mask, nothing)
     end
 end

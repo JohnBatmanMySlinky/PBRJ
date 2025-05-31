@@ -93,11 +93,12 @@ Render
 - Integrators: BDPT, ambient occlusion, path, simple volumetric path, and whitted
 - Lights: Area, distant, image infinite, uniform infinite, point, and spot
     - Uniform, Power, and Spatial (Voxel) light distributions
-- Materials: Glass, matte, metal, mirror, plastic, and substrate materials
+- Materials: Glass, matte, metal, mirror, plastic, substrate, and fourier materials
 - Samplers: Stratified, z-sobol, and sobol
 - Shapes: Box, cylindar, disk, rectangle, sphere, and triangle
     - Very very very very basic L-system
     - Implicit surfaces: Goursat surface & metaballs
+    - SDFs: Sphere, Box, Torus, FrameBox, RoundedCone, and HexagonalPrism
 - Participating mediums: Homogenous, Grid, and NanoVDB
     - with DDA Majorant Iterator
 - RGB and spectral rendering
@@ -108,18 +109,17 @@ Render
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- Improve scene build descriptive statistics and printing
 - SDFs
     - displacements!!! https://iquilezles.org/articles/distfunctions/
         - try again with quad!
 - regression test suite with simple RMSE report
 - Fourier to use immutable struct
 - Fourier BSDF convergence is hacked
-- SDF should be super doable. Same thing as implicit surface imo.
 - get rid of deep copys in parser
 - i see some Mat3([]) that need to re factored in bilinear patch
 - parse_obj's FIN::Vector{Any} is gong to kill performance
 - fix old scenes that now broke with parser_obj::FIN
-- decouple mesh from triangle and bilinear patch, that's got to be adding massive overhead..... 
 - Fix up old scenes
     - run them and squash bugs
 - Time to make my OBJ parser suck less
@@ -171,12 +171,12 @@ Render
         - Add glass material
             - make sure all paths of Glass's compute scattering function work
             - pass all pxl-th's tests
-        - Add metal material
-        - Add fourier material
+        - ~~Add metal material~~
+        - ~~Add fourier material~~
         - Add subsurface scattering
     - Implement light BVH for more efficient sampling
     - Implement Metroplois Light Transport Integrator
-    - Implement texture sampling and use those ray differentials
+    - ~~Implement texture sampling and use those ray differentials~~
     - ~~Uniform infinite light~~
     - ~~Move to EXR~~
         - ~~for env lights~~
@@ -192,16 +192,6 @@ Render
          - ~~Grid medium~~
          - ~~OpenVDB~~
     - ~~Add bi-linear patches~~
-- Scene work
-    - Re run old scenes
-    - Add lte-orb scene
-    - Improve office scene 
-        - Add more walls (left wall corner)
-        - Add in more scene geometry (baseboards? stairs? elevator?)
-        - Get reflections in back hallway looking nice and in general floor material
-        - Wall material
-        - use image texture!
-    - ~~Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.~~
 # Clean up 
     - ~~Use y(::Spectrum) and dont hack with mean~~
     - remove duplicate world_to_X and X_to_world

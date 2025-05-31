@@ -3,18 +3,15 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     lights = Light[]
 
     # materials
-    mat_inner = Matte(
-        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
-        ConstantTexture(0.0),
+    mat_inner = Metal()
+
+    mat_outer = Fourier(
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/lte-orb/bsdfs/roughglass_alpha_0.2.bsdf"),
         nothing
     )
-    mat_outer = Matte(
-        ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
-        ConstantTexture(0.0),
-        nothing
-    )
-    mat_stand = Matte(
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
+
+    mat_ground = Matte(
+        ConstantTexture(spectrum_from_float(0.2, 0.2, 0.2)),
         ConstantTexture(0.0),
         nothing
     )
@@ -45,7 +42,7 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in mesh1
         for tri in tris
-            push!(primitives, Primitive(tri, mat_stand, nothing))
+            push!(primitives, Primitive(tri, mat_outer, nothing))
         end
     end
     mesh2 =  parse_obj(
@@ -59,6 +56,49 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         for tri in tris
             push!(primitives, Primitive(tri, mat_outer, nothing))
         end
+    end
+
+    ground_tris = Rectangle(
+        Pnt2(-5, -5),
+        Pnt2(5, 5),
+        0.0,
+        2,
+        ShapeCore(),
+        false,
+        nothing
+    )
+    for tri in ground_tris
+        push!(primitives, Primitive(tri, mat_ground, nothing))
+    end
+
+    tris = construct_triangle_mesh(
+        ShapeCore(),
+        2,
+        Pnt3[
+            Pnt3(-1, 3.204596996, -0.9997209907), 
+            Pnt3(1, 3.204596996, -0.9997209907),
+            Pnt3(1, 3.251826048, 0.9997209907), 
+            Pnt3(-1, 3.251826048, 0.9997209907)
+        ],
+        Int64[1, 2, 3, 1, 3, 4],
+        nothing, nothing,
+        nothing, nothing,
+        nothing
+    )
+    brightness = spectrum_from_float(9.5, 9.5, 9.5)
+    mat_light = Matte(
+        ConstantTexture(brightness),
+        ConstantTexture(0.0),
+        nothing
+    )
+    for tri in tris
+        alight = DiffuseAreaLight(
+            brightness,
+            tri,
+            false
+        )
+        push!(lights, alight)
+        push!(primitives, Primitive(tri, mat_ground, alight))
     end
 
     # instantiate accelerator

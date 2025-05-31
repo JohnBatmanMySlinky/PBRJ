@@ -36,6 +36,7 @@ function get_weights_and_offset(table::FourierBSDFTable, cos_theta::Float64)::Tu
 end
 
 """
+Thank christ for Claude on this one...
     Read(filename::String)
 
 Read a tabulated BSDF from a binary file.
