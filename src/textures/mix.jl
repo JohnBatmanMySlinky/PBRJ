@@ -13,7 +13,7 @@ struct MixDirectionTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     a::AbstractTexture{T}
     b::AbstractTexture{T}
     dir::Vec3
-    function MixDirectionTexture{T}(a::AbstractTexture{T}, b::AbstractTexture{T}, dir::Vec3) where T <: Union{Float64, Spectrum}
+    function MixDirectionTexture(a::AbstractTexture{T}, b::AbstractTexture{T}, dir::Vec3) where T <: Union{Float64, Spectrum}
         return new{T}(a, b, normalize(dir))
     end
 end
