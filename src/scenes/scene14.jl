@@ -203,8 +203,10 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         nothing
     )
-    for tri in metal_stand
-        push!(primitives, Primitive(tri, mat_stand, nothing))
+    for tris in metal_stand
+        for tri in tris
+            push!(primitives, Primitive(tri, mat_stand, nothing))
+        end
     end
 
 
@@ -233,7 +235,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # push!(lights, light)
 
     # Instantiate a Sampler
-    S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"][1], parsed_args["image-dim"][2]), Int8(2), parsed_args["seed"])
+    S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]), Int8(2), parsed_args["seed"])
     # S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
