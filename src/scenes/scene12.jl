@@ -42,10 +42,10 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             spectrum_from_float(20.0),
             spectrum_from_float(160.0),
             1.0,
-            Pnt3(0.00, 0.00, 0.00),
-            Pnt3(0.75, 1.00, 0.75),
+            spectrum_from_float(0.0),
+            1.0,
             0.0,
-            Pnt3(256, 256, 256)
+            Pnt3i(256, 256, 256)
         ),
         nothing
     )
