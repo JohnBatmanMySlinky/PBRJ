@@ -54,7 +54,7 @@ struct GridMedium <: AbstractMedium
             temperature_grid,
             le,
             le_grid,
-            !(temperature_grid isa Nothing) || !(maximum(le) > 0.0),
+            (!(temperature_grid isa Nothing)) || (maximum(le) > 0.0),
             majorant_grid
         )
     end
