@@ -55,9 +55,10 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     floor = BilinearPatchGenerator(
         ShapeCore(floor_t, Inv(floor_t), false, false),
         1,
-        4,
-        Int64[0, 1, 2, 3],
         Pnt3[Pnt3(-50, 0, -50), Pnt3(-50, 0, 50), Pnt3(50, 0, -50), Pnt3(50, 0, 50)],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
         nothing,
         nothing,
         nothing

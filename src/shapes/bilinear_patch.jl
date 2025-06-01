@@ -20,7 +20,7 @@ struct BilinearPatch <: Shape
     if !(n isa Nothing)
         n = core.object_to_world.(n)
     end
-        return new(core, p, n, uv, area, min_spherical_sample, alpha_mask)
+        return new(core, p, n, uv, area, min_spherical_sample_area, alpha_mask)
     end
 end
 
@@ -32,10 +32,10 @@ function BilinearPatchGenerator(
     p_indices::Vector{Int64},
 
     n::Maybe{Vector{Nml3}},
-    n_indices::Vector{Int64},
+    n_indices::Maybe{Vector{Int64}},
 
     uv::Maybe{Vector{Pnt2}},
-    uv_indices::Vector{Int64},
+    uv_indices::Maybe{Vector{Int64}},
 
     alpha_mask::Maybe{AbstractTexture{Float64}},
 )::Vector{BilinearPatch}
@@ -93,6 +93,8 @@ function BilinearPatchGenerator(
                 uv[uv_indices[ii + 2]],
                 uv[uv_indices[ii + 3]],
             ),
+            area,
+            3e-4,
             alpha_mask
         )
     end
@@ -105,10 +107,10 @@ function ObjectBounds(blp::BilinearPatch)::Bounds3
     # BLP have their vertices already in world space so go backwards because
     # results of this function are transformed back
     # ugh
-    p00 = blp.core.world_to_object.(blp.p[1])
-    p10 = blp.core.world_to_object.(blp.p[2])
-    p01 = blp.core.world_to_object.(blp.p[3])
-    p11 = blp.core.world_to_object.(blp.p[4])
+    p00 = blp.core.world_to_object(blp.p[1])
+    p10 = blp.core.world_to_object(blp.p[2])
+    p01 = blp.core.world_to_object(blp.p[3])
+    p11 = blp.core.world_to_object(blp.p[4])
     # TODO why must I do this
     buffer = Float64[0, 0, 0]
     for i in 1:3
@@ -184,7 +186,7 @@ function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bo
     dvds = 0.0
     dvdt = 1.0
 
-    if !(blp.mesh.uv isa Nothing)
+    if !(blp.uv isa Nothing)
         # Compute texture coordinates for bilinear patch intersection point
         uv00 = blp.uv[1]
         uv10 = blp.uv[2]
@@ -261,7 +263,7 @@ function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bo
     )
 
     # Compute bilinear patch shading normal if necessary
-    if !(blp.mesh.n isa Nothing)
+    if !(blp.n isa Nothing)
         # Compute shading normals for bilinear patch intersection point
         n00 = blp.n[1]
         n10 = blp.n[2]
@@ -404,7 +406,7 @@ function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
     end
 
     st = uv
-    if !(blp.mesh.uv isa Nothing)
+    if !(blp.uv isa Nothing)
         @assert false # NOT DONE 
         # // Compute texture coordinates for bilinear patch intersection point
         # uv00 = mesh->uv[v[0]], uv10 = mesh->uv[v[1]];
@@ -414,7 +416,7 @@ function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
     # Compute surface normal for sampled bilinear patch $(u,v)$
     n = Nml3(normalize(cross(dpdu, dpdv)))
     # Flip normal at sampled $(u,v)$ if necessary
-    if !(blp.mesh.n isa Nothing)
+    if !(blp.n isa Nothing)
         @assert false # TODO NOT DONE
         # Normal3f n00 = mesh->n[v[0]], n10 = mesh->n[v[1]];
         # Normal3f n01 = mesh->n[v[2]], n11 = mesh->n[v[3]];
@@ -490,7 +492,7 @@ function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml
     )
     n = Nml3(normalize(cross(eu, ev)))
     # Flip normal at sampled $(u,v)$ if necessary
-    if !(blp.mesh.n isa Nothing)
+    if !(blp.n isa Nothing)
         @assert false # TODO DO THIS
         # Normal3f n00 = mesh->n[v[0]], n10 = mesh->n[v[1]];
         # Normal3f n01 = mesh->n[v[2]], n11 = mesh->n[v[3]];
@@ -502,7 +504,7 @@ function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml
 
     # Compute $(s,t)$ texture coordinates for sampled $(u,v)$
     st = uv
-    if !(blp.mesh.uv isa Nothing)
+    if !(blp.uv isa Nothing)
         @assert false # TODO DO THIS
         # Compute texture coordinates for bilinear patch intersection point
         # Point2f uv00 = mesh->uv[v[0]], uv10 = mesh->uv[v[1]];
