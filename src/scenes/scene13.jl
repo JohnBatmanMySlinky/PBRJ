@@ -5,12 +5,12 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # materials
     mat_gray = Matte(
         ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     mat_disk = Matte(
         ConstantTexture(spectrum_from_float(0.3, 0.3, 0.3)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
 
@@ -92,7 +92,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
@@ -108,7 +108,12 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), screen, 0.0, 1.0, 0.0, 1e6, 31.07, film)
 
     # Instantiate a Sampler
-    S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), Int8(2))
+    S = ZSobolSampler(
+        parsed_args["samples-per-pixel"], 
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]), 
+        Int8(2),
+        parsed_args["seed"]
+    )
     # S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
