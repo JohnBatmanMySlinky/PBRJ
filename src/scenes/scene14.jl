@@ -5,25 +5,25 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_stand = Metal(
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.eta.spd"))),
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.k.spd"))),
-        ConstantTexture(spectrum_from_float(0.001)),
+        ConstantTexture(0.001),
     )
     mat_ground = Matte(
         ConstantTexture(spectrum_from_float(0.2, 0.2, 0.2)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     # materials
     dir_mix_texture = MixDirectionTexture(
-        ConstantTexture(Pnt3(.0005)),
-        ConstantTexture(Pnt3(.005)),
+        ConstantTexture(.0005),
+        ConstantTexture(.005),
         Vec3(0, 9, 24)
     )
     mat_glass = Glass(
-        ConstantTexture(Pnt3(1.0)), # Kr
-        ConstantTexture(Pnt3(1.0)), # Kt
+        ConstantTexture(spectrum_from_float(1.0)), # Kr
+        ConstantTexture(spectrum_from_float(1.0)), # Kt
         dir_mix_texture,  # u_roughness
         dir_mix_texture,  # v_roughness
-        ConstantTexture(Pnt3(1.5)), # eta
+        ConstantTexture(1.5), # eta
         nothing,                    # bump
         true                        # remap_roughness
     )
@@ -33,7 +33,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
@@ -66,7 +66,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             spectrum_from_float(10.0, 0.5, 5.0),
             1.0 / 106.857,
             0.0,
-            Pnt3(256, 256, 256)
+            Pnt3i(256, 256, 256)
         ),
         nothing
     )
