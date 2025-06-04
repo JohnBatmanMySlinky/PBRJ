@@ -192,11 +192,6 @@ NanoVDBWrapper make_NanoVDBWrapper(const std::string& fpath) {
 
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 {
-    // mod.method("grid_to_unit", &grid_to_unit);
-
-    // mod.add_type<nanovdb::BBox<nanovdb::Vec3d>>("BBox");
-
-
     mod.add_type<nanovdb::Coord>("Coord")
         .constructor<int32_t>()
         .constructor<int32_t, int32_t, int32_t>()
@@ -206,14 +201,8 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 
     mod.add_type<NanoVDBWrapper>("NanoVDBWrapper")
         .method("get_WorldBBox", &NanoVDBWrapper::get_WorldBBox)
-        // .method("get_extrema", &NanoVDBWrapper::get_extrema)
-        // .method("get_worldToIndexF", &NanoVDBWrapper::get_worldToIndexF)
-        // .method("get_indexBBox", &NanoVDBWrapper::get_indexBBox)
-        // .method("get_max_voxel_value", &NanoVDBWrapper::get_max_voxel_value)
         .method("get_sampled_point", &NanoVDBWrapper::get_sampled_point)
         .method("build_majorant_grid", &NanoVDBWrapper::build_majorant_grid)
-        // .method("sample_NanoVDBWrapper", &NanoVDBWrapper::sample_NanoVDBWrapper)
-        // .method("transmittance_NanoVDBWrapper", &NanoVDBWrapper::transmittance_NanoVDBWrapper)
         .method("init", &NanoVDBWrapper::init);
 
     mod.method("make_NanoVDBWrapper", &make_NanoVDBWrapper);
