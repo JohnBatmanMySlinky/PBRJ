@@ -92,12 +92,11 @@ class NanoVDBWrapper {
         std::vector<double> build_majorant_grid(
             int resx, int resy, int resz
         ) {
-            if (!densityFloatGrid) {
-                throw std::runtime_error("Grid not initialized - call init() first");
-            }
-            auto accessor = densityFloatGrid->getAccessor();
-            const nanovdb::BBox<nanovdb::Vec3d> bounds = densityFloatGrid->worldBBox();
-            auto bbox = densityFloatGrid->indexBBox();
+            auto temphandle = nanovdb::io::readGrid(jmfp(fpath)); // Temporary handle
+            auto* grid = temphandle.grid<float>();
+            auto accessor = grid->getAccessor();
+            const nanovdb::BBox<nanovdb::Vec3d> bounds = grid->worldBBox();
+            auto bbox = grid->indexBBox();
 
             // instantiate majorantGrid array
             std::vector<double> majorantGrid(resx * resy * resz);
@@ -131,9 +130,9 @@ class NanoVDBWrapper {
                 // std::cout << "\twb: [ [" << wb.min()[0] << ", " << wb.min()[1] << ", " << wb.min()[2] << "], - ["  << wb.max()[0] << ", " << wb.max()[1] << ", " << wb.max()[2] << "] ]" << std::endl;
                 
                 // Compute corresponding NanoVDB index-space bounds in floating-point.
-                nanovdb::Vec3d i0 = densityFloatGrid->worldToIndexF(
+                nanovdb::Vec3d i0 = grid->worldToIndexF(
                     nanovdb::Vec3d(wb.min()[0], wb.min()[1], wb.min()[2]));
-                nanovdb::Vec3d i1 = densityFloatGrid->worldToIndexF(
+                nanovdb::Vec3d i1 = grid->worldToIndexF(
                     nanovdb::Vec3d(wb.max()[0], wb.max()[1], wb.max()[2]));
                     
                 // Now find integer index-space bounds, accounting for both filtering and the overall index bounding box.
@@ -160,10 +159,9 @@ class NanoVDBWrapper {
             return majorantGrid;
         }
         std::tuple<float, float, float, float, float, float> get_WorldBBox() {
-            if (!densityFloatGrid) {
-                throw std::runtime_error("Grid not initialized - call init() first");
-            }
-            const nanovdb::BBox<nanovdb::Vec3d> box = densityFloatGrid->worldBBox();
+            auto temphandle = nanovdb::io::readGrid(jmfp(fpath)); // Temporary handle
+            auto* grid = temphandle.grid<float>();
+            const nanovdb::BBox<nanovdb::Vec3d> box = grid->worldBBox();
             nanovdb::Vec3 mi = box.min();
             nanovdb::Vec3 ma = box.max();
             return {mi[0], mi[1], mi[2], ma[0], ma[1], ma[2]};
