@@ -57,9 +57,12 @@ nanovdb::Vec3d at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
     return rayo + (rayd * t);
 }
 
-// float lerp(float t, float a, float b){
-//     return a + t * (b - a);
-// }
+// on linux i get a namespace violation and what ever function is actually called 
+// must have a different order of params; so not only do i need to define my own lerp
+// i gotta call it something stupid
+float lerp_why(float t, float a, float b){
+    return a + t * (b - a);
+}
 
 nanovdb::Vec3d lerp(nanovdb::BBox<nanovdb::Vec3d> bbox, nanovdb::Vec3d t) {
     return nanovdb::Vec3d(
@@ -96,10 +99,13 @@ class NanoVDBWrapper {
             auto* grid = temphandle.grid<float>();
             auto accessor = grid->getAccessor();
             const nanovdb::BBox<nanovdb::Vec3d> bounds = grid->worldBBox();
+            // std::cout << "WORLD BOUNDS " << bounds << std::endl;
             auto bbox = grid->indexBBox();
 
             // instantiate majorantGrid array
             std::vector<double> majorantGrid(resx * resy * resz);
+
+            // std::cout << "NOW IN C++ LAND " << resx << ", " << resy << ", " << resx << std::endl;
             
             for (int index=0; index < resx * resy * resz; ++index) {
                 int x = index % resx;
@@ -110,21 +116,15 @@ class NanoVDBWrapper {
                 
                 // World (aka medium) space bounds of this max grid cell
                 nanovdb::BBox<nanovdb::Vec3d> wb = nanovdb::BBox<nanovdb::Vec3d>(
-                    lerp(
-                        bounds, 
-                        nanovdb::Vec3d(
-                            double(x) / double(resx),
-                            double(y) / double(resy),
-                            double(z) / double(resz)
-                        )
+                    nanovdb::Vec3d(
+                        lerp_why(double(x) / double(resx), bounds.min()[0], bounds.max()[0]),
+                        lerp_why(double(y) / double(resy), bounds.min()[1], bounds.max()[1]),
+                        lerp_why(double(z) / double(resz), bounds.min()[2], bounds.max()[2])
                     ),
-                    lerp(
-                        bounds, 
-                        nanovdb::Vec3d(
-                            double(x+1) / double(resx),
-                            double(y+1) / double(resy),
-                            double(z+1) / double(resz)
-                        )
+                    nanovdb::Vec3d(
+                        lerp_why(double(x + 1) / double(resx), bounds.min()[0], bounds.max()[0]),
+                        lerp_why(double(y + 1) / double(resy), bounds.min()[1], bounds.max()[1]),
+                        lerp_why(double(z + 1) / double(resz), bounds.min()[2], bounds.max()[2])
                     )
                 );
                 // std::cout << "\twb: [ [" << wb.min()[0] << ", " << wb.min()[1] << ", " << wb.min()[2] << "], - ["  << wb.max()[0] << ", " << wb.max()[1] << ", " << wb.max()[2] << "] ]" << std::endl;
