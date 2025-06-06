@@ -108,7 +108,12 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), screen, 0.0, 1.0, 0.0, 1e6, 31.07, film)
 
     # Instantiate a Sampler
-    S = ZSobolSampler(parsed_args["samples-per-pixel"], Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]), Int8(2), parsed_args["seed"])
+    S = ZSobolSampler(
+        parsed_args["samples-per-pixel"], 
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]), 
+        Int8(2),
+        parsed_args["seed"]
+    )
     # S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
