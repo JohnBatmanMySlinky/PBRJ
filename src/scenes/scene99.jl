@@ -23,10 +23,9 @@ function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for sphere in spheres
         push!(primitives, Primitive(sphere, mat_gray, nothing))
     end
-    tmpbvh = BVH(primitives)
 
     # The floor
-    floor_transform = Translate(Pnt3(0, world_bounds(tmpbvh).pMin.y, 0))
+    floor_transform = Translate(Pnt3(0, world_bounds(BVH(primitives)).pMin.y, 0))
     floor = Rectangle(
         Pnt2(-100, -100),
         Pnt2(100, 100),
