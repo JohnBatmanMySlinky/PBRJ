@@ -38,7 +38,7 @@ scene 18: SDFs baby!
     - hexaonal prism kinda fucked
 scene 19: bunny cloud (v4 NanoVDB) 🟨
     - only works single threaded? ok cool
-    - transforms are fucked
+    - hmmm gets all fucky when voxel grid is 3x3x3 - probably majorant iterator...
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
 scene 100: Furry Bunny from pbrt-v4 ✅ (just dont use HairBSDF)
 scene 101: SF3D CUP 🔴 (obj parser sucks)
