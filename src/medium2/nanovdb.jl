@@ -67,7 +67,7 @@ end
 
 function sample_point(nvdbm::NanoVDBMedium, p::Pnt3)::MediumProperties
     # Scale scattering coefficients by medium density at _p_
-    p = nvdbm.render_from_medium(p)
+    p = Inv(nvdbm.render_from_medium)(p)
 
     d = NanoVDB.get_sampled_point(nvdbm.density_float_grid, p.x, p.y, p.z)
     
@@ -81,7 +81,7 @@ end
 function sample_ray(nvdbm::NanoVDBMedium, ray::AbstractRay, ray_t_max::Float64)::Maybe{AbstractMajorantIterator}
     # Transform ray to medium's space and compute bounds overlap
     # JOHN HACK: WHAT IS ray_t_max DOING HERE???
-    ray = nvdbm.render_from_medium(ray)
+    ray = Inv(nvdbm.render_from_medium)(ray)
     # println("SAMPLE RAY: RAY: $ray")
     # println("SAMPLE RAY: BOUNDS: $(gm.bounds)")
     check, t_min, t_max = intersect_p(nvdbm.bounds, ray, ray_t_max)

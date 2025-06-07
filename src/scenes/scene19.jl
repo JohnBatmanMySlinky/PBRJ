@@ -1,4 +1,12 @@
 function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
+    # WHY DOES BUNNY CLOUD SEG FAULT IF ITS MULTI-THREADED?
+    # DISNEY CLOUD DOESNT
+    if (Threads.nthreads() > 1)
+        print("BUNNY CLOUD DOESNT LIKE MULTI-THREADING - TRY AGAIN")
+        @assert false
+    end
+    
+
     primitives = Primitive[]
     lights = Light[]
 
@@ -10,7 +18,7 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Bounding sphere cause we hate winding order and such
-    sphere_transform = RotateX(90.0) * RotateZ(180.0)
+    sphere_transform = Translate(Pnt3(0,0,0))
     sphere = Sphere(
         ShapeCore(
             sphere_transform,
@@ -23,7 +31,7 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     smoke_mi = MediumInterface(
         NanoVDBMedium(
-            Translate(Pnt3(0,0,0)),
+            RotateZ(180.0) * RotateX(90.0),
             spectrum_from_float(0.5),
             spectrum_from_float(10.0),
             0.0,
@@ -47,7 +55,7 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         false
     )
-    # push!(primitives, Primitive(disk, mat_disk, nothing))
+    push!(primitives, Primitive(disk, mat_disk, nothing))
 
 
     # instantiate accelerator
