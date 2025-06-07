@@ -6,12 +6,49 @@ function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
+    mat_wax = Uber(
+        ConstantTexture(spectrum_from_float(0.639999986)),
+        ConstantTexture(spectrum_from_float(0.5)),
+        ConstantTexture(spectrum_from_float(0.0)),
+        ConstantTexture(spectrum_from_float(0.0)),
+        ConstantTexture(0.0104080001),
+        nothing,
+        nothing,
+        ConstantTexture(1.0),
+        ConstantTexture(spectrum_from_float(1.0)),
+        nothing
+    )
+    mat_metal = Metal(
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/barcelona-pavilion/spds/Al.eta.spd"))),
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/barcelona-pavilion/spds/Al.k.spd"))),
+    )
+    mat_black_glossy = Plastic(
+        ConstantTexture(spectrum_from_float(0.02, 0.02, 0.02)),
+        ConstantTexture(spectrum_from_float(0.02, 0.02, 0.02)),
+        ConstantTexture(0.0104080001),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_leather = Fourier(
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/bsdfs/leather.bsdf"),
+        nothing
+    )
+    sphereamid_materials = [
+        mat_wax,
+        mat_metal,
+        mat_black_glossy,
+        mat_leather
+    ]
+    sphereamid_materials_dist = Distribution1D(ones(Float64, length(sphereamid_materials)))
 
     base_t = RayTracing.Translate(RayTracing.Pnt3(0,0,0))
     max_depth = 4
     r = 0.5
     r_vec = Float64[r^(i-1) for i in 1:max_depth]
     spheres = RayTracing.Sphere[]
+    Random.seed!(parsed_args["seed"])
     recursive_pyramid_build!(
         spheres,
         base_t,
@@ -21,7 +58,8 @@ function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     for sphere in spheres
-        push!(primitives, Primitive(sphere, mat_gray, nothing))
+        idx, _, _ = sample_discrete(sphereamid_materials_dist, rand())
+        push!(primitives, Primitive(sphere, sphereamid_materials[idx], nothing))
     end
 
     # The floor
