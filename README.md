@@ -14,25 +14,11 @@ julia -t 4 RayTracing.jl \
 --file-name "test.png"
 ```
 ## NanoVDB Bindings
-> These bindings are super hacky, to put it lightly. Don't judge me. It works (kinda).
 
-If you want to use [NanoVDB](https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb), you'll need to `cd src/nanovdb && sh INSTALL.sh`. Given you're on a mac, that'll probably work...
+If you want to use [NanoVDB](https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb), you'll need to `cd src/nanovdb && sh INSTALL.sh`. 
 
-# Scene Specification
-Scenes are specified within `src/scene_builder.jl`.
-
-Hierarchy of objects needed is as follows. 
-```
-Render
-├── Integrator
-│   ├── Camera
-│   └── Sampler
-│       └── Film
-└── Scene
-    ├── Vector{Light}
-    └── AccelerationStructure
-        └── Vector{Primitive} = Vector{Tuple{Shape, Material}}
-```
+## Scene Files
+For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 
 # Example Renders
 1. Office scene. Interior scene. many (relative) diffuse area lights. specular floor. 

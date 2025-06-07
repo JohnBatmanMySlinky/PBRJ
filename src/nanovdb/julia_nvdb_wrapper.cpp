@@ -64,14 +64,6 @@ float lerp_why(float t, float a, float b){
     return a + t * (b - a);
 }
 
-nanovdb::Vec3d lerp(nanovdb::BBox<nanovdb::Vec3d> bbox, nanovdb::Vec3d t) {
-    return nanovdb::Vec3d(
-        lerp(t[0], bbox.min()[0], bbox.max()[0]),
-        lerp(t[1], bbox.min()[1], bbox.max()[1]),
-        lerp(t[2], bbox.min()[2], bbox.max()[2])
-    );
-}
-
 class NanoVDBWrapper {
     public:
         NanoVDBWrapper(const std::string& fpath) : fpath(fpath) {}
