@@ -44,12 +44,12 @@ function render(
         for wtf in 1:length(scene.b.primitives)
             if !(scene.b.primitives[wtf].mi.inside isa Nothing)
                 if scene.b.primitives[wtf].mi.inside isa NanoVDBMedium
-                    NanoVDB.init(scene.b.primitives[wtf].mi.inside.density_float_grid)
+                    NanoVDB.init(scene.b.primitives[wtf].mi.inside.nanovdb_grid)
                 end
             end
             if !(scene.b.primitives[wtf].mi.outside isa Nothing)
                 if scene.b.primitives[wtf].mi.outside isa NanoVDBMedium
-                    NanoVDB.init(scene.b.primitives[wtf].mi.outside.density_float_grid)
+                    NanoVDB.init(scene.b.primitives[wtf].mi.outside.nanovdb_grid)
                 end
             end
         end

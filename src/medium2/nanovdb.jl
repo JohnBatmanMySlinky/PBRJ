@@ -3,10 +3,13 @@ struct NanoVDBMedium <: AbstractMedium
     sigma_s::Spectrum
     phase::AbstractPhaseFunction
     majorant_grid::MajorantGrid
-    density_float_grid::NanoVDB.NanoVDBWrapperAllocated
+    nanovdb_grid::NanoVDB.NanoVDBWrapperAllocated
     sigma_t::Float64
     bounds::Bounds3
     render_from_medium::Transformation
+    Le_scale::Float64
+    temperature_offset::Float64
+    temperature_scale::Float64
 
     function NanoVDBMedium(
         render_from_medium::Transformation,
@@ -15,12 +18,15 @@ struct NanoVDBMedium <: AbstractMedium
         g::Float64, 
         scale::Float64,
         fpath::String,
-        majorant_grid_res::Pnt3i
+        majorant_grid_res::Pnt3i,
+        Le_scale::Float64=1.0,
+        temperature_offset::Float64=0.0,
+        temperature_scale::Float64=1.0
     )
         sigma_a *= scale
         sigma_s *= scale
-        density_float_grid = NanoVDB.make_NanoVDBWrapper(fpath)
-        a, b, c, d, e, f = NanoVDB.get_WorldBBox(density_float_grid)
+        nanovdb_grid = NanoVDB.make_NanoVDBWrapper(fpath)
+        a, b, c, d, e, f = NanoVDB.get_WorldBBox(nanovdb_grid)
 
         # println("CONSTRUCTOR: renderFromMedium $render_from_medium") 
 
@@ -28,14 +34,9 @@ struct NanoVDBMedium <: AbstractMedium
         @info "World Medium Bounds: $(bounds)"
         # println("Coonstructor BOUNDS: $bounds")
 
-        # moving this outside the loop
-        # a, b, c, d, e, f = bbox = NanoVDB.get_indexBBox(density_float_grid)
-        # bbox = Bounds3(Pnt3(a,b,c), Pnt3(d,e,f))
-        # println("BBox: $bbox")
-
         # println("Starting MajorantGridBuild")
         majorant_grid_d = NanoVDB.build_majorant_grid(
-            density_float_grid,
+            nanovdb_grid,
             majorant_grid_res.x, 
             majorant_grid_res.y, 
             majorant_grid_res.z,
@@ -57,10 +58,13 @@ struct NanoVDBMedium <: AbstractMedium
             sigma_a, sigma_s, 
             HenyeyGreenstein(g), 
             MajorantGrid(bounds, majorant_grid_d, majorant_grid_res),
-            density_float_grid, 
+            nanovdb_grid, 
             y_spectrum(sigma_a + sigma_s), 
             bounds, 
-            render_from_medium
+            render_from_medium,
+            Le_scale,
+            temperature_offset,
+            temperature_scale
         )
     end
 end
@@ -69,13 +73,10 @@ function sample_point(nvdbm::NanoVDBMedium, p::Pnt3)::MediumProperties
     # Scale scattering coefficients by medium density at _p_
     p = Inv(nvdbm.render_from_medium)(p)
 
-    d = NanoVDB.get_sampled_point(nvdbm.density_float_grid, p.x, p.y, p.z)
-    
-    # Compute grid emission _Le_ at _p_
-    Le = spectrum_from_float(0.0)
-    # NOT EMISSIVE SO SKIP
+    d = NanoVDB.get_sampled_point(nvdbm.nanovdb_grid, p.x, p.y, p.z)
+    LL = Le(nvdbm, p)
 
-    return MediumProperties(nvdbm.sigma_a * d, nvdbm.sigma_s * d, nvdbm.phase, Le)
+    return MediumProperties(nvdbm.sigma_a * d, nvdbm.sigma_s * d, nvdbm.phase, LL)
 end
 
 function sample_ray(nvdbm::NanoVDBMedium, ray::AbstractRay, ray_t_max::Float64)::Maybe{AbstractMajorantIterator}
@@ -90,4 +91,14 @@ function sample_ray(nvdbm::NanoVDBMedium, ray::AbstractRay, ray_t_max::Float64):
     end
 
     return DDAMajorantIterator(ray, nvdbm.sigma_a + nvdbm.sigma_s, nvdbm.majorant_grid, t_min, t_max)
+end
+
+function Le(nvdbm::NanoVDBMedium, p::Pnt3)::Spectrum
+    temp = NanoVDB.get_sampled_temperature(nvdbm.nanovdb_grid, p.x, p.y, p.z)        
+    temp = (temp - nvdbm.temperature_offset) * nvdbm.temperature_scale
+    if (temp <= 100.0)
+        return spectrum_from_float(0.0)
+    else
+        return nvdbm.Le_scale * blackbody_spectrum(temp)
+    end
 end
