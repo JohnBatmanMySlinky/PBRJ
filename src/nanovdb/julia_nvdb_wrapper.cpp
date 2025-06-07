@@ -163,14 +163,18 @@ class NanoVDBWrapper {
             if (!densityFloatGrid) {
                 throw std::runtime_error("Grid not initialized - call init() first");
             }
+            // Check for NaN/infinity
+            if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) {
+                throw std::runtime_error("Invalid coordinates");
+            }
             nanovdb::Vec3<float> pIndex = densityFloatGrid->worldToIndexF(nanovdb::Vec3<float>(x, y, z));
             // std::cout << "SAMPLE POINT: pIndex " << pIndex[0] << ", " << pIndex[1] << ", " << pIndex[2] << std::endl;
             using Sampler = nanovdb::SampleFromVoxels<nanovdb::FloatGrid::TreeType, 1, false>;
             float d = Sampler(densityFloatGrid->tree())(pIndex);
             return d;
-        }    
+        }
     private:
-        const std::string fpath; // Copy, not reference
+        std::string fpath; // Copy, not reference
         nanovdb::GridHandle<> handle; // Store the handle
         nanovdb::FloatGrid* densityFloatGrid = nullptr;
 };

@@ -10,7 +10,7 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Bounding sphere cause we hate winding order and such
-    sphere_transform = RotateZ(180.0) * RotateX(90.0)
+    sphere_transform = RotateX(90.0) * RotateZ(180.0)
     sphere = Sphere(
         ShapeCore(
             sphere_transform,
@@ -26,8 +26,8 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Translate(Pnt3(0,0,0)),
             spectrum_from_float(0.5),
             spectrum_from_float(10.0),
-            0.877,
-            4.0,
+            0.0,
+            1.0,
             jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/bunny-cloud/bunny_cloud.nvdb"),
             Pnt3i(256, 256, 256)
         ),
@@ -47,7 +47,7 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         false
     )
-    push!(primitives, Primitive(disk, mat_disk, nothing))
+    # push!(primitives, Primitive(disk, mat_disk, nothing))
 
 
     # instantiate accelerator
@@ -62,7 +62,7 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         l_2_w, 
         spectrum_from_float(4.0, Illuminant), 
         jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/bunny-cloud/textures/sky.exr"),
-        false
+        true
     )
     push!(lights, light)
 
