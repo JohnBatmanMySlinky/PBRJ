@@ -99,6 +99,6 @@ function Le(nvdbm::NanoVDBMedium, p::Pnt3)::Spectrum
     if (temp <= 100.0)
         return spectrum_from_float(0.0)
     else
-        return nvdbm.Le_scale * blackbody_spectrum(temp)
+        return nvdbm.Le_scale * spectrum_from_sampled(CIE_lambda, blackbody(CIE_lambda, temp), length(CIE_lambda))
     end
 end
