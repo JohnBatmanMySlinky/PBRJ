@@ -1,21 +1,26 @@
-function Li(integrator::VolPathIntegrator, ray::RayDifferential, lambda::SampledWavelengths,
-            sampler::Sampler, scratchBuffer::ScratchBuffer, visibleSurf::Union{VisibleSurface, Nothing}=nothing)
+function li(
+    integrator::VolPathIntegrator, 
+    ray::RayDifferential, 
+    scene::Scene,
+    depth::Int64,
+    sampler::AbstractSampler
+)
     
     # Declare state variables for volumetric path sampling
-    L = SampledSpectrum(0.0f0)
-    beta = SampledSpectrum(1.0f0)
-    r_u = SampledSpectrum(1.0f0)
-    r_l = SampledSpectrum(1.0f0)
+    L = spectrum_from_float(0.0)
+    beta = spectrum_from_float(1.0)
+    r_u = spectrum_from_float(1.0)
+    r_l = spectrum_from_float(1.0)
     specularBounce = false
     anyNonSpecularBounces = false
     depth = 0
-    etaScale = 1.0f0
+    etaScale = 1.0
     
     prevIntrContext = LightSampleContext()
     
     while true
         # Sample segment of volumetric scattering path
-        PBRT_DBG("Path tracer depth $depth, current L = $L, beta = $beta\n")
+        @info "Path tracer depth $depth, current L = $L, beta = $beta\n"
         
         si = Intersect(ray)
         
@@ -23,14 +28,9 @@ function Li(integrator::VolPathIntegrator, ray::RayDifferential, lambda::Sampled
             # Sample the participating medium
             scattered = false
             terminated = false
-            tMax = !isnothing(si) ? si.tHit : Inf32
-            
-            # Initialize RNG for sampling the majorant transmittance
-            hash0 = Hash(Get1D(sampler))
-            hash1 = Hash(Get1D(sampler))
-            rng = RNG(hash0, hash1)
-            
-            T_maj = SampleT_maj(ray, tMax, Get1D(sampler), rng, lambda) do p, mp, sigma_maj, T_maj
+            tMax = !isnothing(si) ? si.tHit : typemax(Float64)
+                       
+            T_maj = SampleT_maj(ray, tMax, Get1D!(sampler), sampler) do p, mp, sigma_maj, T_maj
                 # Handle medium scattering event for ray
                 if !beta
                     terminated = true
@@ -62,7 +62,7 @@ function Li(integrator::VolPathIntegrator, ray::RayDifferential, lambda::Sampled
                 @assert 1.0f0 - pAbsorb - pScatter >= -1e-6
                 
                 # Sample medium scattering event type and update path
-                um = Uniform(rng, Float32)
+                um = Get1D!(sampler)
                 mode = SampleDiscrete([pAbsorb, pScatter, pNull], um)
                 
                 if mode == 1
@@ -90,7 +90,7 @@ function Li(integrator::VolPathIntegrator, ray::RayDifferential, lambda::Sampled
                         L += SampleLd(intr, nothing, lambda, sampler, beta, r_u)
                         
                         # Sample new direction at real-scattering event
-                        u = Get2D(sampler)
+                        u = Get2D!(sampler)
                         ps = Sample_p(intr.phase, -ray.d, u)
                         
                         if isnothing(ps) || ps.pdf == 0
@@ -115,7 +115,7 @@ function Li(integrator::VolPathIntegrator, ray::RayDifferential, lambda::Sampled
                     pdf = T_maj[1] * sigma_n[1]
                     beta *= T_maj * sigma_n / pdf
                     if pdf == 0
-                        beta = SampledSpectrum(0.0f0)
+                        beta = spectrum_from_float(0.0)
                     end
                     r_u *= T_maj * sigma_n / pdf
                     r_l *= T_maj * sigma_maj / pdf
@@ -225,8 +225,8 @@ function Li(integrator::VolPathIntegrator, ray::RayDifferential, lambda::Sampled
         
         # Sample BSDF to get new volumetric path direction
         wo = isect.wo
-        u = Get1D(sampler)
-        bs = Sample_f(bsdf, wo, u, Get2D(sampler))
+        u = Get1D!(sampler)
+        bs = Sample_f(bsdf, wo, u, Get2D!(sampler))
         if isnothing(bs)
             break
         end
@@ -239,7 +239,7 @@ function Li(integrator::VolPathIntegrator, ray::RayDifferential, lambda::Sampled
             r_l = r_u / bs.pdf
         end
         
-        PBRT_DBG("Sampled BSDF, f = $(bs.f), pdf = $(bs.pdf) -> beta = $beta")
+        @info "Sampled BSDF, f = $(bs.f), pdf = $(bs.pdf) -> beta = $beta"
         @assert !isinf(y(beta, lambda))
         
         # Update volumetric integrator path state after surface scattering
@@ -254,15 +254,15 @@ function Li(integrator::VolPathIntegrator, ray::RayDifferential, lambda::Sampled
         bssrdf = GetBSSRDF(isect, ray, lambda, integrator.camera, scratchBuffer)
         if !isnothing(bssrdf) && IsTransmission(bs)
             # Sample BSSRDF probe segment to find exit point
-            uc = Get1D(sampler)
-            up = Get2D(sampler)
+            uc = Get1D!(sampler)
+            up = Get2D!(sampler)
             probeSeg = SampleSp(bssrdf, uc, up)
             if isnothing(probeSeg)
                 break
             end
             
             # Sample random intersection along BSSRDF probe segment
-            seed = MixBits(FloatToBits(Get1D(sampler)))
+            seed = MixBits(FloatToBits(Get1D!(sampler)))
             interactionSampler = WeightedReservoirSampler{SubsurfaceInteraction}(seed)
             
             # Intersect BSSRDF sampling ray against the scene geometry
@@ -315,8 +315,8 @@ function Li(integrator::VolPathIntegrator, ray::RayDifferential, lambda::Sampled
             L += SampleLd(pi, Sw, lambda, sampler, beta, r_u)
             
             # Sample ray for indirect subsurface scattering
-            u = Get1D(sampler)
-            bs = Sample_f(Sw, pi.wo, u, Get2D(sampler))
+            u = Get1D!(sampler)
+            bs = Sample_f(Sw, pi.wo, u, Get2D!(sampler))
             if isnothing(bs)
                 break
             end
@@ -333,8 +333,8 @@ function Li(integrator::VolPathIntegrator, ray::RayDifferential, lambda::Sampled
             break
         end
         rrBeta = beta * etaScale / Average(r_u)
-        uRR = Get1D(sampler)
-        PBRT_DBG("etaScale $etaScale -> rrBeta $rrBeta")
+        uRR = Get1D!(sampler)
+        @info "etaScale $etaScale -> rrBeta $rrBeta"
         if MaxComponentValue(rrBeta) < 1 && depth > 1
             q = max(0.0f0, 1.0f0 - MaxComponentValue(rrBeta))
             if uRR < q
