@@ -95,6 +95,8 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- add do block to simple_vol_path.jl + a scene
+- add vol_path.jl
 - Improve scene build descriptive statistics and printing
 - SDFs
     - displacements!!! https://iquilezles.org/articles/distfunctions/
