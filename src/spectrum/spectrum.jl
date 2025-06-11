@@ -1,3 +1,19 @@
+function blackbody(lambda::Vector{Float64}, T::Float64)
+    n = length(lambda)
+    LL = zeros(Float64, n)
+    if T < 0.0
+        return LL
+    end
+    c = 299792458.0
+    h = 6.62606957e-34
+    kb = 1.3806488e-23
+    for i in 1:n
+        # Compute emitted radiance for blackbody at wavelength _lambda[i]_
+        l = lambda[i] * 1e-9
+        LL[i] = (2 * h * c^2) / (l^5 * (exp((h * c) / (l * kb *T)) - 1))
+    end
+    return LL
+end
 
 function spectrum_from_sampled(lambda::Vector{Float64}, v::Vector{Float64}, n::Int64)::Spectrum
     # aight so (λ_i, v_i) will be at some frequency
