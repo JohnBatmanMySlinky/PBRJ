@@ -37,9 +37,9 @@ function li(
             terminated = false
             tMax = (si isa Nothing) ? typemax(Float64) : t
                        
-            T_maj = SampleT_maj(ray, tMax, get_1D!(sampler), sampler) do p, mp, sigma_maj, T_maj
+            T_maj = sampleT_maj!(ray, tMax, get_1D!(sampler), sampler) do p, mp, sigma_maj, T_maj
                 # Handle medium scattering event for ray
-                if !beta
+                if is_black(beta)
                     terminated = true
                     return false
                 end
@@ -54,7 +54,7 @@ function li(
                     r_e = r_u * sigma_maj * T_maj / pdf_val
                     
                     # Update L for medium emission
-                    if r_e
+                    if !is_black(r_e)
                         L += betap * mp.sigma_a * mp.Le / y_spectrum(r_e)
                     end
                 end
@@ -124,12 +124,12 @@ function li(
                     end
                     r_u *= T_maj * sigma_n / pdf_val
                     r_l *= T_maj * sigma_maj / pdf_val
-                    return beta && r_u
+                    return !is_black(beta) && !is_black(r_u)
                 end
             end
             
             # Handle terminated, scattered, and unscattered medium rays
-            if terminated || !beta || !r_u
+            if terminated || is_black(beta) || is_black(r_u)
                 return L
             end
             if scattered
@@ -148,7 +148,7 @@ function li(
             for light in scene.lights
                 if is_infinite_light(light)
                     Le = le(light, ray)
-                    if Le
+                        if !is_black(Le)
                         if depth == 0 || specularBounce
                             L += beta * Le / y_spectrum(r_u)
                         else
@@ -166,15 +166,17 @@ function li(
         
         Le = le(si, -ray.direction)
         # Add contribution of emission from intersected surface
-        if depth == 0 || specularBounce
-            L += beta * Le / y_spectrum(r_u)
-        else
-            # Add surface light contribution using both pdf_vals with MIS
-            areaLight = Light(si.areaLight)
-            p_l = pmf(integrator.lightSampler, prevIntrContext, areaLight) *
-                    pdf_val_Li(areaLight, prevIntrContext, ray.d, true)
-            r_l *= p_l
-            L += beta * Le / y_spectrum(r_u + r_l)
+        if !is_black(Le)
+            if depth == 0 || specularBounce
+                L += beta * Le / y_spectrum(r_u)
+            else
+                # Add surface light contribution using both pdf_vals with MIS
+                areaLight = Light(si.areaLight)
+                p_l = pmf(integrator.lightSampler, prevIntrContext, areaLight) *
+                        pdf_val_Li(areaLight, prevIntrContext, ray.d, true)
+                r_l *= p_l
+                L += beta * Le / y_spectrum(r_u + r_l)
+            end
         end
         
         # Get BSDF and skip over medium boundaries
