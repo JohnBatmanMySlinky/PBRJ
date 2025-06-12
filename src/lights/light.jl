@@ -5,6 +5,16 @@
     LightInfinite   = 0b1000
 end
 
+struct LightSampleContext
+    pi::Pnt3
+    n::Nml3
+    ns::Nml3
+end
+
+function LightSampleContext()::LightSampleContext
+    return LightSampleContext(Pnt3(0,0,0), Nml3(0,0,0), Nml3(0,0,0))
+end
+
 function is_delta_light(light::Light)::Bool
     return (light.flags & LightDeltaDirection) || (light.flags & LightDeltaPosition)
 end

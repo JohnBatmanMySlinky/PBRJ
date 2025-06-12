@@ -5,7 +5,6 @@ struct VolPathIntegrator <: AbstractIntegrator
     regularize::Bool
 end
 
-
 function li(
     integrator::VolPathIntegrator, 
     ray::RayDifferential, 
@@ -36,9 +35,9 @@ function li(
             # Sample the participating medium
             scattered = false
             terminated = false
-            tMax = (si isa Nothing) ? typemax(Float64) : si.tHit
+            tMax = (si isa Nothing) ? typemax(Float64) : t
                        
-            T_maj = SampleT_maj(ray, tMax, Get1D!(sampler), sampler) do p, mp, sigma_maj, T_maj
+            T_maj = SampleT_maj(ray, tMax, get_1D!(sampler), sampler) do p, mp, sigma_maj, T_maj
                 # Handle medium scattering event for ray
                 if !beta
                     terminated = true
@@ -68,7 +67,7 @@ function li(
                 @assert 1.0 - pAbsorb - pScatter >= -1e-6
                 
                 # Sample medium scattering event type and update path
-                um = Get1D!(sampler)
+                um = get_1D!(sampler)
                 mode = sample_discrete(Distribution1D([pAbsorb, pScatter, pNull]), um)
                 
                 if mode == 1
@@ -96,7 +95,7 @@ function li(
                         L += sample_ld(intr, nothing, sampler, beta, r_u)
                         
                         # Sample new direction at real-scattering event
-                        u = Get2D!(sampler)
+                        u = get_2D!(sampler)
                         ps = sample_p(intr.phase, -ray.d, u)
                         
                         if (ps isa Nothing) || ps.pdf_val == 0.0
@@ -144,45 +143,44 @@ function li(
         
         # Handle surviving unscattered rays
         # Add emitted light at volume path vertex or from the environment
-        if (si isa Nothing)
+        if !check
             # Accumulate contributions from infinite light sources
-            for light in integrator.infiniteLights
-                Le = le(light, ray)
-                if Le
-                    if depth == 0 || specularBounce
-                        L += beta * Le / y_spectrum(r_u)
-                    else
-                        # Add infinite light contribution using both pdf_vals with MIS
-                        p_l = pmf(integrator.lightSampler, prevIntrContext, light) *
-                              pdf_val_Li(light, prevIntrContext, ray.d, true)
-                        r_l *= p_l
-                        L += beta * Le / y_spectrum(r_u + r_l)
+            for light in scene.lights
+                if is_infinite_light(light)
+                    Le = le(light, ray)
+                    if Le
+                        if depth == 0 || specularBounce
+                            L += beta * Le / y_spectrum(r_u)
+                        else
+                            # Add infinite light contribution using both pdf_vals with MIS
+                            p_l = pmf(integrator.lightSampler, prevIntrContext, light) *
+                                pdf_val_Li(light, prevIntrContext, ray.d, true)
+                            r_l *= p_l
+                            L += beta * Le / y_spectrum(r_u + r_l)
+                        end
                     end
                 end
             end
             break
         end
         
-        isect = si.intr
-        Le = le(isect, -ray.d)
-        if Le
-            # Add contribution of emission from intersected surface
-            if depth == 0 || specularBounce
-                L += beta * Le / y_spectrum(r_u)
-            else
-                # Add surface light contribution using both pdf_vals with MIS
-                areaLight = Light(isect.areaLight)
-                p_l = pmf(integrator.lightSampler, prevIntrContext, areaLight) *
-                      pdf_val_Li(areaLight, prevIntrContext, ray.d, true)
-                r_l *= p_l
-                L += beta * Le / y_spectrum(r_u + r_l)
-            end
+        Le = le(si, -ray.direction)
+        # Add contribution of emission from intersected surface
+        if depth == 0 || specularBounce
+            L += beta * Le / y_spectrum(r_u)
+        else
+            # Add surface light contribution using both pdf_vals with MIS
+            areaLight = Light(si.areaLight)
+            p_l = pmf(integrator.lightSampler, prevIntrContext, areaLight) *
+                    pdf_val_Li(areaLight, prevIntrContext, ray.d, true)
+            r_l *= p_l
+            L += beta * Le / y_spectrum(r_u + r_l)
         end
         
         # Get BSDF and skip over medium boundaries
-        bsdf = GetBSDF(isect, ray, integrator.camera, scratchBuffer, sampler)
-        if (bsdf isa Nothing)
-            SkipIntersection(isect, ray, si.tHit)
+        compute_scattering!(si, ray, true, Radiance)
+        if si.bsdf isa Nothing
+            ray = spawn_ray(si.core, ray.direction)
             continue
         end
         
@@ -215,7 +213,8 @@ function li(
         
         # Possibly regularize the BSDF
         if integrator.regularize && anyNonSpecularBounces
-            Regularize!(bsdf)
+            @assert false
+            # Regularize!(bsdf)
         end
         
         # Sample illumination from lights to find attenuated path contribution
@@ -228,8 +227,8 @@ function li(
         
         # Sample BSDF to get new volumetric path direction
         wo = isect.wo
-        u = Get1D!(sampler)
-        bs = sample_f(bsdf, wo, u, Get2D!(sampler))
+        u = get_1D!(sampler)
+        bs = sample_f(bsdf, wo, u, get_2D!(sampler))
         if (bs isa Nothing)
             break
         end
@@ -257,15 +256,15 @@ function li(
         # bssrdf = GetBSSRDF(isect, ray, integrator.camera, scratchBuffer)
         # if !(bssrdf isa Nothing) && IsTransmission(bs)
         #     # Sample BSSRDF probe segment to find exit point
-        #     uc = Get1D!(sampler)
-        #     up = Get2D!(sampler)
+        #     uc = get_1D!(sampler)
+        #     up = get_2D!(sampler)
         #     probeSeg = SampleSp(bssrdf, uc, up)
         #     if (probeSeg isa Nothing)
         #         break
         #     end
             
         #     # Sample random intersection along BSSRDF probe segment
-        #     seed = MixBits(FloatToBits(Get1D!(sampler)))
+        #     seed = MixBits(FloatToBits(get_1D!(sampler)))
         #     interactionSampler = WeightedReservoirSampler{SubsurfaceInteraction}(seed)
             
         #     # Intersect BSSRDF sampling ray against the scene geometry
@@ -318,8 +317,8 @@ function li(
         #     L += SampleLd(pi, Sw, sampler, beta, r_u)
             
         #     # Sample ray for indirect subsurface scattering
-        #     u = Get1D!(sampler)
-        #     bs = Sample_f(Sw, pi.wo, u, Get2D!(sampler))
+        #     u = get_1D!(sampler)
+        #     bs = Sample_f(Sw, pi.wo, u, get_2D!(sampler))
         #     if (bs isa Nothing)
         #         break
         #     end
@@ -336,7 +335,7 @@ function li(
             break
         end
         rrBeta = beta * etaScale / y_spectrum(r_u)
-        uRR = Get1D!(sampler)
+        uRR = get_1D!(sampler)
         @info "etaScale $etaScale -> rrBeta $rrBeta"
         if MaxComponentValue(rrBeta) < 1 && depth > 1
             q = max(0.0, 1.0 - MaxComponentValue(rrBeta))

@@ -1,5 +1,5 @@
 function render(
-    i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator, SimpleIntegrator, SimpleVolPathIntegrator}, 
+    i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator, SimpleIntegrator, SimpleVolPathIntegrator, VolPathIntegrator}, 
     scene::Scene, 
     ::Dict{String, Any},
     ::Tuple{Int64,Int64}  
