@@ -1,14 +1,16 @@
-struct SimpleVolPathIntegrator <: AbstractIntegrator
+struct VolPathIntegrator <: AbstractIntegrator
     camera::C where C <: Camera
     sampler::S where S <: AbstractSampler
     max_depth::Int64
 end
 
-function li(svp::SimpleVolPathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
+function li(vp::VolPathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
     # declare local variables for delta tracking integration
     LL = spectrum_from_float(0.0)
     beta = 1.0
     depth = 0
+    specularBounce = false
+    eta_scale = 1.0
 
     # terminate secondary wavelengths before starting random walk
     # JOHN HACK SKIP
@@ -48,7 +50,7 @@ function li(svp::SimpleVolPathIntegrator, ray::AbstractRay, scene::Scene, depth:
                     # handle regular scattering event for medium sample
                     # stop sampling if maximum depth has been reached
                     depth += 1
-                    if depth >= svp.max_depth
+                    if depth >= vp.max_depth
                         terminated = true
                         return false
                     end

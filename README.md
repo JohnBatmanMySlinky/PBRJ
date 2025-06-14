@@ -76,7 +76,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 # Features Implemented
 - Accelerators: BVH
 - Cameras: Perspective
-- Integrators: BDPT, ambient occlusion, simple volumetric path (v4), and volumetric path (v3)
+- Integrators: BDPT, ambient occlusion, and simple volumetric path (v4)
 - Lights: Area, distant, image infinite, uniform infinite, point, and spot
     - Uniform, Power, and Spatial (Voxel) light distributions
 - Materials: Glass, matte, metal, mirror, plastic, substrate, and fourier materials
