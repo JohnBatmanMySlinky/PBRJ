@@ -24,6 +24,7 @@ scene 9: lte orb ✅
 scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅
     - parser broken
 scene 11: dragon with fun materials ✅
+    - add all the other fun materials
 scene 12: v4 smoke plume (v4 GridMedium) ✅
 scene 13: DISNEY CLOUD (v4 NanoVDBMedium) ✅
 scene 14: Anemone (v4 GridMedium) 🟨
