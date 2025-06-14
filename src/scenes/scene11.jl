@@ -15,6 +15,19 @@ function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
     )
 
+    mat_ceramic = Fourier(
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/bsdfs/ceramic.bsdf"),
+        nothing
+    )
+    mat_coated_copper = Fourier(
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/bsdfs/coated_copper.bsdf"),
+        nothing
+    )
+    mat_roughgold = Fourier(
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/bsdfs/roughgold_alpha_0.2.bsdf"),
+        nothing
+    )
+
     # instantiate objects
     floor_t = Translate(Pnt3(0, 0, -40))
     foor_sc = ShapeCore(
@@ -46,7 +59,7 @@ function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in dragon
         for tri in tris
-            push!(primitives, Primitive(tri, mat_metal, nothing))
+            push!(primitives, Primitive(tri, mat_coated_copper, nothing))
         end
     end
 
@@ -60,7 +73,7 @@ function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        spectrum_from_float(3.0, Illuminant), 
+        spectrum_from_float(2.0, Illuminant), 
         jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"),
         # "/Users/johnmyslinski/Documents/PBRJ/scratch/mipmap/hello.exr"
         false
