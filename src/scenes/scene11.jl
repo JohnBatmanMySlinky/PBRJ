@@ -9,12 +9,10 @@ function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
 
-    mat_metal = Metal()
-
-    mat_white = Matte(
-        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+    mat_metal = Metal(
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/dragon/spds/Au.eta.spd"))),
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/dragon/spds/Au.k.spd"))),
         ConstantTexture(0.0),
-        nothing
     )
 
     # instantiate objects
