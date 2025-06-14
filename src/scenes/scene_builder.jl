@@ -39,8 +39,8 @@ scene 18: SDFs baby!
 scene 19: bunny cloud (v4 NanoVDB) ✅
     - only works single threaded? ok cool
     - hmmm gets all fucky when voxel grid is 3x3x3 - probably majorant iterator...
-scene 20: explosion (v4 NanoVDB) 🟨
-    - build out temperature grid!!!
+scene 20: explosion + SimpleVolPathIntegrator (v4 NanoVDB) 🟨
+    - hmmmmm maybe black body is off?
 scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
 scene 100: Furry Bunny from pbrt-v4 ✅ (just dont use HairBSDF)
 scene 101: SF3D CUP 🔴 (obj parser sucks)

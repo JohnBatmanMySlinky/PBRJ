@@ -16,15 +16,15 @@ struct NanoVDBMedium <: AbstractMedium
         sigma_a::Spectrum,
         sigma_s::Spectrum, 
         g::Float64, 
-        scale::Float64,
+        sigma_scale::Float64,
         fpath::String,
         majorant_grid_res::Pnt3i,
         Le_scale::Float64=1.0,
         temperature_offset::Float64=0.0,
         temperature_scale::Float64=1.0
     )
-        sigma_a *= scale
-        sigma_s *= scale
+        sigma_a *= sigma_scale
+        sigma_s *= sigma_scale
         nanovdb_grid = NanoVDB.make_NanoVDBWrapper(fpath)
         a, b, c, d, e, f = NanoVDB.get_WorldBBox(nanovdb_grid)
 

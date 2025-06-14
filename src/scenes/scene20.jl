@@ -29,10 +29,10 @@ function make_scene20(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             0.0,
             1.0,
             jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/explosion/fire.nvdb"),
-            Pnt3i(256, 256, 256),
+            Pnt3i(16, 16, 16),
             5.0,
             1.0,
-            100.0,
+            75.0, # 100.0,
         ),
         nothing
     )
