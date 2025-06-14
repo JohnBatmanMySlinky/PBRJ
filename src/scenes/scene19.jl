@@ -12,7 +12,7 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # materials
     mat_disk = Matte(
-        ConstantTexture(spectrum_from_float(0.3, 0.3, 0.3)),
+        ConstantTexture(spectrum_from_float(0.1, 0.25, 0.25)),
         ConstantTexture(0.0),
         nothing
     )
@@ -42,7 +42,6 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
-    # push!(primitives, Primitive(sphere, mat_disk, nothing))
 
     # The disk
     disk_t = Translate(Pnt3(0, -50, 0))

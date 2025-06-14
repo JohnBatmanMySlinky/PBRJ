@@ -296,7 +296,7 @@ function lookup(mip_map::MIPMap{T}, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {
 end
 
 function EWA(mip_map::MIPMap{T}, level::Int64, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {T <: Union{Spectrum, Float64}}
-	if level >= levels(mip_map) + 1 # JOHN INDEXING ADDITION
+	if level >= levels(mip_map) # JOHN INDEXING ADDITION
 		return texel(mip_map.pyramid[levels(mip_map) - 1 + 1], mip_map.pyrsize[levels(mip_map) - 1 + 1], mip_map.wrap_mode, 0, 0)
 	end
 

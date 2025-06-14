@@ -1,12 +1,11 @@
 """
 scene 1: indoor office ✅
-    - use better materials (floor)
     - add geometry
 scene 2: caustic glass 🟨
     - https://www.pbrt.org/scenes-v3_images/f16-9c.jpg
     - black lines in glass are missing in mine
     - fov and dimensions are differnet
-scene 3: AOIntegrator + dragon ✅
+scene 3: AOIntegrator + dragon 🟨
     - floor is uneven :/
 scene 4: cornell box ✅
     - need to mess with medium params to make it a bit less dense
@@ -25,7 +24,7 @@ scene 9: lte orb ✅
     - get more interesting measured bsdf's
 scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅
     - parser broken
-scene 11: infinite light show off & material testing ✅
+scene 11: dragon with fun materials ✅
 scene 12: v4 smoke plume (v4 GridMedium) ✅
 scene 13: DISNEY CLOUD (v4 NanoVDBMedium) ✅
 scene 14: Anemone (v4 GridMedium) 🟨
@@ -34,15 +33,18 @@ scene 16: elevator hallway 🟨
 scene 17: barcelona pavillion 🟨
     - add background trees
     - remove fourier material convergence hack
-scene 18: SDFs baby!
-    - hexaonal prism kinda fucked
+scene 18: SDFs baby! 🟨
+    - lighting kinda fucked
 scene 19: bunny cloud (v4 NanoVDB) ✅
     - only works single threaded? ok cool
     - hmmm gets all fucky when voxel grid is 3x3x3 - probably majorant iterator...
 scene 20: explosion + SimpleVolPathIntegrator (v4 NanoVDB) 🟨
+    - caffeinate -di julia -t 4 RayTracing.jl --scene-number 20 --image-dim 1000 1000 --samples-per-pixel 16
     - hmmmmm maybe black body is off?
-scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
-scene 100: Furry Bunny from pbrt-v4 ✅ (just dont use HairBSDF)
+scene 99: sphere-a-mid 🟨
+    - add more interesting materails
+scene 100: Furry Bunny from pbrt-v4 🟨
+    - fix HairBxDF
 scene 101: SF3D CUP 🔴 (obj parser sucks)
 """
 
