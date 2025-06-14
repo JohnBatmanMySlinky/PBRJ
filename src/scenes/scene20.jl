@@ -50,7 +50,7 @@ function make_scene20(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         false
     )
-    push!(primitives, Primitive(disk, mat_disk, nothing))
+    # push!(primitives, Primitive(disk, mat_disk, nothing))
 
 
     # instantiate accelerator
@@ -105,8 +105,7 @@ function make_scene20(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
-    I = VolPathIntegrator(C, S, parsed_args["max-depth"], false)
-
+    I = SimpleVolPathIntegrator(C, S, parsed_args["max-depth"])
 
     return I, scene
 end

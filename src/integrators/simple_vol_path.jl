@@ -29,100 +29,50 @@ function li(svp::SimpleVolPathIntegrator, ray::AbstractRay, scene::Scene, depth:
             t_max *= length_pbrt(ray.direction)
             ray.direction = normalize(ray.direction)
 
-            # Initialize _MajorantIterator_ for ray majorant sampling
-            iter = sample_ray(ray.medium, ray, t_max)
-            
-            # Generate ray majorant samples until termination
-            T_maj = spectrum_from_float(1.0)
-            done = false
-            if !(iter isa Nothing)
-                for seg in iter
-                    # Get next majorant segment from iterator and sample it
+            # Use sampleT_maj! with do block
+            T_maj = sampleT_maj!(ray, t_max, u, sampler) do p, mp, sigma_maj, T_maj
+                # computer medium event probabilities for interaction
+                p_absorb = mp.sigma_a[0+1] / sigma_maj[0+1]
+                p_scatter = mp.sigma_s[0+1] / sigma_maj[0+1]
+                p_null = max(0.0, 1.0 - p_absorb - p_scatter)
 
-                    # Handle zero-valued majorant for current segment
-                    if (is_black(seg.sigma_maj))
-                        dt = seg.t_max - seg.t_min
-        
-                        T_maj *= fastexp.(-dt * seg.sigma_maj)
-                        continue
+                # randomly sample medium scattering event for delta tracking
+                callback_mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), u_mode)
+                
+                if callback_mode == 0+1
+                    # handle absorption event for medium sample
+                    LL += beta * mp.Le
+                    terminated = true
+                    return false
+                elseif callback_mode == 1+1
+                    # handle regular scattering event for medium sample
+                    # stop sampling if maximum depth has been reached
+                    depth += 1
+                    if depth >= svp.max_depth
+                        terminated = true
+                        return false
                     end
 
-                    # Generate samples along current majorant segment
-                    t_min = seg.t_min
-                    while true
-                        # Try to generate sample along current majorant segment
-                        t = t_min + sample_exponential(u, seg.sigma_maj[0+1])
-                        u = get_1D!(sampler)
-                        if t < seg.t_max
-                            # Call callback function for sample within segment
-                            T_maj *= fastexp.(-(t - t_min) * seg.sigma_maj)
-                            mp = sample_point(ray.medium, at(ray,t))
-                            p = at(ray,t)
-
-                            ############
-                            # CALLBACK #
-                            ############
-                            # computer medium event probabilities for interaction
-                            p_absorb = mp.sigma_a[0+1] / seg.sigma_maj[0+1]
-                            p_scatter = mp.sigma_s[0+1] / seg.sigma_maj[0+1]
-                            p_null = max(0.0, 1.0 - p_absorb - p_scatter)
-
-                            # randomly sample medium scattering event for delta trackign
-                            callback_mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), u_mode)
-                            if callback_mode == 0+1
-                                # handle absorption event for medium sample
-                                LL += beta * mp.Le
-                                terminated = true
-                                callback_val = false
-                            elseif callback_mode == 1+1
-                                # handle regular scattering eeven for medium sample
-                                # stop sampling if maximum depth has been reached
-                                depth += 1
-                                if depth >= svp.max_depth
-                                    terminated = true
-                                    callback_val = false
-                                end
-
-                                # sample phase function for medium scattering event
-                                u = get_2D!(sampler)
-                                ps_p, ps_wi, ps_pdf = sample_p(ray.medium.phase, -ray.direction, get_2D!(sampler))
-                                if ps_p isa Nothing
-                                    terminated = true
-                                    callback_val = false
-                                end
-
-                                # update state fo recursive evaluation of L_i
-                                beta *= ps_p / ps_pdf
-                                ray.origin = p
-                                ray.direction = ps_wi
-                                scattered = true
-                                callback_val = false
-                            elseif callback_mode == 2+1
-                                # handle nul scattering event for medium sample
-                                u_mode = get_1D!(sampler)
-                                callback_val = false
-                            else
-                                @assert false
-                            end
-
-                            # outside callback
-                            if !callback_val
-                                done = true
-                                break
-                            end
-                            T_maj = spectrum_from_float(1.0)
-                            t_min = t
-                        else
-                            # Handle sample past end of majorant segment
-                            dt = seg.t_max - t_min
-                            # Handle infinite _dt_ for ray majorant segment
-                            T_maj *= fastexp.(-dt * seg.sigma_maj)
-                            break
-                        end
+                    # sample phase function for medium scattering event
+                    u = get_2D!(sampler)
+                    ps_p, ps_wi, ps_pdf = sample_p(ray.medium.phase, -ray.direction, u)
+                    if ps_p isa Nothing
+                        terminated = true
+                        return false
                     end
-                    if done
-                        break
-                    end
+
+                    # update state for recursive evaluation of L_i
+                    beta *= ps_p / ps_pdf
+                    ray.origin = p
+                    ray.direction = ps_wi
+                    scattered = true
+                    return false
+                elseif callback_mode == 2+1
+                    # handle null scattering event for medium sample
+                    u_mode = get_1D!(sampler)
+                    return true  # continue sampling
+                else
+                    @assert false
                 end
             end
         end
@@ -153,5 +103,5 @@ function li(svp::SimpleVolPathIntegrator, ray::AbstractRay, scene::Scene, depth:
             @assert false
         end
     end
-    return L
+    return LL
 end
