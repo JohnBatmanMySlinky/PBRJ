@@ -5,8 +5,7 @@ scene 2: caustic glass 🟨
     - https://www.pbrt.org/scenes-v3_images/f16-9c.jpg
     - black lines in glass are missing in mine
     - fov and dimensions are differnet
-scene 3: AOIntegrator + dragon 🟨
-    - floor is uneven :/
+scene 3: AOIntegrator + dragon ✅
 scene 4: cornell box ✅
     - need to mess with medium params to make it a bit less dense
 scene 5: soft bodies ✅
