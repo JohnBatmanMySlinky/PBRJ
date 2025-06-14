@@ -74,7 +74,7 @@ function sample_point(nvdbm::NanoVDBMedium, p::Pnt3)::MediumProperties
     p = Inv(nvdbm.render_from_medium)(p)
 
     d = NanoVDB.get_sampled_point(nvdbm.nanovdb_grid, p.x, p.y, p.z)
-    LL = Le(nvdbm, p)
+    LL = le(nvdbm, p)
 
     return MediumProperties(nvdbm.sigma_a * d, nvdbm.sigma_s * d, nvdbm.phase, LL)
 end
@@ -93,7 +93,7 @@ function sample_ray(nvdbm::NanoVDBMedium, ray::AbstractRay, ray_t_max::Float64):
     return DDAMajorantIterator(ray, nvdbm.sigma_a + nvdbm.sigma_s, nvdbm.majorant_grid, t_min, t_max)
 end
 
-function Le(nvdbm::NanoVDBMedium, p::Pnt3)::Spectrum
+function le(nvdbm::NanoVDBMedium, p::Pnt3)::Spectrum
     temp = NanoVDB.get_sampled_temperature(nvdbm.nanovdb_grid, p.x, p.y, p.z)        
     temp = (temp - nvdbm.temperature_offset) * nvdbm.temperature_scale
     if (temp <= 100.0)
