@@ -32,9 +32,10 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         nothing
     )
-
-    for tri in glass
-        push!(primitives, Primitive(tri, mat_glass, nothing))
+    for tris in glass
+        for tri in tris
+            push!(primitives, Primitive(tri, mat_glass, nothing))
+        end
     end
 
     # floor
@@ -46,8 +47,10 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         nothing
     )
-    for tri in floor
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+    for tris in floor
+        for tri in tris
+            push!(primitives, Primitive(tri, mat_gray, nothing))
+        end
     end
 
     # instantiate accelerator
