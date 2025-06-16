@@ -228,6 +228,10 @@ def convert_ply_to_obj(ply_file, obj_file):
 for root, _, fnames in os.walk(PATH):
     for fname in fnames:
         if fname.endswith("_ascii.ply"):
-            ply_path = Path(root, fname)
-            obj_path = Path(root, fname.replace("_ascii.ply", "_ascii.obj"))
-            convert_ply_to_obj(ply_path, obj_path)
+            if fname.replace("_ascii.ply", "_ascii.obj") not in fnames:
+                ply_path = Path(root, fname)
+                obj_path = Path(root, fname.replace("_ascii.ply", "_ascii.obj"))
+                print(f"converting {fname} to obj")
+                convert_ply_to_obj(ply_path, obj_path)
+            else:
+                print(f"Skipping {fname} because obj already exists")

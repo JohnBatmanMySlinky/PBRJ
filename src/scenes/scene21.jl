@@ -475,7 +475,6 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # LAZILY ignoring nested folders
         for file in files
             if endswith(file, "_ascii.obj")
-                println(file)
                 push!(objs, file)
             end
         end

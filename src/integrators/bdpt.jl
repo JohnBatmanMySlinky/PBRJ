@@ -37,7 +37,7 @@ function render(
     jj = Threads.Atomic{Int}(0)
     l = Threads.SpinLock()
 
-    print("Utilizing $(Threads.nthreads()) threads\n\n")
+    println("\nUtilizing $(Threads.nthreads()) threads\n\n")
     # the multi-threaded loop
     Threads.@threads for k in 0:(total_tiles-1)
         # this is a bullshit ass hack
