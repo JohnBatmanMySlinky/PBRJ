@@ -27,7 +27,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 jmfp(path_header * "textures/jardinera_1_displacement_2.png"), 
                 true
             ),
-            ConstantTexture(0.01)
+            ConstantTexture(0.001)
         )
     )
     mat_moldura_detalle_escalera = Matte(
@@ -61,7 +61,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 jmfp(path_header * "textures/moldura_techo_bump.png"), 
                 true
             ),
-            ConstantTexture(0.01)
+            ConstantTexture(0.001)
         )
     )
     mat_escalera = Matte(
@@ -77,7 +77,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 jmfp(path_header * "textures/escalera_bump.png"), 
                 true
             ),
-            ConstantTexture(0.01)
+            ConstantTexture(0.001)
         )
     )
     mat_muros = Matte(
@@ -116,6 +116,68 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
+    mat_losa_volados = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/losa.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_moldura_2_piso = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/moldura2piso_color.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/moldura2piso_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.003)
+        )
+    )
+    mat_piso_interior = Matte(
+        ConstantTexture(spectrum_from_float(0.75, 0.75, 0.75)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_azotea = Matte(
+        ConstantTexture(spectrum_from_float(0.54902, 0.54902, 0.54902)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    piso_pasillos_arriba = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/piso_rustico.png"), 
+            false
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/piso_rustico_Spec.png"), 
+                false
+            ),
+            ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0))
+        ),
+        ConstantTexture(0.005),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/piso_rustico_displace2.png"), 
+                true
+            ),
+            ConstantTexture(0.012)
+        ),
+        true
+    )
 
     mat_dict = Dict{String, Material}()
 
@@ -139,9 +201,21 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mat_dict["sanmiguel_00009_ascii.obj"] = mat_techos
 
-    mat_dict["sanmiguel_00009_ascii.obj"] = mat_vigas_concreto
+    mat_dict["sanmiguel_00010_ascii.obj"] = mat_vigas_concreto
 
-    mat_dict["sanmiguel_00010_ascii.obj"] = mat_moldura_volado
+    mat_dict["sanmiguel_00011_ascii.obj"] = mat_moldura_volado
+
+    mat_dict["sanmiguel_00012_ascii.obj"] = mat_losa_volados
+
+    mat_dict["sanmiguel_00013_ascii.obj"] = mat_moldura_2_piso
+
+    mat_dict["sanmiguel_00014_ascii.obj"] = mat_piso_interior
+    mat_dict["sanmiguel_00016_ascii.obj"] = mat_piso_interior
+    mat_dict["sanmiguel_00018_ascii.obj"] = mat_piso_interior
+
+    mat_dict["sanmiguel_00015_ascii.obj"] = mat_azotea
+
+    mat_dict["sanmiguel_00017_ascii.obj"] = piso_pasillos_arriba
 
     commented_in = keys(mat_dict)
 
