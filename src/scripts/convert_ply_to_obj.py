@@ -2,7 +2,8 @@ import plyfile
 from pathlib import Path
 import os
 
-PATH = '/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/geometry'
+# PATH = '/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/geometry'
+PATH = "/home/jmyslinski/random_stuff/pbrt-v3-scenes/sanmiguel/geometry/"
 
 # Convert binary PLY to ASCII PLY
 for root, _, fnames in os.walk(PATH):

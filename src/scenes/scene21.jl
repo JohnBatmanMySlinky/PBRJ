@@ -33,7 +33,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_moldura_detalle_escalera = Matte(
         ImageTexture(
             UVMapping2D(),
-            jmpf(path_header * "textures/cantera_naranja_liso.png"),
+            jmfp(path_header * "textures/cantera_naranja_liso.png"),
             false
         ),
         ConstantTexture(0.0),
@@ -42,7 +42,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_moldura_techo_arcos = Matte(
         ImageTexture(
             UVMapping2D(),
-            jmpf(path_header * "textures/moldura_volado.png"),
+            jmfp(path_header * "textures/moldura_volado.png"),
             false
         ),
         ConstantTexture(0.0),
@@ -178,6 +178,210 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ),
         true
     )
+    mat_puerta_arco = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_triplay_01.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.113726, 0.113726, 0.113726)),
+        ConstantTexture(0.01),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_barandal_postes = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/rust_a1.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_pared_sanMiguel_b = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_a.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_b1 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_b1.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/muros_b1.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    mat_pared_sanMiguel_c2 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_c2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_f = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_f.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_e = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_e.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_d = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_d.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_g = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_g.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_h = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_h.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_i = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_l.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_j = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_j.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_muro_naranja_escalera = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_l.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_m = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_m.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_n = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_n.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_a = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_b.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_p2 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_p_.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_q = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_q3.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_q2 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_q.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pared_sanMiguel_q4 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_q4.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_techo_vigas = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/techo.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
 
     mat_dict = Dict{String, Material}()
 
@@ -217,14 +421,61 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mat_dict["sanmiguel_00017_ascii.obj"] = piso_pasillos_arriba
 
-    commented_in = keys(mat_dict)
+    mat_dict["sanmiguel_00019_ascii.obj"] = mat_puerta_arco
+    mat_dict["sanmiguel_00020_ascii.obj"] = mat_puerta_arco
+    mat_dict["sanmiguel_00201_ascii.obj"] = mat_puerta_arco
+    mat_dict["sanmiguel_00202_ascii.obj"] = mat_puerta_arco
 
+    mat_dict["sanmiguel_00021_ascii.obj"] = mat_barandal_postes
+
+    mat_dict["sanmiguel_00022_ascii.obj"] = mat_pared_sanMiguel_b
+
+    mat_dict["sanmiguel_00023_ascii.obj"] = mat_pared_sanMiguel_b1
+
+    mat_dict["sanmiguel_00024_ascii.obj"] = mat_pared_sanMiguel_c2
+
+    mat_dict["sanmiguel_00025_ascii.obj"] = mat_pared_sanMiguel_f
+
+    mat_dict["sanmiguel_00026_ascii.obj"] = mat_pared_sanMiguel_e
+
+    mat_dict["sanmiguel_00027_ascii.obj"] = mat_pared_sanMiguel_d
+
+    mat_dict["sanmiguel_00028_ascii.obj"] = mat_pared_sanMiguel_g
+
+    mat_dict["sanmiguel_00029_ascii.obj"] = mat_pared_sanMiguel_h
+
+    mat_dict["sanmiguel_00030_ascii.obj"] = mat_pared_sanMiguel_i
+
+    mat_dict["sanmiguel_00031_ascii.obj"] = mat_pared_sanMiguel_j
+
+    mat_dict["sanmiguel_00032_ascii.obj"] = mat_muro_naranja_escalera
+
+    mat_dict["sanmiguel_00033_ascii.obj"] = mat_pared_sanMiguel_m
+
+    mat_dict["sanmiguel_00034_ascii.obj"] = mat_pared_sanMiguel_n
+
+    mat_dict["sanmiguel_00035_ascii.obj"] = mat_pared_sanMiguel_a
+
+    mat_dict["sanmiguel_00036_ascii.obj"] = mat_pared_sanMiguel_p2
+
+    mat_dict["sanmiguel_00038_ascii.obj"] = mat_pared_sanMiguel_q
+
+    mat_dict["sanmiguel_00039_ascii.obj"] = mat_pared_sanMiguel_q2
+
+    mat_dict["sanmiguel_00040_ascii.obj"] = mat_pared_sanMiguel_q4
+
+    mat_dict["sanmiguel_00042_ascii.obj"] = mat_techo_vigas
+
+
+    commented_in = keys(mat_dict)
+    
     dirpath = jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/geometry/")
     objs = String[]
     for (_, _, files) in walkdir(dirpath)
         # LAZILY ignoring nested folders
         for file in files
             if endswith(file, "_ascii.obj")
+                println(file)
                 push!(objs, file)
             end
         end
