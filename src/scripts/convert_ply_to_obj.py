@@ -2,8 +2,10 @@ import plyfile
 from pathlib import Path
 import os
 
+PATH = '/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/geometry'
+
 # Convert binary PLY to ASCII PLY
-for root, _, fnames in os.walk('/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/geometry'):
+for root, _, fnames in os.walk(PATH):
     for fname in fnames:
         if fname.endswith(".ply") and "ascii" not in fname:
             path = Path(root, fname)
@@ -222,7 +224,7 @@ def convert_ply_to_obj(ply_file, obj_file):
     print(f"  Has texture coords: {has_texcoords and len(texcoords) > 0}")
 
 # Convert all ASCII PLY files to OBJ
-for root, _, fnames in os.walk('/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/geometry'):
+for root, _, fnames in os.walk(PATH):
     for fname in fnames:
         if fname.endswith("_ascii.ply"):
             ply_path = Path(root, fname)

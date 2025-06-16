@@ -7,6 +7,18 @@ struct Matte{
     Kd::K
     sigma::S
     bump_map::B
+
+    function Matte(
+        k::K=ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
+        s::S=ConstantTexture(0.0),
+        b::B=nothing
+    )::Matte where {
+        K <: AbstractTexture{Spectrum},
+        S <: AbstractTexture{Float64},
+        B <: Maybe{AbstractTexture{Float64}}
+    }
+        return new{K, S, B}(k, s, b)
+    end
 end
 
 # Equivalent to PBR's ComputeScatteringFunction
