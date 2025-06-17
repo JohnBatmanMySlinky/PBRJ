@@ -42,6 +42,7 @@ scene 20: explosion + SimpleVolPathIntegrator (v4 NanoVDB) 🟨
     - hmmmmm maybe black body is off?
 scene 21: sanmiguel
     - julia -t 4 RayTracing.jl --scene-number 21 --image-dim 363 800 --crop-window 0.0 0.0 0.997245 0.745 --image-dim 250 250 --samples-per-pixel 16
+    - check my bullshit mipmap hack
 scene 99: sphere-a-mid 🟨
     - add more interesting materails
 scene 100: Furry Bunny from pbrt-v4 🟨

@@ -285,7 +285,8 @@ function lookup(mip_map::MIPMap{T}, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {
 		dst1 = dst1 * scale
 		minor_length = minor_length * scale
 	end
-	if minor_length == 0.0
+	# JOHN HACK ON CONDITIONALS
+	if minor_length == 0.0 || isinf(minor_length) || isnan(minor_length)
 		return triangle(mip_map, 0, st)
 	end
    
