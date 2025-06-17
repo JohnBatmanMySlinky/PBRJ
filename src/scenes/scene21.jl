@@ -5,6 +5,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     path_header = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/"
 
     # materials
+    println("LOADING MATERIALS")
     mat_vidrio = Glass(
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
@@ -382,6 +383,111 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
+    mat_ared_sanMiguel_qpatio = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_q_patio2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_banqueta = Matte(
+        ConstantTexture(spectrum_from_float(0.54902, 0.54902, 0.54902)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_tierra = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/052terresable.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_arcos_lisos_2 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/arcos_lisos_2_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/arcos_lisos_2_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
+    mat_arcos_lisos_3 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/arcos_lisos_3_color_1.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/arcos_lisos_3_bump_1.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
+    mat_pared_sanMiguel_b2 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_b2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_vigas_techo_b = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_rustica_2.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0431373, 0.0431373, 0.0431373)),
+        ConstantTexture(0.01),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_vigas_techo_a = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_rustica_2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    ) 
+    mat_pared_sanMiguel_k = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_k.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_piso_patio_exterior_concreto = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/concreto_01.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    println("\t...DONE")
 
     mat_dict = Dict{String, Material}()
 
@@ -420,6 +526,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["sanmiguel_00015_ascii.obj"] = mat_azotea
 
     mat_dict["sanmiguel_00017_ascii.obj"] = piso_pasillos_arriba
+    mat_dict["sanmiguel_00055_ascii.obj"] = piso_pasillos_arriba
 
     mat_dict["sanmiguel_00019_ascii.obj"] = mat_puerta_arco
     mat_dict["sanmiguel_00020_ascii.obj"] = mat_puerta_arco
@@ -465,6 +572,29 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["sanmiguel_00040_ascii.obj"] = mat_pared_sanMiguel_q4
 
     mat_dict["sanmiguel_00042_ascii.obj"] = mat_techo_vigas
+
+    mat_dict["sanmiguel_00044_ascii.obj"] = mat_ared_sanMiguel_qpatio
+
+    mat_dict["sanmiguel_00045_ascii.obj"] = mat_banqueta
+
+    mat_dict["sanmiguel_00046_ascii.obj"] = mat_tierra
+    mat_dict["sanmiguel_00047_ascii.obj"] = mat_tierra
+
+    mat_dict["sanmiguel_00048_ascii.obj"] = mat_arcos_lisos_2
+    mat_dict["sanmiguel_00049_ascii.obj"] = mat_arcos_lisos_2
+
+    mat_dict["sanmiguel_00050_ascii.obj"] = mat_arcos_lisos_3
+
+    mat_dict["sanmiguel_00051_ascii.obj"] = mat_pared_sanMiguel_b2
+
+    mat_dict["sanmiguel_00052_ascii.obj"] = mat_vigas_techo_b
+
+    mat_dict["sanmiguel_00053_ascii.obj"] = mat_vigas_techo_a
+
+    mat_dict["sanmiguel_00054_ascii.obj"] = mat_pared_sanMiguel_k
+
+    mat_dict["sanmiguel_00056_ascii.obj"] = mat_piso_patio_exterior_concreto
+    
 
 
     commented_in = keys(mat_dict)
