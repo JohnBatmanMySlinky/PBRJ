@@ -487,7 +487,252 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
-    println("\t...DONE")
+    mat_vigas_volados = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Vigas_A2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/vigas_a2_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    mat_techos_2 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/techo_01.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_piso_patio_exterior = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/piso_patio_exterior.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/piso_patio_exterior_displace_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.02)
+        )
+    )
+    mat_calle = Matte(
+        ConstantTexture(spectrum_from_float(0.54902, 0.54902, 0.54902)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_arco_frente = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/arco_frente.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/arco_frente_displace_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.002)
+        )
+    )
+    mat_puerta_agarradera01 = Plastic(
+        ConstantTexture(spectrum_from_float(0.337255, 0.286275, 0.223529)),
+        ConstantTexture(spectrum_from_float(0.501961, 0.443137, 0.372549)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_pintura_15 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7785.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_1 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/0001_carros.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_2 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7815.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_3 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7812.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_12 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/027_Cola Caballo 06-30-1997.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_5 = Matte(
+        
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7812.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_6 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7843.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_7 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7785.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_8 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7758.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_9 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7843.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_10 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_11 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7768.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_4 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_13 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_14 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_pintura_marcos = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_marcos.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.156863, 0.156863, 0.156863)),
+        ConstantTexture(0.001),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_postes_barandal = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/postes_barandal_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/postes_barandal_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
+    mat_piso_patio_exterior2 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/piso_patio_exterior2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    
 
     mat_dict = Dict{String, Material}()
 
@@ -594,8 +839,105 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["sanmiguel_00054_ascii.obj"] = mat_pared_sanMiguel_k
 
     mat_dict["sanmiguel_00056_ascii.obj"] = mat_piso_patio_exterior_concreto
-    
 
+    mat_dict["sanmiguel_00057_ascii.obj"] = mat_vigas_volados
+
+    mat_dict["sanmiguel_00058_ascii.obj"] = mat_techos_2
+
+    mat_dict["sanmiguel_00059_ascii.obj"] = mat_piso_patio_exterior
+
+    mat_dict["sanmiguel_00061_ascii.obj"] = mat_calle
+
+    mat_dict["sanmiguel_00062_ascii.obj"] = mat_arco_frente
+    mat_dict["sanmiguel_00063_ascii.obj"] = mat_arco_frente
+    mat_dict["sanmiguel_00064_ascii.obj"] = mat_arco_frente
+    mat_dict["sanmiguel_00065_ascii.obj"] = mat_arco_frente
+    mat_dict["sanmiguel_00066_ascii.obj"] = mat_arco_frente
+    mat_dict["sanmiguel_00067_ascii.obj"] = mat_arco_frente
+    mat_dict["sanmiguel_00068_ascii.obj"] = mat_arco_frente
+    mat_dict["sanmiguel_00069_ascii.obj"] = mat_arco_frente
+    mat_dict["sanmiguel_00070_ascii.obj"] = mat_arco_frente
+    mat_dict["sanmiguel_00071_ascii.obj"] = mat_arco_frente
+    mat_dict["sanmiguel_00072_ascii.obj"] = mat_arco_frente
+
+    mat_dict["sanmiguel_00074_ascii.obj"] = mat_puerta_agarradera01
+
+    mat_dict["sanmiguel_00075_ascii.obj"] = mat_pintura_15
+
+    mat_dict["sanmiguel_00076_ascii.obj"] = mat_pintura_1
+
+    mat_dict["sanmiguel_00077_ascii.obj"] = mat_pintura_2
+
+    mat_dict["sanmiguel_00078_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00090_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00091_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00092_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00093_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00094_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00095_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00096_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00097_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00098_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00099_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00100_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00101_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00102_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00103_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00104_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00105_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00106_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00107_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00108_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00109_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00110_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00111_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00112_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00113_ascii.obj"] = mat_pintura_3
+    mat_dict["sanmiguel_00114_ascii.obj"] = mat_pintura_3
+
+    mat_dict["sanmiguel_00079_ascii.obj"] = mat_pintura_12
+
+    mat_dict["sanmiguel_00080_ascii.obj"] = mat_pintura_5
+
+    mat_dict["sanmiguel_00081_ascii.obj"] = mat_pintura_6
+
+    mat_dict["sanmiguel_00082_ascii.obj"] = mat_pintura_7
+
+    mat_dict["sanmiguel_00083_ascii.obj"] = mat_pintura_8
+
+    mat_dict["sanmiguel_00084_ascii.obj"] = mat_pintura_9
+
+    mat_dict["sanmiguel_00085_ascii.obj"] = mat_pintura_10
+
+    mat_dict["sanmiguel_00086_ascii.obj"] = mat_pintura_11
+
+    mat_dict["sanmiguel_00087_ascii.obj"] = mat_pintura_4
+
+    mat_dict["sanmiguel_00088_ascii.obj"] = mat_pintura_13
+
+    mat_dict["sanmiguel_00089_ascii.obj"] = mat_pintura_14
+
+    mat_dict["sanmiguel_00115_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00116_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00117_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00118_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00119_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00120_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00121_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00122_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00123_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00124_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00125_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00126_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00127_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00128_ascii.obj"] = mat_pintura_marcos
+    mat_dict["sanmiguel_00129_ascii.obj"] = mat_pintura_marcos
+
+    mat_dict["sanmiguel_00130_ascii.obj"] = mat_postes_barandal
+
+    mat_dict["sanmiguel_00132_ascii.obj"] = mat_piso_patio_exterior2
+
+    println("\t...DONE: we loaded $(length(keys(mat_dict))) materials")
 
     commented_in = keys(mat_dict)
     
