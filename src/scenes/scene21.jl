@@ -732,6 +732,349 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
+    mat_sun_light = Matte(
+        ConstantTexture(spectrum_from_float(5.0, 4.1960802078, 2.4509799480)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_madera_barandal = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_barandal_esc_2.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_pared_calle = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/pared_calle.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_candil_2_foco = Glass(
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    mat_detMoldura_06 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_06_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_06_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    mat_detMoldura_05 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_05_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_05_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    mat_detMoldura_04 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_04_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_04_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    mat_detMoldura_03 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_03_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_03_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    mat_detMoldura_02 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_02_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_02_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    mat_detMoldura_01 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_01_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_01_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    mat_detalle_escalera = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/rust_a1.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_marco_puerta_1 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/marco_puerta_1.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/marco_puerta_1_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    mat_marco_puerta = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_barandal_esc_2.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/madera_barandal_esc_2_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        ),
+        true
+    )
+    mat_mold_arco_01 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/mold_arco_01_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/mold_arco_01_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    mat_mold_terraza = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/molduraterraza__color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/molduraterraza_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    mat_puerta_agarradera = Matte(
+        ConstantTexture(spectrum_from_float(0.392157, 0.368627, 0.341176)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_puerta_arco = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_triplay_01.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.113726, 0.113726, 0.113726)),
+	    ConstantTexture(0.01),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_puerta_01 = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/puerta.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0431373, 0.0431373, 0.0431373)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/puerta_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        ),
+        true,
+    )
+    mat_columna_a1 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_a_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_a_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    mat_columna_a2 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_a_color_2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_a_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    mat_columna_a3 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_a_color_3.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_a_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    mat_columna_b1 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_b_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_b_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
+    mat_columna_b3 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_b_color_3.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_b_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
+    mat_columna_b2 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_b_color_2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_b_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
     
 
     mat_dict = Dict{String, Material}()
@@ -937,9 +1280,94 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mat_dict["sanmiguel_00132_ascii.obj"] = mat_piso_patio_exterior2
 
+    mat_dict["sanmiguel_00133_ascii.obj"] = mat_sun_light
+
+    mat_dict["sanmiguel_00140_ascii.obj"] = mat_madera_barandal
+
+    mat_dict["sanmiguel_00142_ascii.obj"] = mat_pared_calle
+
+    mat_dict["sanmiguel_00156_ascii.obj"] = mat_candil_2_foco
+
+    mat_dict["sanmiguel_00160_ascii.obj"] = mat_detMoldura_06
+
+    mat_dict["sanmiguel_00161_ascii.obj"] = mat_detMoldura_05
+
+    mat_dict["sanmiguel_00162_ascii.obj"] = mat_detMoldura_04
+
+    mat_dict["sanmiguel_00163_ascii.obj"] = mat_detMoldura_03
+
+    mat_dict["sanmiguel_00164_ascii.obj"] = mat_detMoldura_02
+
+    mat_dict["sanmiguel_00165_ascii.obj"] = mat_detMoldura_01
+
+    mat_dict["sanmiguel_00168_ascii.obj"] = mat_detalle_escalera
+    mat_dict["sanmiguel_00170_ascii.obj"] = mat_detalle_escalera
+
+    mat_dict["sanmiguel_00174_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00175_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00176_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00177_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00178_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00179_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00180_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00181_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00182_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00183_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00184_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00185_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00186_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00187_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00188_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00189_ascii.obj"] = mat_marco_puerta_1
+    mat_dict["sanmiguel_00190_ascii.obj"] = mat_marco_puerta_1
+
+    mat_dict["sanmiguel_00191_ascii.obj"] = mat_marco_puerta
+
+    mat_dict["sanmiguel_00192_ascii.obj"] = mat_mold_arco_01
+    mat_dict["sanmiguel_00193_ascii.obj"] = mat_mold_arco_01
+    mat_dict["sanmiguel_00194_ascii.obj"] = mat_mold_arco_01
+    mat_dict["sanmiguel_00195_ascii.obj"] = mat_mold_arco_01
+    mat_dict["sanmiguel_00196_ascii.obj"] = mat_mold_arco_01
+    mat_dict["sanmiguel_00197_ascii.obj"] = mat_mold_arco_01
+
+    mat_dict["sanmiguel_00198_ascii.obj"] = mat_mold_terraza
+    mat_dict["sanmiguel_00199_ascii.obj"] = mat_mold_terraza
+
+    mat_dict["sanmiguel_00200_ascii.obj"] = mat_puerta_agarradera
+
+    mat_dict["sanmiguel_00201_ascii.obj"] = mat_puerta_arco
+    mat_dict["sanmiguel_00202_ascii.obj"] = mat_puerta_arco
+
+    mat_dict["sanmiguel_00203_ascii.obj"] = mat_puerta_01
+
+    mat_dict["sanmiguel_00221_ascii.obj"] = mat_columna_a1
+    mat_dict["sanmiguel_00224_ascii.obj"] = mat_columna_a1
+    mat_dict["sanmiguel_00225_ascii.obj"] = mat_columna_a1
+
+    mat_dict["sanmiguel_00222_ascii.obj"] = mat_columna_a2
+    mat_dict["sanmiguel_00231_ascii.obj"] = mat_columna_a2
+    
+    mat_dict["sanmiguel_00223_ascii.obj"] = mat_columna_a3
+
+    mat_dict["sanmiguel_00226_ascii.obj"] = mat_columna_b1
+    mat_dict["sanmiguel_00229_ascii.obj"] = mat_columna_b1
+    mat_dict["sanmiguel_00232_ascii.obj"] = mat_columna_b1
+
+    mat_dict["sanmiguel_00227_ascii.obj"] = mat_columna_b1
+
+    mat_dict["sanmiguel_00227_ascii.obj"] = mat_columna_b3
+
+    mat_dict["sanmiguel_00228_ascii.obj"] = mat_columna_b2
+    mat_dict["sanmiguel_00230_ascii.obj"] = mat_columna_b2
+
     println("\t...DONE: we loaded $(length(keys(mat_dict))) materials")
 
     commented_in = keys(mat_dict)
+
+    area_lights = Dict{String, Tuple{Spectrum, Float64}}()
+    area_lights["sanmiguel_00133_ascii.obj"] = (
+        spectrum_from_float(1.0, 0.8392159939, 0.4901959896), 4_000
+    )
     
     dirpath = jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/geometry/")
     objs = String[]
@@ -953,7 +1381,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     end
     for obj_file in objs
         # if !(obj_file in commented_out)
-        if obj_file in commented_in
+        if (obj_file in commented_in) && !(obj_file in keys(area_lights))
             obj_path = joinpath(dirpath, obj_file)
             objects = parse_obj(
                 obj_path,
@@ -966,6 +1394,28 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 for mesh in object
                     tmp_mat = mat_dict[obj_file]
                     push!(primitives, Primitive(mesh, tmp_mat, nothing))
+                end
+            end
+        elseif (obj_file in commented_in) && (obj_file in keys(area_lights))
+            obj_path = joinpath(dirpath, obj_file)
+            objects = parse_obj(
+                obj_path,
+                Translate(Pnt3(0,0,0)),
+                false,
+                false,
+                nothing
+            )
+            for object in objects
+                for mesh in object
+                    tmp_mat = mat_dict[obj_file]
+                    brightness, mult = area_lights[obj_file]
+                    alight = DiffuseAreaLight(
+                        brightness * mult,
+                        mesh,
+                        false
+                    )
+                    push!(lights, alight)
+                    push!(primitives, Primitive(mesh, tmp_mat, alight))
                 end
             end
         end
