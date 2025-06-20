@@ -60,6 +60,25 @@ function bump!(m::Material, si::SurfaceInteraction)
     si.core.p = original_core_p + du * si.shading.dpdu
     si.uv = original_uv + Vec2(du, 0.0)
     si.core.n = normalize(cross(si.shading.dpdu, si.shading.dpdv) + du * si.dndu)
+    if any(.!isfinite.(si.core.p))
+        println("""
+        BUMP: 
+            original p: $original_core_p
+            original uv: $original_uv
+            original n: $original_core_n
+            new p: $(si.core.p)
+            new uv: $(si.uv)
+            new n: $(si.core.n)
+            du: $du
+            -------------------------------------------------
+            si.dudx: $(si.dudx)
+            si.dudy: $(si.dudy)
+            si.shading.dpdu: $(si.shading.dpdu)
+            si.shading.dpdv: $(si.shading.dpdv)
+            si.dndu: $(si.dndu)
+            si.dndv: $(si.dndv)
+        """)
+    end
     u_displace = m.bump_map(si)
 
     # evaulate v displace
