@@ -258,9 +258,6 @@ function triangle(mip_map::MIPMap{T}, level::Int64, st::Pnt2)::T where {T <: Uni
 	level = clamp(level, 0, levels(mip_map) - 1)
 	s = st.x * mip_map.pyrsize[level + 1].x - 0.5
 	t = st.y * mip_map.pyrsize[level + 1].y - 0.5
-	if !isfinite(s) || !isfinite(t)
-		println("HUH: $s, $t, $st, $(mip_map.pyrsize), $level")
-	end
 
 	s0::Int64 = floor(s)
 	t0::Int64 = floor(t)

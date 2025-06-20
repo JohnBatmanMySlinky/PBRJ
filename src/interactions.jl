@@ -263,8 +263,8 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
     sx = a \ bx
     sy = a \ by
 
-    si.dudx, si.dvdx = any(isnan.(sx)) ? (0, 0) : sx
-    si.dudy, si.dvdy = any(isnan.(sy)) ? (0, 0) : sy
+    si.dudx, si.dvdx = any(.!isfinite.(sx)) ? (0, 0) : sx
+    si.dudy, si.dvdy = any(.!isfinite.(sy)) ? (0, 0) : sy
 end
 
 function set_shading_geomerty!(si::SurfaceInteraction, dpdus::Vec3, dpdvs::Vec3, dndus::Nml3, dndvs::Nml3, orientation_is_authoritative::Bool)
