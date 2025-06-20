@@ -61,7 +61,7 @@ function bump!(m::Material, si::SurfaceInteraction)
     si.uv = original_uv + Vec2(du, 0.0)
     si.core.n = normalize(cross(si.shading.dpdu, si.shading.dpdv) + du * si.dndu)
     if any(.!isfinite.(si.core.p))
-        println("""
+        println("""\n
         BUMP: 
             original p: $original_core_p
             original uv: $original_uv
