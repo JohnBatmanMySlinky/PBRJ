@@ -198,24 +198,6 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 			end
 		end
 
-		for matrix in pyramid
-			mii = Inf
-			maa = -Inf
-			for i in 1:size(matrix,1)
-				for j in 1:size(matrix,2)
-					val = matrix[i, j]
-					if val isa Spectrum
-						mii = min(minimum(val), mii)
-						maa = max(minimum(val), maa)
-					elseif val isa Float64
-						mii = min(val, mii)
-						maa = max(val, maa)
-					end
-				end
-			end
-			@assert !isnan(mii) && !isinf(mii) && !isnan(maa) && !isinf(maa)
-		end
-
 		return new{data_type}(
 			do_trilinear,
 			max_anisotropy,
