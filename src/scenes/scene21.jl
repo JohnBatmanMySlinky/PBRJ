@@ -1,3 +1,38 @@
+function parse_transform(transform_string)
+    # Match "Transform" followed by brackets containing numbers
+    pattern = r"Transform\s*\[\s*((?:-?\d+\.?\d*\s*)+)\s*\]"
+    match_result = match(pattern, transform_string)
+    
+    if match_result !== nothing
+        # Extract the numbers from the captured group
+        numbers_str = match_result.captures[1]
+        # Find all individual numbers and join them
+        numbers = eachmatch(r"-?\d+\.?\d*", numbers_str)
+        return join([m.match for m in numbers], " ")
+    else
+        return nothing
+    end
+end
+
+function parse_sanmiguel(fpath, START, END)
+    data = readlines(fpath)
+    transforms = String[]
+    nlines = length(data)
+    
+    for i in 1:nlines
+        if (i < START) || (i > END)
+            continue
+        end
+        
+        transform = parse_transform(data[i])
+        if transform !== nothing
+            push!(transforms, transform)
+        end
+    end
+    
+    return transforms
+end
+
 function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
@@ -30,6 +65,15 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ),
             ConstantTexture(0.001)
         )
+    )
+    mat_jardinera_2 = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/fuente_piedra_01.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
     )
     mat_moldura_detalle_escalera = Matte(
         ImageTexture(
@@ -737,6 +781,19 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
+    mat_barandal_detalle_extremos = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/rust_a1.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.01),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
     mat_madera_barandal = Plastic(
         ImageTexture(
             UVMapping2D(),
@@ -1075,7 +1132,61 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(0.015)
         )
     )
-    
+    mat_light_patio06_mat01 = Matte(
+        ConstantTexture(spectrum_from_float(4.4705901146, 4.9411802292, 5.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_negro = Matte(
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_candil_2_glass = Glass(
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    mat_agua = Glass(
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.33),
+        nothing,
+        true
+    )
+    mat_fuente_centro = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/fuente_piedra_02.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_fuente_fondo = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/fuente_azulejo.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_fuente = Matte(
+        ConstantTexture(spectrum_from_float(0.75, 0.75, 0.75)),
+        ConstantTexture(0.0),
+        nothing
+    )
 
     mat_dict = Dict{String, Material}()
 
@@ -1166,6 +1277,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["sanmiguel_00045_ascii.obj"] = mat_banqueta
 
     mat_dict["sanmiguel_00046_ascii.obj"] = mat_tierra
+    mat_dict["sanmiguel_00043_ascii.obj"] = mat_tierra
     mat_dict["sanmiguel_00047_ascii.obj"] = mat_tierra
 
     mat_dict["sanmiguel_00048_ascii.obj"] = mat_arcos_lisos_2
@@ -1188,6 +1300,8 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["sanmiguel_00058_ascii.obj"] = mat_techos_2
 
     mat_dict["sanmiguel_00059_ascii.obj"] = mat_piso_patio_exterior
+
+    mat_dict["sanmiguel_00060_ascii.obj"] = mat_jardinera_2
 
     mat_dict["sanmiguel_00061_ascii.obj"] = mat_calle
 
@@ -1277,10 +1391,19 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["sanmiguel_00129_ascii.obj"] = mat_pintura_marcos
 
     mat_dict["sanmiguel_00130_ascii.obj"] = mat_postes_barandal
+    mat_dict["sanmiguel_00131_ascii.obj"] = mat_postes_barandal
 
     mat_dict["sanmiguel_00132_ascii.obj"] = mat_piso_patio_exterior2
 
     mat_dict["sanmiguel_00133_ascii.obj"] = mat_sun_light
+
+    mat_dict["sanmiguel_00134_ascii.obj"] = mat_barandal_detalle_extremos
+    mat_dict["sanmiguel_00135_ascii.obj"] = mat_barandal_detalle_extremos
+    mat_dict["sanmiguel_00136_ascii.obj"] = mat_barandal_detalle_extremos
+    mat_dict["sanmiguel_00137_ascii.obj"] = mat_barandal_detalle_extremos
+    mat_dict["sanmiguel_00139_ascii.obj"] = mat_barandal_detalle_extremos
+    mat_dict["sanmiguel_00141_ascii.obj"] = mat_barandal_detalle_extremos
+    mat_dict["sanmiguel_00146_ascii.obj"] = mat_barandal_detalle_extremos
 
     mat_dict["sanmiguel_00140_ascii.obj"] = mat_madera_barandal
 
@@ -1350,15 +1473,31 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["sanmiguel_00223_ascii.obj"] = mat_columna_a3
 
     mat_dict["sanmiguel_00226_ascii.obj"] = mat_columna_b1
+    mat_dict["sanmiguel_00227_ascii.obj"] = mat_columna_b1
     mat_dict["sanmiguel_00229_ascii.obj"] = mat_columna_b1
     mat_dict["sanmiguel_00232_ascii.obj"] = mat_columna_b1
-
-    mat_dict["sanmiguel_00227_ascii.obj"] = mat_columna_b1
 
     mat_dict["sanmiguel_00227_ascii.obj"] = mat_columna_b3
 
     mat_dict["sanmiguel_00228_ascii.obj"] = mat_columna_b2
     mat_dict["sanmiguel_00230_ascii.obj"] = mat_columna_b2
+
+    mat_dict["sanmiguel_00233_ascii.obj"] = mat_light_patio06_mat01
+
+    mat_dict["sanmiguel_00234_ascii.obj"] = mat_negro
+
+    mat_dict["sanmiguel_00235_ascii.obj"] = mat_candil_2_glass
+
+    mat_dict["sanmiguel_00236_ascii.obj"] = mat_agua
+
+    mat_dict["sanmiguel_00237_ascii.obj"] = mat_fuente_centro
+    mat_dict["sanmiguel_00239_ascii.obj"] = mat_fuente_centro
+    mat_dict["sanmiguel_00241_ascii.obj"] = mat_fuente_centro
+
+    mat_dict["sanmiguel_00238_ascii.obj"] = mat_fuente_fondo
+
+    mat_dict["sanmiguel_00240_ascii.obj"] = mat_fuente
+
 
     println("\t...DONE: we loaded $(length(keys(mat_dict))) materials")
 
@@ -1368,6 +1507,369 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     area_lights["sanmiguel_00133_ascii.obj"] = (
         spectrum_from_float(1.0, 0.8392159939, 0.4901959896), 4_000
     )
+    area_lights["sanmiguel_00233_ascii.obj"] = (
+        spectrum_from_float(0.8941180110, 0.9882349968, 1.0), 2
+    )
+
+    transform_dict = Dict{String, Vector{String}}()
+    transform_dict["sanmiguel_00043_ascii.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        215,
+        234
+    )
+    @assert length(transform_dict["sanmiguel_00043_ascii.obj"]) == 3
+
+    transform_dict["sanmiguel_00060.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        316,
+        335
+    )
+    @assert length(transform_dict["sanmiguel_00060.obj"]) == 3
+
+    transform_dict["sanmiguel_00060.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        316,
+        335
+    )
+    @assert length(transform_dict["sanmiguel_00060.obj"]) == 3
+
+    transform_dict["sanmiguel_000131.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        687,
+        711
+    )
+    @assert length(transform_dict["sanmiguel_000131.obj"]) == 3
+
+    transform_dict["sanmiguel_000134.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        724,
+        743
+    )
+    @assert length(transform_dict["sanmiguel_000134.obj"]) == 3
+
+    transform_dict["sanmiguel_000135.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        745,
+        774
+    )
+    @assert length(transform_dict["sanmiguel_000135.obj"]) == 5
+
+    transform_dict["sanmiguel_000136.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        776,
+        795
+    )
+    @assert length(transform_dict["sanmiguel_000136.obj"]) == 3
+
+    transform_dict["sanmiguel_000137.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        797,
+        3466
+    )
+    @assert length(transform_dict["sanmiguel_000137.obj"]) == 533
+
+    transform_dict["sanmiguel_000138.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        3468,
+        4807
+    )
+    @assert length(transform_dict["sanmiguel_000138.obj"]) == 267
+
+    transform_dict["sanmiguel_000139.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        4809,
+        4828
+    )
+    @assert length(transform_dict["sanmiguel_000139.obj"]) == 3
+
+    transform_dict["sanmiguel_000141.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        4835,
+        6174
+    )
+    @assert length(transform_dict["sanmiguel_000141.obj"]) == 267
+
+    transform_dict["sanmiguel_000143.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        6181,
+        6865
+    )
+    @assert length(transform_dict["sanmiguel_000143.obj"]) == 136
+
+    transform_dict["sanmiguel_000144.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        6867,
+        6976
+    )
+    @assert length(transform_dict["sanmiguel_000144.obj"]) == 21
+
+    transform_dict["sanmiguel_000145.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        6978,
+        7087
+    )
+    @assert length(transform_dict["sanmiguel_000145.obj"]) == 21
+
+    transform_dict["sanmiguel_000146.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        7098,
+        7198
+    )
+    @assert length(transform_dict["sanmiguel_000146.obj"]) == 21
+
+    transform_dict["sanmiguel_000147.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        7200,
+        7309
+    )
+    @assert length(transform_dict["sanmiguel_000147.obj"]) == 21
+
+    transform_dict["sanmiguel_000148.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        7311,
+        7340
+    )
+    @assert length(transform_dict["sanmiguel_000148.obj"]) == 5
+
+    transform_dict["sanmiguel_000149.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        7342,
+        7451
+    )
+    @assert length(transform_dict["sanmiguel_000149.obj"]) == 21
+
+    transform_dict["sanmiguel_000150.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        7453,
+        7497
+    )
+    @assert length(transform_dict["sanmiguel_000150.obj"]) == 8
+
+    transform_dict["sanmiguel_000151.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        7499,
+        9308
+    )
+    @assert length(transform_dict["sanmiguel_000151.obj"]) == 361
+
+    transform_dict["sanmiguel_000152.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        9310,
+        9459
+    )
+    @assert length(transform_dict["sanmiguel_000152.obj"]) == 29
+
+    transform_dict["sanmiguel_000153.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        9461,
+        9680
+    )
+    @assert length(transform_dict["sanmiguel_000153.obj"]) == 43
+
+    transform_dict["sanmiguel_000154.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        9682,
+        9901
+    )
+    @assert length(transform_dict["sanmiguel_000154.obj"]) == 43
+
+    transform_dict["sanmiguel_000155.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        9903,
+        9947
+    )
+    @assert length(transform_dict["sanmiguel_000155.obj"]) == 8
+
+    transform_dict["sanmiguel_000157.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        9954,
+        9998
+    )
+    @assert length(transform_dict["sanmiguel_000157.obj"]) == 8
+
+    transform_dict["sanmiguel_000158.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        10_000,
+        10_044
+    )
+    @assert length(transform_dict["sanmiguel_000158.obj"]) == 8
+
+    transform_dict["sanmiguel_000159.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        10_046,
+        10_090
+    )
+    @assert length(transform_dict["sanmiguel_000159.obj"]) == 8
+
+    transform_dict["sanmiguel_000166.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        10_122,
+        10_256
+    )
+    @assert length(transform_dict["sanmiguel_000166.obj"]) == 28
+
+    transform_dict["sanmiguel_000167.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        10_258,
+        10_307
+    )
+    @assert length(transform_dict["sanmiguel_000167.obj"]) == 9
+
+    transform_dict["sanmiguel_000169.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        10_314,
+        10_383
+    )
+    @assert length(transform_dict["sanmiguel_000169.obj"]) == 13
+
+    transform_dict["sanmiguel_000171.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        10_390,
+        12_185
+    )
+    @assert length(transform_dict["sanmiguel_000171.obj"]) == 358
+
+    transform_dict["sanmiguel_000172.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        12_187,
+        14_092
+    )
+    @assert length(transform_dict["sanmiguel_000172.obj"]) == 380
+
+    transform_dict["sanmiguel_000172.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        12_187,
+        14_092
+    )
+    @assert length(transform_dict["sanmiguel_000172.obj"]) == 380
+
+    transform_dict["sanmiguel_000173.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        14_094,
+        15_894
+    )
+    @assert length(transform_dict["sanmiguel_000173.obj"]) == 359
+
+    transform_dict["sanmiguel_000204.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_064,
+        16_095
+    )
+    @assert length(transform_dict["sanmiguel_000204.obj"]) == 9
+
+    transform_dict["sanmiguel_000205.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_097,
+        16_146
+    )
+    @assert length(transform_dict["sanmiguel_000205.obj"]) == 9
+
+    transform_dict["sanmiguel_000206.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_148,
+        16_197
+    )
+    @assert length(transform_dict["sanmiguel_000206.obj"]) == 9
+
+    transform_dict["sanmiguel_000207.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_199,
+        16_248
+    )
+    @assert length(transform_dict["sanmiguel_000207.obj"]) == 9
+
+    transform_dict["sanmiguel_000208.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_250,
+        16_299
+    )
+    @assert length(transform_dict["sanmiguel_000208.obj"]) == 9
+
+    transform_dict["sanmiguel_000209.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_301,
+        16_350
+    )
+    @assert length(transform_dict["sanmiguel_000209.obj"]) == 9
+
+    transform_dict["sanmiguel_000210.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_352,
+        16_401
+    )
+    @assert length(transform_dict["sanmiguel_000210.obj"]) == 9
+
+    transform_dict["sanmiguel_000211.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_403,
+        16_472
+    )
+    @assert length(transform_dict["sanmiguel_000211.obj"]) == 13
+
+    transform_dict["sanmiguel_000212.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_474,
+        16_523
+    )
+    @assert length(transform_dict["sanmiguel_000212.obj"]) == 9
+
+    transform_dict["sanmiguel_000213.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_525,
+        16_574
+    )
+    @assert length(transform_dict["sanmiguel_000213.obj"]) == 9
+
+    transform_dict["sanmiguel_000214.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_576,
+        16_625
+    )
+    @assert length(transform_dict["sanmiguel_000214.obj"]) == 9
+
+    transform_dict["sanmiguel_000215.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_627,
+        16_676
+    )
+    @assert length(transform_dict["sanmiguel_000215.obj"]) == 9
+
+    transform_dict["sanmiguel_000216.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_678,
+        16_727
+    )
+    @assert length(transform_dict["sanmiguel_000216.obj"]) == 9
+
+    transform_dict["sanmiguel_000217.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_729,
+        16_818
+    )
+    @assert length(transform_dict["sanmiguel_000217.obj"]) == 17
+
+    transform_dict["sanmiguel_000218.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_820,
+        16_869
+    )
+    @assert length(transform_dict["sanmiguel_000218.obj"]) == 9
+
+    transform_dict["sanmiguel_000219.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_871,
+        16_920
+    )
+    @assert length(transform_dict["sanmiguel_000219.obj"]) == 9
+
+    transform_dict["sanmiguel_000220.obj"] = parse_sanmiguel(
+        path_header * "geometry/sanmiguel-geom.pbrt",
+        16_922,
+        16_971
+    )
+    @assert length(transform_dict["sanmiguel_000220.obj"]) == 9
+
+
     
     dirpath = jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/geometry/")
     objs = String[]
@@ -1383,18 +1885,36 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # if !(obj_file in commented_out)
         if (obj_file in commented_in) && !(obj_file in keys(area_lights))
             obj_path = joinpath(dirpath, obj_file)
-            objects = parse_obj(
-                obj_path,
-                Translate(Pnt3(0,0,0)),
-                false,
-                false,
-                nothing
-            )
-            for object in objects
-                for mesh in object
-                    tmp_mat = mat_dict[obj_file]
-                    push!(primitives, Primitive(mesh, tmp_mat, nothing))
+            if obj_file in keys(transform_dict)
+                for tstring in transform_dict[obj_file]
+                    objects = parse_obj(
+                        obj_path,
+                        Transformation(Mat4(parse.(Float64, split(tstring)))),
+                        false,
+                        false,
+                        nothing
+                    )
+                    for object in objects
+                        for mesh in object
+                            tmp_mat = mat_dict[obj_file]
+                            push!(primitives, Primitive(mesh, tmp_mat, nothing))
+                        end
+                    end
                 end
+            else
+                objects = parse_obj(
+                        obj_path,
+                        Translate(Pnt3(0,0,0)),
+                        false,
+                        false,
+                        nothing
+                    )
+                    for object in objects
+                        for mesh in object
+                            tmp_mat = mat_dict[obj_file]
+                            push!(primitives, Primitive(mesh, tmp_mat, nothing))
+                        end
+                    end
             end
         elseif (obj_file in commented_in) && (obj_file in keys(area_lights))
             obj_path = joinpath(dirpath, obj_file)
