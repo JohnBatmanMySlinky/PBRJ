@@ -4,7 +4,7 @@ struct ResampleWeight
 end
 
 function resample_weights(old_res::Int64, new_res::Int64)::Vector{ResampleWeight}
-	@assert new_res > old_res
+	@assert new_res >= old_res
 	wt = Vector{ResampleWeight}(undef, new_res)
 	filter_width = 2.0
 	for i in 0:(new_res-1)

@@ -1187,6 +1187,173 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
+    mat_barandal_detalle_centro = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/rust_detalle.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/rust_detalle_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        ),
+        true
+    )
+    mat_candil_cadena = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/fierro_b.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.313726, 0.313726, 0.313726)),
+        ConstantTexture(0.05),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_candil_metal = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/fierro_b.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_fake_foco = Glass(
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    mat_candil_foco = Glass(
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    mat_candil_madera = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/candil_madera.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.164706, 0.164706, 0.164706)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_candil_2 = Plastic(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/metal_viejo_2.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.301961, 0.301961, 0.301961)),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/metal_viejo_2.png"), 
+                true
+            ),
+            ConstantTexture(0.1)
+        ),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/metal_viejo_2.png"), 
+                true
+            ),
+            ConstantTexture(0.002)
+        ),
+        true
+    )
+    mat_candil_2_negro = Plastic(
+        ConstantTexture(spectrum_from_float(0.0588235, 0.0588235, 0.0588235)),
+        ConstantTexture(spectrum_from_float(0.301961, 0.301961, 0.301961)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    mat_escurridera = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/escurridera_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/escurridera_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    mat_hoja_seca_2C = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_leaf_seca_03b.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_hoja_seca_2B = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_leaf_seca_02b.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_hoja_seca_2A = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_hoja_c_seca.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    mat_teja = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Barro_2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+
+    
 
     mat_dict = Dict{String, Material}()
 
@@ -1272,13 +1439,13 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mat_dict["sanmiguel_00042_ascii.obj"] = mat_techo_vigas
 
+    mat_dict["sanmiguel_00043_ascii.obj"] = mat_tierra
+    mat_dict["sanmiguel_00046_ascii.obj"] = mat_tierra
+    mat_dict["sanmiguel_00047_ascii.obj"] = mat_tierra
+
     mat_dict["sanmiguel_00044_ascii.obj"] = mat_ared_sanMiguel_qpatio
 
     mat_dict["sanmiguel_00045_ascii.obj"] = mat_banqueta
-
-    mat_dict["sanmiguel_00046_ascii.obj"] = mat_tierra
-    mat_dict["sanmiguel_00043_ascii.obj"] = mat_tierra
-    mat_dict["sanmiguel_00047_ascii.obj"] = mat_tierra
 
     mat_dict["sanmiguel_00048_ascii.obj"] = mat_arcos_lisos_2
     mat_dict["sanmiguel_00049_ascii.obj"] = mat_arcos_lisos_2
@@ -1404,10 +1571,36 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["sanmiguel_00139_ascii.obj"] = mat_barandal_detalle_extremos
     mat_dict["sanmiguel_00141_ascii.obj"] = mat_barandal_detalle_extremos
     mat_dict["sanmiguel_00146_ascii.obj"] = mat_barandal_detalle_extremos
+    mat_dict["sanmiguel_00166_ascii.obj"] = mat_barandal_detalle_extremos
+
+    mat_dict["sanmiguel_00138_ascii.obj"] = mat_barandal_detalle_centro
 
     mat_dict["sanmiguel_00140_ascii.obj"] = mat_madera_barandal
 
     mat_dict["sanmiguel_00142_ascii.obj"] = mat_pared_calle
+
+    mat_dict["sanmiguel_00143_ascii.obj"] = mat_candil_cadena
+
+    mat_dict["sanmiguel_00144_ascii.obj"] = mat_candil_metal
+    mat_dict["sanmiguel_00145_ascii.obj"] = mat_candil_metal
+
+    mat_dict["sanmiguel_00146_ascii.obj"] = mat_fake_foco
+
+    mat_dict["sanmiguel_00147_ascii.obj"] = mat_candil_foco
+
+    mat_dict["sanmiguel_00148_ascii.obj"] = mat_candil_madera
+    mat_dict["sanmiguel_00149_ascii.obj"] = mat_candil_madera
+
+    mat_dict["sanmiguel_00150_ascii.obj"] = mat_candil_2
+    mat_dict["sanmiguel_00151_ascii.obj"] = mat_candil_2
+    mat_dict["sanmiguel_00152_ascii.obj"] = mat_candil_2
+    mat_dict["sanmiguel_00153_ascii.obj"] = mat_candil_2
+    mat_dict["sanmiguel_00154_ascii.obj"] = mat_candil_2
+    mat_dict["sanmiguel_00157_ascii.obj"] = mat_candil_2
+    mat_dict["sanmiguel_00158_ascii.obj"] = mat_candil_2
+    mat_dict["sanmiguel_00159_ascii.obj"] = mat_candil_2
+
+    mat_dict["sanmiguel_00155_ascii.obj"] = mat_candil_2_negro
 
     mat_dict["sanmiguel_00156_ascii.obj"] = mat_candil_2_foco
 
@@ -1423,8 +1616,17 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mat_dict["sanmiguel_00165_ascii.obj"] = mat_detMoldura_01
 
+    mat_dict["sanmiguel_00167_ascii.obj"] = mat_escurridera
+
     mat_dict["sanmiguel_00168_ascii.obj"] = mat_detalle_escalera
+    mat_dict["sanmiguel_00169_ascii.obj"] = mat_detalle_escalera
     mat_dict["sanmiguel_00170_ascii.obj"] = mat_detalle_escalera
+
+    mat_dict["sanmiguel_00171_ascii.obj"] = mat_hoja_seca_2C
+
+    mat_dict["sanmiguel_00172_ascii.obj"] = mat_hoja_seca_2B
+
+    mat_dict["sanmiguel_00173_ascii.obj"] = mat_hoja_seca_2A
 
     mat_dict["sanmiguel_00174_ascii.obj"] = mat_marco_puerta_1
     mat_dict["sanmiguel_00175_ascii.obj"] = mat_marco_puerta_1
@@ -1462,6 +1664,24 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["sanmiguel_00202_ascii.obj"] = mat_puerta_arco
 
     mat_dict["sanmiguel_00203_ascii.obj"] = mat_puerta_01
+
+    mat_dict["sanmiguel_00204_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00205_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00206_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00207_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00208_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00209_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00210_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00211_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00212_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00213_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00214_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00215_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00216_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00217_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00218_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00219_ascii.obj"] = mat_teja
+    mat_dict["sanmiguel_00220_ascii.obj"] = mat_teja
 
     mat_dict["sanmiguel_00221_ascii.obj"] = mat_columna_a1
     mat_dict["sanmiguel_00224_ascii.obj"] = mat_columna_a1
