@@ -41,6 +41,11 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # materials
     println("LOADING MATERIALS")
+    mat_gray = Matte(
+        ConstantTexture(spectrum_from_float(0.25, 0.25, 0.25)),
+        ConstantTexture(0.0),
+        nothing
+    )
     mat_vidrio = Glass(
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
@@ -2121,6 +2126,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                     for object in objects
                         for mesh in object
                             tmp_mat = mat_dict[obj_file]
+                            tmp_mat = mat_gray
                             push!(primitives, Primitive(mesh, tmp_mat, nothing))
                         end
                     end
@@ -2136,6 +2142,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                     for object in objects
                         for mesh in object
                             tmp_mat = mat_dict[obj_file]
+                            tmp_mat = mat_gray
                             push!(primitives, Primitive(mesh, tmp_mat, nothing))
                         end
                     end
