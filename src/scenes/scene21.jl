@@ -1739,357 +1739,357 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     println("LOADING TRANSFORMATIONS")
     transform_dict = Dict{String, Vector{String}}()
     transform_dict["sanmiguel_00043_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         215,
         234
     )
     @assert length(transform_dict["sanmiguel_00043_ascii.obj"]) == 3
 
     transform_dict["sanmiguel_00060_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         316,
         335
     )
     @assert length(transform_dict["sanmiguel_00060_ascii.obj"]) == 3
 
     transform_dict["sanmiguel_00060_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         316,
         335
     )
     @assert length(transform_dict["sanmiguel_00060_ascii.obj"]) == 3
 
     transform_dict["sanmiguel_00131_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         687,
         711
     )
     @assert length(transform_dict["sanmiguel_00131_ascii.obj"]) == 3
 
     transform_dict["sanmiguel_00134_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         724,
         743
     )
     @assert length(transform_dict["sanmiguel_00134_ascii.obj"]) == 3
 
     transform_dict["sanmiguel_00135_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         745,
         774
     )
     @assert length(transform_dict["sanmiguel_00135_ascii.obj"]) == 5
 
     transform_dict["sanmiguel_00136_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         776,
         795
     )
     @assert length(transform_dict["sanmiguel_00136_ascii.obj"]) == 3
 
     transform_dict["sanmiguel_00137_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         797,
         3466
     )
     @assert length(transform_dict["sanmiguel_00137_ascii.obj"]) == 533
 
     transform_dict["sanmiguel_00138_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         3468,
         4807
     )
     @assert length(transform_dict["sanmiguel_00138_ascii.obj"]) == 267
 
     transform_dict["sanmiguel_00139_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         4809,
         4828
     )
     @assert length(transform_dict["sanmiguel_00139_ascii.obj"]) == 3
 
     transform_dict["sanmiguel_00141_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         4835,
         6174
     )
     @assert length(transform_dict["sanmiguel_00141_ascii.obj"]) == 267
 
     transform_dict["sanmiguel_00143_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         6181,
         6865
     )
     @assert length(transform_dict["sanmiguel_00143_ascii.obj"]) == 136
 
     transform_dict["sanmiguel_00144_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         6867,
         6976
     )
     @assert length(transform_dict["sanmiguel_00144_ascii.obj"]) == 21
 
     transform_dict["sanmiguel_00145_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         6978,
         7087
     )
     @assert length(transform_dict["sanmiguel_00145_ascii.obj"]) == 21
 
     transform_dict["sanmiguel_00146_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         7089,
         7198
     )
     @assert length(transform_dict["sanmiguel_00146_ascii.obj"]) == 21
 
     transform_dict["sanmiguel_00147_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         7200,
         7309
     )
     @assert length(transform_dict["sanmiguel_00147_ascii.obj"]) == 21
 
     transform_dict["sanmiguel_00148_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         7311,
         7340
     )
     @assert length(transform_dict["sanmiguel_00148_ascii.obj"]) == 5
 
     transform_dict["sanmiguel_00149_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         7342,
         7451
     )
     @assert length(transform_dict["sanmiguel_00149_ascii.obj"]) == 21
 
     transform_dict["sanmiguel_00150_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         7453,
         7497
     )
     @assert length(transform_dict["sanmiguel_00150_ascii.obj"]) == 8
 
     transform_dict["sanmiguel_00151_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         7499,
         9308
     )
     @assert length(transform_dict["sanmiguel_00151_ascii.obj"]) == 361
 
     transform_dict["sanmiguel_00152_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         9310,
         9459
     )
     @assert length(transform_dict["sanmiguel_00152_ascii.obj"]) == 29
 
     transform_dict["sanmiguel_00153_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         9461,
         9680
     )
     @assert length(transform_dict["sanmiguel_00153_ascii.obj"]) == 43
 
     transform_dict["sanmiguel_00154_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         9682,
         9901
     )
     @assert length(transform_dict["sanmiguel_00154_ascii.obj"]) == 43
 
     transform_dict["sanmiguel_00155_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         9903,
         9947
     )
     @assert length(transform_dict["sanmiguel_00155_ascii.obj"]) == 8
 
     transform_dict["sanmiguel_00157_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         9954,
         9998
     )
     @assert length(transform_dict["sanmiguel_00157_ascii.obj"]) == 8
 
     transform_dict["sanmiguel_00158_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         10_000,
         10_044
     )
     @assert length(transform_dict["sanmiguel_00158_ascii.obj"]) == 8
 
     transform_dict["sanmiguel_00159_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         10_046,
         10_090
     )
     @assert length(transform_dict["sanmiguel_00159_ascii.obj"]) == 8
 
     transform_dict["sanmiguel_00166_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         10_122,
         10_256
     )
     @assert length(transform_dict["sanmiguel_00166_ascii.obj"]) == 26
 
     transform_dict["sanmiguel_00167_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         10_258,
         10_307
     )
     @assert length(transform_dict["sanmiguel_00167_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00169_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         10_314,
         10_383
     )
     @assert length(transform_dict["sanmiguel_00169_ascii.obj"]) == 13
 
     transform_dict["sanmiguel_00171_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         10_390,
         12_185
     )
     @assert length(transform_dict["sanmiguel_00171_ascii.obj"]) == 358
 
     transform_dict["sanmiguel_00172_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         12_187,
         14_092
     )
     @assert length(transform_dict["sanmiguel_00172_ascii.obj"]) == 380
 
     transform_dict["sanmiguel_00172_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         12_187,
         14_092
     )
     @assert length(transform_dict["sanmiguel_00172_ascii.obj"]) == 380
 
     transform_dict["sanmiguel_00173_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         14_094,
         15_894
     )
     @assert length(transform_dict["sanmiguel_00173_ascii.obj"]) == 359
 
     transform_dict["sanmiguel_00204_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_046,
         16_095
     )
     @assert length(transform_dict["sanmiguel_00204_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00205_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_097,
         16_146
     )
     @assert length(transform_dict["sanmiguel_00205_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00206_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_148,
         16_197
     )
     @assert length(transform_dict["sanmiguel_00206_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00207_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_199,
         16_248
     )
     @assert length(transform_dict["sanmiguel_00207_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00208_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_250,
         16_299
     )
     @assert length(transform_dict["sanmiguel_00208_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00209_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_301,
         16_350
     )
     @assert length(transform_dict["sanmiguel_00209_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00210_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_352,
         16_401
     )
     @assert length(transform_dict["sanmiguel_00210_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00211_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_403,
         16_472
     )
     @assert length(transform_dict["sanmiguel_00211_ascii.obj"]) == 13
 
     transform_dict["sanmiguel_00212_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_474,
         16_523
     )
     @assert length(transform_dict["sanmiguel_00212_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00213_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_525,
         16_574
     )
     @assert length(transform_dict["sanmiguel_00213_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00214_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_576,
         16_625
     )
     @assert length(transform_dict["sanmiguel_00214_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00215_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_627,
         16_676
     )
     @assert length(transform_dict["sanmiguel_00215_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00216_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_678,
         16_727
     )
     @assert length(transform_dict["sanmiguel_00216_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00217_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_729,
         16_818
     )
     @assert length(transform_dict["sanmiguel_00217_ascii.obj"]) == 17
 
     transform_dict["sanmiguel_00218_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_820,
         16_869
     )
     @assert length(transform_dict["sanmiguel_00218_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00219_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_871,
         16_920
     )
     @assert length(transform_dict["sanmiguel_00219_ascii.obj"]) == 9
 
     transform_dict["sanmiguel_00220_ascii.obj"] = parse_sanmiguel(
-        path_header * "geometry/sanmiguel-geom.pbrt",
+        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
         16_922,
         16_971
     )
