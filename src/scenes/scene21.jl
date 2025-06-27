@@ -432,7 +432,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
-    mat_ared_sanMiguel_qpatio = Matte(
+    mat_pared_sanMiguel_qpatio = Matte(
         ImageTexture(
             UVMapping2D(),
             jmfp(path_header * "textures/muros_q_patio2.png"), 
@@ -1448,7 +1448,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["sanmiguel_00046_ascii.obj"] = mat_tierra
     mat_dict["sanmiguel_00047_ascii.obj"] = mat_tierra
 
-    mat_dict["sanmiguel_00044_ascii.obj"] = mat_ared_sanMiguel_qpatio
+    mat_dict["sanmiguel_00044_ascii.obj"] = mat_pared_sanMiguel_qpatio
 
     mat_dict["sanmiguel_00045_ascii.obj"] = mat_banqueta
 
@@ -2126,7 +2126,6 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                     for object in objects
                         for mesh in object
                             tmp_mat = mat_dict[obj_file]
-                            tmp_mat = mat_gray
                             push!(primitives, Primitive(mesh, tmp_mat, nothing))
                         end
                     end
@@ -2142,7 +2141,6 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                     for object in objects
                         for mesh in object
                             tmp_mat = mat_dict[obj_file]
-                            tmp_mat = mat_gray
                             push!(primitives, Primitive(mesh, tmp_mat, nothing))
                         end
                     end
