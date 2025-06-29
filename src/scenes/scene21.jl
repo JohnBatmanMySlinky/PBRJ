@@ -39,7 +39,11 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     path_header = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/"
 
-    # materials
+    #######################################
+    #######################################
+    ############## materials
+    #######################################
+    #######################################
     println("LOADING MATERIALS")
     mat_gray = Matte(
         ConstantTexture(spectrum_from_float(0.25, 0.25, 0.25)),
@@ -1357,8 +1361,105 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
+    mat_tronco = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_tronco.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/sm_tronco_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.02)
+        )
+    )
+    mat_leave_A_a = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_leaf_02a.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/sm_leaf_02_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    mat_leave_A_b = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_leaf_02b.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/sm_leaf_02_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    mat_leave_A_c = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_leaf_03a.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/sm_leaf_02_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
 
-    
+
+    #######################################
+    #######################################
+    ############## textures
+    #######################################
+    #######################################
+
+    tex_HojaSecaMask = ImageTexture(
+        UVMapping2D(),
+        jmfp(path_header * "textures/sm_hoja_c_seca_Mask.png"), 
+        true
+    )
+    tex_leave_A_a_alpha = ImageTexture(
+        UVMapping2D(),
+        jmfp(path_header * "textures/sm_leaf_02_alpah.png"), 
+        true
+    )
+    tex_leave_A_b_alpha = ImageTexture(
+        UVMapping2D(),
+        jmfp(path_header * "textures/sm_leaf_02_alpah.png"), 
+        true
+    )
+    tex_leave_A_c_alpha = ImageTexture(
+        UVMapping2D(),
+        jmfp(path_header * "textures/sm_leaf_02_alpah.png"), 
+        true
+    )
+   
+
+    #######################################
+    #######################################
+    ############## mat_dict
+    #######################################
+    #######################################
 
     mat_dict = Dict{String, Material}()
 
@@ -1723,10 +1824,32 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mat_dict["sanmiguel_00240_ascii.obj"] = mat_fuente
 
+    mat_dict["troncoA_00001_ascii.obj"] = mat_tronco
+    mat_dict["troncoB_00001_ascii.obj"] = mat_tronco
+
+    mat_dict["hojas_a1_00001_ascii.obj"] = mat_leave_A_a
+    mat_dict["hojas_a4_00001_ascii.obj"] = mat_leave_A_a
+    mat_dict["hojas_a6_00001_ascii.obj"] = mat_leave_A_a
+
+    mat_dict["hojas_a2_00001_ascii.obj"] = mat_leave_A_b
+    mat_dict["hojas_a2_00002_ascii.obj"] = mat_leave_A_b
+    mat_dict["hojas_a5_00001_ascii.obj"] = mat_leave_A_b
+    mat_dict["hojas_a7_00001_ascii.obj"] = mat_leave_A_b
+    mat_dict["hojas_a7_00002_ascii.obj"] = mat_leave_A_b
+
+    mat_dict["hojas_a3_00001_ascii.obj"] = mat_leave_A_c
+    mat_dict["hojas_a3_00002_ascii.obj"] = mat_leave_A_c
+
 
     println("\t...DONE: we loaded $(length(keys(mat_dict))) materials")
 
     commented_in = keys(mat_dict)
+
+    #######################################
+    #######################################
+    ############## area_lights
+    #######################################
+    #######################################
 
     area_lights = Dict{String, Tuple{Spectrum, Float64}}()
     area_lights["sanmiguel_00133_ascii.obj"] = (
@@ -1736,6 +1859,13 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         spectrum_from_float(0.8941180110, 0.9882349968, 1.0), 2
     )
 
+
+    #######################################
+    #######################################
+    ############## instancing
+    #######################################
+    #######################################
+
     println("LOADING TRANSFORMATIONS")
     transform_dict = Dict{String, Vector{String}}()
     transform_dict["sanmiguel_00043_ascii.obj"] = parse_sanmiguel(
@@ -1744,13 +1874,6 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         234
     )
     @assert length(transform_dict["sanmiguel_00043_ascii.obj"]) == 3
-
-    transform_dict["sanmiguel_00060_ascii.obj"] = parse_sanmiguel(
-        jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
-        316,
-        335
-    )
-    @assert length(transform_dict["sanmiguel_00060_ascii.obj"]) == 3
 
     transform_dict["sanmiguel_00060_ascii.obj"] = parse_sanmiguel(
         jmfp(path_header * "geometry/sanmiguel-geom.pbrt"),
@@ -2095,10 +2218,89 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     @assert length(transform_dict["sanmiguel_00220_ascii.obj"]) == 9
 
+    transform_dict["hojas_a1_00001_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/hojas_a1-geom.pbrt"),
+        5,
+        81_930
+    )
+    @assert length(transform_dict["hojas_a1_00001_ascii.obj"]) == 16_384
+
+    transform_dict["hojas_a2_00002_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/hojas_a2-geom.pbrt"),
+        11,
+        24_926
+    )
+    @assert length(transform_dict["hojas_a2_00002_ascii.obj"]) == 4_982
+
+    transform_dict["hojas_a3_00002_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/hojas_a3-geom.pbrt"),
+        11,
+        81_946
+    )
+    @assert length(transform_dict["hojas_a3_00002_ascii.obj"]) == 16_386
+
+    transform_dict["hojas_a4_00001_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/hojas_a4-geom.pbrt"),
+        5,
+        81_935
+    )
+    @assert length(transform_dict["hojas_a4_00001_ascii.obj"]) == 16_385
+
+    transform_dict["hojas_a5_00001_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/hojas_a5-geom.pbrt"),
+        5,
+        48_040
+    )
+    @assert length(transform_dict["hojas_a5_00001_ascii.obj"]) == 9_606
+
+    transform_dict["hojas_a6_00001_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/hojas_a6-geom.pbrt"),
+        5,
+        38_100
+    )
+    @assert length(transform_dict["hojas_a6_00001_ascii.obj"]) == 7_618
+
+    transform_dict["hojas_a7_00002_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/hojas_a7-geom.pbrt"),
+        11,
+        23_186
+    )
+    @assert length(transform_dict["hojas_a7_00002_ascii.obj"]) == 4_634
+
     println("\t...DONE: we loaded $(length(keys(transform_dict))) transforms")
 
 
+    #######################################
+    #######################################
+    ############## alpha dict
+    #######################################
+    #######################################
 
+    alpha_dict = Dict{String, AbstractTexture}()
+
+    alpha_dict["sanmiguel_00171_ascii.obj"] = tex_HojaSecaMask
+    alpha_dict["sanmiguel_00172_ascii.obj"] = tex_HojaSecaMask
+    alpha_dict["sanmiguel_00173_ascii.obj"] = tex_HojaSecaMask
+
+    alpha_dict["hojas_a1_00001_ascii.obj"] = tex_leave_A_a_alpha
+    alpha_dict["hojas_a4_00001_ascii.obj"] = tex_leave_A_a_alpha
+    alpha_dict["hojas_a6_00001_ascii.obj"] = tex_leave_A_a_alpha
+
+    alpha_dict["hojas_a2_00001_ascii.obj"] = tex_leave_A_b_alpha
+    alpha_dict["hojas_a2_00002_ascii.obj"] = tex_leave_A_b_alpha
+    alpha_dict["hojas_a5_00001_ascii.obj"] = tex_leave_A_b_alpha
+    alpha_dict["hojas_a7_00001_ascii.obj"] = tex_leave_A_b_alpha
+    alpha_dict["hojas_a7_00002_ascii.obj"] = tex_leave_A_b_alpha
+
+    alpha_dict["hojas_a3_00001_ascii.obj"] = tex_leave_A_c_alpha
+    alpha_dict["hojas_a3_00002_ascii.obj"] = tex_leave_A_c_alpha
+
+
+    #######################################
+    #######################################
+    ############## ply reading
+    #######################################
+    #######################################
     
     dirpath = jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/geometry/")
     objs = String[]
@@ -2111,9 +2313,17 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
     end
     for obj_file in objs
-        # if !(obj_file in commented_out)
+        # COMMENTED IN & NOT AN AREA LIGHT
         if (obj_file in commented_in) && !(obj_file in keys(area_lights))
             obj_path = joinpath(dirpath, obj_file)
+
+            if obj_file in keys(alpha_dict)
+                alpha = alpha_dict[obj_file]
+            else
+                alpha = nothing
+            end
+
+            # if we have transforms, then we need to loop over them
             if obj_file in keys(transform_dict)
                 for tstring in transform_dict[obj_file]
                     objects = parse_obj(
@@ -2121,30 +2331,34 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                         Transformation(Mat4(parse.(Float64, split(tstring)))),
                         false,
                         false,
-                        nothing
+                        alpha
                     )
                     for object in objects
                         for mesh in object
                             tmp_mat = mat_dict[obj_file]
+                            # tmp_mat = mat_gray
                             push!(primitives, Primitive(mesh, tmp_mat, nothing))
                         end
                     end
                 end
             else
+                # if no transforms, then no loop.
                 objects = parse_obj(
                         obj_path,
                         Translate(Pnt3(0,0,0)),
                         false,
                         false,
-                        nothing
+                        alpha
                     )
                     for object in objects
                         for mesh in object
                             tmp_mat = mat_dict[obj_file]
+                            # tmp_mat = mat_gray
                             push!(primitives, Primitive(mesh, tmp_mat, nothing))
                         end
                     end
             end
+        # area lights go here. 
         elseif (obj_file in commented_in) && (obj_file in keys(area_lights))
             obj_path = joinpath(dirpath, obj_file)
             objects = parse_obj(
