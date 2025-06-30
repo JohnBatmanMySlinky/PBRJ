@@ -2282,9 +2282,9 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     transform_dict["hojas_b3_00001_ascii.obj"] = parse_sanmiguel(
         jmfp(path_header * "geometry/hojas_b3-geom.pbrt"),
         5,
-        81_946
+        67_670
     )
-    @assert length(transform_dict["hojas_b3_00001_ascii.obj"]) == 67_670
+    @assert length(transform_dict["hojas_b3_00001_ascii.obj"]) == 13_532
 
     transform_dict["hojas_b4_00002_ascii.obj"] = parse_sanmiguel(
         jmfp(path_header * "geometry/hojas_b4-geom.pbrt"),
