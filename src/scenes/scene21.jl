@@ -1425,6 +1425,54 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(0.01)
         )
     )
+    mat_hoja_verde_b = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/l33-upper.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/l33-upper.png"), 
+                true
+            ),
+            ConstantTexture(0.1)
+        )
+    )
+    mat_hoja_verde_a = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/l37-upper.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/l37-upper.png"), 
+                true
+            ),
+            ConstantTexture(0.1)
+        )
+    )
+    mat_hojas_rojas_top = Matte(
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/l04-upper.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/l04-upper.png"), 
+                true
+            ),
+            ConstantTexture(0.1)
+        )
+    )
 
 
     #######################################
@@ -1451,6 +1499,21 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     tex_leave_A_c_alpha = ImageTexture(
         UVMapping2D(),
         jmfp(path_header * "textures/sm_leaf_02_alpah.png"), 
+        true
+    )
+    tex_26 = ImageTexture(
+        UVMapping2D(),
+        jmfp(path_header * "textures/l33-clip.png"), 
+        true
+    )
+    tex_28 = ImageTexture(
+        UVMapping2D(),
+        jmfp(path_header * "textures/l37-clip.png"), 
+        true
+    )
+    tex_30 = ImageTexture(
+        UVMapping2D(),
+        jmfp(path_header * "textures/l04-clip.png"), 
         true
     )
    
@@ -1844,6 +1907,14 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["hojas_a3_00001_ascii.obj"] = mat_leave_A_c
     mat_dict["hojas_a3_00002_ascii.obj"] = mat_leave_A_c
     mat_dict["hojas_b3_00001_ascii.obj"] = mat_leave_A_c
+
+    mat_dict["enredadera_00001_ascii.obj"] = mat_tronco
+
+    mat_dict["enredadera_00002_ascii.obj"] = mat_hoja_verde_b
+
+    mat_dict["enredadera_00003_ascii.obj"] = mat_hoja_verde_a
+    
+    mat_dict["enredadera_00004_ascii.obj"] = mat_hojas_rojas_top
 
 
     println("\t...DONE: we loaded $(length(keys(mat_dict))) materials")
@@ -2293,6 +2364,27 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     @assert length(transform_dict["hojas_b4_00002_ascii.obj"]) == 14_897
 
+    transform_dict["enredadera_00002_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/enredadera-geom.pbrt"),
+        11,
+        106_934
+    )
+    @assert length(transform_dict["enredadera_00002_ascii.obj"]) == 21_384
+
+    transform_dict["enredadera_00003_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/enredadera-geom.pbrt"),
+        106_937,
+        125_042
+    )
+    @assert length(transform_dict["enredadera_00003_ascii.obj"]) == 3_620
+
+    transform_dict["enredadera_00004_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/enredadera-geom.pbrt"),
+        125_044,
+        150_059
+    )
+    @assert length(transform_dict["enredadera_00004_ascii.obj"]) == 5_002
+
     println("\t...DONE: we loaded $(length(keys(transform_dict))) transforms")
 
 
@@ -2325,6 +2417,12 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     alpha_dict["hojas_a3_00001_ascii.obj"] = tex_leave_A_c_alpha
     alpha_dict["hojas_a3_00002_ascii.obj"] = tex_leave_A_c_alpha
     alpha_dict["hojas_b3_00001_ascii.obj"] = tex_leave_A_c_alpha
+
+    alpha_dict["enredadera_00002_ascii.obj"] = tex_26
+
+    alpha_dict["enredadera_00003_ascii.obj"] = tex_28
+
+    alpha_dict["enredadera_00004_ascii.obj"] = tex_30
 
 
     #######################################
