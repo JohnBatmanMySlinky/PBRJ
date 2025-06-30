@@ -1429,7 +1429,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     #######################################
     #######################################
-    ############## textures
+    ############## (alpha) textures
     #######################################
     #######################################
 
@@ -1836,9 +1836,14 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["hojas_a5_00001_ascii.obj"] = mat_leave_A_b
     mat_dict["hojas_a7_00001_ascii.obj"] = mat_leave_A_b
     mat_dict["hojas_a7_00002_ascii.obj"] = mat_leave_A_b
+    mat_dict["hojas_b2_00001_ascii.obj"] = mat_leave_A_b
+    mat_dict["hojas_b2_00002_ascii.obj"] = mat_leave_A_b
+    mat_dict["hojas_b4_00001_ascii.obj"] = mat_leave_A_b
+    mat_dict["hojas_b4_00002_ascii.obj"] = mat_leave_A_b
 
     mat_dict["hojas_a3_00001_ascii.obj"] = mat_leave_A_c
     mat_dict["hojas_a3_00002_ascii.obj"] = mat_leave_A_c
+    mat_dict["hojas_b3_00001_ascii.obj"] = mat_leave_A_c
 
 
     println("\t...DONE: we loaded $(length(keys(mat_dict))) materials")
@@ -2267,6 +2272,27 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     @assert length(transform_dict["hojas_a7_00002_ascii.obj"]) == 4_634
 
+    transform_dict["hojas_b2_00002_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/hojas_b2-geom.pbrt"),
+        11,
+        81_946
+    )
+    @assert length(transform_dict["hojas_b2_00002_ascii.obj"]) == 16_386
+
+    transform_dict["hojas_b3_00001_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/hojas_b3-geom.pbrt"),
+        5,
+        81_946
+    )
+    @assert length(transform_dict["hojas_b3_00001_ascii.obj"]) == 67_670
+
+    transform_dict["hojas_b4_00002_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/hojas_b4-geom.pbrt"),
+        11,
+        74_501
+    )
+    @assert length(transform_dict["hojas_b4_00002_ascii.obj"]) == 14_897
+
     println("\t...DONE: we loaded $(length(keys(transform_dict))) transforms")
 
 
@@ -2291,9 +2317,14 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     alpha_dict["hojas_a5_00001_ascii.obj"] = tex_leave_A_b_alpha
     alpha_dict["hojas_a7_00001_ascii.obj"] = tex_leave_A_b_alpha
     alpha_dict["hojas_a7_00002_ascii.obj"] = tex_leave_A_b_alpha
+    alpha_dict["hojas_b2_00001_ascii.obj"] = tex_leave_A_b_alpha
+    alpha_dict["hojas_b2_00002_ascii.obj"] = tex_leave_A_b_alpha
+    alpha_dict["hojas_b4_00001_ascii.obj"] = tex_leave_A_b_alpha
+    alpha_dict["hojas_b4_00002_ascii.obj"] = tex_leave_A_b_alpha
 
     alpha_dict["hojas_a3_00001_ascii.obj"] = tex_leave_A_c_alpha
     alpha_dict["hojas_a3_00002_ascii.obj"] = tex_leave_A_c_alpha
+    alpha_dict["hojas_b3_00001_ascii.obj"] = tex_leave_A_c_alpha
 
 
     #######################################
