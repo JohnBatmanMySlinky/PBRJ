@@ -2,7 +2,6 @@ function parse_transform(transform_string)
     # Match "Transform" followed by brackets containing numbers
     pattern = r"Transform\s*\[\s*((?:-?\d+\.?\d*\s*)+)\s*\]"
     match_result = match(pattern, transform_string)
-    
     if match_result !== nothing
         # Extract the numbers from the captured group
         numbers_str = match_result.captures[1]
@@ -15,18 +14,22 @@ function parse_transform(transform_string)
 end
 
 function parse_sanmiguel(fpath, START, END)
-    data = readlines(fpath)
     transforms = String[]
-    nlines = length(data)
     
-    for i in 1:nlines
-        if (i < START) || (i > END)
-            continue
-        end
-        
-        transform = parse_transform(data[i])
-        if transform !== nothing
-            push!(transforms, transform)
+    open(fpath, "r") do file
+        line_number = 0
+        for line in eachline(file)
+            line_number += 1
+            
+            # Skip lines outside our range
+            if (line_number < START) || (line_number > END)
+                continue
+            end
+            
+            transform = parse_transform(line)
+            if transform !== nothing
+                push!(transforms, transform)
+            end
         end
     end
     
