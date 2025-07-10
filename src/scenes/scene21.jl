@@ -2437,7 +2437,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     #######################################
     #######################################
 
-    alpha_dict = Dict{String, AbstractTexture}()
+    alpha_dict = Dict{String, String}()
 
     alpha_dict["sanmiguel_00171_ascii.obj"] = "tex_HojaSecaMask"
     alpha_dict["sanmiguel_00172_ascii.obj"] = "tex_HojaSecaMask"

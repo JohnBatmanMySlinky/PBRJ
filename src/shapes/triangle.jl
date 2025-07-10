@@ -38,7 +38,7 @@ function construct_triangle_mesh(
     uvs::Maybe{Vector{Pnt2}},
     uv_indices::Maybe{Vector{Int64}},
     
-    alpha_mask::Maybe{AbstractTexture{Float64}}
+    alpha_mask::Maybe{String}
 )
     tris = Vector{Triangle}(undef, n_triangles)
     for i in 0:(n_triangles - 1)
