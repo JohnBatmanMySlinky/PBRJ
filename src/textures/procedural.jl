@@ -8,6 +8,10 @@ struct CircleProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
     inside::T
     outside::T
     name::Maybe{String}
+
+    function CircleProceduralTexture{T}(center::Pnt2, radius::Float64, inside::T, outside::T, name::Maybe{String}=nothing)::CircleProceduralTexture{T} where T <: Union{Float64, Spectrum}
+        return new{T}(center, radius, inside, outside, name)
+    end
 end
 
 function (cpt::CircleProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
@@ -27,6 +31,10 @@ struct CornerProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
     inside::T
     outside::T
     name::Maybe{String}
+
+    function CornerProceduralTexture{T}(threshold::Float64, a::T, b::T, name::Maybe{String}=nothing)::CornerProceduralTexture{T} where T <: Union{Float64, Spectrum}
+        return new{T}(threshold, a, b, name)
+    end
 end
 
 function (cpt::CornerProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
@@ -47,10 +55,10 @@ struct Checker3DTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     b::T
     scale::Pnt3
     name::Maybe{String}
-end
 
-function Checker3DTexture{T}(a::T, b::T)::Checker3DTexture{T} where T <: Union{Float64, Spectrum}
-    return Checker3DTexture{T}(a, b, Pnt3(1,1,1), nothing)
+    function Checker3DTexture{T}(a::T, b::T, scale::Pnt3=Pnt3(1,1,1), name::Maybe{String}=nothing)::Checker3DTexture{T} where T <: Union{Float64, Spectrum}
+        return new{T}(a, b, scale, name)
+    end
 end
 
 function (ct::Checker3DTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}

@@ -2,6 +2,10 @@ struct MixAddTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     a::AbstractTexture{T}
     b::AbstractTexture{T}
     name::Maybe{String}
+
+    function MixAddTexture(a::AbstractTexture{T}, b::AbstractTexture{T}, name::Maybe{String})::AbstractTexture{T} where T <: Union{Float64, Spectrum}
+        return new{T}(a, b, name)
+    end
 end
 
 function (t::MixAddTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
@@ -16,8 +20,8 @@ struct MixDirectionTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     dir::Vec3
     name::Maybe{String}
 
-    function MixDirectionTexture(a::AbstractTexture{T}, b::AbstractTexture{T}, dir::Vec3) where T <: Union{Float64, Spectrum}
-        return new{T}(a, b, normalize(dir))
+    function MixDirectionTexture(a::AbstractTexture{T}, b::AbstractTexture{T}, dir::Vec3, name::Maybe{String})::MixDirectionTexture{T} where T <: Union{Float64, Spectrum}
+        return new{T}(a, b, normalize(dir), name)
     end
 end
 
@@ -30,6 +34,10 @@ struct MixMultTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     a::AbstractTexture{T}
     b::AbstractTexture{T}
     name::Maybe{String}
+
+    function MixMultTexture(a::AbstractTexture{T}, b::AbstractTexture{T}, dir::Vec3, name::Maybe{String})::MixMultTexture{T} where T <: Union{Float64, Spectrum}
+        return new{T}(a, b, normalize(dir), name)
+    end
 end
 
 function (t::MixMultTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}

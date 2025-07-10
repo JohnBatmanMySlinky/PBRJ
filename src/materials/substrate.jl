@@ -14,13 +14,13 @@ struct Substrate{
     name::String
 
     function Substrate(
+        name::String,
         Kd::KD=ConstantTexture(spectrum_from_float(0.5)),
         Ks::KS=ConstantTexture(spectrum_from_float(0.5)),
         u_roughness::U=ConstantTexture(0.1),
         v_roughness::V=ConstantTexture(0.1),
         bump_map::BM=nothing,
-        remap_roughness::Bool=true,
-        name::String
+        remap_roughness::Bool=true
     )::Substrate where {
         KD <: AbstractTexture{Spectrum},
         KS <: AbstractTexture{Spectrum},

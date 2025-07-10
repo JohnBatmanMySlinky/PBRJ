@@ -7,9 +7,9 @@ struct Mirror{
     name::String
 
     function Mirror(
+        name::String,
         Kr::KR=ConstantTexture(spectrum_from_float(1.0)),
-        bump_map::BM=nothing,
-        name::String
+        bump_map::BM=nothing
     )::Mirror where {
         KR <: AbstractTexture{Spectrum}, 
         BM <: Maybe{AbstractTexture{Float64}}

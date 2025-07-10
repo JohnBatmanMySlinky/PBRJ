@@ -10,10 +10,10 @@ struct Matte{
     name::String
 
     function Matte(
+        name::String,
         k::K=ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
         s::S=ConstantTexture(0.0),
-        b::B=nothing,
-        name::String
+        b::B=nothing
     )::Matte where {
         K <: AbstractTexture{Spectrum},
         S <: AbstractTexture{Float64},

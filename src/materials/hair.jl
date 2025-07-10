@@ -19,6 +19,7 @@ struct HairMaterial{
 	name::String
 	
 	function HairMaterial(
+		name::String,
 		sigma_a::SA,
 		color::C,
 		eumelanin::E,
@@ -27,7 +28,6 @@ struct HairMaterial{
 		beta_m::BM,
 		beta_n::BN,
 		alpha::A,
-		name::String
 	)::HairMaterial where {
 		SA <: Maybe{AbstractTexture{Spectrum}},
 		C <: Maybe{AbstractTexture{Spectrum}},

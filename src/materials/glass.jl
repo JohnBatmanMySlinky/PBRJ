@@ -16,14 +16,14 @@ struct Glass{
     name::String
 
     function Glass(
+        name::String,
         Kr::KR=ConstantTexture(spectrum_from_float(1.0)),
         Kt::KT=ConstantTexture(spectrum_from_float(1.0)),
         u_roughness::U=ConstantTexture(0.0),
         v_roughness::V=ConstantTexture(0.0),
         idx::I=ConstantTexture(1.5),
         bump_map::BM=nothing,
-        remap_roughness::Bool=true,
-        name::String
+        remap_roughness::Bool=true
     )::Glass where {
         KR <: AbstractTexture{Spectrum},
         KT <: AbstractTexture{Spectrum},

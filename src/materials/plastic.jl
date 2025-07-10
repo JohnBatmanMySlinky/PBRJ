@@ -17,14 +17,14 @@ struct Plastic{
     name::String
 
     function Plastic(
+        name::String,
         Kd::KD=ConstantTexture(spectrum_from_float(0.25)),
         Ks::KS=ConstantTexture(spectrum_from_float(0.25)),
         roughness::R=ConstantTexture(0.01),
         u_roughness::U=nothing,
         v_roughness::V=nothing,
         bump_map::BM=nothing,
-        remap_roughness::Bool=true,
-        name::String
+        remap_roughness::Bool=true
     )::Plastic where {
         KD <: AbstractTexture{Spectrum},
         KS <: AbstractTexture{Spectrum},

@@ -37,12 +37,13 @@ function parse_sanmiguel(fpath, START, END)
 end
 
 function init_materials!()
+    path_header = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/"
     materials = Material[]
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(0.25, 0.25, 0.25)),
         ConstantTexture(0.0),
-        nothing,
-        "mat_gray"
+        nothing
     )
     push!(materials, mat_gray)
 
@@ -51,7 +52,8 @@ function init_materials!()
 end
 
 function init_textures!()
-    textures = AbstractTextures[]
+    path_header = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/"
+    textures = AbstractTexture[]
     tex_HojaSecaMask = ImageTexture(
         UVMapping2D(),
         jmfp(path_header * "textures/sm_hoja_c_seca_Mask.png"), 
@@ -109,7 +111,7 @@ function init_textures!()
     push!(textures, tex_30)
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(textures))
-    TEXTURE_REGISTRY[] = TextureRegistry(textures, name_index)
+    ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
 end
 
 function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -1565,7 +1567,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     #######################################
     #######################################
 
-    mat_dict = Dict{String, Material}()
+    mat_dict = Dict{String, String}()
 
     mat_dict["sanmiguel_00001_ascii.obj"] = "mat_vidrio"
     mat_dict["sanmiguel_00073_ascii.obj"] = "mat_vidrio"

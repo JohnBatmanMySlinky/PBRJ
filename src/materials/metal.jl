@@ -16,14 +16,14 @@ struct Metal{
     name::String
 
     function Metal(
+        name::String,
         eta::ETA=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperN, CopperSamples)),
         k::K=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperK, CopperSamples)),
         roughness::R=ConstantTexture(0.1),
         u_roughness::U=nothing,
         v_roughness::V=nothing,
         bump_map::BM=nothing,
-        remap_roughness::Bool=true,
-        name::String
+        remap_roughness::Bool=true
     )::Metal where {
         ETA <: AbstractTexture{Spectrum},
         K <: AbstractTexture{Spectrum},

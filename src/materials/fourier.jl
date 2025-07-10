@@ -4,9 +4,9 @@ struct Fourier <: Material
     name::String
 
     function Fourier(
+        name::String,
         path::String, 
         bump_map::Maybe{AbstractTexture{Spectrum}}=nothing,
-        name::String
     )
         return new(read_fourier_bsdf_table(path), bump_map, name)
     end
