@@ -13,6 +13,7 @@ struct Glass{
     idx::I
     bump_map::BM
     remap_roughness::Bool
+    name::String
 
     function Glass(
         Kr::KR=ConstantTexture(spectrum_from_float(1.0)),
@@ -21,7 +22,8 @@ struct Glass{
         v_roughness::V=ConstantTexture(0.0),
         idx::I=ConstantTexture(1.5),
         bump_map::BM=nothing,
-        remap_roughness::Bool=true
+        remap_roughness::Bool=true,
+        name::String
     )::Glass where {
         KR <: AbstractTexture{Spectrum},
         KT <: AbstractTexture{Spectrum},
@@ -30,7 +32,7 @@ struct Glass{
         I <: AbstractTexture{Float64},
         BM <: Maybe{AbstractTexture{Float64}}
     }
-        return new{KR, KT, U, V, I, BM}(Kr, Kt, u_roughness, v_roughness, idx, bump_map, remap_roughness)
+        return new{KR, KT, U, V, I, BM}(Kr, Kt, u_roughness, v_roughness, idx, bump_map, remap_roughness, name)
     end
 end
 

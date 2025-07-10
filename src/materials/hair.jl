@@ -16,6 +16,7 @@ struct HairMaterial{
 	beta_m::BM
 	beta_n::BN
 	alpha::A
+	name::String
 	
 	function HairMaterial(
 		sigma_a::SA,
@@ -25,7 +26,8 @@ struct HairMaterial{
 		eta::ETA,
 		beta_m::BM,
 		beta_n::BN,
-		alpha::A
+		alpha::A,
+		name::String
 	)::HairMaterial where {
 		SA <: Maybe{AbstractTexture{Spectrum}},
 		C <: Maybe{AbstractTexture{Spectrum}},
@@ -57,7 +59,7 @@ struct HairMaterial{
 			alpha = ConstantTexture(2.0)
 		end
 		
-		return new{SA, C, E, P, ETA, BM, BN, A}(sigma_a, color, eumelanin, pheomelanin, eta, beta_m, beta_n, alpha)
+		return new{SA, C, E, P, ETA, BM, BN, A}(sigma_a, color, eumelanin, pheomelanin, eta, beta_m, beta_n, alpha, name)
 	end
 end
 

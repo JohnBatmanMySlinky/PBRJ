@@ -1,4 +1,4 @@
-function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore, flip_normals::Bool, alpha_mask::Maybe{AbstractTexture{Float64}})::Vector{Triangle}
+function Rectangle(MIN::Pnt2, MAX::Pnt2, k::Float64, axis::Int64, sc::ShapeCore, flip_normals::Bool, alpha_mask::Maybe{String})::Vector{Triangle}
     flip = flip_normals ? -1.0 : 1.0
     if axis == 1
         return construct_triangle_mesh(

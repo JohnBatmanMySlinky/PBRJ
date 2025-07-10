@@ -14,6 +14,7 @@ struct Plastic{
     v_roughness::V
     bump_map::BM
     remap_roughness::Bool
+    name::String
 
     function Plastic(
         Kd::KD=ConstantTexture(spectrum_from_float(0.25)),
@@ -22,7 +23,8 @@ struct Plastic{
         u_roughness::U=nothing,
         v_roughness::V=nothing,
         bump_map::BM=nothing,
-        remap_roughness::Bool=true
+        remap_roughness::Bool=true,
+        name::String
     )::Plastic where {
         KD <: AbstractTexture{Spectrum},
         KS <: AbstractTexture{Spectrum},
@@ -37,7 +39,7 @@ struct Plastic{
             @assert !(u_roughness isa Nothing) & !(v_roughness isa Nothing)
         end
         
-        return new{KD, KS, R, U, V, BM}(Kd, Ks, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
+        return new{KD, KS, R, U, V, BM}(Kd, Ks, roughness, u_roughness, v_roughness, bump_map, remap_roughness, name)
     end
 end
 

@@ -14,29 +14,32 @@ using OpenEXR
 using Roots
 using IterTools
 
-abstract type AbstractBxDF end
 abstract type AbstractBSDF end
+abstract type AbstractBxDF end
+abstract type AbstractIntegrator end
 abstract type AbstractLightDistribution end
+abstract type AbstractMajorantIterator end
+abstract type AbstractMedium end
+abstract type AbstractPhaseFunction end
 abstract type AbstractRay end
+abstract type AbstractSampler end
+abstract type AbstractTextureMapping2D end
 abstract type BVHAccel end
 abstract type Camera end
 abstract type Filter end
 abstract type Fresnel end
-abstract type AbstractIntegrator end
 abstract type Light end
 abstract type Material end
 abstract type Medium end
-abstract type AbstractSampler end
-abstract type Shape end
-abstract type ImplicitSurface <: Shape end
-abstract type SDFPrimitive <: ImplicitSurface end
-abstract type SDFOperation <: ImplicitSurface end
 abstract type MicrofacetDistribution end
 abstract type Randomizer end
-abstract type AbstractMedium end
-abstract type AbstractPhaseFunction end
-abstract type AbstractTextureMapping2D end
-abstract type AbstractMajorantIterator end
+abstract type Shape end
+
+abstract type ImplicitSurface <: Shape end
+
+abstract type SDFOperation <: ImplicitSurface end
+abstract type SDFPrimitive <: ImplicitSurface end
+
 
 # Defining some global constants
 const Radiance = Val{:Radiance}
@@ -148,6 +151,9 @@ include("reflection/microfacet.jl")
 include("reflection/bxdf.jl")
 include("reflection/hair.jl")
 include("reflection/fourier.jl")
+include("materials/registry.jl")
+const MATERIAL_REGISTRY = Ref{MaterialRegistry}()
+
 include("materials/bsdf.jl")
 include("materials/matte.jl")
 include("materials/plastic.jl")
@@ -163,6 +169,8 @@ include("textures/image.jl")
 include("textures/procedural.jl")
 include("textures/mix.jl")
 include("textures/noise.jl")
+const TEXTURE_REGISTRY = Ref{TextureRegistry}()
+
 include("lights/light.jl")
 include("lights/visibility.jl")
 include("lights/area.jl")

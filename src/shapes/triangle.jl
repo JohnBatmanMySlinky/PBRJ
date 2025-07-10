@@ -3,7 +3,7 @@ struct Triangle <: Shape
     vertices::SVector{3, Pnt3}
     normals::Maybe{SVector{3, Nml3}}
     uvs::Maybe{SVector{3, Pnt2}}
-    alpha_mask::Maybe{AbstractTexture{Float64}}
+    alpha_mask::Maybe{String}
     shading_tangent::Nothing
 
     function Triangle(
@@ -11,7 +11,7 @@ struct Triangle <: Shape
         vertices::SVector{3, Pnt3},
         normals::Maybe{SVector{3, Nml3}},
         uvs::Maybe{SVector{3, Pnt2}},
-        alpha_mask::Maybe{AbstractTexture{Float64}}
+        alpha_mask::Maybe{String}
     )
         vertices = shape_core.object_to_world.(vertices)
         if !(normals isa Nothing)

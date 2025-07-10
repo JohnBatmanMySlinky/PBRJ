@@ -22,6 +22,7 @@ struct Uber{
     opacity::O
     bump_map::BM
     remap_roughness::Bool
+    name::String
 
     function Uber(
         Kd::KD=ConstantTexture(spectrum_from_float(0.25)),
@@ -34,7 +35,8 @@ struct Uber{
         eta::E=ConstantTexture(1.5),
         opacity::O=ConstantTexture(spectrum_from_float(1.0)),
         bump_map::BM=nothing,
-        remap_roughness::Bool=true
+        remap_roughness::Bool=true,
+        name::String
     )::Uber where {
         KD <: AbstractTexture{Spectrum},
         KS <: AbstractTexture{Spectrum},
@@ -50,7 +52,8 @@ struct Uber{
         return new{KD, KS, KR, KT, R, UR, VR, E, O, BM}(
             Kd, Ks, Kr, Kt, 
             roughness, uroughness, vroughness, 
-            eta, opacity, bump_map, remap_roughness
+            eta, opacity, bump_map, 
+            remap_roughness, name
         )
     end
 end

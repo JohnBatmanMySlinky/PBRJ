@@ -7,6 +7,7 @@ struct CircleProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
     radius::Float64
     inside::T
     outside::T
+    name::Maybe{String}
 end
 
 function (cpt::CircleProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
@@ -25,6 +26,7 @@ struct CornerProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
     threshold::Float64
     inside::T
     outside::T
+    name::Maybe{String}
 end
 
 function (cpt::CornerProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
@@ -44,10 +46,11 @@ struct Checker3DTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     a::T
     b::T
     scale::Pnt3
+    name::Maybe{String}
 end
 
 function Checker3DTexture{T}(a::T, b::T)::Checker3DTexture{T} where T <: Union{Float64, Spectrum}
-    return Checker3DTexture{T}(a, b, Pnt3(1,1,1))
+    return Checker3DTexture{T}(a, b, Pnt3(1,1,1), nothing)
 end
 
 function (ct::Checker3DTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
