@@ -39,13 +39,1797 @@ end
 function init_materials!()
     path_header = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/"
     materials = Material[]
-    mat_gray = Matte(
-        "mat_gray",
-        ConstantTexture(spectrum_from_float(0.25, 0.25, 0.25)),
+
+    mat_vidrio = Glass(
+        "mat_vidrio",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    push!(materials, mat_vidrio)
+
+    mat_jardinera_1 = Matte(
+        "mat_jardinera_1",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/jardinera_1_color.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/jardinera_1_displacement_2.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    push!(materials, mat_jardinera_1)
+
+    mat_jardinera_2 = Matte(
+        "mat_jardinera_2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/fuente_piedra_01.png"),
+            false
+        ),
         ConstantTexture(0.0),
         nothing
     )
-    push!(materials, mat_gray)
+    push!(materials, mat_jardinera_2)
+    
+    mat_moldura_detalle_escalera = Matte(
+        "mat_moldura_detalle_escalera",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/cantera_naranja_liso.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_moldura_detalle_escalera)
+
+    mat_moldura_techo_arcos = Matte(
+        "mat_moldura_techo_arcos",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/moldura_volado.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_moldura_techo_arcos)
+
+    mat_moldura_techo = Matte(
+        "mat_moldura_techo",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/moldura_techo.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/moldura_techo_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    push!(materials, mat_moldura_techo)
+
+    mat_escalera = Matte(
+        "mat_escalera",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/escalera_color.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/escalera_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    push!(materials, mat_escalera)
+
+    mat_muros = Matte(
+        "mat_muros",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/pared_barro_afinado.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_muros)
+
+    mat_techos = Matte(
+        "mat_techos",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/techo.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_techos)
+
+    mat_vigas_concreto = Matte(
+        "mat_vigas_concreto",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/concreto_02.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_vigas_concreto)
+    
+    mat_moldura_volado = Matte(
+        "mat_moldura_volado",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/moldura_volado.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_moldura_volado)
+    
+    mat_losa_volados = Matte(
+        "mat_losa_volados",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/losa.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_losa_volados)
+    
+    mat_moldura_2_piso = Matte(
+        "mat_moldura_2_piso",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/moldura2piso_color.png"),
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/moldura2piso_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.003)
+        )
+    )
+    push!(materials, mat_moldura_2_piso)
+    
+    mat_piso_interior = Matte(
+        "mat_piso_interior",
+        ConstantTexture(spectrum_from_float(0.75, 0.75, 0.75)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_piso_interior)
+    
+    mat_azotea = Matte(
+        "mat_azotea",
+        ConstantTexture(spectrum_from_float(0.54902, 0.54902, 0.54902)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_azotea)
+    
+    piso_pasillos_arriba = Plastic(
+        "piso_pasillos_arriba",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/piso_rustico.png"), 
+            false
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/piso_rustico_Spec.png"), 
+                false
+            ),
+            ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0))
+        ),
+        ConstantTexture(0.005),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/piso_rustico_displace2.png"), 
+                true
+            ),
+            ConstantTexture(0.012)
+        ),
+        true
+    )
+    push!(materials, piso_pasillos_arriba)
+    
+    mat_puerta_arco = Plastic(
+        "mat_puerta_arco",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_triplay_01.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.113726, 0.113726, 0.113726)),
+        ConstantTexture(0.01),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_puerta_arco)
+    
+    mat_barandal_postes = Plastic(
+        "mat_barandal_postes",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/rust_a1.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_barandal_postes)
+    
+    mat_pared_sanMiguel_b = Matte(
+        "mat_pared_sanMiguel_b",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_a.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_b)
+    
+    mat_pared_sanMiguel_b1 = Matte(
+        "mat_pared_sanMiguel_b1",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_b1.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/muros_b1.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    push!(materials, mat_pared_sanMiguel_b1)
+    
+    mat_pared_sanMiguel_c2 = Matte(
+        "mat_pared_sanMiguel_c2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_c2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_c2)
+    
+    mat_pared_sanMiguel_f = Matte(
+        "mat_pared_sanMiguel_f",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_f.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_f)
+    
+    mat_pared_sanMiguel_e = Matte(
+        "mat_pared_sanMiguel_e",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_e.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_e)
+    
+    mat_pared_sanMiguel_d = Matte(
+        "mat_pared_sanMiguel_d",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_d.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_d)
+    
+    mat_pared_sanMiguel_g = Matte(
+        "mat_pared_sanMiguel_g",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_g.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_g)
+    
+    mat_pared_sanMiguel_h = Matte(
+        "mat_pared_sanMiguel_h",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_h.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_h)
+    
+    mat_pared_sanMiguel_i = Matte(
+        "mat_pared_sanMiguel_i",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_l.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_i)
+    
+    mat_pared_sanMiguel_j = Matte(
+        "mat_pared_sanMiguel_j",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_j.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_j)
+    
+    mat_muro_naranja_escalera = Matte(
+        "mat_muro_naranja_escalera",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_l.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_muro_naranja_escalera)
+    
+    mat_pared_sanMiguel_m = Matte(
+        "mat_pared_sanMiguel_m",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_m.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_m)
+    
+    mat_pared_sanMiguel_n = Matte(
+        "mat_pared_sanMiguel_n",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_n.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_n)
+    
+    mat_pared_sanMiguel_a = Matte(
+        "mat_pared_sanMiguel_a",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_b.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_a)
+    
+    mat_pared_sanMiguel_p2 = Matte(
+        "mat_pared_sanMiguel_p2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_p_.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_p2)
+    
+    mat_pared_sanMiguel_q = Matte(
+        "mat_pared_sanMiguel_q",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_q3.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_q)
+    
+    mat_pared_sanMiguel_q2 = Matte(
+        "mat_pared_sanMiguel_q2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_q.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_q2)
+    
+    mat_pared_sanMiguel_q4 = Matte(
+        "mat_pared_sanMiguel_q4",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_q4.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_q4)
+    
+    mat_techo_vigas = Matte(
+        "mat_techo_vigas",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/techo.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_techo_vigas)
+    
+    mat_pared_sanMiguel_qpatio = Matte(
+        "mat_pared_sanMiguel_qpatio",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_q_patio2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_qpatio)
+    
+    mat_banqueta = Matte(
+        "mat_banqueta",
+        ConstantTexture(spectrum_from_float(0.54902, 0.54902, 0.54902)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_banqueta)
+    
+    mat_tierra = Matte(
+        "mat_tierra",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/052terresable.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_tierra)
+    
+    mat_arcos_lisos_2 = Matte(
+        "mat_arcos_lisos_2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/arcos_lisos_2_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/arcos_lisos_2_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
+    push!(materials, mat_arcos_lisos_2)
+    
+    mat_arcos_lisos_3 = Matte(
+        "mat_arcos_lisos_3",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/arcos_lisos_3_color_1.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/arcos_lisos_3_bump_1.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
+    push!(materials, mat_arcos_lisos_3)
+    
+    mat_pared_sanMiguel_b2 = Matte(
+        "mat_pared_sanMiguel_b2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_b2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_b2)
+    
+    mat_vigas_techo_b = Plastic(
+        "mat_vigas_techo_b",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_rustica_2.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0431373, 0.0431373, 0.0431373)),
+        ConstantTexture(0.01),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_vigas_techo_b)
+    
+    mat_vigas_techo_a = Matte(
+        "mat_vigas_techo_a",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_rustica_2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_vigas_techo_a)
+    
+    mat_pared_sanMiguel_k = Matte(
+        "mat_pared_sanMiguel_k",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/muros_k.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_sanMiguel_k)
+    
+    mat_piso_patio_exterior_concreto = Matte(
+        "mat_piso_patio_exterior_concreto",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/concreto_01.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_piso_patio_exterior_concreto)
+    
+    mat_vigas_volados = Matte(
+        "mat_vigas_volados",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Vigas_A2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/vigas_a2_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    push!(materials, mat_vigas_volados)
+    
+    mat_techos_2 = Matte(
+        "mat_techos_2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/techo_01.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_techos_2)
+    
+    mat_piso_patio_exterior = Matte(
+        "mat_piso_patio_exterior",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/piso_patio_exterior.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/piso_patio_exterior_displace_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.02)
+        )
+    )
+    push!(materials, mat_piso_patio_exterior)
+    
+    mat_calle = Matte(
+        "mat_calle",
+        ConstantTexture(spectrum_from_float(0.54902, 0.54902, 0.54902)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_calle)
+    
+    mat_arco_frente = Matte(
+        "mat_arco_frente",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/arco_frente.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/arco_frente_displace_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.002)
+        )
+    )
+    push!(materials, mat_arco_frente)
+    
+    mat_puerta_agarradera01 = Plastic(
+        "mat_puerta_agarradera01",
+        ConstantTexture(spectrum_from_float(0.337255, 0.286275, 0.223529)),
+        ConstantTexture(spectrum_from_float(0.501961, 0.443137, 0.372549)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_puerta_agarradera01)
+    
+    mat_pintura_15 = Matte(
+        "mat_pintura_15",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7785.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_15)
+    
+    mat_pintura_1 = Matte(
+        "mat_pintura_1",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/0001_carros.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_1)
+    
+    mat_pintura_2 = Matte(
+        "mat_pintura_2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7815.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_2)
+    
+    mat_pintura_3 = Matte(
+        "mat_pintura_3",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7812.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_3)
+    
+    mat_pintura_12 = Matte(
+        "mat_pintura_12",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/027_Cola Caballo 06-30-1997.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_12)
+    
+    mat_pintura_5 = Matte(
+        "mat_pintura_5",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7812.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_5)
+    
+    mat_pintura_6 = Matte(
+        "mat_pintura_6",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7843.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_6)
+    
+    mat_pintura_7 = Matte(
+        "mat_pintura_7",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7785.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_7)
+    
+    mat_pintura_8 = Matte(
+        "mat_pintura_8",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7758.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_8)
+    
+    mat_pintura_9 = Matte(
+        "mat_pintura_9",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7843.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_9)
+    
+    mat_pintura_10 = Matte(
+        "mat_pintura_10",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_10)
+    
+    mat_pintura_11 = Matte(
+        "mat_pintura_11",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7768.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_11)
+    
+    mat_pintura_4 = Matte(
+        "mat_pintura_4",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_4)
+    
+    mat_pintura_13 = Matte(
+        "mat_pintura_13",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_13)
+    
+    mat_pintura_14 = Matte(
+        "mat_pintura_14",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pintura_14)
+    
+    mat_pintura_marcos = Plastic(
+        "mat_pintura_marcos",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_marcos.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.156863, 0.156863, 0.156863)),
+        ConstantTexture(0.001),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_pintura_marcos)
+    
+    mat_postes_barandal = Matte(
+        "mat_postes_barandal",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/postes_barandal_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/postes_barandal_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
+    push!(materials, mat_postes_barandal)
+    
+    mat_piso_patio_exterior2 = Matte(
+        "mat_piso_patio_exterior2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/piso_patio_exterior2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_piso_patio_exterior2)
+    
+    mat_sun_light = Matte(
+        "mat_sun_light",
+        ConstantTexture(spectrum_from_float(5.0, 4.1960802078, 2.4509799480)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_sun_light)
+    
+    mat_barandal_detalle_extremos = Plastic(
+        "mat_barandal_detalle_extremos",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/rust_a1.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.01),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_barandal_detalle_extremos)
+    
+    mat_madera_barandal = Plastic(
+        "mat_madera_barandal",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_barandal_esc_2.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_madera_barandal)
+    
+    mat_pared_calle = Matte(
+        "mat_pared_calle",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/pared_calle.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pared_calle)
+    
+    mat_candil_2_foco = Glass(
+        "mat_candil_2_foco",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    push!(materials, mat_candil_2_foco)
+    
+    mat_detMoldura_06 = Matte(
+        "mat_detMoldura_06",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_06_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_06_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_detMoldura_06)
+    
+    mat_detMoldura_05 = Matte(
+        "mat_detMoldura_05",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_05_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_05_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_detMoldura_05)
+    
+    mat_detMoldura_04 = Matte(
+        "mat_detMoldura_04",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_04_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_04_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_detMoldura_04)
+    
+    mat_detMoldura_03 = Matte(
+        "mat_detMoldura_03",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_03_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_03_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_detMoldura_03)
+    
+    mat_detMoldura_02 = Matte(
+        "mat_detMoldura_02",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_02_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_02_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_detMoldura_02)
+    
+    mat_detMoldura_01 = Matte(
+        "mat_detMoldura_01",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/detmoldura_01_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/detmoldura_01_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_detMoldura_01)
+    
+    mat_detalle_escalera = Matte(
+        "mat_detalle_escalera",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/rust_a1.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_detalle_escalera)
+    
+    mat_marco_puerta_1 = Matte(
+        "mat_marco_puerta_1",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/marco_puerta_1.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/marco_puerta_1_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_marco_puerta_1)
+    
+    mat_marco_puerta = Plastic(
+        "mat_marco_puerta",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_barandal_esc_2.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/madera_barandal_esc_2_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        ),
+        true
+    )
+    push!(materials, mat_marco_puerta)
+    
+    mat_mold_arco_01 = Matte(
+        "mat_mold_arco_01",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/mold_arco_01_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/mold_arco_01_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    push!(materials, mat_mold_arco_01)
+    
+    mat_mold_terraza = Matte(
+        "mat_mold_terraza",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/molduraterraza__color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/molduraterraza_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    push!(materials, mat_mold_terraza)
+    
+    mat_puerta_agarradera = Matte(
+        "mat_puerta_agarradera",
+        ConstantTexture(spectrum_from_float(0.392157, 0.368627, 0.341176)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_puerta_agarradera)
+    
+    mat_puerta_arco = Plastic(
+        "mat_puerta_arco",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/madera_triplay_01.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.113726, 0.113726, 0.113726)),
+	    ConstantTexture(0.01),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_puerta_arco)
+    
+    mat_puerta_01 = Plastic(
+        "mat_puerta_01",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/puerta.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0431373, 0.0431373, 0.0431373)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/puerta_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        ),
+        true,
+    )
+    push!(materials, mat_puerta_01)
+    
+    mat_columna_a1 = Matte(
+        "mat_columna_a1",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_a_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_a_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    push!(materials, mat_columna_a1)
+    
+    mat_columna_a2 = Matte(
+        "mat_columna_a2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_a_color_2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_a_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    push!(materials, mat_columna_a2)
+    
+    mat_columna_a3 = Matte(
+        "mat_columna_a3",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_a_color_3.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_a_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    push!(materials, mat_columna_a3)
+    
+    mat_columna_b1 = Matte(
+        "mat_columna_b1",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_b_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_b_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
+    push!(materials, mat_columna_b1)
+    
+    mat_columna_b3 = Matte(
+        "mat_columna_b3",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_b_color_3.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_b_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
+    push!(materials, mat_columna_b3)
+    
+    mat_columna_b2 = Matte(
+        "mat_columna_b2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/columna_b_color_2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/columna_b_displacement_3_inv.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        )
+    )
+    push!(materials, mat_columna_b2)
+    
+    mat_light_patio06_mat01 = Matte(
+        "mat_light_patio06_mat01",
+        ConstantTexture(spectrum_from_float(4.4705901146, 4.9411802292, 5.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_light_patio06_mat01)
+    
+    mat_negro = Matte(
+        "mat_negro",
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_negro)
+    
+    mat_candil_2_glass = Glass(
+        "mat_candil_2_glass",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    push!(materials, mat_candil_2_glass)
+    
+    mat_agua = Glass(
+        "mat_agua",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.33),
+        nothing,
+        true
+    )
+    push!(materials, mat_agua)
+    
+    mat_fuente_centro = Matte(
+        "mat_fuente_centro",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/fuente_piedra_02.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_fuente_centro)
+    
+    mat_fuente_fondo = Plastic(
+        "mat_fuente_fondo",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/fuente_azulejo.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_fuente_fondo)
+    
+    mat_fuente = Matte(
+        "mat_fuente",
+        ConstantTexture(spectrum_from_float(0.75, 0.75, 0.75)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_fuente)
+    
+    mat_barandal_detalle_centro = Plastic(
+        "mat_barandal_detalle_centro",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/rust_detalle.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/rust_detalle_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.015)
+        ),
+        true
+    )
+    push!(materials, mat_barandal_detalle_centro)
+    
+    mat_candil_cadena = Plastic(
+        "mat_candil_cadena",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/fierro_b.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.313726, 0.313726, 0.313726)),
+        ConstantTexture(0.05),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_candil_cadena)
+    
+    mat_candil_metal = Plastic(
+        "mat_candil_metal",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/fierro_b.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_candil_metal)
+    
+    mat_fake_foco = Glass(
+        "mat_fake_foco",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    push!(materials, mat_fake_foco)
+    
+    mat_candil_foco = Glass(
+        "mat_candil_foco",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    push!(materials, mat_candil_foco)
+    
+    mat_candil_madera = Plastic(
+        "mat_candil_madera",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/candil_madera.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.164706, 0.164706, 0.164706)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_candil_madera)
+    
+    mat_candil_2 = Plastic(
+        "mat_candil_2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/metal_viejo_2.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.301961, 0.301961, 0.301961)),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/metal_viejo_2.png"), 
+                true
+            ),
+            ConstantTexture(0.1)
+        ),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/metal_viejo_2.png"), 
+                true
+            ),
+            ConstantTexture(0.002)
+        ),
+        true
+    )
+    push!(materials, mat_candil_2)
+    
+    mat_candil_2_negro = Plastic(
+        "mat_candil_2_negro",
+        ConstantTexture(spectrum_from_float(0.0588235, 0.0588235, 0.0588235)),
+        ConstantTexture(spectrum_from_float(0.301961, 0.301961, 0.301961)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_candil_2_negro)
+    
+    mat_escurridera = Matte(
+        "mat_escurridera",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/escurridera_color.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/escurridera_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_escurridera)
+    
+    mat_hoja_seca_2C = Matte(
+        "mat_hoja_seca_2C",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_leaf_seca_03b.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_hoja_seca_2C)
+    
+    mat_hoja_seca_2B = Matte(
+        "mat_hoja_seca_2B",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_leaf_seca_02b.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_hoja_seca_2B)
+    
+    mat_hoja_seca_2A = Matte(
+        "mat_hoja_seca_2A",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_hoja_c_seca.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_hoja_seca_2A)
+    
+    mat_teja = Matte(
+        "mat_teja",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Barro_2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_teja)
+    
+    mat_tronco = Matte(
+        "mat_tronco",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_tronco.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/sm_tronco_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.02)
+        )
+    )
+    push!(materials, mat_tronco)
+    
+    mat_leave_A_a = Matte(
+        "mat_leave_A_a",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_leaf_02a.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/sm_leaf_02_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_leave_A_a)
+    
+    mat_leave_A_b = Matte(
+        "mat_leave_A_b",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_leaf_02b.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/sm_leaf_02_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_leave_A_b)
+    
+    mat_leave_A_c = Matte(
+        "mat_leave_A_c",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/sm_leaf_03a.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/sm_leaf_02_bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_leave_A_c)
+    
+    mat_hoja_verde_b = Matte(
+        "mat_hoja_verde_b",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/l33-upper.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/l33-upper.png"), 
+                true
+            ),
+            ConstantTexture(0.1)
+        )
+    )
+    push!(materials, mat_hoja_verde_b)
+    
+    mat_hoja_verde_a = Matte(
+        "mat_hoja_verde_a",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/l37-upper.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/l37-upper.png"), 
+                true
+            ),
+            ConstantTexture(0.1)
+        )
+    )
+    push!(materials, mat_hoja_verde_a)
+    
+    mat_hojas_rojas_top = Matte(
+        "mat_hojas_rojas_top",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/l04-upper.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/l04-upper.png"), 
+                true
+            ),
+            ConstantTexture(0.1)
+        )
+    )
+    push!(materials, mat_hojas_rojas_top)
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
@@ -127,1429 +1911,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     #######################################
     println("LOADING MATERIALS")
     init_materials!()
-    # mat_vidrio = Glass(
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(1.5),
-    #     nothing,
-    #     true
-    # )
-    # mat_jardinera_1 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/jardinera_1_color.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/jardinera_1_displacement_2.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     )
-    # )
-    # mat_jardinera_2 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/fuente_piedra_01.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_moldura_detalle_escalera = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/cantera_naranja_liso.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_moldura_techo_arcos = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/moldura_volado.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_moldura_techo = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/moldura_techo.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/moldura_techo_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     )
-    # )
-    # mat_escalera = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/escalera_color.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/escalera_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     )
-    # )
-    # mat_muros = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/pared_barro_afinado.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_techos = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/techo.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_vigas_concreto = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/concreto_02.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_moldura_volado = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/moldura_volado.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_losa_volados = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/losa.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_moldura_2_piso = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/moldura2piso_color.png"),
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/moldura2piso_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.003)
-    #     )
-    # )
-    # mat_piso_interior = Matte(
-    #     ConstantTexture(spectrum_from_float(0.75, 0.75, 0.75)),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_azotea = Matte(
-    #     ConstantTexture(spectrum_from_float(0.54902, 0.54902, 0.54902)),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # piso_pasillos_arriba = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/piso_rustico.png"), 
-    #         false
-    #     ),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/piso_rustico_Spec.png"), 
-    #             false
-    #         ),
-    #         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0))
-    #     ),
-    #     ConstantTexture(0.005),
-    #     nothing,
-    #     nothing,
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/piso_rustico_displace2.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.012)
-    #     ),
-    #     true
-    # )
-    # mat_puerta_arco = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/madera_triplay_01.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.113726, 0.113726, 0.113726)),
-    #     ConstantTexture(0.01),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_barandal_postes = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/rust_a1.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-    #     ConstantTexture(0.0),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_pared_sanMiguel_b = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_a.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_b1 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_b1.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/muros_b1.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     )
-    # )
-    # mat_pared_sanMiguel_c2 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_c2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_f = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_f.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_e = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_e.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_d = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_d.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_g = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_g.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_h = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_h.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_i = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_l.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_j = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_j.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_muro_naranja_escalera = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_l.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_m = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_m.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_n = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_n.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_a = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_b.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_p2 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_p_.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_q = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_q3.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_q2 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_q.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_q4 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_q4.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_techo_vigas = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/techo.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pared_sanMiguel_qpatio = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_q_patio2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_banqueta = Matte(
-    #     ConstantTexture(spectrum_from_float(0.54902, 0.54902, 0.54902)),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_tierra = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/052terresable.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_arcos_lisos_2 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/arcos_lisos_2_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/arcos_lisos_2_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.015)
-    #     )
-    # )
-    # mat_arcos_lisos_3 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/arcos_lisos_3_color_1.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/arcos_lisos_3_bump_1.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.015)
-    #     )
-    # )
-    # mat_pared_sanMiguel_b2 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_b2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_vigas_techo_b = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/madera_rustica_2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.0431373, 0.0431373, 0.0431373)),
-    #     ConstantTexture(0.01),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_vigas_techo_a = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/madera_rustica_2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # ) 
-    # mat_pared_sanMiguel_k = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/muros_k.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_piso_patio_exterior_concreto = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/concreto_01.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_vigas_volados = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/Vigas_A2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/vigas_a2_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     )
-    # )
-    # mat_techos_2 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/techo_01.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_piso_patio_exterior = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/piso_patio_exterior.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/piso_patio_exterior_displace_inv.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.02)
-    #     )
-    # )
-    # mat_calle = Matte(
-    #     ConstantTexture(spectrum_from_float(0.54902, 0.54902, 0.54902)),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_arco_frente = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/arco_frente.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/arco_frente_displace_inv.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.002)
-    #     )
-    # )
-    # mat_puerta_agarradera01 = Plastic(
-    #     ConstantTexture(spectrum_from_float(0.337255, 0.286275, 0.223529)),
-    #     ConstantTexture(spectrum_from_float(0.501961, 0.443137, 0.372549)),
-    #     ConstantTexture(0.1),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_pintura_15 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7785.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_1 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/0001_carros.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_2 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7815.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_3 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7812.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_12 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/027_Cola Caballo 06-30-1997.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_5 = Matte(
-        
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7812.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_6 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7843.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_7 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7785.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_8 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7758.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_9 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7843.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_10 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_11 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7768.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_4 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_13 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_14 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/D30_Smiguel_2003_7833.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_pintura_marcos = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/madera_marcos.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.156863, 0.156863, 0.156863)),
-    #     ConstantTexture(0.001),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_postes_barandal = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/postes_barandal_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/postes_barandal_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.015)
-    #     )
-    # )
-    # mat_piso_patio_exterior2 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/piso_patio_exterior2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_sun_light = Matte(
-    #     ConstantTexture(spectrum_from_float(5.0, 4.1960802078, 2.4509799480)),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_barandal_detalle_extremos = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/rust_a1.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-    #     ConstantTexture(0.01),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_madera_barandal = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/madera_barandal_esc_2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-    #     ConstantTexture(0.1),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_pared_calle = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/pared_calle.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_candil_2_foco = Glass(
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(1.5),
-    #     nothing,
-    #     true
-    # )
-    # mat_detMoldura_06 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/detmoldura_06_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/detmoldura_06_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.01)
-    #     )
-    # )
-    # mat_detMoldura_05 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/detmoldura_05_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/detmoldura_05_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.01)
-    #     )
-    # )
-    # mat_detMoldura_04 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/detmoldura_04_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/detmoldura_04_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.01)
-    #     )
-    # )
-    # mat_detMoldura_03 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/detmoldura_03_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/detmoldura_03_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.01)
-    #     )
-    # )
-    # mat_detMoldura_02 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/detmoldura_02_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/detmoldura_02_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.01)
-    #     )
-    # )
-    # mat_detMoldura_01 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/detmoldura_01_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/detmoldura_01_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.01)
-    #     )
-    # )
-    # mat_detalle_escalera = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/rust_a1.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_marco_puerta_1 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/marco_puerta_1.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/marco_puerta_1_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.01)
-    #     )
-    # )
-    # mat_marco_puerta = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/madera_barandal_esc_2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-    #     ConstantTexture(0.1),
-    #     nothing,
-    #     nothing,
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/madera_barandal_esc_2_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     ),
-    #     true
-    # )
-    # mat_mold_arco_01 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/mold_arco_01_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/mold_arco_01_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     )
-    # )
-    # mat_mold_terraza = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/molduraterraza__color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/molduraterraza_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     )
-    # )
-    # mat_puerta_agarradera = Matte(
-    #     ConstantTexture(spectrum_from_float(0.392157, 0.368627, 0.341176)),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_puerta_arco = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/madera_triplay_01.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.113726, 0.113726, 0.113726)),
-	#     ConstantTexture(0.01),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_puerta_01 = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/puerta.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.0431373, 0.0431373, 0.0431373)),
-    #     ConstantTexture(0.1),
-    #     nothing,
-    #     nothing,
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/puerta_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     ),
-    #     true,
-    # )
-    # mat_columna_a1 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/columna_a_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/columna_a_displacement_3_inv.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     )
-    # )
-    # mat_columna_a2 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/columna_a_color_2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/columna_a_displacement_3_inv.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     )
-    # )
-    # mat_columna_a3 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/columna_a_color_3.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/columna_a_displacement_3_inv.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.001)
-    #     )
-    # )
-    # mat_columna_b1 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/columna_b_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/columna_b_displacement_3_inv.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.015)
-    #     )
-    # )
-    # mat_columna_b3 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/columna_b_color_3.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/columna_b_displacement_3_inv.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.015)
-    #     )
-    # )
-    # mat_columna_b2 = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/columna_b_color_2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/columna_b_displacement_3_inv.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.015)
-    #     )
-    # )
-    # mat_light_patio06_mat01 = Matte(
-    #     ConstantTexture(spectrum_from_float(4.4705901146, 4.9411802292, 5.0)),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_negro = Matte(
-    #     ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_candil_2_glass = Glass(
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(1.5),
-    #     nothing,
-    #     true
-    # )
-    # mat_agua = Glass(
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(1.33),
-    #     nothing,
-    #     true
-    # )
-    # mat_fuente_centro = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/fuente_piedra_02.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_fuente_fondo = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/fuente_azulejo.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-    #     ConstantTexture(0.0),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_fuente = Matte(
-    #     ConstantTexture(spectrum_from_float(0.75, 0.75, 0.75)),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_barandal_detalle_centro = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/rust_detalle.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-    #     ConstantTexture(0.1),
-    #     nothing,
-    #     nothing,
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/rust_detalle_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.015)
-    #     ),
-    #     true
-    # )
-    # mat_candil_cadena = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/fierro_b.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.313726, 0.313726, 0.313726)),
-    #     ConstantTexture(0.05),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_candil_metal = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/fierro_b.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
-    #     ConstantTexture(0.1),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_fake_foco = Glass(
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(1.5),
-    #     nothing,
-    #     true
-    # )
-    # mat_candil_foco = Glass(
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(0.0),
-    #     ConstantTexture(1.5),
-    #     nothing,
-    #     true
-    # )
-    # mat_candil_madera = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/candil_madera.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.164706, 0.164706, 0.164706)),
-    #     ConstantTexture(0.1),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_candil_2 = Plastic(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/metal_viejo_2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(spectrum_from_float(0.301961, 0.301961, 0.301961)),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/metal_viejo_2.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.1)
-    #     ),
-    #     nothing,
-    #     nothing,
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/metal_viejo_2.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.002)
-    #     ),
-    #     true
-    # )
-    # mat_candil_2_negro = Plastic(
-    #     ConstantTexture(spectrum_from_float(0.0588235, 0.0588235, 0.0588235)),
-    #     ConstantTexture(spectrum_from_float(0.301961, 0.301961, 0.301961)),
-    #     ConstantTexture(0.1),
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     true
-    # )
-    # mat_escurridera = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/escurridera_color.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/escurridera_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.01)
-    #     )
-    # )
-    # mat_hoja_seca_2C = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/sm_leaf_seca_03b.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_hoja_seca_2B = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/sm_leaf_seca_02b.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_hoja_seca_2A = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/sm_hoja_c_seca.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_teja = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/Barro_2.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     nothing
-    # )
-    # mat_tronco = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/sm_tronco.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/sm_tronco_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.02)
-    #     )
-    # )
-    # mat_leave_A_a = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/sm_leaf_02a.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/sm_leaf_02_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.01)
-    #     )
-    # )
-    # mat_leave_A_b = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/sm_leaf_02b.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/sm_leaf_02_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.01)
-    #     )
-    # )
-    # mat_leave_A_c = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/sm_leaf_03a.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/sm_leaf_02_bump.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.01)
-    #     )
-    # )
-    # mat_hoja_verde_b = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/l33-upper.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/l33-upper.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.1)
-    #     )
-    # )
-    # mat_hoja_verde_a = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/l37-upper.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/l37-upper.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.1)
-    #     )
-    # )
-    # mat_hojas_rojas_top = Matte(
-    #     ImageTexture(
-    #         UVMapping2D(),
-    #         jmfp(path_header * "textures/l04-upper.png"), 
-    #         false
-    #     ),
-    #     ConstantTexture(0.0),
-    #     MixMultTexture(
-    #         ImageTexture(
-    #             UVMapping2D(),
-    #             jmfp(path_header * "textures/l04-upper.png"), 
-    #             true
-    #         ),
-    #         ConstantTexture(0.1)
-    #     )
-    # )
+    
 
 
     #######################################
