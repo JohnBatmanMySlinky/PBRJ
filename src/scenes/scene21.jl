@@ -1831,6 +1831,57 @@ function init_materials!()
     )
     push!(materials, mat_hojas_rojas_top)
 
+    mat_forja_macetas = Plastic(
+        "mat_forja_macetas",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Forja_Macetas.png"), 
+            false
+        ),
+        ConstantTexture(0.164706, 0.164706, 0.164706),
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Forja_Macetas_bump.png"), 
+            true
+        ),
+        nothing,
+        nothing,
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Forja_Macetas_bump.png"), 
+            true
+        ),
+        true
+    )
+    push!(materials, mat_forja_macetas)
+
+    mat_maceta_A = Matte(
+        "mat_maceta_A",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Maceta_A_Color.png"), 
+            false
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_A_Bump.png"), 
+                true
+            ),
+            ConstantTexture(40.0)
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_A_Bump.png"), 
+                true
+            ),
+            ConstantTexture(0.005)
+        )
+    )
+    push!(materials, mat_maceta_A)
+
+
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 end
@@ -2321,6 +2372,16 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     
     mat_dict["enredadera_00004_ascii.obj"] = "mat_hojas_rojas_top"
 
+    mat_dict["macetas_00001_ascii.obj"] = "mat_forja_macetas"
+    mat_dict["macetas_00002_ascii.obj"] = "mat_forja_macetas"
+    mat_dict["macetas_00010_ascii.obj"] = "mat_forja_macetas"
+    mat_dict["macetas_00011_ascii.obj"] = "mat_forja_macetas"
+    mat_dict["macetas_00012_ascii.obj"] = "mat_forja_macetas"
+    mat_dict["macetas_00013_ascii.obj"] = "mat_forja_macetas"
+
+    mat_dict["macetas_00003_ascii.obj"] = "mat_maceta_A"
+    
+
 
     println("\t...DONE: we loaded $(length(keys(mat_dict))) materials")
 
@@ -2789,6 +2850,62 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         150_059
     )
     @assert length(transform_dict["enredadera_00004_ascii.obj"]) == 5_002
+
+    transform_dict["macetas_00001_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        6,
+        224
+    )
+    @assert length(transform_dict["macetas_00001_ascii.obj"]) == 43
+
+    transform_dict["macetas_00002_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        227,
+        340
+    )
+    @assert length(transform_dict["macetas_00002_ascii.obj"]) == 22
+
+    transform_dict["macetas_00003_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        342,
+        436
+    )
+    @assert length(transform_dict["macetas_00003_ascii.obj"]) == 18
+
+    transform_dict["macetas_00010_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        734,
+        1_063
+    )
+    @assert length(transform_dict["macetas_00010_ascii.obj"]) == 65
+
+    transform_dict["macetas_00011_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        1_066,
+        1_394
+    )
+    @assert length(transform_dict["macetas_00011_ascii.obj"]) == 65
+
+    transform_dict["macetas_00012_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        1_397,
+        1_725
+    )
+    @assert length(transform_dict["macetas_00012_ascii.obj"]) == 65
+
+    transform_dict["macetas_00013_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        1_728,
+        1_816
+    )
+    @assert length(transform_dict["macetas_00013_ascii.obj"]) == 17
+
+    transform_dict["macetas_00014_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        1_819,
+        1_907
+    )
+    @assert length(transform_dict["macetas_00014_ascii.obj"]) == 17
 
     println("\t...DONE: we loaded $(length(keys(transform_dict))) transforms")
 
