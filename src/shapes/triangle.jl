@@ -202,19 +202,21 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     # Test intersection against alpha texture, if present
     if !(tri.alpha_mask isa Nothing)
         si = InstantiateSurfaceInteraction(
-                phit,
-                0.0,
-                Vec3(1,1,1),
-                uvhit,
-                Vec3(1,1,1),
-                Vec3(1,1,1),
-                Nml3(1,1,1),
-                Nml3(1,1,1),
-                tri,
-                nothing,
-                nothing
-            )
-        if tri.alpha_mask(si) == spectrum_from_float(1.0, 1.0, 1.0)
+            phit,
+            0.0,
+            Vec3(1,1,1),
+            uvhit,
+            Vec3(1,1,1),
+            Vec3(1,1,1),
+            Nml3(1,1,1),
+            Nml3(1,1,1),
+            tri,
+            nothing,
+            nothing
+        )
+        alpha_mask = get_texture(tri.alpha_mask)
+        
+        if alpha_mask(si) == spectrum_from_float(1.0, 1.0, 1.0)
             return false, 0.0, si
         end
     end
