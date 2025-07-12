@@ -1838,7 +1838,7 @@ function init_materials!()
             jmfp(path_header * "textures/Forja_Macetas.png"), 
             false
         ),
-        ConstantTexture(0.164706, 0.164706, 0.164706),
+        ConstantTexture(spectrum_from_float(0.164706, 0.164706, 0.164706)),
         ImageTexture(
             UVMapping2D(),
             jmfp(path_header * "textures/Forja_Macetas_bump.png"), 
@@ -1880,6 +1880,162 @@ function init_materials!()
         )
     )
     push!(materials, mat_maceta_A)
+
+    mat_maceta_A2 = Matte(
+        "mat_maceta_A2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Maceta_A2_Color.png"), 
+            false
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_A_Bump.png"), 
+                true
+            ),
+            ConstantTexture(30.0)
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_A_Bump.png"), 
+                true
+            ),
+            ConstantTexture(0.005)
+        )
+    )
+    push!(materials, mat_maceta_A2)
+
+    mat_maceta_B = Matte(
+        "mat_maceta_B",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Maceta_B_Color.png"), 
+            false
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_B_Bump.png"), 
+                true
+            ),
+            ConstantTexture(30.0)
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_B_Bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        )
+    )
+    push!(materials, mat_maceta_B)
+
+    mat_maceta_B2 = Matte(
+        "mat_maceta_B2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Maceta_B2_Color.png"), 
+            false
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_B_Bump.png"), 
+                true
+            ),
+            ConstantTexture(35.0)
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_B_Bump.png"), 
+                true
+            ),
+            ConstantTexture(0.005)
+        )
+    )
+    push!(materials, mat_maceta_B2)
+
+    mat_maceta_C = Matte(
+        "mat_maceta_C",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Maceta_C_Color.png"), 
+            false
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_C_Bump.png"), 
+                true
+            ),
+            ConstantTexture(30.0)
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_C_Bump.png"), 
+                true
+            ),
+            ConstantTexture(0.005)
+        )
+    )
+    push!(materials, mat_maceta_C)
+
+    mat_maceta_C2 = Matte(
+        "mat_maceta_C2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Maceta_C2_Color.png"), 
+            false
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_C_Bump.png"), 
+                true
+            ),
+            ConstantTexture(40.0)
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_C_Bump.png"), 
+                true
+            ),
+            ConstantTexture(0.02)
+        )
+    )
+    push!(materials, mat_maceta_C2)
+
+    mat_maceta_D2 = Matte(
+        "mat_maceta_D2",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Maceta_D2_Color_0.png"), 
+            false
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_D_Bump_0.png"), 
+                true
+            ),
+            ConstantTexture(20.0)
+        ),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Maceta_D_Bump_0.png"), 
+                true
+            ),
+            ConstantTexture(0.005)
+        )
+    )
+    push!(materials, mat_maceta_D2)
 
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
@@ -2380,6 +2536,18 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["macetas_00013_ascii.obj"] = "mat_forja_macetas"
 
     mat_dict["macetas_00003_ascii.obj"] = "mat_maceta_A"
+
+    mat_dict["macetas_00004_ascii.obj"] = "mat_maceta_A2"
+
+    mat_dict["macetas_00005_ascii.obj"] = "mat_maceta_B"
+
+    mat_dict["macetas_00006_ascii.obj"] = "mat_maceta_B2"
+
+    mat_dict["macetas_00007_ascii.obj"] = "mat_maceta_C"
+
+    mat_dict["macetas_00008_ascii.obj"] = "mat_maceta_C2"
+
+    mat_dict["macetas_00009_ascii.obj"] = "mat_maceta_D2"
     
 
 
@@ -2871,6 +3039,48 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         436
     )
     @assert length(transform_dict["macetas_00003_ascii.obj"]) == 18
+
+    transform_dict["macetas_00004_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        438,
+        457
+    )
+    @assert length(transform_dict["macetas_00004_ascii.obj"]) == 3
+
+    transform_dict["macetas_00005_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        460,
+        558
+    )
+    @assert length(transform_dict["macetas_00005_ascii.obj"]) == 19
+
+    transform_dict["macetas_00006_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        561,
+        579
+    )
+    @assert length(transform_dict["macetas_00006_ascii.obj"]) == 3
+
+    transform_dict["macetas_00007_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        581,
+        600
+    )
+    @assert length(transform_dict["macetas_00007_ascii.obj"]) == 3
+
+    transform_dict["macetas_00008_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        603,
+        631
+    )
+    @assert length(transform_dict["macetas_00008_ascii.obj"]) == 5
+
+    transform_dict["macetas_00009_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/macetas-geom.pbrt"),
+        634,
+        732
+    )
+    @assert length(transform_dict["macetas_00009_ascii.obj"]) == 19
 
     transform_dict["macetas_00010_ascii.obj"] = parse_sanmiguel(
         jmfp(path_header * "geometry/macetas-geom.pbrt"),
