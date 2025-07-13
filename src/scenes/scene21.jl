@@ -2037,6 +2037,210 @@ function init_materials!()
     )
     push!(materials, mat_maceta_D2)
 
+    mat_plato_A = Plastic(
+        "mat_plato_A",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/plato_a.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.129412, 0.129412, 0.129412)),
+        ConstantTexture(0.005),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_plato_A)
+
+    mat_individual_verde = Plastic(
+        "mat_individual_verde",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/individual_b.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_individual_verde)
+
+    mat_cenicero = Plastic(
+        "mat_cenicero",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/cenicero.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.215686, 0.215686, 0.215686)),
+        ConstantTexture(0.002),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_cenicero)
+
+    mat_base_vera_color = Plastic(
+        "mat_base_vera_color",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/ceramic_tile.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_base_vera_color)
+
+    mat_vela = Plastic(
+        "mat_vela",
+        ConstantTexture(spectrum_from_float(0.776471, 0.776471, 0.776471)),
+        ConstantTexture(spectrum_from_float(0.321569, 0.321569, 0.321569)),
+        ConstantTexture(0.8),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_vela)
+
+    mat_vela_mecha = Matte(
+        "mat_vela_mecha",
+        ConstantTexture(spectrum_from_float(0.121569, 0.113726, 0.101961)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_vela_mecha)
+
+    mat_pimienta = Matte(
+        "mat_pimienta",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/PITTED.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/PITTED.png"), 
+                true
+            ),
+            ConstantTexture(0.8)
+        )
+    )
+    push!(materials, mat_pimienta)
+
+    mat_cromo = Plastic(
+        "mat_cromo",
+        ConstantTexture(spectrum_from_float(0.0862745, 0.0823529, 0.0745098)),
+        ConstantTexture(spectrum_from_float(0.898039, 0.807843, 0.709804)),
+        ConstantTexture(0.002),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_cromo)
+
+    mat_sal = Matte(
+        "mat_sal",
+        ConstantTexture(spectrum_from_float(0.776471, 0.74902, 0.709804)),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/PITTED.png"), 
+                true
+            ),
+            ConstantTexture(0.2)
+        )
+    )
+    push!(materials, mat_sal)
+
+    mat_plastico_cubiertos = Glass(
+        "mat_plastico_cubiertos",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(0.694118, 0.850981, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    push!(materials, mat_plastico_cubiertos)
+
+    mat_copas = Glass(
+        "mat_copas",
+        ConstantTexture(spectrum_from_float(0.545098, 0.545098, 0.545098)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    push!(materials, mat_copas)
+
+    mat_vidriosalero = Glass(
+        "mat_vidriosalero",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    push!(materials, mat_vidriosalero)
+
+    mat_vidriosalero = Glass(
+        "mat_vidriosalero",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        ConstantTexture(0.0),
+        ConstantTexture(1.5),
+        nothing,
+        true
+    )
+    push!(materials, mat_vidriosalero)
+
+    mat_silla_d_tachuelas  = Plastic(
+        "mat_silla_d_tachuelas",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Fierro_A.png"), 
+            false
+        ),
+        ImageTexture(
+            UVMapping2D(),
+            jmfp(path_header * "textures/Fierro_A_Bump.png"), 
+            false
+        ),
+        ConstantTexture(0.6),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(),
+                jmfp(path_header * "textures/Fierro_A_Bump.png"), 
+                true
+            ),
+            ConstantTexture(0.01)
+        ),
+        true
+    )
+    push!(materials, mat_silla_d_tachuelas)
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
@@ -2548,7 +2752,43 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["macetas_00008_ascii.obj"] = "mat_maceta_C2"
 
     mat_dict["macetas_00009_ascii.obj"] = "mat_maceta_D2"
-    
+
+    mat_dict["platos_00001_ascii.obj"] = "mat_plato_A"
+
+    mat_dict["platos_00002_ascii.obj"] = "mat_individual_verde"
+
+    mat_dict["platos_00003_ascii.obj"] = "mat_cenicero"
+
+    mat_dict["platos_00004_ascii.obj"] = "mat_base_vera_color"
+
+    mat_dict["platos_00005_ascii.obj"] = "mat_vela"
+
+    mat_dict["platos_00006_ascii.obj"] = "mat_vela_mecha"
+
+    mat_dict["platos_00007_ascii.obj"] = "mat_pimienta"
+
+    mat_dict["platos_00008_ascii.obj"] = "mat_cromo"
+    mat_dict["platos_00010_ascii.obj"] = "mat_cromo"
+    mat_dict["platos_00012_ascii.obj"] = "mat_cromo"
+    mat_dict["platos_00013_ascii.obj"] = "mat_cromo"
+    mat_dict["platos_00015_ascii.obj"] = "mat_cromo"
+    mat_dict["platos_00017_ascii.obj"] = "mat_cromo"
+
+    mat_dict["platos_00009_ascii.obj"] = "mat_sal"
+
+    mat_dict["platos_00011_ascii.obj"] = "mat_plastico_cubiertos"
+    mat_dict["platos_00014_ascii.obj"] = "mat_plastico_cubiertos"
+    mat_dict["platos_00016_ascii.obj"] = "mat_plastico_cubiertos"
+    mat_dict["platos_00018_ascii.obj"] = "mat_plastico_cubiertos"
+
+    mat_dict["platos_00019_ascii.obj"] = "mat_copas"
+    mat_dict["platos_00020_ascii.obj"] = "mat_copas"
+    mat_dict["platos_00023_ascii.obj"] = "mat_copas"
+
+    mat_dict["platos_00021_ascii.obj"] = "mat_vidriosalero"
+    mat_dict["platos_00022_ascii.obj"] = "mat_vidriosalero"
+
+    mat_dict["mesas_abajo_00001_ascii.obj"] = "mat_silla_d_tachuelas"
 
 
     println("\t...DONE: we loaded $(length(keys(mat_dict))) materials")
@@ -3116,6 +3356,176 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         1_907
     )
     @assert length(transform_dict["macetas_00014_ascii.obj"]) == 17
+
+    transform_dict["platos_00001_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        6,
+        454
+    )
+    @assert length(transform_dict["platos_00001_ascii.obj"]) == 89
+
+    transform_dict["platos_00002_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        457,
+        785
+    )
+    @assert length(transform_dict["platos_00002_ascii.obj"]) == 65
+
+    transform_dict["platos_00003_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        788,
+        906
+    )
+    @assert length(transform_dict["platos_00003_ascii.obj"]) == 23
+
+    transform_dict["platos_00004_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        909,
+        1_027
+    )
+    @assert length(transform_dict["platos_00004_ascii.obj"]) == 23
+
+    transform_dict["platos_00005_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        1_030,
+        1_148
+    )
+    @assert length(transform_dict["platos_00005_ascii.obj"]) == 23
+
+    transform_dict["platos_00006_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        1_151,
+        1_269
+    )
+    @assert length(transform_dict["platos_00006_ascii.obj"]) == 23
+
+    transform_dict["platos_00007_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        1_272,
+        1_390
+    )
+    @assert length(transform_dict["platos_00007_ascii.obj"]) == 23
+
+    transform_dict["platos_00008_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        1_393,
+        1_511
+    )
+    @assert length(transform_dict["platos_00008_ascii.obj"]) == 23
+
+    transform_dict["platos_00009_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        1_514,
+        1_632
+    )
+    @assert length(transform_dict["platos_00009_ascii.obj"]) == 23
+
+    transform_dict["platos_00010_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        1_635,
+        1_753
+    )
+    @assert length(transform_dict["platos_00010_ascii.obj"]) == 23
+
+    transform_dict["platos_00011_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        1_756,
+        2_204
+    )
+    @assert length(transform_dict["platos_00011_ascii.obj"]) == 89
+
+    transform_dict["platos_00012_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        2_207,
+        2_655
+    )
+    @assert length(transform_dict["platos_00012_ascii.obj"]) == 89
+
+    transform_dict["platos_00013_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        2_658,
+        3_106
+    )
+    @assert length(transform_dict["platos_00013_ascii.obj"]) == 89
+
+    transform_dict["platos_00014_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        3_109,
+        3_557
+    )
+    @assert length(transform_dict["platos_00014_ascii.obj"]) == 89
+
+    transform_dict["platos_00015_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        3_560,
+        4_008
+    )
+    @assert length(transform_dict["platos_00015_ascii.obj"]) == 89
+
+    transform_dict["platos_00016_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        4_011,
+        4_459
+    )
+    @assert length(transform_dict["platos_00016_ascii.obj"]) == 89
+
+    transform_dict["platos_00017_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        4_462,
+        4_910
+    )
+    @assert length(transform_dict["platos_00017_ascii.obj"]) == 89
+
+    transform_dict["platos_00018_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        4_913,
+        5_361
+    )
+    @assert length(transform_dict["platos_00018_ascii.obj"]) == 89
+
+    transform_dict["platos_00019_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        5_364,
+        5_812
+    )
+    @assert length(transform_dict["platos_00019_ascii.obj"]) == 89
+
+    transform_dict["platos_00020_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        5_815,
+        5_933
+    )
+    @assert length(transform_dict["platos_00020_ascii.obj"]) == 23
+
+    transform_dict["platos_00021_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        5_933,
+        6_054
+    )
+    @assert length(transform_dict["platos_00021_ascii.obj"]) == 23
+
+    transform_dict["platos_00022_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        6_057,
+        6_175
+    )
+    @assert length(transform_dict["platos_00022_ascii.obj"]) == 23
+
+    transform_dict["platos_00023_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        6_178,
+        6_626
+    )
+    @assert length(transform_dict["platos_00023_ascii.obj"]) == 89
+
+    transform_dict["mesas_abajo_00001_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/platos-geom.pbrt"),
+        6,
+        1_934
+    )
+    @assert length(transform_dict["mesas_abajo_00001_ascii.obj"]) == 385
+
+
 
     println("\t...DONE: we loaded $(length(keys(transform_dict))) transforms")
 
