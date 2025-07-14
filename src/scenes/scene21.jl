@@ -3773,7 +3773,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     transform_dict["mesas_abajo_00015_ascii.obj"] = parse_sanmiguel(
         jmfp(path_header * "geometry/mesas_abajo-geom.pbrt"),
-        4_340,
+        4_390,
         4_428
     )
     @assert length(transform_dict["mesas_abajo_00015_ascii.obj"]) == 7
