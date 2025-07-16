@@ -2443,28 +2443,118 @@ function init_materials!()
     )
     push!(materials, mat_madera_mesa_arriba)
 
-    mat_tela_mesa_1
+    mat_tela_mesa_1 = Matte(
+        "mat_tela_mesa_1",
+        ImageTexture(
+            UVMapping2D(1.0, -1.0, 0.0, 1.0),
+            jmfp(path_header * "textures/tela_blanca.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(1.0, -1.0, 0.0, 1.0),
+                jmfp(path_header * "textures/tela_blanca.png"), 
+                true
+            ),
+            ConstantTexture(0.002)
+        ),
+    )
     push!(materials, mat_tela_mesa_1)
 
-    mat_sila_forja_a_metal
+    mat_sila_forja_a_metal = Plastic(
+        "mat_sila_forja_a_metal",
+        ImageTexture(
+            UVMapping2D(1.0, -1.0, 0.0, 1.0),
+            jmfp(path_header * "textures/Fierro_A.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.2, 0.2, 0.2)),
+        ConstantTexture(0.0),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(1.0, -1.0, 0.0, 1.0),
+                jmfp(path_header * "textures/Fierro_A_Bump.png"), 
+                true
+            ),
+            ConstantTexture(0.005)
+        ),
+        true
+    )
     push!(materials, mat_sila_forja_a_metal)
 
-    mat_sila_forja_a_madera
+    mat_sila_forja_a_madera = Matte(
+        "mat_sila_forja_a_madera",
+        ImageTexture(
+            UVMapping2D(1.0, -1.0, 0.0, 1.0),
+            jmfp(path_header * "textures/wood.3.Bubinga.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
     push!(materials, mat_sila_forja_a_madera)
 
-    mat_sila_forja_a_tela
+    mat_sila_forja_a_tela = Plastic(
+        "mat_sila_forja_a_tela",
+        ImageTexture(
+            UVMapping2D(1.0, -1.0, 0.0, 1.0),
+            jmfp(path_header * "textures/tela_silla_b.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
     push!(materials, mat_sila_forja_a_tela)
 
-    mat_standard_7
+    mat_standard_7 = Matte(
+        "mat_standard_7",
+        ConstantTexture(spectrum_from_float(0.54902, 0.54902, 0.54902)),
+        ConstantTexture(0.0),
+        nothing
+    )
     push!(materials, mat_standard_7)
 
-    mat_mesa_madera
+    mat_mesa_madera = Matte(
+        "mat_mesa_madera",
+        ImageTexture(
+            UVMapping2D(1.0, -1.0, 0.0, 1.0),
+            jmfp(path_header * "textures/Vigas_B.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
     push!(materials, mat_mesa_madera)
 
-    mat_silla_c_madera
+    mat_silla_c_madera = Matte(
+        "mat_silla_c_madera",
+        ImageTexture(
+            UVMapping2D(1.0, -1.0, 0.0, 1.0),
+            jmfp(path_header * "textures/BWK_1024.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
     push!(materials, mat_silla_c_madera)
 
-    mat_silla_c_tela
+    mat_silla_c_tela = Matte(
+        "mat_silla_c_tela",
+        ImageTexture(
+            UVMapping2D(1.0, -1.0, 0.0, 1.0),
+            jmfp(path_header * "textures/tela_silla_b.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
     push!(materials, mat_silla_c_tela)
 
 
