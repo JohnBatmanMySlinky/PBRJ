@@ -2374,6 +2374,75 @@ function init_materials!()
     )
     push!(materials, mat_tela_mesa_d)
 
+    mat_madera_silla = Plastic(
+        "mat_madera_silla",
+        ImageTexture(
+            UVMapping2D(1.0, -1.0, 0.0, 1.0),
+            jmfp(path_header * "textures/WOOD08.png"), 
+            false
+        ),
+        ConstantTexture(spectrum_from_float(0.243137, 0.243137, 0.243137)),
+        ConstantTexture(0.01),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(1.0, -1.0, 0.0, 1.0),
+                jmfp(path_header * "textures/WOOD08_Bump.png"), 
+                true
+            ),
+            ConstantTexture(0.002)
+        ),
+        true
+    )
+    push!(materials, mat_madera_silla)
+    
+    mat_silla_tela = Matte(
+        "mat_silla_tela",
+        ImageTexture(
+            UVMapping2D(1.0, -1.0, 0.0, 1.0),
+            jmfp(path_header * "textures/Finishes.Flooring.Carpet.Loop.5.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(1.0, -1.0, 0.0, 1.0),
+                jmfp(path_header * "textures/Finishes.Flooring.Carpet.Loop.5.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        )
+    )
+    push!(materials, mat_silla_tela)
+
+    mat_madera_mesa_arriba = Plastic(
+        "mat_madera_mesa_arriba",
+        ImageTexture(
+            UVMapping2D(1.0, -1.0, 0.0, 1.0),
+            jmfp(path_header * "textures/BWK_1024.png"), 
+            false
+        ),
+        ImageTexture(
+            UVMapping2D(1.0, -1.0, 0.0, 1.0),
+            jmfp(path_header * "textures/bwk_1024_Spec2.png"), 
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing,
+        nothing,
+        MixMultTexture(
+            ImageTexture(
+                UVMapping2D(1.0, -1.0, 0.0, 1.0),
+                jmfp(path_header * "textures/bwk_1024_Bump.png"), 
+                true
+            ),
+            ConstantTexture(0.001)
+        ),
+        true
+    )
+    push!(materials, mat_madera_mesa_arriba)
+
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 end
@@ -2944,6 +3013,29 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["mesas_abajo_00016_ascii.obj"] = "mat_tela_mesa_d_2"
 
     mat_dict["mesas_abajo_00017_ascii.obj"] = "mat_tela_mesa_d"
+
+    mat_dict["mesas_arriba_00001_ascii.obj"] = "mat_madera_silla"
+    mat_dict["mesas_arriba_00002_ascii.obj"] = "mat_madera_silla"
+    mat_dict["mesas_arriba_00003_ascii.obj"] = "mat_madera_silla"
+    mat_dict["mesas_arriba_00004_ascii.obj"] = "mat_madera_silla"
+    mat_dict["mesas_arriba_00006_ascii.obj"] = "mat_madera_silla"
+    mat_dict["mesas_arriba_00007_ascii.obj"] = "mat_madera_silla"
+    mat_dict["mesas_arriba_00008_ascii.obj"] = "mat_madera_silla"
+    mat_dict["mesas_arriba_00009_ascii.obj"] = "mat_madera_silla"
+    mat_dict["mesas_arriba_00010_ascii.obj"] = "mat_madera_silla"
+    mat_dict["mesas_arriba_00011_ascii.obj"] = "mat_madera_silla"
+    mat_dict["mesas_arriba_00012_ascii.obj"] = "mat_madera_silla"
+    mat_dict["mesas_arriba_00013_ascii.obj"] = "mat_madera_silla"
+
+    mat_dict["mesas_arriba_00005_ascii.obj"] = "mat_silla_tela"
+    mat_dict["mesas_arriba_00014_ascii.obj"] = "mat_silla_tela"
+    mat_dict["mesas_arriba_00015_ascii.obj"] = "mat_silla_tela"
+    mat_dict["mesas_arriba_00016_ascii.obj"] = "mat_silla_tela"
+    mat_dict["mesas_arriba_00017_ascii.obj"] = "mat_silla_tela"
+    mat_dict["mesas_arriba_00018_ascii.obj"] = "mat_silla_tela"    
+
+    mat_dict["mesas_arriba_00019_ascii.obj"] = "mat_madera_mesa_arriba"
+    mat_dict["mesas_arriba_00020_ascii.obj"] = "mat_madera_mesa_arriba"
 
 
     println("\t...DONE: we loaded $(length(keys(mat_dict))) materials")
@@ -3791,6 +3883,146 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         4_511
     )
     @assert length(transform_dict["mesas_abajo_00017_ascii.obj"]) == 7
+
+    transform_dict["mesas_arriba_00001_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        5,
+        54
+    )
+    @assert length(transform_dict["mesas_arriba_00001_ascii.obj"]) == 9
+
+    transform_dict["mesas_arriba_00002_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        57,
+        75
+    )
+    @assert length(transform_dict["mesas_arriba_00002_ascii.obj"]) == 3
+
+    transform_dict["mesas_arriba_00003_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        78,
+        126
+    )
+    @assert length(transform_dict["mesas_arriba_00003_ascii.obj"]) == 9
+
+    transform_dict["mesas_arriba_00004_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        129,
+        217
+    )
+    @assert length(transform_dict["mesas_arriba_00004_ascii.obj"]) == 17
+
+    transform_dict["mesas_arriba_00005_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        220,
+        308
+    )
+    @assert length(transform_dict["mesas_arriba_00005_ascii.obj"]) == 17
+
+    transform_dict["mesas_arriba_00006_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        311,
+        359
+    )
+    @assert length(transform_dict["mesas_arriba_00006_ascii.obj"]) == 9
+
+    transform_dict["mesas_arriba_00007_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        362,
+        450
+    )
+    @assert length(transform_dict["mesas_arriba_00007_ascii.obj"]) == 17
+
+    transform_dict["mesas_arriba_00008_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        453,
+        541
+    )
+    @assert length(transform_dict["mesas_arriba_00008_ascii.obj"]) == 17
+
+    transform_dict["mesas_arriba_00009_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        544,
+        632
+    )
+    @assert length(transform_dict["mesas_arriba_00009_ascii.obj"]) == 17
+
+    transform_dict["mesas_arriba_00010_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        635,
+        723
+    )
+    @assert length(transform_dict["mesas_arriba_00010_ascii.obj"]) == 17
+
+    transform_dict["mesas_arriba_00011_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        725,
+        774
+    )
+    @assert length(transform_dict["mesas_arriba_00011_ascii.obj"]) == 9
+
+    transform_dict["mesas_arriba_00012_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        777,
+        825
+    )
+    @assert length(transform_dict["mesas_arriba_00012_ascii.obj"]) == 9
+
+    transform_dict["mesas_arriba_00013_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        828,
+        916
+    )
+    @assert length(transform_dict["mesas_arriba_00013_ascii.obj"]) == 17
+
+    transform_dict["mesas_arriba_00014_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        919,
+        967
+    )
+    @assert length(transform_dict["mesas_arriba_00014_ascii.obj"]) == 9
+
+    transform_dict["mesas_arriba_00015_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        970,
+        1_018
+    )
+    @assert length(transform_dict["mesas_arriba_00015_ascii.obj"]) == 9
+
+    transform_dict["mesas_arriba_00016_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        1_021,
+        1_069
+    )
+    @assert length(transform_dict["mesas_arriba_00016_ascii.obj"]) == 9
+
+    transform_dict["mesas_arriba_00017_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        1_072,
+        1_120
+    )
+    @assert length(transform_dict["mesas_arriba_00017_ascii.obj"]) == 9
+
+    transform_dict["mesas_arriba_00018_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        1_123,
+        1_171
+    )
+    @assert length(transform_dict["mesas_arriba_00018_ascii.obj"]) == 9
+
+    transform_dict["mesas_arriba_00019_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        1_174,
+        1_192
+    )
+    @assert length(transform_dict["mesas_arriba_00019_ascii.obj"]) == 3
+
+    transform_dict["mesas_arriba_00020_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_arriba-geom.pbrt"),
+        1_195,
+        1_213
+    )
+    @assert length(transform_dict["mesas_arriba_00020_ascii.obj"]) == 3
 
 
 
