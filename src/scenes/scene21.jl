@@ -4094,6 +4094,378 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     @assert length(transform_dict["mesas_patio_00010_ascii.obj"]) == 41
 
+    transform_dict["mesas_patio_00011_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        1_216,
+        1_424
+    )
+    @assert length(transform_dict["mesas_patio_00011_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00012_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        1_427,
+        1_635
+    )
+    @assert length(transform_dict["mesas_patio_00012_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00013_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        1_427,
+        1_846
+    )
+    @assert length(transform_dict["mesas_patio_00013_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00014_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        1_849,
+        2_057
+    )
+    @assert length(transform_dict["mesas_patio_00014_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00015_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        2_060,
+        2_268
+    )
+    @assert length(transform_dict["mesas_patio_00015_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00016_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        2_2671,
+        2_479
+    )
+    @assert length(transform_dict["mesas_patio_00016_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00017_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        2_482,
+        2_690
+    )
+    @assert length(transform_dict["mesas_patio_00017_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00018_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        2_693,
+        2_901
+    )
+    @assert length(transform_dict["mesas_patio_00018_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00019_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        2_904,
+        3_112
+    )
+    @assert length(transform_dict["mesas_patio_00019_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00020_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        3_115,
+        3_322
+    )
+    @assert length(transform_dict["mesas_patio_00020_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00021_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        3_325,
+        3_533
+    )
+    @assert length(transform_dict["mesas_patio_00021_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00022_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        3_536,
+        3_745
+    )
+    @assert length(transform_dict["mesas_patio_00022_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00023_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        3_748,
+        3_956
+    )
+    @assert length(transform_dict["mesas_patio_00023_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00024_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        3_959,
+        4_167
+    )
+    @assert length(transform_dict["mesas_patio_00024_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00025_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        4_170,
+        4_378
+    )
+    @assert length(transform_dict["mesas_patio_00025_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00026_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        4_381,
+        4_589
+    )
+    @assert length(transform_dict["mesas_patio_00026_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00027_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        4_592,
+        4_800
+    )
+    @assert length(transform_dict["mesas_patio_00027_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00028_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        4_803,
+        5_011
+    )
+    @assert length(transform_dict["mesas_patio_00028_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00029_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        5_014,
+        5_222
+    )
+    @assert length(transform_dict["mesas_patio_00029_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00030_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        5_225,
+        5_433
+    )
+    @assert length(transform_dict["mesas_patio_00030_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00031_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        5_436,
+        5_644
+    )
+    @assert length(transform_dict["mesas_patio_00031_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00032_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        5_647,
+        5_855
+    )
+    @assert length(transform_dict["mesas_patio_00032_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00033_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        5_858,
+        6_066
+    )
+    @assert length(transform_dict["mesas_patio_00033_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00034_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        6_069,
+        6_177
+    )
+    @assert length(transform_dict["mesas_patio_00034_ascii.obj"]) == 21
+
+    transform_dict["mesas_patio_00035_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        6_180,
+        6_388
+    )
+    @assert length(transform_dict["mesas_patio_00035_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00036_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        6_391,
+        6_599
+    )
+    @assert length(transform_dict["mesas_patio_00036_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00037_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        6_602,
+        6_810
+    )
+    @assert length(transform_dict["mesas_patio_00037_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00038_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        6_813,
+        7_021
+    )
+    @assert length(transform_dict["mesas_patio_00038_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00039_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        7_024,
+        7_232
+    )
+    @assert length(transform_dict["mesas_patio_00039_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00040_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        7_235,
+        7_443
+    )
+    @assert length(transform_dict["mesas_patio_00040_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00041_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        7_446,
+        7_654
+    )
+    @assert length(transform_dict["mesas_patio_00041_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00042_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        7_657,
+        7_865
+    )
+    @assert length(transform_dict["mesas_patio_00042_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00043_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        7_868,
+        8_076
+    )
+    @assert length(transform_dict["mesas_patio_00043_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00044_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        8_079,
+        8_287
+    )
+    @assert length(transform_dict["mesas_patio_00044_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00045_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        8_290,
+        8_498
+    )
+    @assert length(transform_dict["mesas_patio_00045_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00046_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        8_501,
+        8_709
+    )
+    @assert length(transform_dict["mesas_patio_00046_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00047_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        8_712,
+        8_920
+    )
+    @assert length(transform_dict["mesas_patio_00047_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00048_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        8_923,
+        9_131
+    )
+    @assert length(transform_dict["mesas_patio_00048_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00049_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        9_134,
+        9_342
+    )
+    @assert length(transform_dict["mesas_patio_00049_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00050_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        9_345,
+        9_553
+    )
+    @assert length(transform_dict["mesas_patio_00050_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00051_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        9_556,
+        9_764
+    )
+    @assert length(transform_dict["mesas_patio_00051_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00052_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        9_767,
+        9_975
+    )
+    @assert length(transform_dict["mesas_patio_00052_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00053_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        9_978,
+        10_186
+    )
+    @assert length(transform_dict["mesas_patio_00053_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00054_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        10_189,
+        10_397
+    )
+    @assert length(transform_dict["mesas_patio_00054_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00055_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        10_400,
+        10_608
+    )
+    @assert length(transform_dict["mesas_patio_00055_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00056_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        10_611,
+        10_819
+    )
+    @assert length(transform_dict["mesas_patio_00056_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00057_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        10_822,
+        11_030
+    )
+    @assert length(transform_dict["mesas_patio_00057_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00058_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        11_033,
+        11_241
+    )
+    @assert length(transform_dict["mesas_patio_00058_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00059_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        11_244,
+        11_452
+    )
+    @assert length(transform_dict["mesas_patio_00059_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00060_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        11_455,
+        11_663
+    )
+    @assert length(transform_dict["mesas_patio_00060_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00061_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        11_666,
+        11_874
+    )
+    @assert length(transform_dict["mesas_patio_00061_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00062_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        11_877,
+        12_085
+    )
+    @assert length(transform_dict["mesas_patio_00062_ascii.obj"]) == 41
+
+    transform_dict["mesas_patio_00063_ascii.obj"] = parse_sanmiguel(
+        jmfp(path_header * "geometry/mesas_patio-geom.pbrt"),
+        12_088,
+        12_296
+    )
+    @assert length(transform_dict["mesas_patio_00063_ascii.obj"]) == 41
+
+
 
 
     println("\t...DONE: we loaded $(length(keys(transform_dict))) transforms")
