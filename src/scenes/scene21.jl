@@ -2443,6 +2443,31 @@ function init_materials!()
     )
     push!(materials, mat_madera_mesa_arriba)
 
+    mat_tela_mesa_1
+    push!(materials, mat_tela_mesa_1)
+
+    mat_sila_forja_a_metal
+    push!(materials, mat_sila_forja_a_metal)
+
+    mat_sila_forja_a_madera
+    push!(materials, mat_sila_forja_a_madera)
+
+    mat_sila_forja_a_tela
+    push!(materials, mat_sila_forja_a_tela)
+
+    mat_standard_7
+    push!(materials, mat_standard_7)
+
+    mat_mesa_madera
+    push!(materials, mat_mesa_madera)
+
+    mat_silla_c_madera
+    push!(materials, mat_silla_c_madera)
+
+    mat_silla_c_tela
+    push!(materials, mat_silla_c_tela)
+
+
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 end
@@ -3036,6 +3061,78 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mat_dict["mesas_arriba_00019_ascii.obj"] = "mat_madera_mesa_arriba"
     mat_dict["mesas_arriba_00020_ascii.obj"] = "mat_madera_mesa_arriba"
+
+    mat_dict["mesas_patio_00001_ascii.obj"] = "mat_tela_mesa_1"
+    mat_dict["mesas_patio_00002_ascii.obj"] = "mat_tela_mesa_1"
+    mat_dict["mesas_patio_00003_ascii.obj"] = "mat_tela_mesa_1"
+    mat_dict["mesas_patio_00004_ascii.obj"] = "mat_tela_mesa_1"
+    mat_dict["mesas_patio_00005_ascii.obj"] = "mat_tela_mesa_1"
+
+    mat_dict["mesas_patio_00006_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00007_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00008_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00009_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00010_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00011_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00012_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00013_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00014_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00015_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00016_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00017_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00018_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00019_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00020_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00021_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00022_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00023_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00024_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00025_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00026_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00027_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00035_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00036_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00037_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00038_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00039_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00040_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00041_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00042_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00043_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00044_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00045_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00046_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00047_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00048_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00049_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00050_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00051_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00052_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00053_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00056_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00057_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00060_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00061_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00062_ascii.obj"] = "mat_sila_forja_a_metal"
+    mat_dict["mesas_patio_00063_ascii.obj"] = "mat_sila_forja_a_metal"
+
+    mat_dict["mesas_patio_00028_ascii.obj"] = "mat_sila_forja_a_madera"
+
+    mat_dict["mesas_patio_00029_ascii.obj"] = "mat_sila_forja_a_tela"
+    mat_dict["mesas_patio_00030_ascii.obj"] = "mat_sila_forja_a_tela"
+    mat_dict["mesas_patio_00031_ascii.obj"] = "mat_sila_forja_a_tela"
+
+    mat_dict["mesas_patio_00032_ascii.obj"] = "mat_standard_7"
+    mat_dict["mesas_patio_00033_ascii.obj"] = "mat_standard_7"
+
+    mat_dict["mesas_patio_00034_ascii.obj"] = "mat_mesa_madera"
+
+    mat_dict["mesas_patio_00054_ascii.obj"] = "mat_silla_c_madera"
+
+    mat_dict["mesas_patio_00055_ascii.obj"] = "mat_silla_c_tela"
+    mat_dict["mesas_patio_00058_ascii.obj"] = "mat_silla_c_tela"
+    mat_dict["mesas_patio_00059_ascii.obj"] = "mat_silla_c_tela"
+
 
 
     println("\t...DONE: we loaded $(length(keys(mat_dict))) materials")
