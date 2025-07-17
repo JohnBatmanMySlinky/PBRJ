@@ -3239,7 +3239,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_dict["mesas_patio_00058_ascii.obj"] = "mat_silla_c_tela"
     mat_dict["mesas_patio_00059_ascii.obj"] = "mat_silla_c_tela"
 
-    mat_dict["platos_00001_ascii.obj"] = "mat_plato_a"
+    mat_dict["platos_00001_ascii.obj"] = "mat_plato_A"
 
     mat_dict["platos_00002_ascii.obj"] = "mat_individual_verde"
 
@@ -4715,7 +4715,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         457,
         785
     )
-    @assert length(transform_dict["platos_00002_ascii.obj"]) == 66
+    @assert length(transform_dict["platos_00002_ascii.obj"]) == 65
 
     transform_dict["platos_00003_ascii.obj"] = parse_sanmiguel(
         jmfp(path_header * "geometry/platos-geom.pbrt"),
@@ -4768,7 +4768,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     transform_dict["platos_00010_ascii.obj"] = parse_sanmiguel(
         jmfp(path_header * "geometry/platos-geom.pbrt"),
-        1_514,
+        1_635,
         1_753
     )
     @assert length(transform_dict["platos_00010_ascii.obj"]) == 23
@@ -4789,7 +4789,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     transform_dict["platos_00013_ascii.obj"] = parse_sanmiguel(
         jmfp(path_header * "geometry/platos-geom.pbrt"),
-        2_210,
+        2_658,
         3_106
     )
     @assert length(transform_dict["platos_00013_ascii.obj"]) == 89
