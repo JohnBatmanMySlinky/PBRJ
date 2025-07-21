@@ -1,53 +1,53 @@
 """
 scene 1: indoor office ✅
     - add geometry
-scene 2: caustic glass 🟨
+scene 2: caustic glass 🟨🟨
     - https://www.pbrt.org/scenes-v3_images/f16-9c.jpg
     - black lines in glass are missing in mine
     - fov and dimensions are differnet
-scene 3: AOIntegrator + dragon ✅
-scene 4: cornell box ✅
+scene 3: AOIntegrator + dragon ✅🟨
+scene 4: cornell box ✅🟨
     - need to mess with medium params to make it a bit less dense
-scene 5: soft bodies ✅
+scene 5: soft bodies ✅🟨
     - better material? 
     - infinite light?
-scene 6: goursat ✅
+scene 6: goursat ✅🟨
     - better material? 
     - infinite light?
     - something fucky with the normals...
-scene 7: julia logo w/ tea pots ✅
+scene 7: julia logo w/ tea pots ✅🟨
     - more interesting floor. maybe water???
-scene 8: an anemic leafless procedural tree ✅
+scene 8: an anemic leafless procedural tree ✅🟨
     - add leaves
-scene 9: lte orb ✅
+scene 9: lte orb ✅🟨
     - get more interesting measured bsdf's
-scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅
+scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅🟨
     - parser broken
-scene 11: dragon with fun materials ✅
-scene 12: v4 smoke plume (v4 GridMedium) ✅
-scene 13: DISNEY CLOUD (v4 NanoVDBMedium) ✅
-scene 14: Anemone (v4 GridMedium) 🟨
-scene 15: procedural clouds 🟨
-scene 16: elevator hallway 🟨
-scene 17: barcelona pavillion 🟨
+scene 11: dragon with fun materials ✅🟨
+scene 12: v4 smoke plume (v4 GridMedium) ✅🟨
+scene 13: DISNEY CLOUD (v4 NanoVDBMedium) ✅🟨
+scene 14: Anemone (v4 GridMedium) 🟨🟨
+scene 15: procedural clouds 🟨🟨
+scene 16: elevator hallway 🟨🟨
+scene 17: barcelona pavillion 🟨🟨
     - add background trees
     - remove fourier material convergence hack
-scene 18: SDFs baby! 🟨
+scene 18: SDFs baby! 🟨🟨
     - lighting kinda fucked
-scene 19: bunny cloud (v4 NanoVDB) ✅
+scene 19: bunny cloud (v4 NanoVDB) ✅🟨
     - only works single threaded? ok cool
     - hmmm gets all fucky when voxel grid is 3x3x3 - probably majorant iterator...
-scene 20: explosion + SimpleVolPathIntegrator (v4 NanoVDB) 🟨
+scene 20: explosion + SimpleVolPathIntegrator (v4 NanoVDB) 🟨🟨
     - caffeinate -di julia -t 4 RayTracing.jl --scene-number 20 --image-dim 1000 1000 --samples-per-pixel 16
     - hmmmmm maybe black body is off?
-scene 21: sanmiguel
+scene 21: sanmiguel ✅
     - julia -t 4 RayTracing.jl --scene-number 21 --image-dim 500 500 --crop-window 0.0 0.0 0.997245 0.745 --samples-per-pixel 16
     - check my bullshit mipmap hack
-scene 99: sphere-a-mid 🟨
+scene 99: sphere-a-mid 🟨🟨
     - add more interesting materails
-scene 100: Furry Bunny from pbrt-v4 🟨
+scene 100: Furry Bunny from pbrt-v4 🟨🟨
     - fix HairBxDF
-scene 101: SF3D CUP 🔴 (obj parser sucks)
+scene 101: SF3D CUP 🔴🟨 (obj parser sucks)
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
