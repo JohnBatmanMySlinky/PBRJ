@@ -1,12 +1,15 @@
 function make_scene3(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     mat_white = Matte(
+        "mat_white",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_white)
 
     # instantiate objects
     floor_t = Translate(Pnt3(0, 0, -40))
@@ -26,7 +29,7 @@ function make_scene3(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
 
     dragon_translate = RotateY(-53.0)
@@ -39,9 +42,12 @@ function make_scene3(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in dragon
         for tri in tris
-            push!(primitives, Primitive(tri, mat_white, nothing))
+            push!(primitives, Primitive(tri, "mat_white", nothing))
         end
     end
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

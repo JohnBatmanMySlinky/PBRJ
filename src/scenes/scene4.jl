@@ -1,33 +1,51 @@
 function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     # MATERIALS
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(0.725, 0.71, 0.68)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_gray)
+
     mat_white = Matte(
+        "mat_white",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_white)
+
     mat_red = Matte(
+        "mat_red",
         ConstantTexture(spectrum_from_float(0.63, 0.065, 0.05)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_red)
+
     mat_green = Matte(
+        "mat_green",
         ConstantTexture(spectrum_from_float(0.14, 0.45, 0.091)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_green)
+
     mat_blue = Matte(
+        "mat_blue",
         ConstantTexture(spectrum_from_float(0.14, 0.09, 0.68)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_blue)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate objects
     identity_shape_core = ShapeCore(
@@ -46,7 +64,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
     end
     ceiling = Rectangle(
         Pnt2(0, 0), 
@@ -58,7 +76,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in ceiling
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
     end
     backwall = Rectangle(
         Pnt2(0, 0), 
@@ -70,7 +88,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in backwall
-        push!(primitives, Primitive(tri, mat_blue, nothing))
+        push!(primitives, Primitive(tri, "mat_blue", nothing))
     end
     leftwall = Rectangle(
         Pnt2(0, 0), 
@@ -82,7 +100,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in leftwall
-        push!(primitives, Primitive(tri, mat_red, nothing))
+        push!(primitives, Primitive(tri, "mat_red", nothing))
     end
     rightwall = Rectangle(
         Pnt2(0, 0), 
@@ -94,7 +112,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in rightwall
-        push!(primitives, Primitive(tri, mat_green, nothing))
+        push!(primitives, Primitive(tri, "mat_green", nothing))
     end
 
     ceiling_light = Rectangle(
@@ -113,7 +131,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false # NOT two sided
         )
         push!(lights,alight)
-        push!(primitives, Primitive(tri, mat_white, alight))
+        push!(primitives, Primitive(tri, "mat_white", alight))
     end
     #######################################
     ###### FOR VALIDATION USE SPHERE ######
@@ -144,7 +162,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in box_1
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
     end
 
     box_2_transform = Translate(Pnt3(130, 0, 65)) * RotateY(-18.0)
@@ -155,7 +173,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in box_2
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
     end
 
     # sphere_transform = Translate(Pnt3(278, 278, 278))
