@@ -1,18 +1,26 @@
 function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(.5, .5, .5)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_gray)
+
     mat_white = Matte(
+        "mat_white",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_white)
+
     mat_glass = Glass(
+        "mat_glass",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(0.0),
@@ -21,12 +29,16 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
         true
     )
+    push!(materials, mat_glass)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # GEOMETRY
     # blue sphere
     glass_translate = Translate(Pnt3(0,0,0)) 
     glass = parse_obj(
-        "../ref/caustic-glass/caustic_glass.obj",
+        jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/caustic-glass/geometry/mesh_00001_ascii.obj"),
         glass_translate,
         false,
         false,
@@ -34,14 +46,14 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in glass
         for tri in tris
-            push!(primitives, Primitive(tri, mat_glass, nothing))
+            push!(primitives, Primitive(tri, "mat_glass", nothing))
         end
     end
 
     # floor
     floor_transform = Translate(Pnt3(0,0,0))
     floor = parse_obj(
-        "../ref/caustic-glass/floor.obj",
+        jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/caustic-glass/geometry/mesh_00002_ascii.obj"),
         floor_transform,
         false,
         false,
@@ -49,7 +61,7 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in floor
         for tri in tris
-            push!(primitives, Primitive(tri, mat_gray, nothing))
+            push!(primitives, Primitive(tri, "mat_gray", nothing))
         end
     end
 
