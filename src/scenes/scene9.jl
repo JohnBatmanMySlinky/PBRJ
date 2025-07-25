@@ -1,20 +1,40 @@
 function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     # materials
-    mat_inner = Metal()
+    mat_inner = Metal(
+        "mat_inner"
+    )
+    push!(materials, mat_inner)
 
     mat_outer = Fourier(
+        "mat_outer",
         jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/lte-orb/bsdfs/roughglass_alpha_0.2.bsdf"),
         nothing
     )
+    push!(materials, mat_outer)
 
     mat_ground = Matte(
+        "mat_ground",
         ConstantTexture(spectrum_from_float(0.2, 0.2, 0.2)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_ground)
+
+    brightness = spectrum_from_float(9.5, 9.5, 9.5)
+    mat_light = Matte(
+        "mat_light",
+        ConstantTexture(brightness),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_light)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     ##############
     ### a mesh ###
@@ -30,7 +50,7 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in mesh0
         for tri in tris
-            push!(primitives, Primitive(tri, mat_inner, nothing))
+            push!(primitives, Primitive(tri, "mat_inner", nothing))
         end
     end
     mesh1 =  parse_obj(
@@ -42,7 +62,7 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in mesh1
         for tri in tris
-            push!(primitives, Primitive(tri, mat_outer, nothing))
+            push!(primitives, Primitive(tri, "mat_outer", nothing))
         end
     end
     mesh2 =  parse_obj(
@@ -54,7 +74,7 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in mesh2
         for tri in tris
-            push!(primitives, Primitive(tri, mat_outer, nothing))
+            push!(primitives, Primitive(tri, "mat_outer", nothing))
         end
     end
 
@@ -68,7 +88,7 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in ground_tris
-        push!(primitives, Primitive(tri, mat_ground, nothing))
+        push!(primitives, Primitive(tri, "mat_ground", nothing))
     end
 
     tris = construct_triangle_mesh(
@@ -85,12 +105,6 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing, nothing,
         nothing
     )
-    brightness = spectrum_from_float(9.5, 9.5, 9.5)
-    mat_light = Matte(
-        ConstantTexture(brightness),
-        ConstantTexture(0.0),
-        nothing
-    )
     for tri in tris
         alight = DiffuseAreaLight(
             brightness,
@@ -98,7 +112,7 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false
         )
         push!(lights, alight)
-        push!(primitives, Primitive(tri, mat_ground, alight))
+        push!(primitives, Primitive(tri, "mat_ground", alight))
     end
 
     # instantiate accelerator

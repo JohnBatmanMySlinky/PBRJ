@@ -11,13 +11,13 @@ scene 4: cornell box ✅
 scene 5: soft bodies ✅
     - better material? 
     - infinite light?
-scene 6: goursat ✅🟨
+scene 6: goursat ✅
     - better material? 
     - infinite light?
     - something fucky with the normals...
-scene 7: julia logo w/ tea pots ✅🟨
+scene 7: julia logo w/ tea pots ✅
     - more interesting floor. maybe water???
-scene 8: an anemic leafless procedural tree ✅🟨
+scene 8: an anemic leafless procedural tree ✅
     - add leaves
 scene 9: lte orb ✅🟨
     - get more interesting measured bsdf's

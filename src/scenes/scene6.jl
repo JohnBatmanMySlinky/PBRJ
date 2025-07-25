@@ -1,28 +1,43 @@
 function make_scene6(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     # MATERIALS
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(.4, .4, .4)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_gray)
+
     mat_blue = Matte(
+        "mat_blue",
         ConstantTexture(spectrum_from_float(0.05, 0.05, .9)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_blue)
+
     mat_red = Matte(
+        "mat_red",
         ConstantTexture(spectrum_from_float(0.88, 0.05, .07)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_red)
+
     mat_white = Matte(
+        "mat_white",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_white)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate objects
     identity_shape_core = ShapeCore()
@@ -77,10 +92,10 @@ function make_scene6(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
     end
 
-    for (col, offset, rot) in [(mat_red, 2.5, RotateX(0.0)), (mat_blue, -2.5, RotateX(45.0))]
+    for (col, offset, rot) in [("mat_red", 2.5, RotateX(0.0)), ("mat_blue", -2.5, RotateX(45.0))]
         goursat_t = Translate(Pnt3(0 + offset, 0, 0)) * rot
         goursat_sc = ShapeCore(
             goursat_t,
