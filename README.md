@@ -95,6 +95,10 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- for materials/bsdf
+    - use mvector with a union type
+    - ::MVector{MAX_BxDF, UnionType}
+    - need to define structs, then define bsdf, then define struct() for dependency hell
 - add a python jmfp to python utils in src/scripts
 - add do block to simple_vol_path.jl + a scene
 - add vol_path.jl
