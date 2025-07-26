@@ -1,32 +1,48 @@
 function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     # MATERIALS
     mat_ground = Matte(
+        "mat_ground",
         ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_ground)
 
     mat_metal = Metal(
+        "mat_metal",
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/dragon/spds/Au.eta.spd"))),
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/dragon/spds/Au.k.spd"))),
         ConstantTexture(0.0),
     )
+    push!(materials, mat_metal)
 
     mat_ceramic = Fourier(
+        "mat_ceramic",
         jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/bsdfs/ceramic.bsdf"),
         nothing
     )
+    push!(materials, mat_ceramic)
+
     mat_coated_copper = Fourier(
+        "mat_coated_copper",
         jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/bsdfs/coated_copper.bsdf"),
         nothing
     )
+    push!(materials, mat_coated_copper)
+
     mat_roughgold = Fourier(
+        "mat_roughgold",
         jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/bsdfs/roughgold_alpha_0.2.bsdf"),
         nothing
     )
+    push!(materials, mat_roughgold)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate objects
     floor_t = Translate(Pnt3(0, 0, -40))
@@ -46,7 +62,7 @@ function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_ground, nothing))
+        push!(primitives, Primitive(tri, "mat_ground", nothing))
     end
 
     dragon_translate = RotateY(-53.0)
@@ -59,7 +75,7 @@ function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in dragon
         for tri in tris
-            push!(primitives, Primitive(tri, mat_coated_copper, nothing))
+            push!(primitives, Primitive(tri, "mat_coated_copper", nothing))
         end
     end
 

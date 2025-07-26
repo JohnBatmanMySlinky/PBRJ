@@ -1,18 +1,27 @@
 function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     # materials
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_gray)
+
     mat_disk = Matte(
+        "mat_disk",
         ConstantTexture(spectrum_from_float(0.3, 0.3, 0.3)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_disk)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # Bounding sphere cause we hate winding order and such
     box_t = Translate(Pnt3(0, 0, 0))
@@ -54,7 +63,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         false
     )
-    push!(primitives, Primitive(disk, mat_disk, nothing))
+    push!(primitives, Primitive(disk, "mat_disk", nothing))
 
 
     # instantiate accelerator
