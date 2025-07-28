@@ -364,7 +364,7 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
     return true, Pnt2(u,v), t
 end
 
-function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
+function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Pnt2, Float64}
     p00 = blp.p[1]
     p10 = blp.p[2]
     p01 = blp.p[3]
@@ -402,7 +402,7 @@ function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
     dpdu::Vec3 = pu1 - pu0
     dpdv::Vec3 = lerp(uv[0+1], p01, p11) - lerp(uv[0+1], p00, p10)
     if (length_squared(dpdu) == 0.0 || length_squared(dpdv) == 0.0)
-        return Pnt3(), Nml3(), 0.0
+        return Pnt3(), Nml3(), uv, 0.0
     end
 
     st = uv
@@ -431,10 +431,10 @@ function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
     # Vector3f pError = gamma(6) * Vector3f(pAbsSum);
 
     # Return _ShapeSample_ for sampled bilinear patch point
-    return p, n, pdf_val / length_pbrt(cross(dpdu, dpdv))
+    return p, n, uv, pdf_val / length_pbrt(cross(dpdu, dpdv))
 end
 
-function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Float64} 
+function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Pnt2, Float64} 
     # Get bilinear patch vertices in _p00_, _p01_, _p10_, and _p11_
     p00 = blp.p[1]
     p10 = blp.p[2]
@@ -449,7 +449,7 @@ function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml
     # if (!is_rectangle(p00, p10, p01, p11) || mesh->imageDistribution || SphericalQuadArea(v00, v10, v11, v01) <= MinSphericalSampleArea) {
     if (!is_rectangle(p00, p10, p01, p11) || spherical_quad_area(v00, v10, v11, v01) <= blp.min_spherical_sample_area)
         # Sample shape by area and compute incident direction _wi_
-        ss_p, ss_n, ss_pdf = sample(blp, u)
+        ss_p, ss_n, ss_uv, ss_pdf = sample(blp, u)
         wi::Vec3 = ss_p - intr.p
         if (length_squared(wi) == 0.0)
             return Pnt3(), Nml3(), 0.0
@@ -460,7 +460,7 @@ function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml
         ss_pdf /= abs(dot(ss_n, -wi)) / distance_squared(intr.p, ss_p);
         # if (IsInf(ss->pdf))
         #     return {};
-        return ss_p, ss_n, ss_pdf
+        return ss_p, ss_n, ss_uv, ss_pdf
     end
 
     # Sample direction to rectangular bilinear patch
@@ -512,5 +512,5 @@ function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml
         # st = Lerp(uv[0], Lerp(uv[1], uv00, uv01), Lerp(uv[1], uv10, uv11));
     end
 
-    return p, n, pdf_val
+    return p, n, uv, pdf_val
 end

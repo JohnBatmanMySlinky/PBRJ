@@ -66,7 +66,8 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         "mat_concrete",
         ImageTexture(
             UVMapping2D(), 
-            "../ref/Marble_Gray_001_COLOR.jpg",
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_BaseColor.jpg"),
+            # "../ref/Marble_Gray_001_COLOR.jpg",
             false
         ), # kd
         ConstantTexture(spectrum_from_float(.15, .15, .15)), # ks
