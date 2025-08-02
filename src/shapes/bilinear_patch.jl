@@ -148,12 +148,12 @@ function is_rectangle(p00::Pnt3, p10::Pnt3, p01::Pnt3, p11::Pnt3)::Bool
 
     # Check if planar vertices form a rectangle>> 
     p_center = Pnt3(p00 + p01 + p10 + p11) / 4.0
-    d2 = Float64[
+    d2 = SVector{4, Float64}(
         distance_squared(p00, p_center), 
         distance_squared(p01, p_center), 
         distance_squared(p10, p_center), 
         distance_squared(p11, p_center)
-    ]
+    )
     for i in 1:3
         if abs(d2[i+1] - d2[0+1]) / d2[0+1] > 1e-4
             return false
@@ -335,6 +335,12 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
         # Compute matrix determinants for $v$ and $t$ numerators
         v1 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
         t1 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
+        # v1 = det(Mat3([deltao.x deltao.y deltao.z;
+        #        ray.direction.x ray.direction.y ray.direction.z;
+        #        perp.x perp.y perp.z]))
+        # t1 = det(Mat3([deltao.x deltao.y deltao.z;
+        #        ud.x ud.y ud.z;
+        #        perp.x perp.y perp.z]))
 
         #  Set _u_, _v_, and _t_ if intersection is valid
         if ((t1 > p2 * eps) && (0.0 <= v1) && (v1 <= p2))
@@ -353,6 +359,12 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
         p2 = length_squared(perp)
         v2 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
         t2 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
+        # v2 = det(Mat3([deltao.x deltao.y deltao.z;
+        #             ray.direction.x ray.direction.y ray.direction.z;
+        #             perp.x perp.y perp.z]))
+        # t2 = det(Mat3([deltao.x deltao.y deltao.z;
+        #             ud.x ud.y ud.z;
+        #             perp.x perp.y perp.z]))
         t2 /= p2
         if (0.0 <= v2 && v2 <= p2 && t > t2 && t2 > eps)
             t = t2
