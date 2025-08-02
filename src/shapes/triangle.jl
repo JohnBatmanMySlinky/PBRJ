@@ -75,21 +75,35 @@ end
 # "The Triangle shape is one of the shapes that can compute a better world space bound than can be found by transforming its 
 # object space bounding box to world space. Its world space bound can be directly computed from the world space vertices."
 function ObjectBounds(tri::Triangle)::Bounds3
-    # TODO
-    # triangles have their vertices already in world space so go backwards because
-    # results of this function are transformed back
-    # ugh
+    # Transform vertices to object space
     p0 = tri.core.world_to_object(tri.vertices[1])
     p1 = tri.core.world_to_object(tri.vertices[2])
     p2 = tri.core.world_to_object(tri.vertices[3])
-    # TODO why must I do this
-    buffer = Float64[0, 0, 0]
-    for i in 1:3
-        if p0[i] == p1[i] == p2[i]
-            buffer[i] = .0001
-        end
+    
+    # Compute bounds directly without intermediate allocations
+    min_x = min(p0[1], p1[1], p2[1])
+    max_x = max(p0[1], p1[1], p2[1])
+    min_y = min(p0[2], p1[2], p2[2])
+    max_y = max(p0[2], p1[2], p2[2])
+    min_z = min(p0[3], p1[3], p2[3])
+    max_z = max(p0[3], p1[3], p2[3])
+    
+    # Add buffer only where needed, avoiding allocation
+    EPSILON = 0.0001
+    if min_x == max_x
+        min_x -= EPSILON
+        max_x += EPSILON
     end
-    return world_bounds(world_bounds(Bounds3(p0-buffer, p0+buffer), Bounds3(p1-buffer, p1+buffer)), Bounds3(p2-buffer, p2+buffer))
+    if min_y == max_y
+        min_y -= EPSILON
+        max_y += EPSILON
+    end
+    if min_z == max_z
+        min_z -= EPSILON
+        max_z += EPSILON
+    end
+    
+    return Bounds3((min_x, min_y, min_z), (max_x, max_y, max_z))
 end
 
 ##################################################

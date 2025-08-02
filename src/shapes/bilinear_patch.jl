@@ -59,7 +59,7 @@ function BilinearPatchGenerator(
                 u = Float64(i) / Float64(na)
                 for j in 0:(na-1)
                     v = Float64(j) / Float64(na)
-                    p[i+1, j+1] += lerp(u, lerp(v, p00, p01), lerp(v, p10, p11))
+                    p[i+1, j+1] = lerp(u, lerp(v, p00, p01), lerp(v, p10, p11))
                 end
             end
             area = 0.0
@@ -103,31 +103,36 @@ function BilinearPatchGenerator(
 end
 
 function ObjectBounds(blp::BilinearPatch)::Bounds3
-    # TODO
-    # BLP have their vertices already in world space so go backwards because
-    # results of this function are transformed back
-    # ugh
+    # Transform vertices to object space
     p00 = blp.core.world_to_object(blp.p[1])
     p10 = blp.core.world_to_object(blp.p[2])
     p01 = blp.core.world_to_object(blp.p[3])
     p11 = blp.core.world_to_object(blp.p[4])
-    # TODO why must I do this
-    buffer = Float64[0, 0, 0]
-    for i in 1:3
-        if p00[i] == p10[i] == p01[i] == p11[i]
-            buffer[i] = .0001
-        end
+    
+    # Compute bounds directly without intermediate allocations
+    min_x = min(p00[1], p10[1], p01[1], p11[1])
+    max_x = max(p00[1], p10[1], p01[1], p11[1])
+    min_y = min(p00[2], p10[2], p01[2], p11[2])
+    max_y = max(p00[2], p10[2], p01[2], p11[2])
+    min_z = min(p00[3], p10[3], p01[3], p11[3])
+    max_z = max(p00[3], p10[3], p01[3], p11[3])
+    
+    # Add buffer only where needed, avoiding allocation
+    EPSILON = 0.0001
+    if min_x == max_x
+        min_x -= EPSILON
+        max_x += EPSILON
     end
-    return world_bounds(
-            world_bounds(
-                    Bounds3(p00-buffer, p00+buffer), 
-                    Bounds3(p10-buffer, p10+buffer)
-                ), 
-            world_bounds(
-                Bounds3(p01-buffer, p01+buffer),
-                Bounds3(p11-buffer, p11+buffer)
-            )
-        )
+    if min_y == max_y
+        min_y -= EPSILON
+        max_y += EPSILON
+    end
+    if min_z == max_z
+        min_z -= EPSILON
+        max_z += EPSILON
+    end
+    
+    return Bounds3((min_x, min_y, min_z), (max_x, max_y, max_z))
 end
 
 function is_rectangle(p00::Pnt3, p10::Pnt3, p01::Pnt3, p11::Pnt3)::Bool
