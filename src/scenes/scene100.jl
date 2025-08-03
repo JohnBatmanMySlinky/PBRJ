@@ -1,22 +1,34 @@
 function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
+
     mat_gray = Matte(            
+        "mat_gray",
         ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    push!(materials, mat_gray)
+
     mat_curves = Matte(            
+        "mat_curves",
         ConstantTexture(spectrum_from_float(0.15, 0.21, 1.0)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    push!(materials, mat_curves)
+
     mat_bunny = Matte(            
+        "mat_bunny",
         ConstantTexture(spectrum_from_float(0.35, 0.31, 0.3)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    push!(materials, mat_bunny)
+
     mat_hair = HairMaterial(
+        "mat_hair",
         nothing,       # sigma_a
         ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),         # color
         nothing,     # eumelanin
@@ -26,6 +38,10 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTextureFloat(0.5),        # beta_n
         nothing          # alpha
     )
+    push!(materials, mat_hair)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # curves_t = Inv(Translate(Pnt3(0,2,5))) * Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
     curves_t = Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0)
@@ -42,7 +58,7 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         0
     )
     for curve in curves
-        push!(primitives, Primitive(curve, mat_hair, nothing))
+        push!(primitives, Primitive(curve, "mat_hair", nothing))
     end
 
     bunny_t = Translate(Pnt3(.15, -.03, 0)) * Scale(7.0, 7.0, 7.0) * Translate(Pnt3(0, -0.033, 0))
@@ -54,7 +70,7 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in bunny
-        push!(primitives, Primitive(tri, mat_bunny, nothing))
+        push!(primitives, Primitive(tri, "mat_bunny", nothing))
     end
 
     # ground
@@ -67,7 +83,7 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing, nothing, nothing
     )
     for each in ground
-        push!(primitives, Primitive(each, mat_gray, nothing))
+        push!(primitives, Primitive(each, "mat_gray", nothing))
     end
 
     #backstop
@@ -80,7 +96,7 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing, nothing, nothing
     )
     for each in blp
-        push!(primitives, Primitive(each, mat_gray, nothing))
+        push!(primitives, Primitive(each, "mat_gray", nothing))
     end
     cyl_t = Translate(Pnt3(0, 1, -1)) * Rotate(-90.0, Vec3(1, 0, 0)) * Rotate(90.0, Vec3(0, 1, 0))
     cyl = Cylindar(
@@ -92,7 +108,7 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         false
     )
-    push!(primitives, Primitive(cyl, mat_gray, nothing))
+    push!(primitives, Primitive(cyl, "mat_gray", nothing))
 
         
     # instantiate accelerator

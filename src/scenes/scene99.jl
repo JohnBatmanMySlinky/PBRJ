@@ -1,12 +1,18 @@
 function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
+
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(0.6, 0.6, 0.6)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_gray)
+
     mat_wax = Uber(
+        "mat_wax",
         ConstantTexture(spectrum_from_float(0.639999986)),
         ConstantTexture(spectrum_from_float(0.5)),
         ConstantTexture(spectrum_from_float(0.0)),
@@ -18,11 +24,17 @@ function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(spectrum_from_float(1.0)),
         nothing
     )
+    push!(materials, mat_wax)
+
     mat_metal = Metal(
+        "mat_metal",
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/barcelona-pavilion/spds/Al.eta.spd"))),
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/barcelona-pavilion/spds/Al.k.spd"))),
     )
+    push!(materials, mat_metal)
+
     mat_black_glossy = Plastic(
+        "mat_black_glossy",
         ConstantTexture(spectrum_from_float(0.02, 0.02, 0.02)),
         ConstantTexture(spectrum_from_float(0.02, 0.02, 0.02)),
         ConstantTexture(0.0104080001),
@@ -31,15 +43,23 @@ function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
         true
     )
+    push!(materials, mat_black_glossy)
+
     mat_leather = Fourier(
+        "mat_leather",
         jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/bsdfs/leather.bsdf"),
         nothing
     )
+    push!(materials, mat_leather)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
+
     sphereamid_materials = [
-        mat_wax,
-        mat_metal,
-        mat_black_glossy,
-        mat_leather
+        "mat_wax",
+        "mat_metal",
+        "mat_black_glossy",
+        "mat_leather"
     ]
     sphereamid_materials_dist = Distribution1D(ones(Float64, length(sphereamid_materials)))
 

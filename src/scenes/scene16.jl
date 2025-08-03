@@ -534,135 +534,135 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(lights, alight)
         push!(primitives, Primitive(patch, "mat_white", alight))
     end
-    # ceiling_light1 = BilinearPatchGenerator(
-    #     identity_shape_core,
-    #     1,
-    #     Pnt3[
-    #         Pnt3(WIDTH*L1_TOP,              HEIGHT*L_BUFFER,     MIN), 
-    #         Pnt3(WIDTH*(L1_TOP+L_WIDTH),    HEIGHT*L_BUFFER,     MIN), 
-    #         Pnt3(WIDTH*L1_MIDDLE,           HEIGHT*L_BUFFER,     DEPTH), 
-    #         Pnt3(WIDTH*(L1_MIDDLE+L_WIDTH), HEIGHT*L_BUFFER,     DEPTH)
-    #     ],
-    #     Int64[1, 2, 3, 4],
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    # )
-    # for patch in ceiling_light1
-    #     alight = DiffuseAreaLight(
-    #         spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
-    #         patch,
-    #         false # NOT two sided
-    #     )
-    #     push!(lights, alight)
-    #     push!(primitives, Primitive(patch, "mat_white", alight))
-    # end
+    ceiling_light1 = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(WIDTH*L1_TOP,              HEIGHT*L_BUFFER,     MIN), 
+            Pnt3(WIDTH*(L1_TOP+L_WIDTH),    HEIGHT*L_BUFFER,     MIN), 
+            Pnt3(WIDTH*L1_MIDDLE,           HEIGHT*L_BUFFER,     DEPTH), 
+            Pnt3(WIDTH*(L1_MIDDLE+L_WIDTH), HEIGHT*L_BUFFER,     DEPTH)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in ceiling_light1
+        alight = DiffuseAreaLight(
+            spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
+            patch,
+            false # NOT two sided
+        )
+        push!(lights, alight)
+        push!(primitives, Primitive(patch, "mat_white", alight))
+    end
 
-    # # Light2
-    # backwall_light2 = BilinearPatchGenerator(
-    #     identity_shape_core,
-    #     1,
-    #     Pnt3[
-    #         Pnt3(WIDTH*L2_BOTTOM,           FLOOR_TRIM_HEIGHT, DEPTH*L_BUFFER), 
-    #         Pnt3(WIDTH*(L2_BOTTOM+L_WIDTH), FLOOR_TRIM_HEIGHT, DEPTH*L_BUFFER), 
-    #         Pnt3(WIDTH*L2_MIDDLE,           HEIGHT,            DEPTH*L_BUFFER), 
-    #         Pnt3(WIDTH*(L2_MIDDLE+L_WIDTH), HEIGHT,            DEPTH*L_BUFFER)
-    #     ],
-    #     Int64[1, 2, 3, 4],
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    # )
-    # for patch in backwall_light2
-    #     alight = DiffuseAreaLight(
-    #         spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
-    #         patch,
-    #         false # NOT two sided
-    #     )
-    #     push!(lights, alight)
-    #     push!(primitives, Primitive(patch, "mat_white", alight))
-    # end
-    # ceiling_light2 = BilinearPatchGenerator(
-    #     identity_shape_core,
-    #     1,
-    #     Pnt3[
-    #         Pnt3(WIDTH*L2_TOP,              HEIGHT*L_BUFFER,     MIN), 
-    #         Pnt3(WIDTH*(L2_TOP+L_WIDTH),    HEIGHT*L_BUFFER,     MIN), 
-    #         Pnt3(WIDTH*L2_MIDDLE,           HEIGHT*L_BUFFER,     DEPTH), 
-    #         Pnt3(WIDTH*(L2_MIDDLE+L_WIDTH), HEIGHT*L_BUFFER,     DEPTH)
-    #     ],
-    #     Int64[1, 2, 3, 4],
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    # )
-    # for patch in ceiling_light2
-    #     alight = DiffuseAreaLight(
-    #         spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
-    #         patch,
-    #         false # NOT two sided
-    #     )
-    #     push!(lights, alight)
-    #     push!(primitives, Primitive(patch, "mat_white", alight))
-    # end
+    # Light2
+    backwall_light2 = BilinearPatchGenerator(
+        identity_shape_core_rev,
+        1,
+        Pnt3[
+            Pnt3(WIDTH*L2_BOTTOM,           FLOOR_TRIM_HEIGHT, DEPTH*L_BUFFER), 
+            Pnt3(WIDTH*(L2_BOTTOM+L_WIDTH), FLOOR_TRIM_HEIGHT, DEPTH*L_BUFFER), 
+            Pnt3(WIDTH*L2_MIDDLE,           HEIGHT,            DEPTH*L_BUFFER), 
+            Pnt3(WIDTH*(L2_MIDDLE+L_WIDTH), HEIGHT,            DEPTH*L_BUFFER)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in backwall_light2
+        alight = DiffuseAreaLight(
+            spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
+            patch,
+            false # NOT two sided
+        )
+        push!(lights, alight)
+        push!(primitives, Primitive(patch, "mat_white", alight))
+    end
+    ceiling_light2 = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(WIDTH*L2_TOP,              HEIGHT*L_BUFFER,     MIN), 
+            Pnt3(WIDTH*(L2_TOP+L_WIDTH),    HEIGHT*L_BUFFER,     MIN), 
+            Pnt3(WIDTH*L2_MIDDLE,           HEIGHT*L_BUFFER,     DEPTH), 
+            Pnt3(WIDTH*(L2_MIDDLE+L_WIDTH), HEIGHT*L_BUFFER,     DEPTH)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in ceiling_light2
+        alight = DiffuseAreaLight(
+            spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
+            patch,
+            false # NOT two sided
+        )
+        push!(lights, alight)
+        push!(primitives, Primitive(patch, "mat_white", alight))
+    end
 
-    # # Light3
-    # backwall_light3 = BilinearPatchGenerator(
-    #     identity_shape_core,
-    #     1,
-    #     Pnt3[
-    #         Pnt3(WIDTH,                     HEIGHT*L3_BOTTOM,           DEPTH*L_BUFFER), 
-    #         Pnt3(WIDTH,                     HEIGHT*(L3_BOTTOM+L_WIDTH), DEPTH*L_BUFFER), 
-    #         Pnt3(WIDTH*L3_MIDDLE,           HEIGHT,                     DEPTH*L_BUFFER), 
-    #         Pnt3(WIDTH*(L3_MIDDLE+L_WIDTH), HEIGHT,                     DEPTH*L_BUFFER)
-    #     ],
-    #     Int64[1, 2, 3, 4],
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    # )
-    # for patch in backwall_light3
-    #     alight = DiffuseAreaLight(
-    #         spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
-    #         patch,
-    #         false # NOT two sided
-    #     )
-    #     push!(lights, alight)
-    #     push!(primitives, Primitive(patch, "mat_white", alight))
-    # end
-    # ceiling_light3 = BilinearPatchGenerator(
-    #     identity_shape_core,
-    #     1,
-    #     Pnt3[
-    #         Pnt3(WIDTH,                     HEIGHT*L_BUFFER,     DEPTH*L3_TOP), 
-    #         Pnt3(WIDTH,                     HEIGHT*L_BUFFER,     DEPTH*(L3_TOP+L_WIDTH)), 
-    #         Pnt3(WIDTH*L3_MIDDLE,           HEIGHT*L_BUFFER,     DEPTH), 
-    #         Pnt3(WIDTH*(L3_MIDDLE+L_WIDTH), HEIGHT*L_BUFFER,     DEPTH)
-    #     ],
-    #     Int64[1, 2, 3, 4],
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    #     nothing,
-    # )
-    # for patch in ceiling_light3
-    #     alight = DiffuseAreaLight(
-    #         spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
-    #         patch,
-    #         false # NOT two sided
-    #     )
-    #     push!(lights, alight)
-    #     push!(primitives, Primitive(patch, "mat_white", alight))
-    # end
+    # Light3
+    backwall_light3 = BilinearPatchGenerator(
+        identity_shape_core_rev,
+        1,
+        Pnt3[
+            Pnt3(WIDTH,                     HEIGHT*L3_BOTTOM,           DEPTH*L_BUFFER), 
+            Pnt3(WIDTH,                     HEIGHT*(L3_BOTTOM+L_WIDTH), DEPTH*L_BUFFER), 
+            Pnt3(WIDTH*L3_MIDDLE,           HEIGHT,                     DEPTH*L_BUFFER), 
+            Pnt3(WIDTH*(L3_MIDDLE+L_WIDTH), HEIGHT,                     DEPTH*L_BUFFER)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in backwall_light3
+        alight = DiffuseAreaLight(
+            spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
+            patch,
+            false # NOT two sided
+        )
+        push!(lights, alight)
+        push!(primitives, Primitive(patch, "mat_white", alight))
+    end
+    ceiling_light3 = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(WIDTH,                     HEIGHT*L_BUFFER,     DEPTH*L3_TOP), 
+            Pnt3(WIDTH,                     HEIGHT*L_BUFFER,     DEPTH*(L3_TOP+L_WIDTH)), 
+            Pnt3(WIDTH*L3_MIDDLE,           HEIGHT*L_BUFFER,     DEPTH), 
+            Pnt3(WIDTH*(L3_MIDDLE+L_WIDTH), HEIGHT*L_BUFFER,     DEPTH)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in ceiling_light3
+        alight = DiffuseAreaLight(
+            spectrum_from_float(5.0, 5.0, 5.0, Illuminant),
+            patch,
+            false # NOT two sided
+        )
+        push!(lights, alight)
+        push!(primitives, Primitive(patch, "mat_white", alight))
+    end
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

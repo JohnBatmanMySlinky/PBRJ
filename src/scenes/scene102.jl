@@ -1,6 +1,7 @@
 function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     old_smile = jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/smile3.png")
     new_smile = jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/smile3_post.exr")
@@ -14,10 +15,12 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # materials
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    push!(materials, mat_gray)
 
     emissive_color = spectrum_from_float(0.3, 0.3, 1.3)
     Kd = MixMultTexture(
@@ -25,10 +28,12 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ImageTexture(UVMapping2D(), new_smile)
     )
     mat_blob = Matte(
+        "mat_blob",
         Kd,
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    push!(materials, mat_blob)
 
     ###############
     ### a thing ###
@@ -48,7 +53,7 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         new_smile,
         1.0
     )
-    push!(primitives, Primitive(sphere, mat_blob, alight))
+    push!(primitives, Primitive(sphere, "mat_blob", alight))
     push!(lights, alight)
 
     floor_transform = Translate(Pnt3(0,0,0))
@@ -62,7 +67,7 @@ function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
     end
 
     # instantiate accelerator
