@@ -54,20 +54,20 @@ function BilinearPatchGenerator(
         else
             # Compute approximate area of bilinear patch
             na = 3
-            p = zeros(Pnt3, na+1, na+1)
+            grid = zeros(Pnt3, na+1, na+1)
             for i in 0:(na-1)
                 u = Float64(i) / Float64(na)
                 for j in 0:(na-1)
                     v = Float64(j) / Float64(na)
-                    p[i+1, j+1] = lerp(u, lerp(v, p00, p01), lerp(v, p10, p11))
+                    grid[i+1, j+1] = lerp(u, lerp(v, p00, p01), lerp(v, p10, p11))
                 end
             end
             area = 0.0
             for i in 0:(na-1-1)
                 for j in 0:(na-1-1)
                     area += 0.5 * length_pbrt(Vec3(cross(
-                        p[i + 1 + 1, j + 1 + 1] - p[i + 1, j + 1],
-                        p[i + 1 + 1, j + 1] - p[i + 1, j + 1 + 1]
+                        grid[i + 1 + 1, j + 1 + 1] - grid[i + 1, j + 1],
+                        grid[i + 1 + 1, j + 1] - grid[i + 1, j + 1 + 1]
                     )))
                 end
             end
@@ -333,14 +333,14 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
         p2 = length_squared(perp)
 
         # Compute matrix determinants for $v$ and $t$ numerators
-        v1 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
-        t1 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
-        # v1 = det(Mat3([deltao.x deltao.y deltao.z;
-        #        ray.direction.x ray.direction.y ray.direction.z;
-        #        perp.x perp.y perp.z]))
-        # t1 = det(Mat3([deltao.x deltao.y deltao.z;
-        #        ud.x ud.y ud.z;
-        #        perp.x perp.y perp.z]))
+        # v1 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
+        # t1 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
+        v1 = det(Mat3([deltao.x deltao.y deltao.z;
+               ray.direction.x ray.direction.y ray.direction.z;
+               perp.x perp.y perp.z]))
+        t1 = det(Mat3([deltao.x deltao.y deltao.z;
+               ud.x ud.y ud.z;
+               perp.x perp.y perp.z]))
 
         #  Set _u_, _v_, and _t_ if intersection is valid
         if ((t1 > p2 * eps) && (0.0 <= v1) && (v1 <= p2))
@@ -357,14 +357,14 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
         deltao = uo - ray.origin
         perp = cross(ray.direction, ud)
         p2 = length_squared(perp)
-        v2 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
-        t2 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
-        # v2 = det(Mat3([deltao.x deltao.y deltao.z;
-        #             ray.direction.x ray.direction.y ray.direction.z;
-        #             perp.x perp.y perp.z]))
-        # t2 = det(Mat3([deltao.x deltao.y deltao.z;
-        #             ud.x ud.y ud.z;
-        #             perp.x perp.y perp.z]))
+        # v2 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
+        # t2 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
+        v2 = det(Mat3([deltao.x deltao.y deltao.z;
+                    ray.direction.x ray.direction.y ray.direction.z;
+                    perp.x perp.y perp.z]))
+        t2 = det(Mat3([deltao.x deltao.y deltao.z;
+                    ud.x ud.y ud.z;
+                    perp.x perp.y perp.z]))
         t2 /= p2
         if (0.0 <= v2 && v2 <= p2 && t > t2 && t2 > eps)
             t = t2

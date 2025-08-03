@@ -518,7 +518,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt3(WIDTH*L1_MIDDLE,           HEIGHT,            DEPTH*L_BUFFER), 
             Pnt3(WIDTH*(L1_MIDDLE+L_WIDTH), HEIGHT,            DEPTH*L_BUFFER)
         ],
-        Int64[1, 3, 2, 4],
+        Int64[1, 2, 3, 4],
         nothing,
         nothing,
         nothing,
