@@ -1,7 +1,7 @@
 struct Metal{
     ETA <: AbstractTexture{Spectrum},
     K <: AbstractTexture{Spectrum},
-    R <: AbstractTexture{Float64},
+    R <: Maybe{AbstractTexture{Float64}},
     U <: Maybe{AbstractTexture{Float64}},
     V <: Maybe{AbstractTexture{Float64}},
     BM <: Maybe{AbstractTexture{Float64}}
@@ -27,7 +27,7 @@ struct Metal{
     )::Metal where {
         ETA <: AbstractTexture{Spectrum},
         K <: AbstractTexture{Spectrum},
-        R <: AbstractTexture{Float64},
+        R <: Maybe{AbstractTexture{Float64}},
         U <: Maybe{AbstractTexture{Float64}},
         V <: Maybe{AbstractTexture{Float64}},
         BM <: Maybe{AbstractTexture{Float64}}
