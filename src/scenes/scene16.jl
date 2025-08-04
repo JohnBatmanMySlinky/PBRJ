@@ -7,7 +7,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_gray = Matte(
         "mat_gray",
         ConstantTexture(spectrum_from_float(.9, .9, .795)),
-        ConstantTexture(0.0),
+        ConstantTexture(20.0),
         nothing
     )
     push!(materials, mat_gray)
@@ -19,30 +19,6 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     push!(materials, mat_white)
-
-    mat_red = Matte(
-        "mat_red",
-        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
-        ConstantTexture(0.0),
-        nothing
-    )
-    push!(materials, mat_red)
-
-    mat_blue = Matte(
-        "mat_blue",
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
-        ConstantTexture(0.0),
-        nothing
-    )
-    push!(materials, mat_blue)
-
-    mat_green = Matte(
-        "mat_green",
-        ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
-        ConstantTexture(0.0),
-        nothing
-    )
-    push!(materials, mat_green)
 
     mat_black = Plastic(
         "mat_black",
@@ -268,7 +244,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
     )
     for patch in leftwall_top
-        push!(primitives, Primitive(patch, "mat_blue", nothing))
+        push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
     leftwall_bottom_1 = BilinearPatchGenerator(
         identity_shape_core,
@@ -287,7 +263,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
     )
     for patch in leftwall_bottom_1
-        push!(primitives, Primitive(patch, "mat_blue", nothing))
+        push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
     leftwall_bottom1_trim = BilinearPatchGenerator(
         identity_shape_core,
@@ -344,7 +320,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
     )
     for patch in leftwall_bottom_2
-        push!(primitives, Primitive(patch, "mat_blue", nothing))
+        push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
     leftwall_bottom2_trim = BilinearPatchGenerator(
         identity_shape_core,
@@ -401,7 +377,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
     )
     for patch in leftwall_bottom_3
-        push!(primitives, Primitive(patch, "mat_blue", nothing))
+        push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
     leftwall_bottom3_trim = BilinearPatchGenerator(
         identity_shape_core,
@@ -460,7 +436,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
     )
     for patch in rightwall_top
-        push!(primitives, Primitive(patch, "mat_green", nothing))
+        push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
     rightwall_bottom_1 = BilinearPatchGenerator(
         identity_shape_core,
@@ -479,7 +455,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
     )
     for patch in rightwall_bottom_1
-        push!(primitives, Primitive(patch, "mat_green", nothing))
+        push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
     rightwall_bottom_1_trim = BilinearPatchGenerator(
         identity_shape_core,
@@ -537,7 +513,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
     )
     for patch in rightwall_bottom_2
-        push!(primitives, Primitive(patch, "mat_green", nothing))
+        push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
     rightwall_bottom_2_trim = BilinearPatchGenerator(
         identity_shape_core,
@@ -595,7 +571,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
     )
     for patch in rightwall_bottom_3
-        push!(primitives, Primitive(patch, "mat_green", nothing))
+        push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
     rightwall_bottom3_trim = BilinearPatchGenerator(
         identity_shape_core,
