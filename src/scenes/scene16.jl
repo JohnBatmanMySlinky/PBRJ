@@ -108,7 +108,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     FLOOR_TRIM_HEIGHT = HEIGHT * 0.05
     FLOOR_TRIM_DEPTH = 1.0
 
-    SILVER_PANEL_CENTER = Pnt2(0.5, (ELEVATOR_CENTER_1 + ELEVATOR_CENTER_2) / DEPTH)
+    SILVER_PANEL_CENTER = Pnt2((ELEVATOR_CENTER_1 + ELEVATOR_CENTER_2) / (2 * DEPTH), 0.5)
     SILVER_PANEL_HEIGHT = 50.0
     SILVER_PANEL_WIDTH = 25.0
 
@@ -163,14 +163,10 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ####### Silver Panels
     ################################
 
-    # SILVER_PANEL_CENTER = Pnt2(0.5, 0.5)
-    # SILVER_PANEL_HEIGHT = 50.0
-    # SILVER_PANEL_WIDTH = 25.0
-
     left_silver_panel = Box(
         identity_shape_core, 
-        Pnt3(MIN - FLOOR_TRIM_DEPTH, HEIGHT * SILVER_PANEL_CENTER.x - SILVER_PANEL_HEIGHT / 2, DEPTH * SILVER_PANEL_CENTER.y - SILVER_PANEL_WIDTH / 2),
-        Pnt3(MIN + FLOOR_TRIM_DEPTH, HEIGHT * SILVER_PANEL_CENTER.x + SILVER_PANEL_HEIGHT / 2, DEPTH * SILVER_PANEL_CENTER.y + SILVER_PANEL_WIDTH / 2),
+        Pnt3(MIN - FLOOR_TRIM_DEPTH, HEIGHT * SILVER_PANEL_CENTER.y - SILVER_PANEL_HEIGHT / 2, DEPTH * SILVER_PANEL_CENTER.x - SILVER_PANEL_WIDTH / 2),
+        Pnt3(MIN + FLOOR_TRIM_DEPTH, HEIGHT * SILVER_PANEL_CENTER.y + SILVER_PANEL_HEIGHT / 2, DEPTH * SILVER_PANEL_CENTER.x + SILVER_PANEL_WIDTH / 2),
         "mat_red"
     )
     for prim in left_silver_panel
@@ -179,8 +175,8 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     right_silver_panel = Box(
         identity_shape_core, 
-        Pnt3(WIDTH - FLOOR_TRIM_DEPTH, HEIGHT * SILVER_PANEL_CENTER.x - SILVER_PANEL_HEIGHT / 2, DEPTH * SILVER_PANEL_CENTER.y - SILVER_PANEL_WIDTH / 2),
-        Pnt3(WIDTH + FLOOR_TRIM_DEPTH, HEIGHT * SILVER_PANEL_CENTER.x + SILVER_PANEL_HEIGHT / 2, DEPTH * SILVER_PANEL_CENTER.y + SILVER_PANEL_WIDTH / 2),
+        Pnt3(WIDTH - FLOOR_TRIM_DEPTH, HEIGHT * SILVER_PANEL_CENTER.y - SILVER_PANEL_HEIGHT / 2, DEPTH * SILVER_PANEL_CENTER.x - SILVER_PANEL_WIDTH / 2),
+        Pnt3(WIDTH + FLOOR_TRIM_DEPTH, HEIGHT * SILVER_PANEL_CENTER.y + SILVER_PANEL_HEIGHT / 2, DEPTH * SILVER_PANEL_CENTER.x + SILVER_PANEL_WIDTH / 2),
         "mat_red"
     )
     for prim in right_silver_panel
