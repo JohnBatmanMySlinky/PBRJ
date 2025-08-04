@@ -129,7 +129,9 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     push!(primitives, Primitive(lil_ball, "mat_black_shiny", nothing))
 
 
-    # Top Bottom Back Walls
+    ################################
+    ####### FLOOR 
+    ################################
     floor = BilinearPatchGenerator(
         identity_shape_core,
         1,
@@ -149,6 +151,10 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for patch in floor
         push!(primitives, Primitive(patch, "mat_concrete", nothing))
     end
+
+    ################################
+    ####### CEILING 
+    ################################
     ceiling = BilinearPatchGenerator(
         identity_shape_core,
         1,
@@ -169,7 +175,9 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
 
-    # BACK WALL
+    ################################
+    ####### BACK WALL
+    ################################
     backwall = BilinearPatchGenerator(
         identity_shape_core,
         1,
@@ -226,7 +234,9 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
 
-    # LEFT WALL
+    ################################
+    ####### LEFTWALL
+    ################################
     leftwall_top = BilinearPatchGenerator(
         identity_shape_core,
         1,
@@ -418,7 +428,9 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(patch, "mat_black", nothing))
     end
 
-    # RIGHT WALL
+    ################################
+    ####### RIGHT WALL
+    ################################
     rightwall_top = BilinearPatchGenerator(
         identity_shape_core,
         1,
@@ -612,7 +624,9 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(patch, "mat_black", nothing))
     end
 
-    # Light1
+    ################################
+    ####### Light 1
+    ################################
     backwall_light1 = BilinearPatchGenerator(
         identity_shape_core_rev,
         1,
@@ -664,7 +678,9 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(patch, "mat_white", alight))
     end
 
-    # Light2
+    ################################
+    ####### Light 2
+    ################################
     backwall_light2 = BilinearPatchGenerator(
         identity_shape_core_rev,
         1,
@@ -716,7 +732,9 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(patch, "mat_white", alight))
     end
 
-    # Light3
+    ################################
+    ####### Light 3
+    ################################
     backwall_light3 = BilinearPatchGenerator(
         identity_shape_core_rev,
         1,
