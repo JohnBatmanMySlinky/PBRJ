@@ -469,6 +469,45 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for patch in rightwall_bottom_1
         push!(primitives, Primitive(patch, "mat_green", nothing))
     end
+    rightwall_bottom_1_trim = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, MIN,               ELEVATOR_CENTER_1+ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_1+ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, MIN,               DEPTH),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, DEPTH)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in rightwall_bottom_1_trim
+        push!(primitives, Primitive(patch, "mat_black", nothing))
+    end
+    rightwall_bottom_1_trim2 = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(WIDTH,                  FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_1+ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_1+ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH,                  FLOOR_TRIM_HEIGHT, DEPTH),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, DEPTH)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in rightwall_bottom_1_trim2
+        push!(primitives, Primitive(patch, "mat_black", nothing))
+    end
+
     rightwall_bottom_2 = BilinearPatchGenerator(
         identity_shape_core,
         1,
@@ -488,6 +527,45 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for patch in rightwall_bottom_2
         push!(primitives, Primitive(patch, "mat_green", nothing))
     end
+    rightwall_bottom_2_trim = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, MIN,               ELEVATOR_CENTER_2+ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_2+ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, MIN,               ELEVATOR_CENTER_1-ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_1-ELEVATOR_WIDTH/2)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in rightwall_bottom_2_trim
+        push!(primitives, Primitive(patch, "mat_black", nothing))
+    end
+    rightwall_bottom_2_trim2 = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(WIDTH,                  FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_2+ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_2+ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH,                  FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_1-ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH+FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_1-ELEVATOR_WIDTH/2)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in rightwall_bottom_2_trim2
+        push!(primitives, Primitive(patch, "mat_black", nothing))
+    end
+
     rightwall_bottom_3 = BilinearPatchGenerator(
         identity_shape_core,
         1,
@@ -506,6 +584,44 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for patch in rightwall_bottom_3
         push!(primitives, Primitive(patch, "mat_green", nothing))
+    end
+    rightwall_bottom3_trim = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, MIN,               ELEVATOR_CENTER_2-ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_2-ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, MIN,               MIN),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, MIN)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in rightwall_bottom3_trim
+        push!(primitives, Primitive(patch, "mat_black", nothing))
+    end
+    rightwall_bottom3_trim2 = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(WIDTH,                  FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_2-ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, ELEVATOR_CENTER_2-ELEVATOR_WIDTH/2),
+            Pnt3(WIDTH,                  FLOOR_TRIM_HEIGHT, MIN),
+            Pnt3(WIDTH-FLOOR_TRIM_DEPTH, FLOOR_TRIM_HEIGHT, MIN)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in rightwall_bottom3_trim2
+        push!(primitives, Primitive(patch, "mat_black", nothing))
     end
 
     # Light1
