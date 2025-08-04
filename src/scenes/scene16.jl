@@ -79,6 +79,18 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_concrete)
 
+    mat_metal_door = Metal(
+        "mat_metal_door",
+        ConstantTexture(spectrum_from_float(0.155, 0.116, 0.138)),
+        ConstantTexture(spectrum_from_float(0.482, 0.312, 0.214)),
+        nothing,
+        ConstantTexture(.01),
+        ConstantTexture(.2),
+        nothing,
+        true
+    )
+    push!(materials, mat_metal_door)
+
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
