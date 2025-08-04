@@ -95,6 +95,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- need to go firefly hunting again......
 - Back to TriangleMesh but instead use Ref{}
 - for materials/bsdf
     - use mvector with a union type
