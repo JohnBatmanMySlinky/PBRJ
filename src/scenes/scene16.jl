@@ -20,6 +20,14 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_white)
 
+    mat_red = Matte(
+        "mat_red",
+        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_red)
+
     mat_black = Plastic(
         "mat_black",
         ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
@@ -79,6 +87,9 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ELEVATOR_WIDTH = HEIGHT * 0.30
     ELEVATOR_CENTER_1 = DEPTH * 0.7
     ELEVATOR_CENTER_2 = DEPTH * 0.1
+
+    ELEVATOR_TRIM = HEIGHT * 0.05 * 0.75
+    ELEVATOR_TRIM_DEPTH = 1.5
 
     FLOOR_TRIM_HEIGHT = HEIGHT * 0.05
     FLOOR_TRIM_DEPTH = 1.0
@@ -427,6 +438,40 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for patch in leftwall_bottom3_trim2
         push!(primitives, Primitive(patch, "mat_black", nothing))
     end
+
+    ################################
+    ####### LEFT ELEVATORS
+    ################################
+    left_elevator_1_top = Box(
+        identity_shape_core, 
+        Pnt3(MIN,                       ELEVATOR_HEIGHT,                 ELEVATOR_CENTER_1 - ELEVATOR_WIDTH/2),
+        Pnt3(MIN + ELEVATOR_TRIM_DEPTH, ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_1 + ELEVATOR_WIDTH/2),
+        "mat_metal_door"
+    )
+    for prim in left_elevator_1_top
+        push!(primitives, prim)
+    end
+
+    left_elevator_1_left = Box(
+        identity_shape_core, 
+        Pnt3(MIN,                       MIN,                             ELEVATOR_CENTER_1 - ELEVATOR_WIDTH/2),
+        Pnt3(MIN + ELEVATOR_TRIM_DEPTH, ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_1 - ELEVATOR_WIDTH/2 + ELEVATOR_TRIM),
+        "mat_metal_door"
+    )
+    for prim in left_elevator_1_left
+        push!(primitives, prim)
+    end
+
+    left_elevator_1_right = Box(
+        identity_shape_core, 
+        Pnt3(MIN,                       MIN,                             ELEVATOR_CENTER_1 + ELEVATOR_WIDTH/2),
+        Pnt3(MIN + ELEVATOR_TRIM_DEPTH, ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_1 + ELEVATOR_WIDTH/2 + ELEVATOR_TRIM),
+        "mat_metal_door"
+    )
+    for prim in left_elevator_1_right
+        push!(primitives, prim)
+    end
+
 
     ################################
     ####### RIGHT WALL
