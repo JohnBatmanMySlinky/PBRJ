@@ -121,6 +121,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ################################
     ####### Constants
     ################################
+    WALL_NEGATIVE_EXTENSION = 50.0
     MIN = 0.0
     HEIGHT = 500.0
     DEPTH = 1000.0
@@ -405,6 +406,26 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for patch in leftwall
         push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
+    leftwall_negative_extension = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(MIN, MIN,    MIN - WALL_NEGATIVE_EXTENSION),
+            Pnt3(MIN, HEIGHT, MIN - WALL_NEGATIVE_EXTENSION),
+            Pnt3(MIN, MIN,    MIN),
+            Pnt3(MIN, HEIGHT, MIN)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing
+    )
+    for patch in leftwall_negative_extension
+        push!(primitives, Primitive(patch, "mat_gray", nothing))
+    end
+    
     # leftwall_top = BilinearPatchGenerator(
     #     identity_shape_core,
     #     1,
@@ -603,7 +624,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(MIN - ELEVATOR_DEPTH,      ELEVATOR_HEIGHT,                 ELEVATOR_CENTER_1 - ELEVATOR_WIDTH/2),
         Pnt3(MIN + ELEVATOR_TRIM_DEPTH, ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_1 + ELEVATOR_WIDTH/2),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in left_elevator_1_top
         push!(primitives, prim)
@@ -613,7 +634,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(MIN - ELEVATOR_DEPTH,      MIN,                             ELEVATOR_CENTER_1 - ELEVATOR_WIDTH/2),
         Pnt3(MIN + ELEVATOR_TRIM_DEPTH, ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_1 - ELEVATOR_WIDTH/2 + ELEVATOR_TRIM),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in left_elevator_1_left
         push!(primitives, prim)
@@ -623,7 +644,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(MIN - ELEVATOR_DEPTH,      MIN,                             ELEVATOR_CENTER_1 + ELEVATOR_WIDTH/2),
         Pnt3(MIN + ELEVATOR_TRIM_DEPTH, ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_1 + ELEVATOR_WIDTH/2 + ELEVATOR_TRIM),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in left_elevator_1_right
         push!(primitives, prim)
@@ -673,7 +694,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(MIN - ELEVATOR_DEPTH,      ELEVATOR_HEIGHT,                 ELEVATOR_CENTER_2 - ELEVATOR_WIDTH/2),
         Pnt3(MIN + ELEVATOR_TRIM_DEPTH, ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_2 + ELEVATOR_WIDTH/2),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in left_elevator_2_top
         push!(primitives, prim)
@@ -683,7 +704,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(MIN - ELEVATOR_DEPTH,      MIN,                             ELEVATOR_CENTER_2 - ELEVATOR_WIDTH/2),
         Pnt3(MIN + ELEVATOR_TRIM_DEPTH, ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_2 - ELEVATOR_WIDTH/2 + ELEVATOR_TRIM),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in left_elevator_2_left
         push!(primitives, prim)
@@ -693,7 +714,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(MIN - ELEVATOR_DEPTH,      MIN,                             ELEVATOR_CENTER_2 + ELEVATOR_WIDTH/2),
         Pnt3(MIN + ELEVATOR_TRIM_DEPTH, ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_2 + ELEVATOR_WIDTH/2 + ELEVATOR_TRIM),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in left_elevator_2_right
         push!(primitives, prim)
@@ -761,6 +782,26 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for patch in rightwall
         push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
+    rightwall_negative_extension = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(WIDTH, MIN,    MIN - WALL_NEGATIVE_EXTENSION),
+            Pnt3(WIDTH, HEIGHT, MIN - WALL_NEGATIVE_EXTENSION),
+            Pnt3(WIDTH, MIN,    MIN),
+            Pnt3(WIDTH, HEIGHT, MIN)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing
+    )
+    for patch in rightwall_negative_extension
+        push!(primitives, Primitive(patch, "mat_gray", nothing))
+    end
+
     # rightwall_top = BilinearPatchGenerator(
     #     identity_shape_core,
     #     1,
@@ -961,7 +1002,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(WIDTH - ELEVATOR_TRIM_DEPTH, ELEVATOR_HEIGHT, ELEVATOR_CENTER_1 - ELEVATOR_WIDTH/2),
         Pnt3(WIDTH + ELEVATOR_DEPTH,                       ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_1 + ELEVATOR_WIDTH/2),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in right_elevator_1_top
         push!(primitives, prim)
@@ -971,7 +1012,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(WIDTH - ELEVATOR_TRIM_DEPTH, MIN,                             ELEVATOR_CENTER_1 - ELEVATOR_WIDTH/2),
         Pnt3(WIDTH + ELEVATOR_DEPTH,      ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_1 - ELEVATOR_WIDTH/2 + ELEVATOR_TRIM),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in right_elevator_1_left
         push!(primitives, prim)
@@ -981,7 +1022,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(WIDTH - ELEVATOR_TRIM_DEPTH, MIN,                             ELEVATOR_CENTER_1 + ELEVATOR_WIDTH/2),
         Pnt3(WIDTH + ELEVATOR_DEPTH,      ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_1 + ELEVATOR_WIDTH/2 + ELEVATOR_TRIM),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in right_elevator_1_right
         push!(primitives, prim)
@@ -1031,7 +1072,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(WIDTH - ELEVATOR_TRIM_DEPTH, ELEVATOR_HEIGHT,                 ELEVATOR_CENTER_2 - ELEVATOR_WIDTH/2),
         Pnt3(WIDTH + ELEVATOR_DEPTH,      ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_2 + ELEVATOR_WIDTH/2),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in right_elevator_2_top
         push!(primitives, prim)
@@ -1041,7 +1082,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(WIDTH - ELEVATOR_TRIM_DEPTH, MIN,                             ELEVATOR_CENTER_2 - ELEVATOR_WIDTH/2),
         Pnt3(WIDTH + ELEVATOR_DEPTH,      ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_2 - ELEVATOR_WIDTH/2 + ELEVATOR_TRIM),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in right_elevator_2_left
         push!(primitives, prim)
@@ -1051,7 +1092,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         identity_shape_core, 
         Pnt3(WIDTH - ELEVATOR_TRIM_DEPTH, MIN,                             ELEVATOR_CENTER_2 + ELEVATOR_WIDTH/2),
         Pnt3(WIDTH + ELEVATOR_DEPTH,      ELEVATOR_HEIGHT + ELEVATOR_TRIM, ELEVATOR_CENTER_2 + ELEVATOR_WIDTH/2 + ELEVATOR_TRIM),
-        "mat_metal_door"
+        "mat_red"
     )
     for prim in right_elevator_2_right
         push!(primitives, prim)
