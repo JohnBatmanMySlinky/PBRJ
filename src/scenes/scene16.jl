@@ -282,6 +282,25 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for patch in floor
         push!(primitives, Primitive(patch, "mat_concrete", nothing))
     end
+    floor_negative_extension = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(MIN-300,   MIN, MIN - WALL_NEGATIVE_EXTENSION), 
+            Pnt3(WIDTH+300, MIN, MIN - WALL_NEGATIVE_EXTENSION),
+            Pnt3(MIN-300,   MIN, MIN), 
+            Pnt3(WIDTH+300, MIN, MIN)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in floor_negative_extension
+        push!(primitives, Primitive(patch, "mat_concrete", nothing))
+    end
 
     # TESTING
     # sphere_t = Translate(Pnt3(WIDTH / 2.0, HEIGHT / 2.0, DEPTH / 2.0))
@@ -322,6 +341,25 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
     )
     for patch in ceiling
+        push!(primitives, Primitive(patch, "mat_gray", nothing))
+    end
+    ceiling_negative_extension = BilinearPatchGenerator(
+        identity_shape_core,
+        1,
+        Pnt3[
+            Pnt3(MIN,   HEIGHT, MIN - WALL_NEGATIVE_EXTENSION),
+            Pnt3(WIDTH, HEIGHT, MIN - WALL_NEGATIVE_EXTENSION),
+            Pnt3(MIN,   HEIGHT, MIN),
+            Pnt3(WIDTH, HEIGHT, MIN)
+        ],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+        nothing,
+    )
+    for patch in ceiling_negative_extension
         push!(primitives, Primitive(patch, "mat_gray", nothing))
     end
 
