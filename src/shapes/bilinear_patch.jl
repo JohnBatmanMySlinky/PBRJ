@@ -37,7 +37,7 @@ function BilinearPatchGenerator(
     uv::Maybe{Vector{Pnt2}},
     uv_indices::Maybe{Vector{Int64}},
 
-    alpha_mask::Maybe{AbstractTexture{Float64}},
+    alpha_mask::Maybe{String},
 )::Vector{BilinearPatch}
 
     patches = Vector{BilinearPatch}(undef, n_patches)
