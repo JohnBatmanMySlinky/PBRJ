@@ -165,13 +165,14 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ################################
 
     tex_elevator_door_1_alpha = RectangleProceduralTexture(
+        # THESE ARE BACKWARDS BUT IT WORKS?
         Pnt2(
+            ELEVATOR_HEIGHT / HEIGHT,
             (ELEVATOR_CENTER_1 - ELEVATOR_WIDTH) / DEPTH, 
-            MIN
         ),
         Pnt2(
+            1.0,
             (ELEVATOR_CENTER_1 + ELEVATOR_WIDTH) / DEPTH,
-            ELEVATOR_HEIGHT / HEIGHT,
         ),
         1.0,
         0.0,
@@ -179,13 +180,14 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     tex_elevator_door_2_alpha = RectangleProceduralTexture(
+        # THESE ARE BACKWARDS BUT IT WORKS?
         Pnt2(
+            MIN,
             (ELEVATOR_CENTER_2 - ELEVATOR_WIDTH) / DEPTH, 
-            MIN
         ),
         Pnt2(
-            (ELEVATOR_CENTER_2 + ELEVATOR_WIDTH) / DEPTH,
             ELEVATOR_HEIGHT / HEIGHT,
+            (ELEVATOR_CENTER_2 + ELEVATOR_WIDTH) / DEPTH,
         ),
         1.0,
         0.0,

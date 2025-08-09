@@ -373,6 +373,30 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
         end
     end
 
+    # tossing alpha test here for now
+    # JOHN TO DO MOVE TO Primitive
+    # Test intersection against alpha texture, if present
+    if !(blp.alpha_mask isa Nothing)
+        si = InstantiateSurfaceInteraction(
+            lerp(u, lerp(v, p00, p01), lerp(v, p10, p11)),
+            0.0,
+            Vec3(1,1,1),
+            Pnt2(u, v),
+            Vec3(1,1,1),
+            Vec3(1,1,1),
+            Nml3(1,1,1),
+            Nml3(1,1,1),
+            blp,
+            nothing,
+            nothing
+        )
+        alpha_mask = get_texture(blp.alpha_mask)
+        
+        if alpha_mask(si) == 0.0
+            return false, nothing, nothing
+        end
+    end
+
     # TODO: reject hits with sufficiently small t that we're not sure.
     # Check intersection $t$ against _tMax_ and possibly return intersection
     if (t >= ray.tMax)
