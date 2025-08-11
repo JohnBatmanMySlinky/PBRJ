@@ -97,7 +97,6 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 # TODO's
 - stochastic alpha test re pbrtv4 and move to primitive???
 - UVMapping2D() for all textures
-- alpha texture for BilinearPatch
 - need to go firefly hunting again......
 - Back to TriangleMesh but instead use Ref{}
 - for materials/bsdf
