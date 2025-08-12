@@ -8,10 +8,18 @@ struct CircleProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
     inside::T
     outside::T
     name::Maybe{String}
-end
+    mapping::AbstractTextureMapping2D
 
-function CircleProceduralTexture{T}(center::Pnt2, radius::Float64, inside::T, outside::T, name::Maybe{String}=nothing)::CircleProceduralTexture{T} where T <: Union{Float64, Spectrum}
-    return CircleProceduralTexture{T}(center, radius, inside, outside, name)
+    function CircleProceduralTexture(
+        center::Pnt2, 
+        radius::Float64, 
+        inside::T, 
+        outside::T, 
+        name::Maybe{String}=nothing,
+        mapping::AbstractTextureMapping2D=UVMapping2D()
+    )::CircleProceduralTexture{T} where T <: Union{Float64, Spectrum}
+        return new{T}(center, radius, inside, outside, name, mapping)
+    end
 end
 
 function (cpt::CircleProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
@@ -33,13 +41,21 @@ struct RectangleProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractText
     inside::T
     outside::T
     name::Maybe{String}
-end
+    mapping::AbstractTextureMapping2D
 
-function RectangleProceduralTexture{T}(p_min::Pnt2, p_max::Pnt2, inside::T, outside::T, name::Maybe{String}=nothing)::RectangleProceduralTexture{T} where T <: Union{Float64, Spectrum}
-    @assert all(0.0 .<= p_min .<= 1.0)
-    @assert all(0.0 .<= p_max .<= 1.0)
-    @assert all(p_min .< p_max)
-    return RectangleProceduralTexture{T}(p_min, p_max, inside, outside, name)
+    function RectangleProceduralTexture(
+        p_min::Pnt2, 
+        p_max::Pnt2, 
+        inside::T, 
+        outside::T, 
+        name::Maybe{String}=nothing,
+        mapping::AbstractTextureMapping2D=UVMapping2D()
+    )::RectangleProceduralTexture{T} where T <: Union{Float64, Spectrum}
+        @assert all(0.0 .<= p_min .<= 1.0)
+        @assert all(0.0 .<= p_max .<= 1.0)
+        @assert all(p_min .< p_max)
+        return new{T}(p_min, p_max, inside, outside, name, mapping)
+    end
 end
 
 function (cpt::RectangleProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
@@ -59,10 +75,17 @@ struct CornerProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
     inside::T
     outside::T
     name::Maybe{String}
-end
+    mapping::AbstractTextureMapping2D
 
-function CornerProceduralTexture{T}(threshold::Float64, a::T, b::T, name::Maybe{String}=nothing)::CornerProceduralTexture{T} where T <: Union{Float64, Spectrum}
-    return CornerProceduralTexture{T}(threshold, a, b, name)
+    function CornerProceduralTexture(
+        threshold::Float64, 
+        a::T, 
+        b::T, 
+        name::Maybe{String}=nothing,
+        mapping::AbstractTextureMapping2D=UVMapping2D()
+    )::CornerProceduralTexture{T} where T <: Union{Float64, Spectrum}
+        return new{T}(threshold, a, b, name, mapping)
+    end
 end
 
 function (cpt::CornerProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
@@ -83,10 +106,17 @@ struct Checker3DTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     b::T
     scale::Pnt3
     name::Maybe{String}
-end
+    mapping::AbstractTextureMapping2D
 
-function Checker3DTexture{T}(a::T, b::T, scale::Pnt3=Pnt3(1,1,1), name::Maybe{String}=nothing)::Checker3DTexture{T} where T <: Union{Float64, Spectrum}
-    return Checker3DTexture{T}(a, b, scale, name)
+    function Checker3DTexture(
+        a::T, 
+        b::T, 
+        scale::Pnt3=Pnt3(1,1,1), 
+        name::Maybe{String}=nothing,
+        mapping::AbstractTextureMapping2D=UVMapping2D()
+    )::Checker3DTexture{T} where T <: Union{Float64, Spectrum}
+        return new{T}(a, b, scale, name, mapping)
+    end
 end
 
 function (ct::Checker3DTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
