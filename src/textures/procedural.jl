@@ -23,7 +23,8 @@ struct CircleProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
 end
 
 function (cpt::CircleProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
-    u, v = si.uv
+    st, dstdx, dstdy = cpt.mapping(si)
+    u, v = st
     if (u-cpt.center[1])^2 + (v-cpt.center[2])^2 <= cpt.radius^2
         return cpt.inside
     else
@@ -58,9 +59,10 @@ struct RectangleProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractText
     end
 end
 
-function (cpt::RectangleProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
-    u, v = si.uv
-    if (cpt.p_min.x <= u <= cpt.p_max.x) || (cpt.p_min.y <= v <= cpt.p_max.y)
+function (rpt::RectangleProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
+    st, dstdx, dstdy = rpt.mapping(si)
+    u, v = st
+    if (rpt.p_min.x <= u <= rpt.p_max.x) || (rpt.p_min.y <= v <= rpt.p_max.y)
         return cpt.inside
     else
         return cpt.outside
@@ -89,8 +91,8 @@ struct CornerProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
 end
 
 function (cpt::CornerProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
-    u, v = si.uv
-
+    st, dstdx, dstdy = cpt.mapping(si)
+    u, v = st
     if u+v < cpt.threshold
         return cpt.inside
     else
@@ -106,16 +108,14 @@ struct Checker3DTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     b::T
     scale::Pnt3
     name::Maybe{String}
-    mapping::AbstractTextureMapping2D
 
     function Checker3DTexture(
         a::T, 
         b::T, 
         scale::Pnt3=Pnt3(1,1,1), 
-        name::Maybe{String}=nothing,
-        mapping::AbstractTextureMapping2D=UVMapping2D()
+        name::Maybe{String}=nothing
     )::Checker3DTexture{T} where T <: Union{Float64, Spectrum}
-        return new{T}(a, b, scale, name, mapping)
+        return new{T}(a, b, scale, name)
     end
 end
 
