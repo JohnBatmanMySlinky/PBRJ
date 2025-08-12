@@ -180,11 +180,11 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # THESE ARE BACKWARDS BUT IT WORKS?
         Pnt2(
             MIN,
-            (ELEVATOR_CENTER_1 - ELEVATOR_WIDTH) / DEPTH, 
+            (ELEVATOR_CENTER_1 - ELEVATOR_WIDTH/2) / DEPTH, 
         ),
         Pnt2(
             ELEVATOR_HEIGHT / HEIGHT,
-            (ELEVATOR_CENTER_1 + ELEVATOR_WIDTH) / DEPTH,
+            (ELEVATOR_CENTER_1 + ELEVATOR_WIDTH/2) / DEPTH,
         ),
         1.0,
         0.0,
@@ -195,11 +195,11 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         # THESE ARE BACKWARDS BUT IT WORKS?
         Pnt2(
             MIN,
-            (ELEVATOR_CENTER_2 - ELEVATOR_WIDTH) / DEPTH, 
+            (ELEVATOR_CENTER_2 - ELEVATOR_WIDTH/2) / DEPTH, 
         ),
         Pnt2(
             ELEVATOR_HEIGHT / HEIGHT,
-            (ELEVATOR_CENTER_2 + ELEVATOR_WIDTH) / DEPTH,
+            (ELEVATOR_CENTER_2 + ELEVATOR_WIDTH/2) / DEPTH,
         ),
         1.0,
         0.0,
