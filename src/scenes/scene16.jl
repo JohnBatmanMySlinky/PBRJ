@@ -117,7 +117,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_test = Matte(
         "mat_test",
         ImageTexture(
-            UVMapping2DFull(0.0, 1.0, -1.0, 0.0, 0.0, 0.0),
+            UVMapping2DFull_rotate_90_cw(),
             jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/test.png"),
             false
         ),
@@ -177,7 +177,6 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ################################
 
     tex_elevator_door_1_alpha = RectangleProceduralTexture(
-        # THESE ARE BACKWARDS BUT IT WORKS?
         Pnt2(
             (ELEVATOR_CENTER_1 - ELEVATOR_WIDTH/2) / DEPTH, 
             MIN,
@@ -188,12 +187,11 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ),
         1.0,
         0.0,
-        "dummy"
+        nothing,
+        UVMapping2D(), # UVMapping2DFull_rotate_90_cw()
     )
-    println(tex_elevator_door_1_alpha)
 
     tex_elevator_door_2_alpha = RectangleProceduralTexture(
-        # THESE ARE BACKWARDS BUT IT WORKS?
         Pnt2(
             (ELEVATOR_CENTER_2 - ELEVATOR_WIDTH/2) / DEPTH,    
             MIN, 
@@ -204,9 +202,9 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ),
         1.0,
         0.0,
-        "dummy"
+        nothing,
+        UVMapping2D(), # UVMapping2DFull_rotate_90_cw()
     )
-    println(tex_elevator_door_2_alpha)
 
     
     text_elevator_door_both_alpha = MixAddTexture(
@@ -456,8 +454,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
         nothing,
         nothing,
-        nothing
-        # "text_elevator_door_both_alpha",
+        "text_elevator_door_both_alpha",
     )
     for patch in leftwall
         push!(primitives, Primitive(patch, "mat_test", nothing))
