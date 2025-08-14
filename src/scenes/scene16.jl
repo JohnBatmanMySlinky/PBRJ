@@ -431,7 +431,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
     )
     for patch in backwall_trim2
-        push!(primitives, Primitive(patch, "mat_gray", nothing))
+        push!(primitives, Primitive(patch, "mat_black", nothing))
     end
 
     ################################
