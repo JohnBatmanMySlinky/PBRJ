@@ -62,7 +62,7 @@ end
 function (rpt::RectangleProceduralTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
     st, dstdx, dstdy = rpt.mapping(si)
     u, v = st
-    if (rpt.p_min.x <= u <= rpt.p_max.x) || (rpt.p_min.y <= v <= rpt.p_max.y)
+    if (rpt.p_min.x <= u <= rpt.p_max.x) && (rpt.p_min.y <= v <= rpt.p_max.y)
         return rpt.inside
     else
         return rpt.outside
