@@ -53,7 +53,7 @@ function UVMapping2DFull_rotate_90_cw()::UVMapping2DFull
     return UVMapping2DFull(
         0.0,  1.0,  # m11, m12: new_u = 0*u + 1*v = v
         -1.0, 0.0,  # m21, m22: new_v = -1*u + 0*v = -u
-        1.0,  0.0   # du, dv: translate by (1,0) to keep in [0,1]
+        0.0,  1.0   # du, dv: translate by (1,0) to keep in [0,1]
     )
 end
 
@@ -62,6 +62,6 @@ function UVMapping2DFull_rotate_90_ccw()::UVMapping2DFull
     return UVMapping2DFull(
         0.0, -1.0,  # m11, m12: new_u = 0*u + (-1)*v = -v
         1.0,  0.0,  # m21, m22: new_v = 1*u + 0*v = u
-        0.0,  1.0   # du, dv: translate by (0,1) to keep in [0,1]
+        1.0,  0.0   # du, dv: translate by (0,1) to keep in [0,1]
     )
 end
