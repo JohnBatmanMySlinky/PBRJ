@@ -454,7 +454,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         "text_elevator_door_both_alpha",
     )
     for patch in leftwall
-        push!(primitives, Primitive(patch, "mat_gray", nothing))
+        push!(primitives, Primitive(patch, "mat_wood_walls", nothing))
     end
     leftwall_negative_extension = BilinearPatchGenerator(
         identity_shape_core,
@@ -473,7 +473,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for patch in leftwall_negative_extension
-        push!(primitives, Primitive(patch, "mat_gray", nothing))
+        push!(primitives, Primitive(patch, "mat_wood_walls", nothing))
     end
     
     # leftwall_top = BilinearPatchGenerator(
@@ -830,7 +830,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         "text_elevator_door_both_alpha"
     )
     for patch in rightwall
-        push!(primitives, Primitive(patch, "mat_gray", nothing))
+        push!(primitives, Primitive(patch, "mat_wood_walls", nothing))
     end
     rightwall_negative_extension = BilinearPatchGenerator(
         identity_shape_core,
@@ -849,7 +849,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for patch in rightwall_negative_extension
-        push!(primitives, Primitive(patch, "mat_gray", nothing))
+        push!(primitives, Primitive(patch, "mat_wood_walls", nothing))
     end
 
     # rightwall_top = BilinearPatchGenerator(

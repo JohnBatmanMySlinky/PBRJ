@@ -95,6 +95,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- elevator bump map and wood material
 - stochastic alpha test re pbrtv4 and move to primitive???
 - UVMapping2D() for all textures
 - need to go firefly hunting again......
