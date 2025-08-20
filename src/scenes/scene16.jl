@@ -93,17 +93,17 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_wood_walls = Plastic(
         "mat_wood_walls",
         ImageTexture(
-            UVMapping2D(),
+            UVMapping2D(1.5, 2.0, 0.0, 0.0),
             jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/elevator_wood_1_albedo.png"),
             false
         ),
         ImageTexture(
-            UVMapping2D(),
+            UVMapping2D(1.5, 2.0, 0.0, 0.0),
             jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/elevator_wood_1_specular.png"),
             false
         ),
         ImageTexture(
-            UVMapping2D(),
+            UVMapping2D(1.5, 2.0, 0.0, 0.0),
             jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/elevator_wood_1_specular.png"),
             true
         ),
@@ -1359,7 +1359,7 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        Spectrum(5.0, 5.0, 5.0), 
+        Spectrum(1.0, 1.0, 1.0), 
         jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/lte-orb/textures/small_rural_road_equiarea.exr"),
         true
     )
