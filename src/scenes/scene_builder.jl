@@ -27,8 +27,13 @@ scene 11: dragon with fun materials ✅
 scene 12: v4 smoke plume (v4 GridMedium) ✅
 scene 13: DISNEY CLOUD (v4 NanoVDBMedium) ✅
 scene 14: Anemone (v4 GridMedium) 🟨
+    - emmissive medium is only supported by VolPath (v4) integrator. 
+    - Looks as good as it can with BDPT at the moment
 scene 15: procedural clouds 🟨
+    - something is fucky
 scene 16: elevator hallway 🟨
+    - floor bump map isn't work as expected....
+    - wall material needs some work - how to get it more specular?
 scene 17: barcelona pavillion 🟨
     - add background trees
     - remove fourier material convergence hack
