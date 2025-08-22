@@ -93,17 +93,17 @@ function make_scene16(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_wood_walls = Plastic(
         "mat_wood_walls",
         ImageTexture(
-            UVMapping2D(1.5, 4.0, 0.0, 0.0),
+            UVMapping2D(4.0, 1.5, 0.0, 0.0),
             jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/elevator_wood_1_albedo.png"),
             false
         ),
         ImageTexture(
-            UVMapping2D(1.5, 4.0, 0.0, 0.0),
+            UVMapping2D(4.0, 1.5, 0.0, 0.0),
             jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/elevator_wood_1_specular.png"),
             false
         ),
         ImageTexture(
-            UVMapping2D(1.5, 4.0, 0.0, 0.0),
+            UVMapping2D(4.0, 1.5, 0.0, 0.0),
             jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/elevator_wood_1_specular.png"),
             true
         ),
