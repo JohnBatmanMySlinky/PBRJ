@@ -1,80 +1,111 @@
-struct MixAddTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
-    a::AbstractTexture{T}
-    b::AbstractTexture{T}
+struct MixAddTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}} <: AbstractTexture{T}
+    a::A
+    b::B
     name::Maybe{String}
 
     function MixAddTexture(
-        a::AbstractTexture{T}, 
-        b::AbstractTexture{T}, 
+        a::A, 
+        b::B, 
         name::Maybe{String}=nothing
-    )::AbstractTexture{T} where T <: Union{Float64, Spectrum}
-        return new{T}(a, b, name)
+    ) where {T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}}
+        return new{T, A, B}(a, b, name)
     end
 end
 
-function (t::MixAddTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
-    a_tex = t.a(si)
-    b_tex = t.b(si)
-    return T == Float64 ? clamp(a_tex + b_tex, 0.0, 1.0) : clamp.(a_tex + b_tex, 0.0, 1.0)
+# Now the function calls can be fully optimized since Julia knows the concrete types
+@inline function (t::MixAddTexture{Float64, A, B})(si::SurfaceInteraction)::Float64 where {A, B}
+    a_tex = t.a(si)  # Julia knows exactly which texture type this is
+    b_tex = t.b(si)  # Julia knows exactly which texture type this is
+    return clamp(a_tex + b_tex, 0.0, 1.0)
 end
 
-struct MixMinTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
-    a::AbstractTexture{T}
-    b::AbstractTexture{T}
+@inline function (t::MixAddTexture{Spectrum, A, B})(si::SurfaceInteraction)::Spectrum where {A, B}
+    a_tex = t.a(si)  # Julia knows exactly which texture type this is
+    b_tex = t.b(si)  # Julia knows exactly which texture type this is
+    return clamp.(a_tex + b_tex, 0.0, 1.0)
+end
+
+struct MixMinTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}} <: AbstractTexture{T}
+    a::A
+    b::B
     name::Maybe{String}
 
     function MixMinTexture(
-        a::AbstractTexture{T}, 
-        b::AbstractTexture{T}, 
+        a::A, 
+        b::B, 
         name::Maybe{String}=nothing
-    )::AbstractTexture{T} where T <: Union{Float64, Spectrum}
-        return new{T}(a, b, name)
+    ) where {T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}}
+        return new{T, A, B}(a, b, name)
     end
 end
 
-function (t::MixMinTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
-    a_tex = t.a(si)
-    b_tex = t.b(si)
-    return T == Float64 ? clamp(min(a_tex, b_tex), 0.0, 1.0) : clamp.(min.(a_tex, b_tex), 0.0, 1.0)
+# Specialized implementations for each value type
+@inline function (t::MixMinTexture{Float64, A, B})(si::SurfaceInteraction)::Float64 where {A, B}
+    a_tex = t.a(si)  # Julia knows exactly which texture type this is
+    b_tex = t.b(si)  # Julia knows exactly which texture type this is
+    return clamp(min(a_tex, b_tex), 0.0, 1.0)
 end
 
-struct MixDirectionTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
-    a::AbstractTexture{T}
-    b::AbstractTexture{T}
+@inline function (t::MixMinTexture{Spectrum, A, B})(si::SurfaceInteraction)::Spectrum where {A, B}
+    a_tex = t.a(si)  # Julia knows exactly which texture type this is
+    b_tex = t.b(si)  # Julia knows exactly which texture type this is
+    return clamp.(min.(a_tex, b_tex), 0.0, 1.0)
+end
+
+struct MixDirectionTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}} <: AbstractTexture{T}
+    a::A
+    b::B
     dir::Vec3
     name::Maybe{String}
 
     function MixDirectionTexture(
-        a::AbstractTexture{T}, 
-        b::AbstractTexture{T}, 
+        a::A, 
+        b::B, 
         dir::Vec3, 
         name::Maybe{String}=nothing
-    )::MixDirectionTexture{T} where T <: Union{Float64, Spectrum}
-        return new{T}(a, b, normalize(dir), name)
+    ) where {T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}}
+        return new{T, A, B}(a, b, normalize(dir), name)
     end
 end
 
-function (t::MixDirectionTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
+# Specialized implementations for each value type
+@inline function (t::MixDirectionTexture{Float64, A, B})(si::SurfaceInteraction)::Float64 where {A, B}
     amt = abs(dot(si.core.n, t.dir))
-    return amt * t.a(si) + (1.0 - amt) * t.b(si)
+    a_tex = t.a(si)  # Julia knows exactly which texture type this is
+    b_tex = t.b(si)  # Julia knows exactly which texture type this is
+    return amt * a_tex + (1.0 - amt) * b_tex
 end
 
-struct MixMultTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
-    a::AbstractTexture{T}
-    b::AbstractTexture{T}
+@inline function (t::MixDirectionTexture{Spectrum, A, B})(si::SurfaceInteraction)::Spectrum where {A, B}
+    amt = abs(dot(si.core.n, t.dir))
+    a_tex = t.a(si)  # Julia knows exactly which texture type this is
+    b_tex = t.b(si)  # Julia knows exactly which texture type this is
+    return amt * a_tex + (1.0 - amt) * b_tex
+end
+
+struct MixMultTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}} <: AbstractTexture{T}
+    a::A
+    b::B
     name::Maybe{String}
 
     function MixMultTexture(
-        a::AbstractTexture{T}, 
-        b::AbstractTexture{T}, 
+        a::A, 
+        b::B, 
         name::Maybe{String}=nothing
-    )::MixMultTexture{T} where T <: Union{Float64, Spectrum}
-        return new{T}(a, b, name)
+    ) where {T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}}
+        return new{T, A, B}(a, b, name)
     end
 end
 
-function (t::MixMultTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
-    a_tex = t.a(si)
-    b_tex = t.b(si)
+# Specialized implementations for each value type
+@inline function (t::MixMultTexture{Float64, A, B})(si::SurfaceInteraction)::Float64 where {A, B}
+    a_tex = t.a(si)  # Julia knows exactly which texture type this is
+    b_tex = t.b(si)  # Julia knows exactly which texture type this is
+    return a_tex * b_tex
+end
+
+@inline function (t::MixMultTexture{Spectrum, A, B})(si::SurfaceInteraction)::Spectrum where {A, B}
+    a_tex = t.a(si)  # Julia knows exactly which texture type this is
+    b_tex = t.b(si)  # Julia knows exactly which texture type this is
     return a_tex * b_tex
 end
