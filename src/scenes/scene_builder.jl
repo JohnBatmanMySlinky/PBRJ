@@ -55,6 +55,8 @@ scene 100: Furry Bunny from pbrt-v4 🟨
 scene 101: SF3D CUP 🔴 (obj parser sucks)
 scene 102: party blob ✅
     - see NB for animation 
+scene 103: check board test
+    - simple scene to test checker board pattern....
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -108,6 +110,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene101(parsed_args)
     elseif parsed_args["scene-number"] == 102
         return make_scene102(parsed_args)
+    elseif parsed_args["scene-number"] == 103
+        return make_scene103(parsed_args)
     else
         @assert false
     end
