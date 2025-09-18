@@ -23,6 +23,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             UVMapping2D(), 
             jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/water-raindrop.png"), 
             true,
+            nothing,
             0,
             false,
             8.0,
@@ -32,7 +33,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ),
         true
     )
-    push!(materails, mat_water)
+    push!(materials, mat_water)
 
     mat_pebble_ground = Uber(
         "mat_pebble_ground",
@@ -60,6 +61,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             UVMapping2D(), 
             jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/Mies-BCN_M081.png"), 
             false,
+            nothing,
             0,
             false,
             8.0,
@@ -85,6 +87,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             UVMapping2D(), 
             jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/Mies-BCN_M121.png"), 
             false,
+            nothing,
             0,
             false,
             8.0,
@@ -126,6 +129,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             UVMapping2D(), 
             jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/grass_mid_seamless.png"), 
             false,
+            nothing,
             0,
             false,
             8.0,
@@ -211,6 +215,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             UVMapping2D(), 
             jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/Mies-BCN_M121.png"), 
             false,
+            nothing,
             0,
             false,
             8.0,
@@ -280,7 +285,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
-    mat_dict = Dict{String, Material}()
+    mat_dict = Dict{String, String}()
 
     # 1
     mat_dict["mesh_00002_ascii.obj"] = "mat_water"
@@ -467,7 +472,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                     if obj_file in keys(mat_dict)
                         tmp_mat = mat_dict[obj_file]
                     else
-                        tmp_mat = mat_gray
+                        tmp_mat = "mat_gray"
                     end
                     push!(primitives, Primitive(mesh, tmp_mat, nothing))
                 end
@@ -504,24 +509,14 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     push!(lights, light)
 
     # Instantiate a Camera
-    # pre-rotate X
-    # positive Z is up
-    # positive -X is from pool to house
-    # positive Y is side to side of pool
-
-    # post rotate X
-    # z = side to side pool
-    # y is up and down
-    # x is pool to house. +x is away from house
     look_from = Pnt3(-10, 2.25, 10) 
     look_at = Pnt3(7, 1.75, -3)
     up = Vec3(0, 1, 0)
-    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 60.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 45.0, film)
 
     # Instantiate a Sampler
-    S = ZSobolSampler(parsed_args["samples-per-pixel"], film.full_resolution, Int8(2), parsed_args["seed"])
-    # S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
+    # S = ZSobolSampler(parsed_args["samples-per-pixel"], film.full_resolution, Int8(2), parsed_args["seed"])
+    S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene

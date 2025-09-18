@@ -17,7 +17,6 @@ struct ProjectiveCamera <: Camera
     function ProjectiveCamera(
         camera_to_world::Transformation,
         camera_to_screen::Transformation,
-        screen_window::Bounds2,
         shutter_open::Float64,
         shutter_closed::Float64,
         lens_radius::Float64,
@@ -25,6 +24,20 @@ struct ProjectiveCamera <: Camera
         film::Union{Film, PassFilm}
     )
         core = CameraCore(camera_to_world, shutter_open, shutter_closed, film)
+
+        frame = film.full_resolution.x / film.full_resolution.y
+        if frame > 1.0
+            screen_window = Bounds2(
+                Pnt2(-frame, -1.0),
+                Pnt2(frame, 1.0)
+            )
+        else
+            screen_window = Bounds2(
+                Pnt2(-1.0, -1.0 / frame),
+                Pnt2(1.0, 1.0 / frame)
+            )
+        end
+
         screen_to_raster = (
             Scale(
                 Vec3(film.full_resolution.x, film.full_resolution.y, 1)
@@ -36,6 +49,12 @@ struct ProjectiveCamera <: Camera
         )
         raster_to_screen = Inv(screen_to_raster)
         raster_to_camera = Inv(camera_to_screen) * raster_to_screen
+
+        @info "film.full_resolution: $(film.full_resolution)"
+        @info "Screen window: $(screen_window)"
+        @info "Screen to raster: $(screen_to_raster)"
+        @info "Raster to screen: $(raster_to_screen)"
+        @info "Raster to camera: $(raster_to_camera)"
 
         new(
             core,
@@ -63,7 +82,6 @@ struct PerspectiveCamera <: Camera
 
     function PerspectiveCamera(
         camera_to_world::Transformation,
-        screen_window::Bounds2,
         shutter_open::Float64,
         shutter_closed::Float64,
         lens_radius::Float64,
@@ -74,7 +92,6 @@ struct PerspectiveCamera <: Camera
         projcam = ProjectiveCamera(
             camera_to_world,
             Perspective(fov, .01, 1000.0),
-            screen_window,
             shutter_open,
             shutter_closed,
             lens_radius,
@@ -86,9 +103,12 @@ struct PerspectiveCamera <: Camera
 
         p_min = projcam.raster_to_camera(Pnt3(0.0))
         p_max = projcam.raster_to_camera(Pnt3(film.full_resolution.x, film.full_resolution.y, 0))
+        @info "p_min: $(p_min), p_max: $(p_max)"
         p_min /= p_min.z
         p_max /= p_max.z
+        @info "p_min: $(p_min), p_max: $(p_max)"
         A = abs((p_max.x - p_min.x)*(p_max.y - p_min.y))
+        @info "A: $(A)"
         new(projcam, dx_camera, dy_camera, A)
     end
 end
@@ -194,11 +214,15 @@ end
 function pdf_we(camera::PerspectiveCamera, ray::AbstractRay)::Tuple{Float64, Float64}
     # interpolate camera matrix and fail if w is not forward-facing
     cos_theta = dot(ray.direction, camera.core.core.camera_to_world(Vec3(0,0,1)))
+    @info "COS_THETA: $(cos_theta)"
     (cos_theta <= 0) && return 0.0, 0.0
 
     # map ray (p,w) onto the raster grid
     p_focus = at(ray,(camera.core.lens_radius > 0 ? camera.core.focal_distance : 1) / cos_theta)
     p_raster = Inv(camera.core.raster_to_camera)(Inv(camera.core.core.camera_to_world)(p_focus))
+
+    @info "p_raster: $(p_raster)"
+    @info "p_focus: $(p_focus)"
 
     # return 0 for out of bounds points
     sample_bounds = get_sample_bounds(camera.core.core.film)
@@ -208,6 +232,9 @@ function pdf_we(camera::PerspectiveCamera, ray::AbstractRay)::Tuple{Float64, Flo
 
     # compute lens area of perspective camera
     lens_area = camera.core.lens_radius != 0 ? (pi * camera.core.lens_radius ^ 2) : 1.0
+    @info "lens_area: $(lens_area)"
+
+    @info "A: $(camera.A)"
 
     # pdf_pos, pdf_dir
     return 1 / lens_area, 1 / (camera.A * cos_theta ^ 3)

@@ -221,7 +221,7 @@ function generate_camera_subpath!(
     # generate first vertex on camera subpath and start random walk
     path[0+1] = create_camera_vertex(camera, ray, beta)
     pdf_pos, pdf_dir = pdf_we(camera, ray)
-    @info "Starting camera subpath.\n\tRay $(ray.origin) $(ray.direction)\n\tbeta $(beta)\n\t pdfPos $(pdf_pos)\n\tpdfDir $(pdf_dir) "
+    @info "Starting camera subpath.\n\tRay $(ray)\n\tbeta $(beta)\n\t pdfPos $(pdf_pos)\n\tpdfDir $(pdf_dir) "
     return random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1)
 end
 
@@ -564,14 +564,14 @@ function MIS_weight(
     (s + t == 2) && (return 1.0)
     sum_ri = 0.0
 
-    for i in 0:(t-1)
-        @info "MISWEIGHT LOOP CAMERA BEFORE: $(i)"
-        @info "\t\tRev $(camera_vertices[i+1].pdf_rev), Fwd $(camera_vertices[i+1].pdf_fwd)"
-    end
-    for i in 0:(s)
-        @info "MISWEIGHT LOOP LIGHT BEFORE: $(i)"
-        @info "\t\tRev $(light_vertices[i+1].pdf_rev), Fwd $(light_vertices[i+1].pdf_fwd)"
-    end
+    # for i in 0:(t-1)
+    #     @info "MISWEIGHT LOOP CAMERA BEFORE: $(i)"
+    #     @info "\t\tRev $(camera_vertices[i+1].pdf_rev), Fwd $(camera_vertices[i+1].pdf_fwd)"
+    # end
+    # for i in 0:(s)
+    #     @info "MISWEIGHT LOOP LIGHT BEFORE: $(i)"
+    #     @info "\t\tRev $(light_vertices[i+1].pdf_rev), Fwd $(light_vertices[i+1].pdf_fwd)"
+    # end
 
     # Temporarily update vertex properties for current strategy
 

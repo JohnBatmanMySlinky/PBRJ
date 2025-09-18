@@ -46,21 +46,21 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 			resampled = true
 			# Resample image to power-of-two resolution
 			res_pow_2 = Pnt2i(round_up_pow2(resolution.x), round_up_pow2(resolution.y))
-			@info "Resampling MIPMap from $(resolution) to $(res_pow_2). Ratio = $((res_pow_2.x * res_pow_2.y)/(resolution.x * resolution.y))"
+			# @info "Resampling MIPMap from $(resolution) to $(res_pow_2). Ratio = $((res_pow_2.x * res_pow_2.y)/(resolution.x * resolution.y))"
 
-			for x in 1:length(data)
-				@info "Original Image $x $(data[x])"
-			end
-			@info "------------------------------------------------"
+			# for x in 1:length(data)
+			# 	@info "Original Image $x $(data[x])"
+			# end
+			# @info "------------------------------------------------"
 			
 			# Resample image in $s$ direction
 			s_weights = resample_weights(resolution.x, res_pow_2.x)
 			resampled_image = Vector{data_type}(undef, res_pow_2.x * res_pow_2.y)
 
-			for x in 1:length(s_weights)
-				@info "Original Image $x $(s_weights[x])"
-			end
-			@info "------------------------------------------------"
+			# for x in 1:length(s_weights)
+			# 	@info "Original Image $x $(s_weights[x])"
+			# end
+			# @info "------------------------------------------------"
 
 			
 			# apply _sweights_ t zoom in $s$ direction
@@ -80,19 +80,19 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 						
 						if (orig_s >= 0) && (orig_s < resolution.x)
 							resampled_image[t * res_pow_2.x + s + 1] = resampled_image[t * res_pow_2.x + s + 1] .+ (s_weights[s+1].weight[j+1] .* data[t * resolution.x + orig_s + 1])
-							@info "MIPMAP READ: $(s), $(orig_s), $(t), $(j), $(resampled_image[t * res_pow_2.x + s + 1]) $(s_weights[s+1].weight[j+1]), $(data[t * resolution.x + orig_s + 1])"
+							# @info "MIPMAP READ: $(s), $(orig_s), $(t), $(j), $(resampled_image[t * res_pow_2.x + s + 1]) $(s_weights[s+1].weight[j+1]), $(data[t * resolution.x + orig_s + 1])"
 
 						end
 					end
 				end
 			end
-			@info "------------------------------------------------"
+			# @info "------------------------------------------------"
 
 
-			for x in 1:length(resampled_image)
-				@info "Resampled Image $x $(resampled_image[x])"
-			end
-			@info "------------------------------------------------"
+			# for x in 1:length(resampled_image)
+			# 	@info "Resampled Image $x $(resampled_image[x])"
+			# end
+			# @info "------------------------------------------------"
 
 
 			# resample image in $t$ direction
@@ -121,10 +121,10 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 					resampled_image[t * res_pow_2.x + s + 1] = clamp.(work_data[t+1], 0, typemax(Float64))
 				end
 			end
-			for x in 1:length(resampled_image)
-				@info "Resampled Image $x $(resampled_image[x])"
-			end
-			@info "------------------------------------------------"
+			# for x in 1:length(resampled_image)
+			# 	@info "Resampled Image $x $(resampled_image[x])"
+			# end
+			# @info "------------------------------------------------"
 		end
 		
 		# initialize levels of MIPMap from image
