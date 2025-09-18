@@ -44,6 +44,35 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_blue)
 
+    mat_bumpy_metal = Metal(
+        "mat_bumpy_metal",
+        ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperN, CopperSamples)),
+        ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperK, CopperSamples)),
+        ConstantTexture(0.0001),
+        nothing,
+        nothing,
+        NoiseTexture(
+            1.0,
+            0.05,
+            0.5,
+            8,
+            "perlin",
+            nothing
+        ),
+        true,
+    )
+    # mat_bumpy_metal = Matte(
+    #     "mat_bumpy_metal",
+    #     Checker2DTexture(
+    #         spectrum_from_float(1.0, 1.0, 1.0),
+    #         spectrum_from_float(0.0, 0.0, 0.0),
+    #         Vec2(5, 5)
+    #     ),
+    #     ConstantTexture(0.0),
+    #     nothing,
+    # )
+    push!(materials, mat_bumpy_metal)
+
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
@@ -157,7 +186,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     box_1_transform = Translate(Pnt3(265, 0, 295)) * RotateY(25.0)
     box_1 = Box(
         Pnt3(0,0,0), 
-        Pnt3(165,  330, 165), 
+        Pnt3(165,  245, 165), 
         ShapeCore(box_1_transform, Inv(box_1_transform), false, false),
         nothing
     )
@@ -177,7 +206,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     end
 
     # sphere_transform = Translate(Pnt3(278, 278, 278))
-    sphere_transform = Translate(Pnt3(130,250,65))
+    sphere_transform = Translate(Pnt3(130, 250, 65))
     sphere = Sphere(
         ShapeCore(
             sphere_transform,
@@ -194,10 +223,31 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
 
+    sphere_transform2 = Translate(Pnt3(330, 300, 200)) * RotateX(37.0) * RotateY(42.0) * RotateZ(100.0)
+    sphere2 = Sphere(
+        ShapeCore(
+            sphere_transform2,
+            Inv(sphere_transform2),
+            false,
+            false
+        ),
+        90.0
+    )
+    push!(primitives, Primitive(sphere2, "mat_bumpy_metal", nothing))
+
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
+
+    l_2_w = Translate(Pnt3(0,0,0))
+    light = UniformInfiniteLight(
+        world_bounds(bvh), 
+        l_2_w, 
+        Spectrum(1.0, 1.0, 1.0), 
+    )
+    push!(lights, light)
+
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.5, .5))

@@ -127,3 +127,26 @@ function (ct::Checker3DTexture{T})(si::SurfaceInteraction)::T where T <: Union{F
         return ct.b
     end
 end
+
+struct Checker2DTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
+    a::T
+    b::T
+    scale::Vec2
+    name::Maybe{String}
+
+    function Checker2DTexture(
+        a::T, 
+        b::T, 
+        scale::Vec2=Vec2(1.0, 1.0), 
+        name::Maybe{String}=nothing
+    ) where T <: Union{Float64, Spectrum}
+        return new{T}(a, b, scale, name)
+    end
+end
+
+function (ct::Checker2DTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
+    checker_value = (trunc(ct.scale.x * si.uv.x) + 
+                    trunc(ct.scale.y * si.uv.y)) % 2 == 0
+    
+    return checker_value ? ct.a : ct.b
+end
