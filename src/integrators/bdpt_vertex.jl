@@ -258,20 +258,20 @@ end
 ################################## Sampling
 function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
     !is_light(v1) && (return spectrum_from_float(0.0))
-    @info "\t\tV1 is a light"
+    # @info "\t\tV1 is a light"
     w = p(v2) - p(v1)
-    @info "\t\tw: $(w)"
+    # @info "\t\tw: $(w)"
     (length_squared(Vec3(w)) == 0.0) && (return spectrum_from_float(0.0))
-    @info "\t\tw length gt 0"
+    # @info "\t\tw length gt 0"
     w = Vec3(normalize(w))
     if is_infinite_light(v1)
-        @info "\t\tV1 is an infinite light"
+        # @info "\t\tV1 is an infinite light"
         # return emitted radiance for infinite light sources
         LL = spectrum_from_float(0.0)
         for light in scene.lights
             if is_infinite_light(light)
                 tmp = le(light, Ray(p(v1), -w, time(v1), typemax(Float64)))
-                @info "\tInf Light Sampling: $(tmp)"
+                # @info "\tInf Light Sampling: $(tmp)"
                 LL += tmp
             end
         end
@@ -284,15 +284,15 @@ function le(v1::Vertex, scene::Scene, v2::Vertex)::Spectrum
 end
 
 function pdf_light_origin(sampled::Vertex, scene::Scene, v::Vertex, light_distr::Distribution1D, light_num::Int64)::Float64
-    @info "MISWEIGHT <<a4>> shenanigans is is in pdfLightOrigin"
+    # @info "MISWEIGHT <<a4>> shenanigans is is in pdfLightOrigin"
     w = p(v) - p(sampled)
     (dot(w,w) == 0.0) && (return 0.0)
     w = Vec3(normalize(w))
     if is_infinite_light(sampled)
-        @info "MISWEIGHT <<a4>> shenanigans is in InfiniteLightDensity"
+        # @info "MISWEIGHT <<a4>> shenanigans is in InfiniteLightDensity"
         return infinite_light_density(scene.lights, light_distr, w)
     else
-        @info "MISWEIGHT <<a4>> shenanigans is NOT in InfiniteLightDensity"
+        # @info "MISWEIGHT <<a4>> shenanigans is NOT in InfiniteLightDensity"
         light = sampled.type == VTLight ? sampled.ei.light : sampled.si.primitive.area_light
         pdf_choice = discrete_pdf(light_distr, light_num)
         pdf_pos, _ = pdf_le(light, Ray(p(sampled), w, time(sampled), typemax(Float64)), ng(sampled))
@@ -310,7 +310,7 @@ function pdf_light(v0::Vertex, scene::Scene, v1::Vertex)::Float64
         wb = world_bounds(scene.b)
         _, world_radius = bounding_sphere(wb)
         pdf_val = 1 / (pi * world_radius * world_radius)
-        @info "PLSPLS: pdf_val: $pdf_val" 
+        # @info "PLSPLS: pdf_val: $pdf_val" 
     else
         light = v0.type == VTLight ? v0.ei.light : v0.si.primitive.area_light
         pdf_pos, pdf_dir = pdf_le(light, Ray(p(v0), w, time(v0), typemax(Float64)), ng(v0))
@@ -323,15 +323,15 @@ function pdf_light(v0::Vertex, scene::Scene, v1::Vertex)::Float64
 end
 
 function pdf(v0::Vertex, scene::Scene, prev::Maybe{Vertex}, next::Vertex)::Float64
-    @info "PLS\n\t\tv0.type: $(v0.type)"
+    # @info "PLS\n\t\tv0.type: $(v0.type)"
     (v0.type == VTLight) && (return pdf_light(v0, scene, next))
     wn = p(next) - p(v0)
-    @info "PLS\n\t\twn: $wn"
+    # @info "PLS\n\t\twn: $wn"
     (norm(wn)^2 == 0.0) && (return 0.0)
     wn = Vec3(normalize(wn))
     if !(prev isa Nothing)
         wp = p(prev) - p(v0)
-        @info "PLS\n\t\twp: $wp"
+        # @info "PLS\n\t\twp: $wp"
         (norm(wp)^2 == 0.0) && (return 0.0)
         wp = Vec3(normalize(wp))
     end

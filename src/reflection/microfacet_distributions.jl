@@ -72,15 +72,15 @@ end
 
 function sample_wh(md::TrowbridgeReitzDistribution, wo::Vec3, u::Pnt2)::Vec3
     if (!md.sample_visible_area)
-        @info "MD: NOT sample visible area"
+        # @info "MD: NOT sample visible area"
         cosTheta = 0.0
         phi = (2 * pi) * u.y
         if (md.alpha_x == md.alpha_y) 
-            @info "MD: alpha_x == alpha_y"
+            # @info "MD: alpha_x == alpha_y"
             tanTheta2 = md.alpha_x * md.alpha_x * u.x / (1.0 - u.x)
             cosTheta = 1.0 / sqrt(1.0 + tanTheta2)
         else
-            @info "MD: alpha_x != alpha_y"
+            # @info "MD: alpha_x != alpha_y"
             phi = atan(md.alpha_y / md.alpha_x * tan(2 * pi * u.y + .5 * pi))
             if (u.y > .5) 
                 phi += pi
@@ -99,7 +99,7 @@ function sample_wh(md::TrowbridgeReitzDistribution, wo::Vec3, u::Pnt2)::Vec3
             wh = -wh
         end
     else
-        @info "MD: sample visible area"
+        # @info "MD: sample visible area"
         flip = wo.z < 0
         wh = TrowbridgeReitzSample(flip ? -wo : wo, md.alpha_x, md.alpha_y, u.x, u.y)
         if flip
@@ -112,11 +112,11 @@ end
 function TrowbridgeReitzSample(wi::Vec3, alpha_x::Float64, alpha_y::Float64, U1::Float64, U2::Float64)
     # 1. stretch wi
     wiStretched = normalize(Vec3(alpha_x * wi.x, alpha_y * wi.y, wi.z))
-    @info "MD: wiStretched: $wiStretched"
+    # @info "MD: wiStretched: $wiStretched"
 
     # 2. simulate P22_{wi}(x_slope, y_slope, 1, 1)
     slope_x, slope_y = TrowbridgeReitzSample11(cos_theta(wiStretched), U1, U2)
-    @info "MD: slope_x: $slope_x, slope_y: $slope_y"
+    # @info "MD: slope_x: $slope_x, slope_y: $slope_y"
     if abs(slope_x - 9.870145738124847) < 1.0
         slope_x = 32
     end
@@ -125,7 +125,7 @@ function TrowbridgeReitzSample(wi::Vec3, alpha_x::Float64, alpha_y::Float64, U1:
     tmp = cos_phi(wiStretched) * slope_x - sin_phi(wiStretched) * slope_y
     slope_y = sin_phi(wiStretched) * slope_x + cos_phi(wiStretched) * slope_y
     slope_x = tmp
-    @info "MD: slope_x: $slope_x, slope_y: $slope_y"
+    # @info "MD: slope_x: $slope_x, slope_y: $slope_y"
 
     # 4. unstretch
     slope_x = alpha_x * slope_x
