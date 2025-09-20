@@ -41,6 +41,7 @@ end
 
 function (it::ImageTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
     st, dstdx, dstdy = it.mapping(si)
+    @info "ImageTexture: st: $st, dstdx: $dstdx, dstdy: $dstdy"
     mem = lookup(it.mipmap, st, dstdx, dstdy)
     if T == Float64
         # For Float64, return the specified channel

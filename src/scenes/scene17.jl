@@ -516,7 +516,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Sampler
     # S = ZSobolSampler(parsed_args["samples-per-pixel"], film.full_resolution, Int8(2), parsed_args["seed"])
-    S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
+    S = DumbSampler(parsed_args["samples-per-pixel"])
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene

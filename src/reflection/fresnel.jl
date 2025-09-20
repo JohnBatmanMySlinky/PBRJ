@@ -33,7 +33,7 @@ function fresnel_conductor(cos_theta_i::Float64, eta_i::Spectrum, eta_t::Spectru
 
     t3::Spectrum = cos_theta_i_2 .* a2_plus_b2 .+ sin_theta_i_2 .* sin_theta_i_2
     t4::Spectrum = t2 .* sin_theta_i_2
-    r_par::Spectrum = r_perp .* (t3 .- t4) ./ (t3 .- t4)
+    r_par::Spectrum = r_perp .* (t3 .- t4) ./ (t3 .+ t4)
     return (r_par .+ r_perp) ./ 2.0
 end
 

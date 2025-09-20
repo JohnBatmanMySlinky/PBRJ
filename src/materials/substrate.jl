@@ -42,6 +42,7 @@ function (m::Substrate)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tr
     si.bsdf = BSDF(si)
     d = spectrum_from_float(clamp.(m.Kd(si),0,1)...)
     s = spectrum_from_float(clamp.(m.Ks(si),0,1)...)
+    @info "Substrate: Kd: $d, Ks: $s"
     roughu = clamp(m.u_roughness(si), 0, 1)
     roughv = clamp(m.v_roughness(si), 0, 1)
     # TODO implement black body check
