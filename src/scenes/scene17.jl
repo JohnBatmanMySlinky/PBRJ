@@ -502,7 +502,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = InfiniteLight(
         world_bounds(bvh),
         light_t,
-        spectrum_from_float(2.0),
+        spectrum_from_float(1.0),
         jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/sky.exr"),
         false
     )
