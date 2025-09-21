@@ -11,35 +11,41 @@ struct Sphere <: Shape
     phiMax::Float64
 
     function Sphere(core::ShapeCore, radius::Float64)
+        theta_min = acos(clamp(min(-radius, radius) / radius, -1.0, 1.0))
+        theta_max = acos(clamp(max(-radius, radius) / radius, -1.0, 1.0))
         new(
             core,
             radius,
             -radius,
             radius,
-            0.0,
-            pi,
+            theta_min,
+            theta_max,
             2pi
         )
     end
     function Sphere(center::Pnt3, radius::Float64)
+        theta_min = acos(clamp(min(-radius, radius) / radius, -1.0, 1.0))
+        theta_max = acos(clamp(max(-radius, radius) / radius, -1.0, 1.0))
         new(
             ShapeCore(Translate(center), Inv(Translate(center)), false, false),
             radius,
             -radius,
             radius,
-            0.0,
-            pi,
+            theta_min,
+            theta_max,
             2pi
         )
     end
     function Sphere(tr::Transformation, radius::Float64)
+        theta_min = acos(clamp(min(-radius, radius) / radius, -1.0, 1.0))
+        theta_max = acos(clamp(max(-radius, radius) / radius, -1.0, 1.0))
         new(
             ShapeCore(tr, Inv(tr), false, false),
             radius,
             -radius,
             radius,
-            0.0,
-            pi,
+            theta_min,
+            theta_max,
             2pi
         )
     end
@@ -87,6 +93,8 @@ function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64
         p = Pnt3(1e-5 * s.radius, p.y, p.z)
     end
 
+    @info "Sphere Intersection: final p = $p"
+
     # compute phi
     phi = atan(p.y, p.x)
     if phi < 0 
@@ -124,20 +132,22 @@ function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64
     # ok now we are certain we have a hit, so compute other crap
     u = phi / s.phiMax
     theta = acos(clamp(p.z/s.radius, -1, 1))
-    v = (theta - s.thetaMin) / (s.thetaMax - s.thetaMin)   
+    v = (theta - s.thetaMin) / (s.thetaMax - s.thetaMin)  
+    
+    @info "Sphere Intersection: final (u,v) = ($u, $v), phiMax = $(s.phiMax), thetaMin = $(s.thetaMin), thetaMax = $(s.thetaMax), theta = $theta"
 
     # compute partials
     z_radius = sqrt(p.x * p.x + p.y * p.y)
-    inv_z_radius = 1 / z_radius
+    inv_z_radius = 1.0 / z_radius
     cos_phi = p.x * inv_z_radius
     sin_phi = p.y * inv_z_radius    
 
     dpdu = Vec3(-s.phiMax * p.y, s.phiMax * p.x, 0f0)
     #TODO JOHN switch theta max and min?
-    dpdv = (s.thetaMin - s.thetaMax) * Vec3(p.z * cos_phi, p.z * sin_phi, -s.radius * sin(theta))
+    dpdv = (s.thetaMax - s.thetaMin) * Vec3(p.z * cos_phi, p.z * sin_phi, -s.radius * sin(theta))
     d2pdu2 = -s.phiMax * s.phiMax * Vec3(p.x, p.y, 0)
-    d2pdudv = (s.thetaMax - s.thetaMin) * p.z * s.phiMax * Vec3(-sin_phi, cos_phi, 0)
-    d2pdv2 = -(s.thetaMax - s.thetaMin)*(s.thetaMax - s.thetaMin) * p
+    d2pdudv = (s.thetaMin - s.thetaMax) * p.z * s.phiMax * Vec3(-sin_phi, cos_phi, 0)
+    d2pdv2 = -(s.thetaMin - s.thetaMax) * (s.thetaMin - s.thetaMax) * p
     E = dot(dpdu, dpdu)
     F = dot(dpdu, dpdv)
     G = dot(dpdv, dpdv)
@@ -164,6 +174,8 @@ function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64
 
     # transform back to world coordinates
     interaction = s.core.object_to_world(interaction)
+
+    @info "Sphere Intersection: dudx: $(interaction.dudx), dudy: $(interaction.dudy), dvdx: $(interaction.dvdx), dvdy: $(interaction.dvdy)"
 
     return true, t_shape_hit, interaction
 end

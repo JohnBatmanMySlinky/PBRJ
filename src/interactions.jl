@@ -226,10 +226,10 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
 
     # Estimate screen change in p and (u, v).
     # Compute auxiliary intersection points with plane.
-    d = -dot(si.core.n, Vec3(si.core.p))
-    tx = (-dot(si.core.n, Vec3(ray.rx_origin)) - d) / dot(si.core.n, ray.rx_direction)
+    d = dot(si.core.n, Vec3(si.core.p))
+    tx = -(dot(si.core.n, Vec3(ray.rx_origin)) - d) / dot(si.core.n, ray.rx_direction)
     px = ray.rx_origin + tx * ray.rx_direction
-    ty = (-dot(si.core.n, Vec3(ray.ry_origin)) - d) / dot(si.core.n, ray.ry_direction)
+    ty = -(dot(si.core.n, Vec3(ray.ry_origin)) - d) / dot(si.core.n, ray.ry_direction)
     py = ray.ry_origin + ty * ray.ry_direction
 
     si.dpdx = px - si.core.p
@@ -248,10 +248,8 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
 
     # Initialization for offset computation.
     a = Mat2([
-        si.shading.dpdu[Int(dim[1])]
-        si.shading.dpdv[Int(dim[1])]
-        si.shading.dpdu[Int(dim[2])]
-        si.shading.dpdv[Int(dim[2])]
+        si.shading.dpdu[Int(dim[1])] si.shading.dpdv[Int(dim[1])]
+        si.shading.dpdu[Int(dim[2])] si.shading.dpdv[Int(dim[2])]
     ])
     bx = Pnt2(
         px[Int(dim[1])] - si.core.p[Int(dim[1])],

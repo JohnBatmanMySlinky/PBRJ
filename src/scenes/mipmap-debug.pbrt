@@ -1,0 +1,39 @@
+Film "image"
+    "integer xresolution" 100 
+    "integer yresolution" 100
+    "string filename" "mipmap-debug.exr"
+    "float cropwindow" [0.5 0.51 0.5 0.51]
+
+LookAt 10 10 10    
+       0 0 0 
+       0 1 0
+Camera 
+    "perspective" 
+    "float fov" 45
+
+Sampler 
+    "random" 
+    "integer pixelsamples" 1
+
+Integrator "bdpt"
+
+WorldBegin
+
+AttributeBegin
+    LightSource "infinite" "rgb L" [.5 .5 .5]      
+AttributeEnd
+
+Texture "test-img" "color" "imagemap" 
+        "string filename" [ "/home/jmyslinski/random_stuff/PBRJ/src/notebooks/colorful_grid_seed_42_5x9.png" ] 
+
+MakeNamedMaterial "floor"
+    "string type" [ "matte" ]
+    "texture Kd" "test-img"
+
+AttributeBegin
+    NamedMaterial "floor"
+    Shape "sphere"
+        "float radius" 5
+AttributeEnd
+
+WorldEnd
