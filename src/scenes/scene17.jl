@@ -29,7 +29,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             8.0,
             Int8(0),
             .005,
-            false
+            true
         ),
         true
     )
@@ -67,7 +67,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             8.0,
             Int8(0),
             0.639999986,
-            false
+            true
         ),
         ConstantTexture(spectrum_from_float(0.1)),
         ConstantTexture(.1),
@@ -93,7 +93,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             8.0,
             Int8(0),
             0.639999986,
-            false
+            true
         ),
         ConstantTexture(spectrum_from_float(0.5)),
         ConstantTexture(spectrum_from_float(0.0)),
@@ -135,7 +135,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             8.0,
             Int8(0),
             0.3,
-            false
+            true
         ),
         ConstantTexture(spectrum_from_float(0.5)),
         ConstantTexture(spectrum_from_float(0.0)),
@@ -221,7 +221,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             8.0,
             Int8(0),
             0.639999986,
-            false
+            true
         ),
         ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
         ConstantTexture(spectrum_from_float(0.0)),

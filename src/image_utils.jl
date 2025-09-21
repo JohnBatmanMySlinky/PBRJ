@@ -1,4 +1,4 @@
-function read_image(texmap::String, LL::Union{Float64, RayTracing.Spectrum})::Tuple{Vector{RayTracing.Spectrum}, Int64, Int64}
+function read_image(texmap::String, LL::Union{Float64, RayTracing.Spectrum}, do_gamma::Bool)::Tuple{Vector{RayTracing.Spectrum}, Int64, Int64}
     ident = texmap[end-3:end]
     if ident == ".exr"
         dat = OpenEXR.load(texmap)
@@ -24,13 +24,23 @@ function read_image(texmap::String, LL::Union{Float64, RayTracing.Spectrum})::Tu
             if pixel isa Gray
                 # For grayscale, use the same value for all RGB channels
                 gray_val = Float64(pixel.val)
-                dat2[i] = Spectrum(gray_val, gray_val, gray_val) * LL
+                tmp_val = Spectrum(gray_val, gray_val, gray_val)
+                dat2[i] = do_gamma ? LL * inverse_gamma_correct.(tmp_val) : LL * tmp_val
             else
                 # For color pixels (RGB, RGBA, etc.)
-                dat2[i] = Spectrum(pixel.r, pixel.g, pixel.b) * LL
+                tmp_val = Spectrum(pixel.r, pixel.g, pixel.b) * LL
+                dat2[i] = do_gamma ? LL * inverse_gamma_correct.(tmp_val) : LL * tmp_val
             end
         end
     end
     
     return dat2, L, W
+end
+
+function inverse_gamma_correct(value::Float64)::Float64
+    if value <= 0.04045
+        return value / 12.92
+    else
+        return ((value + 0.055) / 1.055) ^ 2.4
+    end
 end
