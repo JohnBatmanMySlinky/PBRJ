@@ -28,6 +28,16 @@ struct ImageTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     )
         @info "DO_GAMMA : $do_gamma"
         dat2, L, W = read_image(filename, scale, do_gamma)
+
+        # FLIP
+        for y in 0:(L ÷ 2 - 1)
+            for x in 0:(W - 1)
+                o1 = y * W + x + 1
+                o2 = (L - 1 - y) * W + x + 1
+                dat2[o1], dat2[o2] = dat2[o2], dat2[o1]
+            end
+        end
+
         mipmap = MIPMap(Pnt2i(W, L), dat2, convert_to_float, do_trilinear, max_anisotropy, wrap_mode) # NOTE THE FLIP HERE
         T = convert_to_float ? Float64 : Spectrum
         return new{T}(
