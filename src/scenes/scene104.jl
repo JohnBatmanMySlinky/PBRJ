@@ -42,7 +42,7 @@ function make_scene104(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         world_bounds(bvh),
         l_2_w,
         spectrum_from_float(1.0),
-        jmfp("/home/jmyslinski/random_stuff/PBRJ/src/notebooks/solid_grid_1x1.png"),
+        jmfp("/home/jmyslinski/random_stuff/PBRJ/src/notebooks/solid_grid_2x2.png"),
         false
     )
     push!(lights, light)

@@ -175,7 +175,10 @@ function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spe
 
     pdf_pos = 1.0 / (pi * il.world_radius * il.world_radius)
     radiance = lookup(il.Lmap, uv)
-    radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
+    @info "Radiance raw: $radiance"
+    # radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
+    radiance = spectrum_from_float(radiance.a, radiance.b, radiance.c) #JOHN HACK - NO ILLUMINANT
+    @info "Radiance spectrum: $radiance"
     return radiance, ray, nlight, pdf_pos, pdf_dir
 end
 

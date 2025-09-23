@@ -2,7 +2,7 @@ Film "image"
     "integer xresolution" 100 
     "integer yresolution" 100
     "string filename" "mipmap-debug.exr"
-    "float cropwindow" [0.5 0.51 0.5 0.51]
+#    "float cropwindow" [0.5 0.51 0.5 0.51]
 
 LookAt 10 10 10    
        0 0 0 
@@ -20,7 +20,7 @@ Integrator "bdpt"
 WorldBegin
 
 AttributeBegin
-    LightSource "infinite" "string mapname" "/home/jmyslinski/random_stuff/PBRJ/src/notebooks/solid_grid_1x1.png"
+    LightSource "infinite" "string mapname" "/home/jmyslinski/random_stuff/PBRJ/src/notebooks/solid_grid_2x2.png"
 AttributeEnd
 
 Texture "test-img" "color" "imagemap" 
