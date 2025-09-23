@@ -107,7 +107,7 @@ function noise_weight(t::Float64)
 end
 
 function lerp(t::Float64, v1::Float64, v2::Float64)
-    return v1 + t * (v2 - v1)
+    return (1.0 - t) * v1 + t * v2
 end
 
 # Main noise functions

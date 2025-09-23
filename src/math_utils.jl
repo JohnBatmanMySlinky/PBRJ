@@ -77,15 +77,15 @@ function gram_schmidt(v::Vec3, w::Vec3)::Vec3
 end
 
 function lerp(t::Float64, a::Float64, b::Float64)::Float64
-    return a + t * (b - a)
+    return (1.0 - t) * a + t * b
 end
 
 function lerp(t::Float64, a::T, b::T)::T where {T <: Union{Pnt3, Pnt2, Nml3}}
-    return a .+ t .* (b - a)
+    return (1.0 - t) .* a .+ t .* b
 end
 
 function lerp(t::Pnt3, c::Bounds3)::Pnt3
-    return c.pMin .+ t .* (c.pMax - c.pMin)
+    return (1.0 - t) .* c.pMin .+ t .* c.pMax
 end
 
 function spherical_phi(v::Vec3)::Float64

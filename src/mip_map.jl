@@ -232,7 +232,7 @@ function levels(mip_map::MIPMap)::Int64
 end
 
 function lerp(t::Float64, a::T, b::T)::T where {T <: Union{Spectrum, Float64}}
-	return t .* a + (1.0 - t) .* b 
+	return (1.0 - t) .* a + t .* b
 end
 
 function triangle(mip_map::MIPMap{T}, level::Int64, st::Pnt2)::T where {T <: Union{Spectrum, Float64}}
