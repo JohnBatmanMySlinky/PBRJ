@@ -55,14 +55,14 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 			
 			# Resample image in $s$ direction
 			s_weights = resample_weights(resolution.x, res_pow_2.x)
-			resampled_image = Vector{data_type}(undef, res_pow_2.x * res_pow_2.y)
+			resampled_image = zeros(data_type, res_pow_2.x * res_pow_2.y)
 
 			for x in 1:length(s_weights)
-				@info "Original Image $x $(s_weights[x])"
+				@info "Resample weights $x $(s_weights[x])"
 			end
 			@info "------------------------------------------------"
 
-			
+			@info "Wrap mode: $(wrap_mode)"
 			# apply _sweights_ t zoom in $s$ direction
 			for t in 0:(resolution.y-1)
 				for s in 0:(res_pow_2.x-1)
@@ -71,7 +71,7 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 					for j in 0:3
 						orig_s = s_weights[s+1].first_texel + j
 						if wrap_mode == Int8(0) # repeat
-							orig_s = orig_s % resolution.x
+							orig_s = mod(orig_s, resolution.x)
 						elseif wrap_mode == Int8(1) # clamp
 							orig_s = clamp(orig_s, 0, resolution.x - 1)
 						else
@@ -80,19 +80,18 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 						
 						if (orig_s >= 0) && (orig_s < resolution.x)
 							resampled_image[t * res_pow_2.x + s + 1] = resampled_image[t * res_pow_2.x + s + 1] .+ (s_weights[s+1].weight[j+1] .* data[t * resolution.x + orig_s + 1])
-							# @info "MIPMAP READ: $(s), $(orig_s), $(t), $(j), $(resampled_image[t * res_pow_2.x + s + 1]) $(s_weights[s+1].weight[j+1]), $(data[t * resolution.x + orig_s + 1])"
-
+							@info "MIPMAP READ: $(s), $(orig_s), $(t), $(j), $(resampled_image[t * res_pow_2.x + s + 1]) $(s_weights[s+1].weight[j+1]), $(data[t * resolution.x + orig_s + 1])"
 						end
 					end
 				end
 			end
-			# @info "------------------------------------------------"
+			@info "------------------------------------------------"
 
 
-			# for x in 1:length(resampled_image)
-			# 	@info "Resampled Image $x $(resampled_image[x])"
-			# end
-			# @info "------------------------------------------------"
+			for x in 1:length(resampled_image)
+				@info "Resampled Image $x $(resampled_image[x])"
+			end
+			@info "------------------------------------------------"
 
 
 			# resample image in $t$ direction
@@ -104,7 +103,7 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 					for j in 0:3
 						offset = t_weights[t+1].first_texel + j
 						if wrap_mode == Int8(0) # repeat
-							offset = offset % resolution.y
+							offset = mod(offset, resolution.y)
 						elseif wrap_mode == Int8(1) # clamp
 							offset = clamp(offset, 0, resolution.y - 1)
 						else
@@ -112,7 +111,7 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 						end
 						
 						if (offset >= 0) && (offset < resolution.y)
-							# @info "MIPMAP READ: $(s), $(t), $(offset * res_pow_2.x + s) = $(resampled_image[offset * res_pow_2.x + s + 1])"
+							@info "MIPMAP READ: $(s), $(t), $(offset * res_pow_2.x + s) = $(resampled_image[offset * res_pow_2.x + s + 1])"
 							work_data[t+1] += t_weights[t+1].weight[j+1] * resampled_image[offset * res_pow_2.x + s + 1]
 						end
 					end
