@@ -20,7 +20,7 @@ Integrator "bdpt"
 WorldBegin
 
 AttributeBegin
-    LightSource "infinite" "rgb L" [.5 .5 .5]      
+    LightSource "infinite" "string mapname" "/home/jmyslinski/random_stuff/PBRJ/src/notebooks/solid_grid_1x1.png"
 AttributeEnd
 
 Texture "test-img" "color" "imagemap" 

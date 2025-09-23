@@ -17,8 +17,7 @@ struct InfiniteLight <: Light
             print("YOU SHOULD PROBABLY BE DOING OCTAHEDRAL=false")
         end
 
-        dat2, L, W = read_image(texmap, LL)
-
+        dat2, L, W = read_image(texmap, LL, false) #JOHN HACK - NO GAMMA CORRECTION
         Lmap = MIPMap(Pnt2i(W, L), dat2, false) # NOTE THE FLIP HERE
 
         world_center, world_radius = bounding_sphere(bounds)

@@ -38,13 +38,14 @@ function make_scene104(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Done building BVH\n")
 
     l_2_w = Translate(Pnt3(0,0,0))
-    light = UniformInfiniteLight(
-        world_bounds(bvh), 
-        l_2_w, 
-        Spectrum(0.5, 0.5, 0.5), 
+    light = InfiniteLight(
+        world_bounds(bvh),
+        l_2_w,
+        spectrum_from_float(1.0),
+        jmfp("/home/jmyslinski/random_stuff/PBRJ/src/notebooks/solid_grid_1x1.png"),
+        false
     )
     push!(lights, light)
-
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.5, .5))
