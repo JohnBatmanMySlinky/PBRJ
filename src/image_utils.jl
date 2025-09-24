@@ -44,3 +44,14 @@ function inverse_gamma_correct(value::Float64)::Float64
         return ((value + 0.055) / 1.055) ^ 2.4
     end
 end
+
+function gamma_correct(value::RGB{Float64})::RGB{Float64}
+    return RGB{Float64}(gamma_correct(value.r), gamma_correct(value.g), gamma_correct(value.b))
+end
+
+function gamma_correct(value::Float64)::Float64
+    if value <= 0.0031308
+        return 12.92 * value
+    end
+    return 1.055 * value ^ (1 / 2.4) - 0.055
+end

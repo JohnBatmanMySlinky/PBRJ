@@ -278,6 +278,10 @@ function render_scene(parsed_args::Dict)
         end
         
         if bdpt_pass == (-1,-1)
+            # gamma correct out
+            image = map(v -> gamma_correct(v), image)
+
+            # save
             OpenEXR.save(I.camera.core.core.film.filename, image)
         else
             OpenEXR.save(replace(I.camera.core.core.film.filename, ".exr"=>"")*"_s_"*string(bdpt_pass[1])*"_t_"*string(bdpt_pass[2])*".exr", image)
