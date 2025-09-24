@@ -27,6 +27,7 @@ end
 function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: TransportMode
     # if bump map, update si
     if !(m.bump_map isa Nothing)
+        @info "BUMP BUMP BUMP"
         bump!(m, si)
     end
     
