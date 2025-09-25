@@ -28,7 +28,9 @@ function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     # if bump map, update si
     if !(m.bump_map isa Nothing)
         @info "BUMP BUMP BUMP"
+        @info "Surface Interaction Pre Bump: $si"
         bump!(m, si)
+        @info "Surface Interaction Post Bump: $si"
     end
     
     si.bsdf = BSDF(si)
