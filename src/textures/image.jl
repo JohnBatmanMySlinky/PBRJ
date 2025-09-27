@@ -27,7 +27,7 @@ struct ImageTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
         do_gamma::Bool=true
     )
         @info "DO_GAMMA : $do_gamma"
-        dat2, L, W = read_image(filename, scale, do_gamma)
+        dat2, L, W = read_image(filename)
 
         # FLIP
         for y in 0:(L ÷ 2 - 1)
@@ -38,7 +38,21 @@ struct ImageTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
             end
         end
 
-        mipmap = MIPMap(Pnt2i(W, L), dat2, convert_to_float, do_trilinear, max_anisotropy, wrap_mode) # NOTE THE FLIP HERE
+        converted = zeros(convert_to_float ? Float64 : Spectrum, L * W)
+
+        i = 0
+        for l in 1:L
+            for w in 1:W
+                i += 1
+                if convert_to_float
+                    converted[i] = convert_in_to_float(dat2[i], scale, do_gamma)
+                else
+                    converted[i] = convert_in_to_spectrum(dat2[i], scale, do_gamma)
+                end
+            end
+        end
+
+        mipmap = MIPMap(Pnt2i(W, L), converted, do_trilinear, max_anisotropy, wrap_mode) # NOTE THE FLIP HERE
         T = convert_to_float ? Float64 : Spectrum
         return new{T}(
             mapping,
@@ -52,8 +66,8 @@ end
 
 function (it::ImageTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
     st, dstdx, dstdy = it.mapping(si)
-    @info "ImageTexture: st: $st, dstdx: $dstdx, dstdy: $dstdy"
     mem = lookup(it.mipmap, st, dstdx, dstdy)
+    @info "ImageTexture: st: $st, dstdx: $dstdx, dstdy: $dstdy, mem: $mem"
     if T == Float64
         # For Float64, return the specified channel
         return mem[it.channel + 1]  # Julia is 1-indexed

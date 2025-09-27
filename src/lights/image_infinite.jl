@@ -17,7 +17,14 @@ struct InfiniteLight <: Light
             print("YOU SHOULD PROBABLY BE DOING OCTAHEDRAL=false")
         end
 
-        dat2, L, W = read_image(texmap, LL, false) #JOHN HACK - NO GAMMA CORRECTION
+        dat2, L, W = read_image(texmap)
+        i = 0
+        for l in 1:L
+            for w in 1:W
+                i += 1
+                dat2[i] = LL * dat2[i] # Scale by radiance scaling factor
+            end
+        end
         Lmap = MIPMap(Pnt2i(W, L), dat2, false) # NOTE THE FLIP HERE
 
         world_center, world_radius = bounding_sphere(bounds)

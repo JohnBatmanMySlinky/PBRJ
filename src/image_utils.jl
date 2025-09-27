@@ -1,4 +1,4 @@
-function read_image(texmap::String, LL::Union{Float64, RayTracing.Spectrum}, do_gamma::Bool)::Tuple{Vector{RayTracing.Spectrum}, Int64, Int64}
+function read_image(texmap::String)::Tuple{Vector{RayTracing.Spectrum}, Int64, Int64}
     ident = texmap[end-3:end]
     if ident == ".exr"
         dat = OpenEXR.load(texmap)
@@ -24,17 +24,32 @@ function read_image(texmap::String, LL::Union{Float64, RayTracing.Spectrum}, do_
             if pixel isa Gray
                 # For grayscale, use the same value for all RGB channels
                 gray_val = Float64(pixel.val)
-                tmp_val = Spectrum(gray_val, gray_val, gray_val)
-                dat2[i] = do_gamma ? LL * inverse_gamma_correct.(tmp_val) : LL * tmp_val
+                dat2[i] = spectrum_from_float(gray_val, gray_val, gray_val)
             else
                 # For color pixels (RGB, RGBA, etc.)
-                tmp_val = Spectrum(pixel.r, pixel.g, pixel.b) * LL
-                dat2[i] = do_gamma ? LL * inverse_gamma_correct.(tmp_val) : LL * tmp_val
+                dat2[i] = spectrum_from_float(Float64(pixel.r), Float64(pixel.g), Float64(pixel.b))
             end
         end
     end
     
     return dat2, L, W
+end
+
+function convert_in_to_spectrum(value::Spectrum, scale::Float64, do_gamma::Bool)::Spectrum
+    if do_gamma
+        return scale * inverse_gamma_correct.(value)
+    else
+        return scale .* value
+    end
+end
+
+function convert_in_to_float(value::Spectrum, scale::Float64, do_gamma::Bool)::Float64
+    new_value = y_spectrum(value)
+    if do_gamma
+        return scale * inverse_gamma_correct(new_value)
+    else
+        return scale * new_value
+    end
 end
 
 function inverse_gamma_correct(value::Float64)::Float64
@@ -50,8 +65,9 @@ function gamma_correct(value::RGB{Float64})::RGB{Float64}
 end
 
 function gamma_correct(value::Float64)::Float64
-    if value <= 0.0031308
-        return 12.92 * value
-    end
-    return 1.055 * value ^ (1 / 2.4) - 0.055
+    return value
+    # if value <= 0.0031308
+    #     return 12.92 * value
+    # end
+    # return 1.055 * value ^ (1 / 2.4) - 0.055
 end
