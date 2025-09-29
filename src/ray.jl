@@ -77,4 +77,4 @@ end
 
 check_direction!(r::AbstractRay) = set_direction!(r, r.direction)
 
-Base.show(io::IO, r::AbstractRay) = print(io, "$(r.origin), $(r.direction), $(r.t), $(r.tMax), $(!(r.medium isa Nothing))")
+Base.show(io::IO, r::AbstractRay) = print(io, "o=$(r.origin), d=$(r.direction), t=$(r.t), tMax=$(r.tMax), hasMedium=$(!(r.medium isa Nothing)), xo=$(r.rx_origin), xd=$(r.rx_direction), yo=$(r.ry_origin), yd=$(r.ry_direction)")

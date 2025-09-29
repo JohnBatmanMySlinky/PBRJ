@@ -176,8 +176,8 @@ function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSamp
     )
     ray = camera.core.core.camera_to_world(ray)
     @info "Camera to world: $(camera.core.core.camera_to_world)"
-    @info "p_film: $(p_film), p_camera: $(p_camera), ray: $(ray)"
     ray.has_differentials = true
+    @info "p_film: $(p_film), p_camera: $(p_camera), ray: $(ray)"
     return ray, 1.0
 end
 
