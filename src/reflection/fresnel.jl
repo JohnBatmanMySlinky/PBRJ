@@ -116,6 +116,42 @@ function f(f::FresnelBlend, wo::Vec3, wi::Vec3)
     return diffuse + specular
 end
 
+function sample_f(s::FresnelBlend, wo::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
+    if u.x < 0.5
+        u_new = Pnt2(
+            min(2 * u.x, 1.0-eps()),
+            u.y
+        )
+        # Cosine-sample the hemisphere, flipping the direction if necessary
+        wi = cosine_sample_hemisphere(u_new)
+        if wo.z < 0
+            wi = wi * Pnt3(1, 1, -1)
+        end
+    else
+        u_new = Pnt2(
+            min(2 * (u.x - 0.5), 1.0-eps()),
+            u.y
+        )
+        # Sample microfacet orientation $\wh$ and reflected direction $\wi$
+        wh = sample_wh(s.distrib, wo, u)
+        wi = reflect(wo, wh)
+        if !same_hemisphere(wo, wi)
+            Vec3(0.0), spectrum_from_float(0.0), 0.0, nothing
+        end
+    end
+    pdf_val = compute_pdf(s, wo, wh)
+    return wi, f(s, wo, wi), pdf_val, type
+end
+
+function pdf(s::FresnelBlend, wo::Vec3, wi::Vec3)::Float64
+    if !same_hemisphere(wo, wi)
+        return 0.0
+    end
+    wh = normalize(wo + wi)
+    pdf_wh = pdf(s.distrib, wo, wh)
+    return 0.5 *(abs(cos(wi)) / pi + pdf_wh / (4.0 * dot(wo, wh)))
+end
+
 ############################################################
 ###################### Fresnel Specular ####################
 ############################################################
