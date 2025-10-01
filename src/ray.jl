@@ -65,10 +65,12 @@ function RayDifferential(r::Ray)::RayDifferential
 end
 
 function scale_differentials!(r::RayDifferential, s::Float64)
+    @info "ScaleDifferentials: $s, $(r.rx_origin), $(r.ry_origin), $(r.rx_direction), $(r.ry_direction)"
     r.rx_origin = r.origin + (r.rx_origin - r.origin) * s
     r.ry_origin = r.origin + (r.ry_origin - r.origin) * s
     r.rx_direction = r.direction + (r.rx_direction - r.direction) * s
     r.ry_direction = r.direction + (r.ry_direction - r.direction) * s
+    @info "ScaleDifferentials: $s, $(r.rx_origin), $(r.ry_origin), $(r.rx_direction), $(r.ry_direction)"
 end
 
 function set_direction!(r::AbstractRay, d::Vec3)
