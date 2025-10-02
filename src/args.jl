@@ -56,6 +56,10 @@ function parse_commandline()::Dict
             help = "a random seeed for re-producibility"
             arg_type = Int
             default = 1234
+        "--sampler"
+            help = "independent, stratified, sobol, zsobol"
+            arg_type = String
+            default = "zsobol"
     end
 
     return parse_args(s)

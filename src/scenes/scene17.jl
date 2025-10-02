@@ -515,8 +515,7 @@ function make_scene17(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 45.0, film)
 
     # Instantiate a Sampler
-    # S = ZSobolSampler(parsed_args["samples-per-pixel"], film.full_resolution, Int8(2), parsed_args["seed"])
-    S = DumbSampler(parsed_args["samples-per-pixel"])
+    S = SamplerFactory(parsed_args)
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
