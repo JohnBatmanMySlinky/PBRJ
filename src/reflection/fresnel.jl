@@ -125,7 +125,7 @@ function sample_f(s::FresnelBlend, wo::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, 
         # Cosine-sample the hemisphere, flipping the direction if necessary
         wi = cosine_sample_hemisphere(u_new)
         if wo.z < 0
-            wi = wi * Pnt3(1, 1, -1)
+            wi = Vec3(wi.x, wi.y, wi.z * -1.0)
         end
     else
         u_new = Pnt2(
