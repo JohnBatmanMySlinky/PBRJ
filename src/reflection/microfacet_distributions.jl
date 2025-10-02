@@ -52,8 +52,9 @@ function D(md::TrowbridgeReitzDistribution, wh::Vec3)
     tan2theta = tan_2_theta(wh)
     isinf(tan2theta) && return 0
     cos4theta = cos_2_theta(wh)^2
-    e = tan2theta * (cos_2_phi(wh)/(md.alpha_x^2) + sin_2_phi(wh)/(md.alpha_y^2))
-    return 1 / (pi * md.alpha_x * md.alpha_y * cos4theta * (1+e)^2)
+    E = tan2theta * (cos_2_phi(wh)/(md.alpha_x^2) + sin_2_phi(wh)/(md.alpha_y^2))
+    @info "TBR-D: tan2theta = $tan2theta, cos4theta = $cos4theta, e=$E"
+    return 1.0 / (pi * md.alpha_x * md.alpha_y * cos4theta * (1+E)^2)
 end
 
 function Lambda(md::TrowbridgeReitzDistribution, w::Vec3)
@@ -206,6 +207,8 @@ end
 
 function compute_pdf(md::MicrofacetDistribution, wo::Vec3, wh::Vec3)::Float64
     if md.sample_visible_area
+        @info "TBR-D: $(D(md, wh))"
+        @info "TBR-G1: $(G1(md, wo))"
         return D(md, wh) * G1(md, wo) * abs(dot(wo, wh)) / abs_cos_theta(wo)
     else
         return D(md, wh) * abs_cos_theta(wh)
