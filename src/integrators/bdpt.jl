@@ -137,9 +137,9 @@ function render(
                 #     @info "BDPT: Camera Vertex $(iii): $(camera_vertices[iii].type) @ $(pos) $(lig)"
                 # end
 
-                for iii in 1:num_real_camera_vertices
-                    @info "BDPT: Camera Vertex Hacky but OK $(iii): $(camera_vertices[iii].type) $(p(camera_vertices[iii]))"
-                end
+                # for iii in 1:num_real_camera_vertices
+                #     @info "BDPT: Camera Vertex Hacky but OK $(iii): $(camera_vertices[iii].type) $(p(camera_vertices[iii]))"
+                # end
 
                 # execute all BDPT connection strategies
                 # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
@@ -512,7 +512,7 @@ function connect_BDPT(
         """
         pt = camera_vertices[t-1+1]
         if is_connectible(pt)
-            @info "is connectable"
+            # @info "is connectable"
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
             sampled_li, wi, pdf_val, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
@@ -523,16 +523,16 @@ function connect_BDPT(
                 sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled, Radiance) * sampled.beta
-                @info "L: $(L)"
+                # @info "L: $(L)"
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))
                 end
-                @info "L: $(L)"
+                # @info "L: $(L)"
                 if !is_black(L)
                     TR = tr(vis, scene.b, sampler)
                     L *= TR
                 end
-                @info "L: $(L)"
+                # @info "L: $(L)"
             end
         end
     else
@@ -549,7 +549,7 @@ function connect_BDPT(
 
     # compute MIS weight for connection strategy
     mis_weight = is_black(L) ? 0.0 : MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr, light_num)
-    @info "MIS weight for (s,t) = ($(s),$(t)) connection $(mis_weight)"
+    # @info "MIS weight for (s,t) = ($(s),$(t)) connection $(mis_weight)"
     (DO_MIS_WEIGHT) && (L *= mis_weight)
     return L, mis_weight, pfilm
 end
@@ -585,12 +585,12 @@ function MIS_weight(
     qs_minus = (s > 1) ? s-2+1 : 0 # --> LIGHT
     pt_minus = (t > 1) ? t-2+1 : 0 # --> CAMERA
 
-    @info """Inventory
-    qs, $qs
-    pt, $pt - $(camera_vertices[pt])
-    qsMinus, $qs_minus
-    ptMinus, $pt_minus
-    """
+    # @info """Inventory
+    # qs, $qs
+    # pt, $pt - $(camera_vertices[pt])
+    # qsMinus, $qs_minus
+    # ptMinus, $pt_minus
+    # """
 
     # # LOG INITIAL STATE
     # logg = Dict{Tuple{Int64,Int64}, VertexLog}()
@@ -673,19 +673,19 @@ function MIS_weight(
     if pt > 0 
         if s > 0
             if qs_minus == 0
-                @info "A"
+                # @info "A"
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, nothing, camera_vertices[pt])
             else
-                @info "B"
+                # @info "B"
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, light_vertices[qs_minus], camera_vertices[pt])
             end
         else
-            @info "C"
+            # @info "C"
             camera_vertices[pt].pdf_rev = pdf_light_origin(camera_vertices[pt], scene, camera_vertices[pt_minus], light_distr, light_num)
         end
     end
 
-    @info "pt, $pt - $(camera_vertices[pt])"
+    # @info "pt, $pt - $(camera_vertices[pt])"
 
     if s==1 && t==2
         # @info "MISWEIGHT: <<a4>> $(camera_vertices[1+1].pdf_rev)"

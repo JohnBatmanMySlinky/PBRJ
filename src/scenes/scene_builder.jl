@@ -25,7 +25,9 @@ scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅
     - parser broken
 scene 11: dragon with fun materials ✅
 scene 12: v4 smoke plume (v4 GridMedium) ✅
-scene 13: DISNEY CLOUD (v4 NanoVDBMedium) ✅
+scene 13: DISNEY CLOUD (v4 NanoVDBMedium) 🟨
+    - re-render with screen fix
+    - fix reflections from disk
 scene 14: Anemone (v4 GridMedium) 🟨
     - emmissive medium is only supported by VolPath (v4) integrator. 
     - Looks as good as it can with BDPT at the moment
@@ -39,9 +41,10 @@ scene 17: barcelona pavillion 🟨
     - remove fourier material convergence hack
 scene 18: SDFs baby! 🟨
     - lighting kinda fucked
-scene 19: bunny cloud (v4 NanoVDB) ✅
+scene 19: bunny cloud (v4 NanoVDB) 🟨
     - only works single threaded? ok cool
     - hmmm gets all fucky when voxel grid is 3x3x3 - probably majorant iterator...
+    - blue floor
 scene 20: explosion + SimpleVolPathIntegrator (v4 NanoVDB) 🟨
     - caffeinate -di julia -t 4 RayTracing.jl --scene-number 20 --image-dim 1000 1000 --samples-per-pixel 16
     - hmmmmm maybe black body is off?
