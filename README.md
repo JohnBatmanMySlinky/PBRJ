@@ -95,7 +95,15 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
-- elevator bump map and wood material
+- function for platonic solids
+- function for geodesic sphere
+- SDF
+    - Torus
+	- 4 subtracted spheres at (1,0), (0, 1), (-1,0), (0, -1)
+	- 4 unioned spheres at (1,1), (1,-1), (-1,-1), (-1,1)
+- revisit SDF tree to create my tree from my presentation
+    - Union(Sphere, Substract(Box, Intersect(FrameBox, Torus)))
+- re-factor all scenes to use SamplerFactory
 - stochastic alpha test re pbrtv4 and move to primitive???
 - UVMapping2D() for all textures
 - need to go firefly hunting again......
