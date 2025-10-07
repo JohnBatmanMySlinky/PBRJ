@@ -41,6 +41,18 @@ mutable struct Vertex
     end
 end
 
+function Base.show(io::IO, v::Vertex)
+    if !(v.ei isa Nothing)
+        print(io, "Vertex(EI)($(v.type))\n\tdelta: $(v.delta)\n\tpdf_fwd: $(v.pdf_fwd)\n\tpdf_rev: $(v.pdf_rev)\n\tp: $(v.ei.interaction.p)")
+    elseif !(v.mi isa Nothing)
+        print(io, "Vertex(MI)($(v.type))\n\tdelta: $(v.delta)\n\tpdf_fwd: $(v.pdf_fwd)\n\tpdf_rev: $(v.pdf_rev)\n\tp: $(v.mi.core.p)")
+    elseif !(v.si isa Nothing)
+        print(io, "Vertex(SI)($(v.type))\n\tdelta: $(v.delta)\n\tpdf_fwd: $(v.pdf_fwd)\n\tpdf_rev: $(v.pdf_rev)\n\tp: $(v.si.core.p)")
+    else
+        @assert false
+    end
+end
+
 ####################
 ### MANY utility functions & constructors
 ####################

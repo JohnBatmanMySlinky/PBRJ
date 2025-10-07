@@ -126,6 +126,13 @@ function render(
                 @info "BDPT: Number of real camera vertices: $(num_real_camera_vertices)"
                 @info "BDPT: Number of real light vertices: $(num_real_light_vertices)"
 
+                for iii in 1:num_real_camera_vertices
+                    @info "$(camera_vertices[iii])"
+                end
+                for iii in 1:num_real_light_vertices
+                    @info "$(light_vertices[iii])"
+                end
+
                 # for iii in 1:num_real_camera_vertices
                 #     if camera_vertices[iii].ei isa Nothing
                 #         pos = camera_vertices[iii].si.core.p
