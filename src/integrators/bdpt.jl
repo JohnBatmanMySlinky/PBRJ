@@ -425,7 +425,7 @@ function random_walk!(
         # sample BSDF at current vertex and compute reverse probability
         wo = isect.core.wo
         wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
-        @info "Random walk sampled dir $wi f: $f, pdfFwd: $pdf_fwd"
+        @info "Random walk sampled dir $wi f: $f, pdfFwd: $pdf_fwd, sampled_type: $sampled_type"
         if (pdf_fwd == 0.0) || is_black(f)
             break
         end
