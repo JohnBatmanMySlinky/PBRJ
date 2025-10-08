@@ -432,6 +432,7 @@ function random_walk!(
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
         @info "Random walk beta now $beta"
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
+        @info "random walk pdf_rev = $pdf_rev"
         if (sampled_type & BSDF_SPECULAR) > 0
             path[vertex].delta = true
             pdf_rev = 0.0
@@ -442,7 +443,9 @@ function random_walk!(
         ray = spawn_ray(isect.core, wi)
         
         # Compute reverse area density at preceding vertex
+        @info "pdf_rev - before - $(path[prev].pdf_rev)"
         path[prev].pdf_rev = convert_density(path[vertex], pdf_rev, path[prev])
+        @info "pdf_rev - after - $(path[prev].pdf_rev)"
     end
     return bounces
 end

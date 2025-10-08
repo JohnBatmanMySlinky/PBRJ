@@ -139,11 +139,11 @@ function sample_f(s::FresnelBlend, wo::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, 
             Vec3(0.0), spectrum_from_float(0.0), 0.0, nothing
         end
     end
-    pdf_val = pdf(s, wo, wi)
+    pdf_val = compute_pdf(s, wo, wi)
     return wi, f(s, wo, wi), pdf_val, type
 end
 
-function pdf(s::FresnelBlend, wo::Vec3, wi::Vec3)::Float64
+function compute_pdf(s::FresnelBlend, wo::Vec3, wi::Vec3)::Float64
     if !same_hemisphere(wo, wi)
         return 0.0
     end

@@ -30,7 +30,7 @@ function distance_squared(p1::Pnt3, p2::Pnt3)::Float64
     return dot(p, p)
 end
 
-function length_squared(v::T)::Float64 where {T <: Union{Vec3, Vec2, Nml3}}
+function length_squared(v::T)::Float64 where {T <: Union{Vec3, Vec2, Nml3, Pnt3}}
     return sum(v.^2)
 end
 
