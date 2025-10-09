@@ -21,6 +21,7 @@ mutable struct BSDF <: AbstractBSDF
         ns = si.shading.n
         ss = normalize(si.shading.dpdu)
         ts = cross(ns,ss)
+        @info "BSDF::BSDF ng = $ng, ns = $ns, ss = $ss, ts = $ts"
         new(
             eta, ng, ns, ss, ts, UInt8(0),
             Vector{B where B <: AbstractBxDF}(undef, MAX_BxDF),
