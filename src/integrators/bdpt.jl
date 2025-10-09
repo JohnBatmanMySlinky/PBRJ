@@ -526,23 +526,23 @@ function connect_BDPT(
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
             sampled_li, wi, pdf_val, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
-            # @info "sampled Li from last camera vertex: sampled_li: $(sampled_li), wi: $(wi), pdf_val: $(pdf_val), visibility tester: $(vis)"
+            @info "sampled Li from last camera vertex: sampled_li: $(sampled_li), wi: $(wi), pdf_val: $(pdf_val), visibility tester: $(vis)"
             if pdf_val > 0.0 && !(is_black(sampled_li))
-                # @info "<<<<<SAMPLED A VERTEX>>>>>"
+                @info "<<<<<SAMPLED A VERTEX>>>>>"
                 ei = EndpointInteraction(vis.p1, light)
                 sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled, Radiance) * sampled.beta
-                # @info "L: $(L)"
+                @info "L: $(L)"
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))
                 end
-                # @info "L: $(L)"
+                @info "L: $(L)"
                 if !is_black(L)
                     TR = tr(vis, scene.b, sampler)
                     L *= TR
                 end
-                # @info "L: $(L)"
+                @info "L: $(L)"
             end
         end
     else
