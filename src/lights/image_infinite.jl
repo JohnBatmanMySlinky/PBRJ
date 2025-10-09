@@ -84,6 +84,7 @@ end
 function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     # Find $(u,v)$ sample coordinates in infinite light texture
     uv, map_pdf = sample_continuous(il.distribution, uvu)
+    @info "SampleLi: uv = $uv, map_pdf = $map_pdf"
     (map_pdf == 0) && return spectrum_from_float(0.0), Vec3(0), 0.0, VisibilityTester(Interaction(), Interaction()), Pnt3(0.0), Nml3(0)
 
     # Convert infinite light sample point to direction
@@ -121,8 +122,11 @@ function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tupl
     )
 
     radiance = lookup(il.Lmap, uv)
-    # @info "InfLight sample_li: Lmap $radiance Spectrum $(spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant))"
-    radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
+    @info "InfLight sample_li: Lmap $radiance Spectrum $(spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant))"
+    # JOHN HACK these aren't RGB they are RGBSpectrum. 
+    # a little confusing but works with barcelona pavilion
+    # radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
+    radiance = spectrum_from_float(radiance.a, radiance.b, radiance.c)
 
     return radiance, wi, pdf_val, visibility, Pnt3(0,0,0), Nml3(0,0,0)
 end
