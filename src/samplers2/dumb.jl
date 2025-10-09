@@ -6,11 +6,11 @@ function start_pixel_sample!(ss::DumbSampler, pixel::Pnt2i, sample_index::Int64,
 end
 
 function get_1D!(is::DumbSampler)::Float64
-    return 0.8
+    return 0.2
 end
 
 function get_2D!(is::DumbSampler)::Pnt2
-    return Pnt2(0.8, 0.8)
+    return Pnt2(0.2, 0.2)
 end
 
 function get_pixel_2D!(is::DumbSampler)::Pnt2
