@@ -533,6 +533,7 @@ function connect_BDPT(
                 sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled, Radiance) * sampled.beta
+                @info "pt.beta = $(pt.beta), f = $(f(pt, sampled, Radiance)), sampled.beta = $(sampled.beta)"
                 @info "L: $(L)"
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))
