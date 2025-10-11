@@ -1,33 +1,52 @@
 function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     # MATERIALS
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(.4, .4, .4)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_gray)
+
     mat_white = Matte(
+        "mat_white",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_white)
+
     mat_julia_green = Matte(
+        "mat_julia_green",
         ConstantTexture(spectrum_from_float(0.22, 0.596, .149)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_julia_green)
+
     mat_julia_purple = Matte(
+        "mat_julia_purple",
         ConstantTexture(spectrum_from_float(0.584, .345, .698)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_julia_purple)
+
     mat_julia_red = Matte(
+        "mat_julia_red",
         ConstantTexture(spectrum_from_float(.235, .2, .796)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_julia_red)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
+
     #######################
     # instantiate objects #
     #######################
@@ -43,7 +62,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
     end
 
     back_wall = Rectangle(
@@ -56,7 +75,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in back_wall
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
     end
 
     side_wall = Rectangle(
@@ -69,7 +88,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in side_wall
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
     end
 
     for i in 0:6
@@ -83,7 +102,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in rafter
-            push!(primitives, Primitive(tri, mat_white, nothing))
+            push!(primitives, Primitive(tri, "mat_white", nothing))
         end
 
         light_tris = Rectangle(
@@ -102,7 +121,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 false
             )
             push!(lights, alight)
-            push!(primitives, Primitive(tri, mat_white, alight))
+            push!(primitives, Primitive(tri, "mat_white", alight))
         end
         # print(
         #     "       Box $(i+1)
@@ -139,7 +158,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     teapot1 = parse_obj("../ref/teapot.obj", teapot_t1, false, false, nothing) 
     for tris in teapot1
         for tri in tris
-            push!(primitives, Primitive(tri, mat_julia_red, nothing))
+            push!(primitives, Primitive(tri, "mat_julia_red", nothing))
         end
     end
 
@@ -147,7 +166,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     teapot2 = parse_obj("../ref/teapot.obj", teapot_t2, false, false, nothing) 
     for tris in teapot2
         for tri in tris
-            push!(primitives, Primitive(tri, mat_julia_purple, nothing))
+            push!(primitives, Primitive(tri, "mat_julia_purple", nothing))
         end
     end
 
@@ -155,7 +174,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     teapot3 = parse_obj("../ref/teapot.obj", teapot_t3, false, false, nothing) 
     for tris in teapot3
         for tri in tris
-            push!(primitives, Primitive(tri, mat_julia_green, nothing))
+            push!(primitives, Primitive(tri, "mat_julia_green", nothing))
         end
     end
 
@@ -178,7 +197,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false
         )
         push!(lights, alight)
-        push!(primitives, Primitive(tri, mat_white, alight))
+        push!(primitives, Primitive(tri, "mat_white", alight))
     end
 
     # instantiate accelerator

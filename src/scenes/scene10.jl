@@ -1,12 +1,18 @@
 function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     mat_disk = Matte(
+        "mat_disk",
         ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_disk)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
     
     # Bounding sphere cause we hate winding order and such
     sphere_transform = Translate(Pnt3(0.25, 0.0, -1.2)) * RotateX(90.0) 
@@ -27,10 +33,10 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             spectrum_from_float(90.0),
             spectrum_from_float(10.0),
             1.0,
-            Pnt3(0.01, 0.01, 0.01),
-            Pnt3(1.99, 1.99, 0.79),
+            spectrum_from_float(0.0),
+            1.0,
             0.0,
-            Pnt3(256, 256, 256)
+            Pnt3i(256, 256, 256)
         ),
         nothing
     )
@@ -71,7 +77,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,

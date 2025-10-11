@@ -4,7 +4,7 @@ struct ResampleWeight
 end
 
 function resample_weights(old_res::Int64, new_res::Int64)::Vector{ResampleWeight}
-	@assert new_res > old_res
+	@assert new_res >= old_res
 	wt = Vector{ResampleWeight}(undef, new_res)
 	filter_width = 2.0
 	for i in 0:(new_res-1)
@@ -240,6 +240,7 @@ function triangle(mip_map::MIPMap{T}, level::Int64, st::Pnt2)::T where {T <: Uni
 	level = clamp(level, 0, levels(mip_map) - 1)
 	s = st.x * mip_map.pyrsize[level + 1].x - 0.5
 	t = st.y * mip_map.pyrsize[level + 1].y - 0.5
+
 	s0::Int64 = floor(s)
 	t0::Int64 = floor(t)
 	ds = s - s0
@@ -285,9 +286,9 @@ function lookup(mip_map::MIPMap{T}, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {
 		dst1 = dst1 * scale
 		minor_length = minor_length * scale
 	end
-	if minor_length == 0.0
-		return triangle(mip_map, 0, st)
-	end
+	if (minor_length == 0) || isinf(minor_length)
+        return triangle(mip_map, 0, st)
+    end
    
 	# chose level of detail for EWA lookup and perform EWA filtering
 	lod = max(0.0, levels(mip_map) - 1.0 + log2(minor_length))
@@ -296,7 +297,7 @@ function lookup(mip_map::MIPMap{T}, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {
 end
 
 function EWA(mip_map::MIPMap{T}, level::Int64, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {T <: Union{Spectrum, Float64}}
-	if level >= levels(mip_map) + 1 # JOHN INDEXING ADDITION
+	if level >= levels(mip_map) # JOHN INDEXING ADDITION
 		return texel(mip_map.pyramid[levels(mip_map) - 1 + 1], mip_map.pyrsize[levels(mip_map) - 1 + 1], mip_map.wrap_mode, 0, 0)
 	end
 

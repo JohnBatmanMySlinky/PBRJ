@@ -1,39 +1,82 @@
 function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
-    # materials
-    mat_gray = Matte(
-        ConstantTexture(spectrum_from_float(0.6, 0.6, 0.6)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+    # MATERIALS
+    mat_ground = Matte(
+        "mat_ground",
+        ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
+        ConstantTexture(0.0),
         nothing
     )
-    mat_blue = Matte(
-        ConstantTexture(spectrum_from_float(0.2, 1.0, 0.2)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+    push!(materials, mat_ground)
+
+    mat_metal = Metal(
+        "mat_metal",
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/dragon/spds/Au.eta.spd"))),
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/dragon/spds/Au.k.spd"))),
+        ConstantTexture(0.0),
+    )
+    push!(materials, mat_metal)
+
+    mat_ceramic = Fourier(
+        "mat_ceramic",
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/bsdfs/ceramic.bsdf"),
         nothing
     )
+    push!(materials, mat_ceramic)
 
-    ###############
-    ### a thing ###
-    ###############       
+    mat_coated_copper = Fourier(
+        "mat_coated_copper",
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/bsdfs/coated_copper.bsdf"),
+        nothing
+    )
+    push!(materials, mat_coated_copper)
 
+    mat_roughgold = Fourier(
+        "mat_roughgold",
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/bsdfs/roughgold_alpha_0.2.bsdf"),
+        nothing
+    )
+    push!(materials, mat_roughgold)
 
-    s = Sphere(ShapeCore(Translate(Pnt3(0, 0.025, 0)), Inv(Translate(Pnt3(0, 0.025, 0)))), .075)
-    push!(primitives, Primitive(s, mat_blue, nothing))
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
-    floor_transform = Translate(Pnt3(0,0,0))
+    # instantiate objects
+    floor_t = Translate(Pnt3(0, 0, -40))
+    foor_sc = ShapeCore(
+        floor_t,
+        Inv(floor_t),
+        false,
+        false
+    )
     floor = Rectangle(
-        Pnt2(-10, -10),
-        Pnt2(10, 10),
+        Pnt2(-1000, -1000), 
+        Pnt2(1000, 1000), 
         0.0,
-        2, 
-        ShapeCore(floor_transform, Inv(floor_transform), false, false),
+        3, 
+        foor_sc,
         false,
         nothing
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, "mat_ground", nothing))
+    end
+
+    dragon_translate = RotateY(-53.0)
+    dragon =  parse_obj(
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/dragon/geometry/dragon_remeshed_ascii.obj"),
+        dragon_translate,
+        false,
+        false,
+        nothing
+    )
+    for tris in dragon
+        for tri in tris
+            push!(primitives, Primitive(tri, "mat_coated_copper", nothing))
+        end
     end
 
     # instantiate accelerator
@@ -46,8 +89,10 @@ function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        Spectrum(3.0, 3.0, 3.0), 
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
+        spectrum_from_float(2.0, Illuminant), 
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"),
+        # "/Users/johnmyslinski/Documents/PBRJ/scratch/mipmap/hello.exr"
+        false
     )
     push!(lights, light)
 
@@ -56,7 +101,7 @@ function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
@@ -65,18 +110,14 @@ function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(-.3, .5, -.5)
-    look_at = Pnt3(0, 0.0, 0)
-    up = Vec3(0, 1, 0)
+    look_from = Pnt3(277, -240, 250)
+    look_at = Pnt3(0, 60, -30)
+    up = Vec3(0, 0, 1)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 33.0, film)
 
     # Instantiate a Sampler
-    S = ZSobolSampler(
-        parsed_args["samples-per-pixel"], 
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), 
-        Int8(2)
-    )
+    S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
@@ -85,5 +126,6 @@ function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     
     # Instantiate an Integrator
     I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+
     return I, scene
 end

@@ -1,17 +1,74 @@
 function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
+
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(0.6, 0.6, 0.6)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_gray)
+
+    mat_wax = Uber(
+        "mat_wax",
+        ConstantTexture(spectrum_from_float(0.639999986)),
+        ConstantTexture(spectrum_from_float(0.5)),
+        ConstantTexture(spectrum_from_float(0.0)),
+        ConstantTexture(spectrum_from_float(0.0)),
+        ConstantTexture(0.0104080001),
+        nothing,
+        nothing,
+        ConstantTexture(1.0),
+        ConstantTexture(spectrum_from_float(1.0)),
+        nothing
+    )
+    push!(materials, mat_wax)
+
+    mat_metal = Metal(
+        "mat_metal",
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/barcelona-pavilion/spds/Al.eta.spd"))),
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/barcelona-pavilion/spds/Al.k.spd"))),
+    )
+    push!(materials, mat_metal)
+
+    mat_black_glossy = Plastic(
+        "mat_black_glossy",
+        ConstantTexture(spectrum_from_float(0.02, 0.02, 0.02)),
+        ConstantTexture(spectrum_from_float(0.02, 0.02, 0.02)),
+        ConstantTexture(0.0104080001),
+        nothing,
+        nothing,
+        nothing,
+        true
+    )
+    push!(materials, mat_black_glossy)
+
+    mat_leather = Fourier(
+        "mat_leather",
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/bsdfs/leather.bsdf"),
+        nothing
+    )
+    push!(materials, mat_leather)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
+
+    sphereamid_materials = [
+        "mat_wax",
+        "mat_metal",
+        "mat_black_glossy",
+        "mat_leather"
+    ]
+    sphereamid_materials_dist = Distribution1D(ones(Float64, length(sphereamid_materials)))
 
     base_t = RayTracing.Translate(RayTracing.Pnt3(0,0,0))
     max_depth = 4
     r = 0.5
     r_vec = Float64[r^(i-1) for i in 1:max_depth]
     spheres = RayTracing.Sphere[]
+    Random.seed!(parsed_args["seed"])
     recursive_pyramid_build!(
         spheres,
         base_t,
@@ -21,7 +78,23 @@ function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     for sphere in spheres
-        push!(primitives, Primitive(sphere, mat_gray, nothing))
+        idx, _, _ = sample_discrete(sphereamid_materials_dist, rand())
+        push!(primitives, Primitive(sphere, sphereamid_materials[idx], nothing))
+    end
+
+    # The floor
+    floor_transform = Translate(Pnt3(0, world_bounds(BVH(primitives)).pMin.y, 0))
+    floor = Rectangle(
+        Pnt2(-100, -100),
+        Pnt2(100, 100),
+        0.0,
+        2, 
+        ShapeCore(floor_transform, Inv(floor_transform), false, false),
+        false,
+        nothing
+    )
+    for tri in floor
+        push!(primitives, Primitive(tri, mat_gray, nothing))
     end
 
     # instantiate accelerator
@@ -30,12 +103,13 @@ function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Done building BVH\n")
 
     # instantiate the infinite light
-    l_2_w = Translate(Pnt3(0,0,0))
+    l_2_w = RotateX(10.0)
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        Spectrum(3.0, 3.0, 3.0), 
-        "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
+        spectrum_from_float(4.0, Illuminant), 
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/bunny-cloud/textures/sky.exr"),
+        true
     )
     push!(lights, light)
 
@@ -44,7 +118,7 @@ function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
@@ -57,13 +131,14 @@ function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_at = centroid(world_bounds(bvh))
     up = Vec3(0, 1, 0)
     screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 15.0, film)
 
     # Instantiate a Sampler
     S = ZSobolSampler(
         parsed_args["samples-per-pixel"], 
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]), 
-        Int8(2)
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]), 
+        Int8(2),
+        parsed_args["seed"]
     )
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
 

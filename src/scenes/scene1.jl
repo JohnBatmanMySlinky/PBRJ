@@ -2,44 +2,73 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ###########################
     ######## Materials ########
     ###########################
+    materials = Material[]
     mat_white = Matte(
+        "mat_white",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_white)
+
     mat_red = Matte(
+        "mat_red",
         ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_red)
+
     mat_green = Matte(
+        "mat_green",
         ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_green)
+
     mat_blue = Matte(
+        "mat_blue",
         ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_blue)
+
     mat_yellow = Matte(
+        "mat_yellow",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 0.0)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_yellow)
+
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 0.0)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_gray)
+
     mat_concrete = Substrate(
-        ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_BaseColor.jpg"), false), # kd
+        "mat_concrete",
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_BaseColor.jpg"), 
+            false
+        ), # kd
         ConstantTexture(spectrum_from_float(0.15, 0.15, 0.15)), # ks
         ConstantTexture(.003), # u
         ConstantTexture(.003), # v
-        ImageTexture(UVMapping2D(), jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_Height.jpg"), true), # bumo
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_Height.jpg"),
+            true
+        ), # bumo
         true # remap
     )
+    push!(materials, mat_concrete)
 
     ###################################
     ###### GEOMETRICAL CONSTANTS ######
@@ -80,7 +109,39 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     hallway_walls_adj = sqrt((hallway_width/2)^2/2)
 
-    ceiling_floor_corner_alpha_mask_threshold = (edge_of_back_right_wall.x - -300)/600
+    ceiling_floor_corner_alpha_mask_threshold = (edge_of_back_right_wall.x - -300.0)/600.0
+
+    ###########################
+    ######## Textures ########
+    ###########################
+
+    textures = AbstractTexture[]
+
+    tex_floor_corner = CornerProceduralTexture(
+        ceiling_floor_corner_alpha_mask_threshold,
+        1.0,
+        0.0,
+        "tex_floor_corner"
+    )
+    push!(textures, tex_floor_corner)
+
+    tex_ceiling = MixAddTexture(
+        CircleProceduralTexture(
+            Pnt2(.5, .5),
+            ceiling_whole_size/foyer_dim,
+            1.0,
+            0.0,
+            nothing
+        ),
+        CornerProceduralTexture(
+            ceiling_floor_corner_alpha_mask_threshold,
+            1.0,
+            0.0,
+            nothing
+        ),
+        "tex_ceiling"
+    )
+    push!(textures, tex_ceiling)
     
     ##############################
     ##### Instantiating light & primitive vectors
@@ -103,17 +164,13 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         2, 
         ShapeCore(floor_transform, Inv(floor_transform), false, false),
         false,
-        CornerProceduralTexture(
-            ceiling_floor_corner_alpha_mask_threshold,
-            1.0,
-            0.0,
-        )
+        "tex_floor_corner"
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_concrete, nothing))
+        push!(primitives, Primitive(tri, "mat_concrete", nothing))
     end
     for tri in floor
-        push!(primitives2, Primitive(tri, mat_red, nothing))
+        push!(primitives2, Primitive(tri, "mat_red", nothing))
     end
 
     ################# CEILING
@@ -125,22 +182,10 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         2, 
         ShapeCore(ceiling_transform, Inv(ceiling_transform), true, false),
         false,
-        MixAddTexture(
-            CircleProceduralTexture(
-                Pnt2(.5, .5),
-                ceiling_whole_size/foyer_dim,
-                1.0,
-                0.0
-            ),
-            CornerProceduralTexture(
-                ceiling_floor_corner_alpha_mask_threshold,
-                1.0,
-                0.0,
-            )
-        )
+        "tex_ceiling"
     )
     for tri in ceiling
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
 
     ################# RIGHT WALL
@@ -155,7 +200,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in rwall
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
 
     ################# LEFT WALL
@@ -170,7 +215,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in lwall
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
 
     ################# Pillar 1
@@ -182,7 +227,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_1
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
 
     ################# Pillar 2
@@ -194,7 +239,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_2
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
 
     ################# CEILING CYLINDAR
@@ -228,9 +273,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         true,
         false
     )
-    push!(primitives, Primitive(outer_cyl, mat_white, nothing))
-    push!(primitives, Primitive(inner_cyl, mat_white, nothing))
-    push!(primitives, Primitive(disk, mat_white, nothing))
+    push!(primitives, Primitive(outer_cyl, "mat_white", nothing))
+    push!(primitives, Primitive(inner_cyl, "mat_white", nothing))
+    push!(primitives, Primitive(disk, "mat_white", nothing))
 
     ################# Pillar Area Lights
     MULT = 5
@@ -240,34 +285,34 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     red = spectrum_from_float(1.0, 0.0, 0.0)
     pink = spectrum_from_float(1.0, 0.0, 1.0)
     green = spectrum_from_float(0.0, 1.0, 0.0)
-    pillar_area_light_spec = Tuple{Pnt2, Pnt2, Float64, Int64, Spectrum, Bool}[
-        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), pillar_width_1+.5, 1, yellow, false),
-        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), pillar_width_1+.5, 1, white, false),
-        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), pillar_width_1+.5, 1, pink, false),
-        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), pillar_width_1+.5, 1, blue, false),
-        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), pillar_width_1+.5, 1, red, false),
+    pillar_area_light_spec = Tuple{Pnt2, Pnt2, Float64, Int64, Spectrum, String, Bool}[
+        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), pillar_width_1+.5, 1, yellow, "yellow", false),
+        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), pillar_width_1+.5, 1, white, "white", false),
+        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), pillar_width_1+.5, 1, pink, "pink", false),
+        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), pillar_width_1+.5, 1, blue, "blue", false),
+        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), pillar_width_1+.5, 1, red, "red", false),
 
-        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  pillar_width_1+.5, 3, white, false),
-        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), pillar_width_1+.5, 3, blue, false),
-        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), pillar_width_1+.5, 3, red, false),
-        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), pillar_width_1+.5, 3, pink, false),
-        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), pillar_width_1+.5, 3, green, false),
+        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  pillar_width_1+.5, 3, white, "white", false),
+        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), pillar_width_1+.5, 3, blue, "blue", false),
+        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), pillar_width_1+.5, 3, red, "red", false),
+        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), pillar_width_1+.5, 3, pink, "pink", false),
+        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), pillar_width_1+.5, 3, green, "green", false),
 
-        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), -pillar_width_1-.5, 1, yellow, true),
-        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), -pillar_width_1-.5, 1, white, true),
-        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), -pillar_width_1-.5, 1, pink, true),
-        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), -pillar_width_1-.5, 1, blue, true),
-        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), -pillar_width_1-.5, 1, red, true),
+        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), -pillar_width_1-.5, 1, yellow, "yellow", true),
+        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), -pillar_width_1-.5, 1, white, "white", true),
+        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), -pillar_width_1-.5, 1, pink, "pink", true),
+        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), -pillar_width_1-.5, 1, blue, "blue", true),
+        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), -pillar_width_1-.5, 1, red, "red", true),
 
-        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  -pillar_width_1-.5, 3, white, true),
-        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), -pillar_width_1-.5, 3, blue, true),
-        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), -pillar_width_1-.5, 3, red, true),
-        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), -pillar_width_1-.5, 3, pink, true),
-        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), -pillar_width_1-.5, 3, green, true),
+        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  -pillar_width_1-.5, 3, white, "white", true),
+        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), -pillar_width_1-.5, 3, blue, "blue", true),
+        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), -pillar_width_1-.5, 3, red, "red", true),
+        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), -pillar_width_1-.5, 3, pink, "pink", true),
+        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), -pillar_width_1-.5, 3, green, "green", true),
     ]
 
     t = Translate(Pnt3(0,0,0))
-    for (i, (pmin, pmax, k, axis, brightness, flip)) in enumerate(pillar_area_light_spec)
+    for (i, (pmin, pmax, k, axis, brightness, mat_name, flip)) in enumerate(pillar_area_light_spec)
         tmp_rec = Rectangle(
             pmin, 
             pmax, 
@@ -278,10 +323,13 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         mat_tmp = Matte(
+            "mat_tmp_" * mat_name,
             ConstantTexture(brightness),
             ConstantTexture(0.0),
             nothing
         )
+        push!(materials, mat_tmp)
+        
         for tri in tmp_rec
             alight = DiffuseAreaLight(
                 brightness*MULT,
@@ -289,7 +337,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 false
             )
             push!(lights, alight)
-            push!(primitives, Primitive(tri, mat_tmp, alight))
+            push!(primitives, Primitive(tri, "mat_tmp_" * mat_name, alight))
         end
         if (i == 6) || (i == 7) || (i == 8) || (i == 9) || (i == 10)
             for tri in tmp_rec
@@ -299,7 +347,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                     false
                 )
                 push!(lights2, alight)
-                push!(primitives2, Primitive(tri, mat_tmp, alight))
+                push!(primitives2, Primitive(tri, "mat_tmp", alight))
             end
         end
     end
@@ -316,7 +364,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in lcwall
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
     rcwall_transform = Translate(Pnt3(hallway_corner_wall_right.x,0,hallway_corner_wall_right.y))*RotateY(45.0)
     rcwall = Rectangle(
@@ -329,7 +377,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in rcwall
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
 
 
@@ -345,7 +393,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in rhwall
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
     extra_hallway_walls_adj = sqrt((hallway_width/2+hallway_width_extra)^2/2)
     rh_extra_wall_transform = Translate(Pnt3(hallway_centroid.x+extra_hallway_walls_adj,0,hallway_centroid.y-extra_hallway_walls_adj)) * RotateY(-45.0)
@@ -359,7 +407,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in rh_extra_wall
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
     lhwall_transform = Translate(Pnt3(hallway_centroid.x-hallway_walls_adj,0,hallway_centroid.y+hallway_walls_adj)) * RotateY(-45.0)
     lhwall = Rectangle(
@@ -372,7 +420,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in lhwall
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
     cewall_transform = Translate(Pnt3(hallway_centroid.x,0,hallway_centroid.y)) * RotateY(-45.0)
     cewall = Rectangle(
@@ -385,7 +433,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in cewall
-        push!(primitives, Primitive(tri, mat_white, nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
     end
     flwall_transform = Translate(Pnt3(hallway_centroid.x,0,hallway_centroid.y)) * RotateY(-45.0)
     flwall = Rectangle(
@@ -398,7 +446,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in flwall
-        push!(primitives, Primitive(tri, mat_concrete, nothing))
+        push!(primitives, Primitive(tri, "mat_concrete", nothing))
     end
 
     # hallway floor area light
@@ -419,8 +467,14 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false
         )
         push!(lights, alight)
-        push!(primitives, Primitive(tri, mat_white, alight))
+        push!(primitives, Primitive(tri, "mat_white", alight))
     end
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(textures))
+    ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
     
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

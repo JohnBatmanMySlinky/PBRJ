@@ -14,25 +14,11 @@ julia -t 4 RayTracing.jl \
 --file-name "test.png"
 ```
 ## NanoVDB Bindings
-> These bindings are super hacky, to put it lightly. Don't judge me. It works (kinda).
 
-If you want to use [NanoVDB](https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb), you'll need to `cd src/nanovdb && sh INSTALL.sh`. Given you're on a mac, that'll probably work...
+If you want to use [NanoVDB](https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb), you'll need to `cd src/nanovdb && sh INSTALL.sh`. 
 
-# Scene Specification
-Scenes are specified within `src/scene_builder.jl`.
-
-Hierarchy of objects needed is as follows. 
-```
-Render
-├── Integrator
-│   ├── Camera
-│   └── Sampler
-│       └── Film
-└── Scene
-    ├── Vector{Light}
-    └── AccelerationStructure
-        └── Vector{Primitive} = Vector{Tuple{Shape, Material}}
-```
+## Scene Files
+For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 
 # Example Renders
 1. Office scene. Interior scene. many (relative) diffuse area lights. specular floor. 
@@ -90,14 +76,15 @@ Render
 # Features Implemented
 - Accelerators: BVH
 - Cameras: Perspective
-- Integrators: BDPT, ambient occlusion, path, simple volumetric path, and whitted
+- Integrators: BDPT, ambient occlusion, and simple volumetric path (v4)
 - Lights: Area, distant, image infinite, uniform infinite, point, and spot
     - Uniform, Power, and Spatial (Voxel) light distributions
-- Materials: Glass, matte, metal, mirror, plastic, and substrate materials
+- Materials: Glass, matte, metal, mirror, plastic, substrate, and fourier materials
 - Samplers: Stratified, z-sobol, and sobol
 - Shapes: Box, cylindar, disk, rectangle, sphere, and triangle
     - Very very very very basic L-system
     - Implicit surfaces: Goursat surface & metaballs
+    - SDFs: Sphere, Box, Torus, FrameBox, RoundedCone, and HexagonalPrism
 - Participating mediums: Homogenous, Grid, and NanoVDB
     - with DDA Majorant Iterator
 - RGB and spectral rendering
@@ -108,18 +95,29 @@ Render
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- elevator bump map and wood material
+- stochastic alpha test re pbrtv4 and move to primitive???
+- UVMapping2D() for all textures
+- need to go firefly hunting again......
+- Back to TriangleMesh but instead use Ref{}
+- for materials/bsdf
+    - use mvector with a union type
+    - ::MVector{MAX_BxDF, UnionType}
+    - need to define structs, then define bsdf, then define struct() for dependency hell
+- add a python jmfp to python utils in src/scripts
+- add do block to simple_vol_path.jl + a scene
+- add vol_path.jl
+- Improve scene build descriptive statistics and printing
 - SDFs
     - displacements!!! https://iquilezles.org/articles/distfunctions/
         - try again with quad!
 - regression test suite with simple RMSE report
 - Fourier to use immutable struct
 - Fourier BSDF convergence is hacked
-- SDF should be super doable. Same thing as implicit surface imo.
 - get rid of deep copys in parser
 - i see some Mat3([]) that need to re factored in bilinear patch
 - parse_obj's FIN::Vector{Any} is gong to kill performance
 - fix old scenes that now broke with parser_obj::FIN
-- decouple mesh from triangle and bilinear patch, that's got to be adding massive overhead..... 
 - Fix up old scenes
     - run them and squash bugs
 - Time to make my OBJ parser suck less
@@ -171,12 +169,12 @@ Render
         - Add glass material
             - make sure all paths of Glass's compute scattering function work
             - pass all pxl-th's tests
-        - Add metal material
-        - Add fourier material
+        - ~~Add metal material~~
+        - ~~Add fourier material~~
         - Add subsurface scattering
     - Implement light BVH for more efficient sampling
     - Implement Metroplois Light Transport Integrator
-    - Implement texture sampling and use those ray differentials
+    - ~~Implement texture sampling and use those ray differentials~~
     - ~~Uniform infinite light~~
     - ~~Move to EXR~~
         - ~~for env lights~~
@@ -192,16 +190,6 @@ Render
          - ~~Grid medium~~
          - ~~OpenVDB~~
     - ~~Add bi-linear patches~~
-- Scene work
-    - Re run old scenes
-    - Add lte-orb scene
-    - Improve office scene 
-        - Add more walls (left wall corner)
-        - Add in more scene geometry (baseboards? stairs? elevator?)
-        - Get reflections in back hallway looking nice and in general floor material
-        - Wall material
-        - use image texture!
-    - ~~Add matlab esque shape but with metaballs. Make a 2d grip of metaballs at evenly spaced intervals, preturb that grid and voila. i think.~~
 # Clean up 
     - ~~Use y(::Spectrum) and dont hack with mean~~
     - remove duplicate world_to_X and X_to_world

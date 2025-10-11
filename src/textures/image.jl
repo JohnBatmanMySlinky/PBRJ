@@ -12,11 +12,13 @@ struct ImageTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     mipmap::MIPMap{T}
     texinfo::TexInfo
     channel::Int  # Only used for Float64 type
+    name::Maybe{String}
 
     function ImageTexture(
         mapping::AbstractTextureMapping2D, 
         filename::String,
         convert_to_float::Bool,
+        name::Maybe{String}=nothing,
         channel::Int=0,  # Default to red channel, only used for Float64
         do_trilinear::Bool=false,
         max_anisotropy::Float64=8.0,
@@ -31,7 +33,8 @@ struct ImageTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
             mapping,
             mipmap,
             TexInfo(filename, do_trilinear, max_anisotropy, wrap_mode, scale, do_gamma),
-            channel
+            channel,
+            name
         )
     end
 end

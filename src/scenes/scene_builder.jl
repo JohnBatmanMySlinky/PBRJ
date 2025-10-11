@@ -1,13 +1,11 @@
 """
 scene 1: indoor office ✅
-    - use better materials (floor)
     - add geometry
 scene 2: caustic glass 🟨
     - https://www.pbrt.org/scenes-v3_images/f16-9c.jpg
     - black lines in glass are missing in mine
     - fov and dimensions are differnet
 scene 3: AOIntegrator + dragon ✅
-    - floor is uneven :/
 scene 4: cornell box ✅
     - need to mess with medium params to make it a bit less dense
 scene 5: soft bodies ✅
@@ -20,22 +18,45 @@ scene 6: goursat ✅
 scene 7: julia logo w/ tea pots ✅
     - more interesting floor. maybe water???
 scene 8: an anemic leafless procedural tree ✅
-scene 9: a boringly material'd orb 🟨
-scene 10: a cloud + SimpleVolPathIntegrator ✅
-scene 11: infinite light show off & material testing ✅
-scene 12: v4 smoke plume ✅
-scene 13: DISNEY CLOUD 🟨
-scene 14: Anemone 🟨
+    - add leaves
+scene 9: lte orb ✅
+    - get more interesting measured bsdf's
+scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅
+    - parser broken
+scene 11: dragon with fun materials ✅
+scene 12: v4 smoke plume (v4 GridMedium) ✅
+scene 13: DISNEY CLOUD (v4 NanoVDBMedium) ✅
+scene 14: Anemone (v4 GridMedium) 🟨
+    - emmissive medium is only supported by VolPath (v4) integrator. 
+    - Looks as good as it can with BDPT at the moment
 scene 15: procedural clouds 🟨
+    - something is fucky
 scene 16: elevator hallway 🟨
-scene 18: SDFs baby!
-    - hexaonal prism kinda fucked
+    - floor bump map isn't work as expected....
+    - wall material needs some work - how to get it more specular?
 scene 17: barcelona pavillion 🟨
     - add background trees
     - remove fourier material convergence hack
-scene 99: sphere-a-mid 🟨 (it works just not complete yet) (TODO: infinite uniform light, bilinear patch, and more interesting materials)
-scene 100: Furry Bunny from pbrt-v4 ✅ (just dont use HairBSDF)
+scene 18: SDFs baby! 🟨
+    - lighting kinda fucked
+scene 19: bunny cloud (v4 NanoVDB) ✅
+    - only works single threaded? ok cool
+    - hmmm gets all fucky when voxel grid is 3x3x3 - probably majorant iterator...
+scene 20: explosion + SimpleVolPathIntegrator (v4 NanoVDB) 🟨
+    - caffeinate -di julia -t 4 RayTracing.jl --scene-number 20 --image-dim 1000 1000 --samples-per-pixel 16
+    - hmmmmm maybe black body is off?
+scene 21: sanmiguel ✅
+    - julia -t 4 RayTracing.jl --scene-number 21 --image-dim 500 500 --crop-window 0.0 0.0 0.997245 0.745 --samples-per-pixel 16
+    - check my bullshit mipmap hack
+scene 99: sphere-a-mid 🟨
+    - add more interesting materails
+scene 100: Furry Bunny from pbrt-v4 🟨
+    - fix HairBxDF
 scene 101: SF3D CUP 🔴 (obj parser sucks)
+scene 102: party blob ✅
+    - see NB for animation 
+scene 103: check board test
+    - simple scene to test checker board pattern....
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -71,10 +92,16 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene15(parsed_args)
     elseif parsed_args["scene-number"] == 16
         return make_scene16(parsed_args)
-    elseif parsed_args["scene-number"] == 18
-        return make_scene18(parsed_args)
     elseif parsed_args["scene-number"] == 17
         return make_scene17(parsed_args)
+    elseif parsed_args["scene-number"] == 18
+        return make_scene18(parsed_args)
+    elseif parsed_args["scene-number"] == 19
+        return make_scene19(parsed_args)
+    elseif parsed_args["scene-number"] == 20
+        return make_scene20(parsed_args)
+    elseif parsed_args["scene-number"] == 21
+        return make_scene21(parsed_args)
     elseif parsed_args["scene-number"] == 99
         return make_scene99(parsed_args)
     elseif parsed_args["scene-number"] == 100
@@ -83,6 +110,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene101(parsed_args)
     elseif parsed_args["scene-number"] == 102
         return make_scene102(parsed_args)
+    elseif parsed_args["scene-number"] == 103
+        return make_scene103(parsed_args)
     else
         @assert false
     end

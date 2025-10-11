@@ -9,16 +9,28 @@ function read_image(texmap::String, LL::Union{Float64, RayTracing.Spectrum})::Tu
     else
         @assert false # NOT IMPLEMENTED
     end
-
+    
     # Convert from colors to Spectrum and adjust by LL
     L, W = size(dat)
     dat2 = zeros(Spectrum, L * W)
     i = 0
+    
     for l in 1:L
         for w in 1:W
             i += 1
-            dat2[i] = Spectrum(dat[l,w].r, dat[l,w].g, dat[l,w].b) * LL
+            pixel = dat[l, w]
+            
+            # Handle both grayscale and color pixels
+            if pixel isa Gray
+                # For grayscale, use the same value for all RGB channels
+                gray_val = Float64(pixel.val)
+                dat2[i] = Spectrum(gray_val, gray_val, gray_val) * LL
+            else
+                # For color pixels (RGB, RGBA, etc.)
+                dat2[i] = Spectrum(pixel.r, pixel.g, pixel.b) * LL
+            end
         end
     end
+    
     return dat2, L, W
 end

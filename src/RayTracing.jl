@@ -14,29 +14,32 @@ using OpenEXR
 using Roots
 using IterTools
 
-abstract type AbstractBxDF end
 abstract type AbstractBSDF end
+abstract type AbstractBxDF end
+abstract type AbstractIntegrator end
 abstract type AbstractLightDistribution end
+abstract type AbstractMajorantIterator end
+abstract type AbstractMedium end
+abstract type AbstractPhaseFunction end
 abstract type AbstractRay end
+abstract type AbstractSampler end
+abstract type AbstractTextureMapping2D end
 abstract type BVHAccel end
 abstract type Camera end
 abstract type Filter end
 abstract type Fresnel end
-abstract type AbstractIntegrator end
 abstract type Light end
 abstract type Material end
 abstract type Medium end
-abstract type AbstractSampler end
-abstract type Shape end
-abstract type ImplicitSurface <: Shape end
-abstract type SDFPrimitive <: ImplicitSurface end
-abstract type SDFOperation <: ImplicitSurface end
 abstract type MicrofacetDistribution end
 abstract type Randomizer end
-abstract type AbstractMedium end
-abstract type AbstractPhaseFunction end
-abstract type AbstractTextureMapping2D end
-abstract type AbstractMajorantIterator end
+abstract type Shape end
+
+abstract type ImplicitSurface <: Shape end
+
+abstract type SDFOperation <: ImplicitSurface end
+abstract type SDFPrimitive <: ImplicitSurface end
+
 
 # Defining some global constants
 const Radiance = Val{:Radiance}
@@ -85,9 +88,7 @@ abstract type AbstractTexture{T <: Union{Float64, Spectrum}} end
 
 
 include("mip_map.jl")
-# include("medium/media_parser.jl")
-include("medium2/media_parser.jl")
-# include("medium/media1.jl")
+include("parsers/parse_media.jl")
 include("medium2/common1.jl")
 include("medium2/common2.jl")
 include("medium2/sampled_grid.jl")
@@ -102,8 +103,6 @@ include("textures/texture_mappings.jl")
 include("image_utils.jl")
 include("transformations.jl")
 include("medium2/grid_medium.jl")
-# include("medium/media2.jl")
-# include("medium/media3.jl")
 include("medium2/nanovdb.jl")
 include("rand_utils.jl")
 include("shapes/shape.jl")
@@ -152,6 +151,9 @@ include("reflection/microfacet.jl")
 include("reflection/bxdf.jl")
 include("reflection/hair.jl")
 include("reflection/fourier.jl")
+include("materials/registry.jl")
+const MATERIAL_REGISTRY = Ref{MaterialRegistry}()
+
 include("materials/bsdf.jl")
 include("materials/matte.jl")
 include("materials/plastic.jl")
@@ -167,6 +169,9 @@ include("textures/image.jl")
 include("textures/procedural.jl")
 include("textures/mix.jl")
 include("textures/noise.jl")
+include("textures/registry.jl")
+const ALPHA_TEXTURE_REGISTRY = Ref{AlphaTextureRegistry}()
+
 include("lights/light.jl")
 include("lights/visibility.jl")
 include("lights/area.jl")
@@ -177,11 +182,9 @@ include("lights/distant.jl")
 include("lights/spot.jl")
 include("scene.jl")
 include("light_distributions.jl")
-include("integrators/whitted.jl")
-include("integrators/path.jl")
 include("integrators/ao.jl")
 include("integrators/simple.jl")
-include("integrators/simple_vol_path.jl")
+include("integrators/simple_vol_path_v4.jl")
 include("integrators/integrator.jl")
 include("integrators/bdpt_vertex.jl")
 include("cameras/projective_sampling.jl")
@@ -208,16 +211,18 @@ include("scenes/scene13.jl")
 include("scenes/scene14.jl")
 include("scenes/scene15.jl")
 include("scenes/scene16.jl")
-include("scenes/scene18.jl")
 include("scenes/scene17.jl")
+include("scenes/scene18.jl")
+include("scenes/scene19.jl")
+include("scenes/scene20.jl")
+include("scenes/scene21.jl")
 include("scenes/scene99.jl")
 include("scenes/scene100.jl")
 include("scenes/scene101.jl")
 include("scenes/scene102.jl")
+include("scenes/scene103.jl")
 include("scenes/scene_builder.jl")
 include("denoising/edge_avoiding_a_trous.jl")
-# include("medium/media_funcs.jl")
-# include("medium/phase_functions.jl")
 include("medium2/phase_functions.jl")
 include("scene_utils.jl")
 

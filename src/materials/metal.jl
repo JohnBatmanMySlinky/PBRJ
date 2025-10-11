@@ -1,7 +1,7 @@
 struct Metal{
     ETA <: AbstractTexture{Spectrum},
     K <: AbstractTexture{Spectrum},
-    R <: AbstractTexture{Float64},
+    R <: Maybe{AbstractTexture{Float64}},
     U <: Maybe{AbstractTexture{Float64}},
     V <: Maybe{AbstractTexture{Float64}},
     BM <: Maybe{AbstractTexture{Float64}}
@@ -13,8 +13,10 @@ struct Metal{
     v_roughness::V
     bump_map::BM
     remap_roughness::Bool
+    name::String
 
     function Metal(
+        name::String,
         eta::ETA=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperN, CopperSamples)),
         k::K=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperK, CopperSamples)),
         roughness::R=ConstantTexture(0.1),
@@ -25,7 +27,7 @@ struct Metal{
     )::Metal where {
         ETA <: AbstractTexture{Spectrum},
         K <: AbstractTexture{Spectrum},
-        R <: AbstractTexture{Float64},
+        R <: Maybe{AbstractTexture{Float64}},
         U <: Maybe{AbstractTexture{Float64}},
         V <: Maybe{AbstractTexture{Float64}},
         BM <: Maybe{AbstractTexture{Float64}}
@@ -35,7 +37,7 @@ struct Metal{
         else
             @assert !(u_roughness isa Nothing) & !(v_roughness isa Nothing)
         end        
-        return new{ETA, K, R, U, V, BM}(eta, k, roughness, u_roughness, v_roughness, bump_map, remap_roughness)
+        return new{ETA, K, R, U, V, BM}(eta, k, roughness, u_roughness, v_roughness, bump_map, remap_roughness, name)
     end
 end
 

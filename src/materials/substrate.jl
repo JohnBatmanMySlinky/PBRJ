@@ -11,8 +11,10 @@ struct Substrate{
     v_roughness::V
     bump_map::BM
     remap_roughness::Bool
+    name::String
 
     function Substrate(
+        name::String,
         Kd::KD=ConstantTexture(spectrum_from_float(0.5)),
         Ks::KS=ConstantTexture(spectrum_from_float(0.5)),
         u_roughness::U=ConstantTexture(0.1),
@@ -26,7 +28,7 @@ struct Substrate{
         V <: AbstractTexture{Float64},
         BM <: Maybe{AbstractTexture{Float64}}
     }        
-        return new{KD, KS, U, V, BM}(Kd, Ks, u_roughness, v_roughness, bump_map, remap_roughness)
+        return new{KD, KS, U, V, BM}(Kd, Ks, u_roughness, v_roughness, bump_map, remap_roughness, name)
     end
 end
 

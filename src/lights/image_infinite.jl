@@ -11,6 +11,12 @@ struct InfiniteLight <: Light
     do_octahedral::Bool
 
     function InfiniteLight(bounds::Bounds3, light_to_world::Transformation, LL::Spectrum, texmap::String, do_octahedral::Bool)
+        if occursin("pbrt-v4", texmap) && !do_octahedral
+            print("YOU SHOULD PROBABLY BE DOING OCTAHEDRAL=true")
+        elseif occursin("pbrt-v3", texmap) && do_octahedral
+            print("YOU SHOULD PROBABLY BE DOING OCTAHEDRAL=false")
+        end
+
         dat2, L, W = read_image(texmap, LL)
 
         Lmap = MIPMap(Pnt2i(W, L), dat2, false) # NOTE THE FLIP HERE

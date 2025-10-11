@@ -57,73 +57,76 @@ nanovdb::Vec3d at(nanovdb::Vec3d rayo, nanovdb::Vec3d rayd, float t){
     return rayo + (rayd * t);
 }
 
-float lerp(float t, float a, float b){
+// on linux i get a namespace violation and what ever function is actually called 
+// must have a different order of params; so not only do i need to define my own lerp
+// i gotta call it something stupid
+float lerp_why(float t, float a, float b){
     return a + t * (b - a);
-}
-
-nanovdb::Vec3d lerp(nanovdb::BBox<nanovdb::Vec3d> bbox, nanovdb::Vec3d t) {
-    return nanovdb::Vec3d(
-        lerp(t[0], bbox.min()[0], bbox.max()[0]),
-        lerp(t[1], bbox.min()[1], bbox.max()[1]),
-        lerp(t[2], bbox.min()[2], bbox.max()[2])
-    );
 }
 
 class NanoVDBWrapper {
     public:
         NanoVDBWrapper(const std::string& fpath) : fpath(fpath) {}
+        
+        void init(){
+            density_handle = nanovdb::io::readGrid(jmfp(fpath));
+            density_float_grid = density_handle.grid<float>();
+            if (!density_float_grid) {
+                throw std::runtime_error("Failed to load density grid");
+            }
+            
+            // Try to load temperature grid - it's optional
+            try {
+                temperature_handle = nanovdb::io::readGrid(jmfp(fpath), "temperature");
+                temperature_float_grid = temperature_handle.grid<float>();
+            } catch (const std::exception& e) {
+                // std::cout << "Temperature grid not available: " << e.what() << std::endl;
+                temperature_float_grid = nullptr;
+            }
+        }
+        
+        // Delete copy constructor and copy assignment
+        NanoVDBWrapper(const NanoVDBWrapper&) = delete;
+        NanoVDBWrapper& operator=(const NanoVDBWrapper&) = delete;
+        
+        // Default move constructor and move assignment (compiler-generated)
+        NanoVDBWrapper(NanoVDBWrapper&&) = default;
+        NanoVDBWrapper& operator=(NanoVDBWrapper&&) = default;
+        
         ~NanoVDBWrapper() {
             std::cout << "NanoVDBWrapper - Destructed\n";
         }
-        // std::tuple<double, double, double> get_worldToIndexF(double x, double y, double z
-        // ){
-        //     nanovdb::Vec3 xyz = nanovdb::Vec3(x, y, z);
-
-        //     auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
-        //     auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
-        //     nanovdb::Vec3 i0 = grid->worldToIndexF(xyz);
-        //     return {i0[0], i0[1], i0[2]};
-        // }
+        
         std::vector<double> build_majorant_grid(
             int resx, int resy, int resz
         ) {
-            // instantiate majorantGrid array
-            std::vector<double> majorantGrid(resx * resy * resz);
-
-            // instantiate grid from fpath as we haven't init'd from julia yet
-            auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
-            auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+            auto temphandle = nanovdb::io::readGrid(jmfp(fpath), "density"); // Temporary handle
+            auto* grid = temphandle.grid<float>();
             auto accessor = grid->getAccessor();
             const nanovdb::BBox<nanovdb::Vec3d> bounds = grid->worldBBox();
             auto bbox = grid->indexBBox();
+
+            // instantiate majorantGrid array
+            std::vector<double> majorantGrid(resx * resy * resz);
             
             for (int index=0; index < resx * resy * resz; ++index) {
                 int x = index % resx;
                 int y = (index / resx) % resy;
                 int z = index / (resx * resy);
-
-                // std::cout << "NOW IN C++ LAND " << index << " " << x << " " << y << " " << z << std::endl;
                 
                 // World (aka medium) space bounds of this max grid cell
                 nanovdb::BBox<nanovdb::Vec3d> wb = nanovdb::BBox<nanovdb::Vec3d>(
-                    lerp(
-                        bounds, 
-                        nanovdb::Vec3d(
-                            double(x) / double(resx),
-                            double(y) / double(resy),
-                            double(z) / double(resz)
-                        )
+                    nanovdb::Vec3d(
+                        lerp_why(double(x) / double(resx), bounds.min()[0], bounds.max()[0]),
+                        lerp_why(double(y) / double(resy), bounds.min()[1], bounds.max()[1]),
+                        lerp_why(double(z) / double(resz), bounds.min()[2], bounds.max()[2])
                     ),
-                    lerp(
-                        bounds, 
-                        nanovdb::Vec3d(
-                            double(x+1) / double(resx),
-                            double(y+1) / double(resy),
-                            double(z+1) / double(resz)
-                        )
+                    nanovdb::Vec3d(
+                        lerp_why(double(x + 1) / double(resx), bounds.min()[0], bounds.max()[0]),
+                        lerp_why(double(y + 1) / double(resy), bounds.min()[1], bounds.max()[1]),
+                        lerp_why(double(z + 1) / double(resz), bounds.min()[2], bounds.max()[2])
                     )
                 );
-                // std::cout << "\twb: [ [" << wb.min()[0] << ", " << wb.min()[1] << ", " << wb.min()[2] << "], - ["  << wb.max()[0] << ", " << wb.max()[1] << ", " << wb.max()[2] << "] ]" << std::endl;
                 
                 // Compute corresponding NanoVDB index-space bounds in floating-point.
                 nanovdb::Vec3d i0 = grid->worldToIndexF(
@@ -139,8 +142,6 @@ class NanoVDBWrapper {
                 int ny1 = std::min(int(i1[1] + delta), bbox.max()[1]);
                 int nz0 = std::max(int(i0[2] - delta), bbox.min()[2]);
                 int nz1 = std::min(int(i1[2] + delta), bbox.max()[2]);
-                // std::cout << "\tindices: " << nx0 << " " << nx1 << " " << ny0 << " " << ny1 << " " << nz0 << " " << nz1 << std::endl;
-
                 
                 float maxValue = 0;
                 for (int nz = nz0; nz <= nz1; ++nz)
@@ -148,70 +149,71 @@ class NanoVDBWrapper {
                         for (int nx = nx0; nx <= nx1; ++nx)
                             maxValue = std::max(maxValue, accessor.getValue({nx, ny, nz}));
 
-                // std::cout << "\t density = " << maxValue << std::endl;
-
                 majorantGrid[index] = maxValue;
             }
             return majorantGrid;
         }
-        // float get_max_voxel_value(
-        //     int nx0,
-        //     int nx1,
-        //     int ny0,
-        //     int ny1,
-        //     int nz0,
-        //     int nz1
-        // ) {
-        //     float maxValue = 0;
-
-        //     auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
-        //     auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
-        //     auto accessor = grid->getAccessor();
-
-        //     for (int nz = nz0; nz <= nz1; ++nz) {
-        //         for (int ny = ny0; ny <= ny1; ++ny) {
-        //             for (int nx = nx0; nx <= nx1; ++nx) {
-        //                 maxValue = std::max(maxValue, accessor.getValue({nx, ny, nz}));
-        //             }
-        //         }
-        //     }
-        //     return maxValue;
-        // }
+        
         std::tuple<float, float, float, float, float, float> get_WorldBBox() {
-            auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
-            auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
+            auto temphandle = nanovdb::io::readGrid(jmfp(fpath), "density"); // Temporary handle
+            auto* grid = temphandle.grid<float>();
             const nanovdb::BBox<nanovdb::Vec3d> box = grid->worldBBox();
             nanovdb::Vec3 mi = box.min();
             nanovdb::Vec3 ma = box.max();
-            return {mi[0], mi[1], mi[2], ma[0], ma[1], ma[2]};
+
+            try {
+                auto temphandle_temp = nanovdb::io::readGrid(jmfp(fpath), "temperature"); // Temporary handle
+                auto* grid_temp = temphandle_temp.grid<float>();
+                const nanovdb::BBox<nanovdb::Vec3d> box_temp = grid_temp->worldBBox();
+                nanovdb::Vec3 mi_temp = box_temp.min();
+                nanovdb::Vec3 ma_temp = box_temp.max();
+                return {
+                    std::min(mi[0], mi_temp[0]),
+                    std::min(mi[1], mi_temp[1]),
+                    std::min(mi[2], mi_temp[2]),
+                    std::max(ma[0], ma_temp[0]),
+                    std::max(ma[1], ma_temp[1]),
+                    std::max(ma[2], ma_temp[2]),
+                };
+            } catch (const std::exception& e) {
+                return {mi[0], mi[1], mi[2], ma[0], ma[1], ma[2]};
+            };
         }
-        // std::tuple<float, float> get_extrema() {
-        //     float minDensity, maxDensity;
-        //     auto handle = nanovdb::io::readGrid(fpath); // reads first grid from file
-        //     auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
-        //     grid->tree().extrema(minDensity, maxDensity);
-        //     return {minDensity, maxDensity};
-        // }
-        float get_sampled_point(double x, double y, double z
-        ) {
-            // auto handle = nanovdb::io::readGrid(jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")); // reads first grid from file
-            // auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
-            nanovdb::Vec3<float> pIndex = densityFloatGrid->worldToIndexF(nanovdb::Vec3<float>(x, y, z));
-            // std::cout << "SAMPLE POINT: pIndex " << pIndex[0] << ", " << pIndex[1] << ", " << pIndex[2] << std::endl;
+        
+        float get_sampled_point(double x, double y, double z) {
+            if (!density_float_grid) {
+                throw std::runtime_error("Grid not initialized - call init() first");
+            }
+            // Check for NaN/infinity
+            if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) {
+                throw std::runtime_error("Invalid coordinates");
+            }
+            nanovdb::Vec3<float> pIndex = density_float_grid->worldToIndexF(nanovdb::Vec3<float>(x, y, z));
             using Sampler = nanovdb::SampleFromVoxels<nanovdb::FloatGrid::TreeType, 1, false>;
-            float d = Sampler(densityFloatGrid->tree())(pIndex);
+            float d = Sampler(density_float_grid->tree())(pIndex);
             return d;
         }
-        void init(){
-            // auto handle = nanovdb::io::readGrid("/home/jmyslinski/random_stuff/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb"); // reads first grid from file
-            auto handle = nanovdb::io::readGrid(jmfp("/Users/johnmyslinski/Documents/pbrt-v4-scenes/disney-cloud/wdas_cloud_quarter.nvdb")); // reads first grid from file                
-            auto* grid = handle.grid<float>(); // get a (raw) pointer to a NanoVDB grid of value type float
-            densityFloatGrid = grid;
+        
+        float get_sampled_temperature(double x, double y, double z) {
+            if (!temperature_float_grid) {
+                return 0.0;
+            }
+            // Check for NaN/infinity
+            if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z)) {
+                throw std::runtime_error("Invalid coordinates");
+            }
+            nanovdb::Vec3<float> pIndex = temperature_float_grid->worldToIndexF(nanovdb::Vec3<float>(x, y, z));
+            using Sampler = nanovdb::SampleFromVoxels<nanovdb::FloatGrid::TreeType, 1, false>;
+            float temp = Sampler(temperature_float_grid->tree())(pIndex);
+            return temp;
         }
-    
+        
     private:
-        const std::string& fpath;
-        nanovdb::FloatGrid* densityFloatGrid = nullptr;
+        std::string fpath; // Copy, not reference
+        nanovdb::GridHandle<> density_handle; // Store the density handle
+        nanovdb::GridHandle<> temperature_handle; // Store the temperature handle
+        nanovdb::FloatGrid* density_float_grid = nullptr;
+        nanovdb::FloatGrid* temperature_float_grid = nullptr;
 };
 
 
@@ -221,11 +223,6 @@ NanoVDBWrapper make_NanoVDBWrapper(const std::string& fpath) {
 
 JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 {
-    // mod.method("grid_to_unit", &grid_to_unit);
-
-    // mod.add_type<nanovdb::BBox<nanovdb::Vec3d>>("BBox");
-
-
     mod.add_type<nanovdb::Coord>("Coord")
         .constructor<int32_t>()
         .constructor<int32_t, int32_t, int32_t>()
@@ -235,15 +232,10 @@ JLCXX_MODULE define_julia_module(jlcxx::Module& mod)
 
     mod.add_type<NanoVDBWrapper>("NanoVDBWrapper")
         .method("get_WorldBBox", &NanoVDBWrapper::get_WorldBBox)
-        // .method("get_extrema", &NanoVDBWrapper::get_extrema)
-        // .method("get_worldToIndexF", &NanoVDBWrapper::get_worldToIndexF)
-        // .method("get_indexBBox", &NanoVDBWrapper::get_indexBBox)
-        // .method("get_max_voxel_value", &NanoVDBWrapper::get_max_voxel_value)
         .method("get_sampled_point", &NanoVDBWrapper::get_sampled_point)
         .method("build_majorant_grid", &NanoVDBWrapper::build_majorant_grid)
-        // .method("sample_NanoVDBWrapper", &NanoVDBWrapper::sample_NanoVDBWrapper)
-        // .method("transmittance_NanoVDBWrapper", &NanoVDBWrapper::transmittance_NanoVDBWrapper)
-        .method("init", &NanoVDBWrapper::init);
+        .method("init", &NanoVDBWrapper::init)
+        .method("get_sampled_temperature", &NanoVDBWrapper::get_sampled_temperature);
 
     mod.method("make_NanoVDBWrapper", &make_NanoVDBWrapper);
 }

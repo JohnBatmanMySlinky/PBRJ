@@ -37,19 +37,19 @@ function render(
     jj = Threads.Atomic{Int}(0)
     l = Threads.SpinLock()
 
-    print("Utilizing $(Threads.nthreads()) threads\n\n")
+    println("\nUtilizing $(Threads.nthreads()) threads\n\n")
     # the multi-threaded loop
     Threads.@threads for k in 0:(total_tiles-1)
         # this is a bullshit ass hack
         for wtf in 1:length(scene.b.primitives)
             if !(scene.b.primitives[wtf].mi.inside isa Nothing)
                 if scene.b.primitives[wtf].mi.inside isa NanoVDBMedium
-                    NanoVDB.init(scene.b.primitives[wtf].mi.inside.density_float_grid)
+                    NanoVDB.init(scene.b.primitives[wtf].mi.inside.nanovdb_grid)
                 end
             end
             if !(scene.b.primitives[wtf].mi.outside isa Nothing)
                 if scene.b.primitives[wtf].mi.outside isa NanoVDBMedium
-                    NanoVDB.init(scene.b.primitives[wtf].mi.outside.density_float_grid)
+                    NanoVDB.init(scene.b.primitives[wtf].mi.outside.nanovdb_grid)
                 end
             end
         end
@@ -589,30 +589,54 @@ function MIS_weight(
     ptMinus, $pt_minus
     """
 
-    # LOG INITIAL STATE
-    logg = Dict{Tuple{Int64,Int64}, VertexLog}()
-    # logging qs and qs_minus
-    (qs>0) && (logg[(qs,1)] = VertexLog(
+    # # LOG INITIAL STATE
+    # logg = Dict{Tuple{Int64,Int64}, VertexLog}()
+    # # logging qs and qs_minus
+    # (qs>0) && (logg[(qs,1)] = VertexLog(
+    #     light_vertices[qs].delta, 
+    #     light_vertices[qs].pdf_fwd, 
+    #     light_vertices[qs].pdf_rev
+    # ))
+    # (qs_minus>0) && (logg[(qs_minus,1)] = VertexLog(
+    #     light_vertices[qs_minus].delta, 
+    #     light_vertices[qs_minus].pdf_fwd, 
+    #     light_vertices[qs_minus].pdf_rev
+    # ))
+    # # logging pt and pt_minus
+    # (pt>0) && (logg[(pt,2)] = VertexLog(
+    #     camera_vertices[pt].delta, 
+    #     camera_vertices[pt].pdf_fwd, 
+    #     camera_vertices[pt].pdf_rev
+    # ))
+    # (pt_minus>0) && (logg[(pt_minus,2)] = VertexLog(
+    #     camera_vertices[pt_minus].delta, 
+    #     camera_vertices[pt_minus].pdf_fwd, 
+    #     camera_vertices[pt_minus].pdf_rev
+    # ))
+
+    logg = MVector{4, VertexLog}(undef)
+
+    (qs>0) && (logg[1] = VertexLog(
         light_vertices[qs].delta, 
         light_vertices[qs].pdf_fwd, 
         light_vertices[qs].pdf_rev
     ))
-    (qs_minus>0) && (logg[(qs_minus,1)] = VertexLog(
+    (qs_minus>0) && (logg[2] = VertexLog(
         light_vertices[qs_minus].delta, 
         light_vertices[qs_minus].pdf_fwd, 
         light_vertices[qs_minus].pdf_rev
     ))
-    # logging pt and pt_minus
-    (pt>0) && (logg[(pt,2)] = VertexLog(
+    (pt>0) && (logg[3] = VertexLog(
         camera_vertices[pt].delta, 
         camera_vertices[pt].pdf_fwd, 
         camera_vertices[pt].pdf_rev
     ))
-    (pt_minus>0) && (logg[(pt_minus,2)] = VertexLog(
+    (pt_minus>0) && (logg[4] = VertexLog(
         camera_vertices[pt_minus].delta, 
         camera_vertices[pt_minus].pdf_fwd, 
         camera_vertices[pt_minus].pdf_rev
     ))
+
 
     # Update sampled vertex for $s=1$ or $t=1$ strategy
     # a1
@@ -730,20 +754,20 @@ function MIS_weight(
     end
 
     # UNROLL a2 & a3
-    (pt > 0) && (camera_vertices[pt].delta = logg[(pt,2)].delta)
-    (qs > 0) && (light_vertices[qs].delta = logg[(qs,1)].delta)
+    (pt > 0) && (camera_vertices[pt].delta = logg[3].delta)
+    (qs > 0) && (light_vertices[qs].delta = logg[1].delta)
 
     # UNROLL a4 & a5
     if pt > 0 
-        camera_vertices[pt].pdf_rev = logg[(pt,2)].pdf_rev
+        camera_vertices[pt].pdf_rev = logg[3].pdf_rev
     end
     if pt_minus > 0
-        camera_vertices[pt_minus].pdf_rev = logg[(pt_minus,2)].pdf_rev
+        camera_vertices[pt_minus].pdf_rev = logg[2].pdf_rev
     end
 
     # UNROLL a6 & a7
-    (qs > 0) && (light_vertices[qs].pdf_rev = logg[(qs,1)].pdf_rev)
-    (qs_minus > 0) && (light_vertices[qs_minus].pdf_rev = logg[(qs_minus,1)].pdf_rev)
+    (qs > 0) && (light_vertices[qs].pdf_rev = logg[1].pdf_rev)
+    (qs_minus > 0) && (light_vertices[qs_minus].pdf_rev = logg[4].pdf_rev)
 
     return 1.0/(1.0+sum_ri)
 end

@@ -1,11 +1,11 @@
 struct Primitive
     shape::Shape
-    material::Maybe{Material}
+    material::Maybe{String}
     area_light::Maybe{Light}
     mi::MediumInterface
 end
 
-function Primitive(s::Shape, m::Maybe{Material}, al::Maybe{Light})
+function Primitive(s::Shape, m::Maybe{String}, al::Maybe{Light})
     return Primitive(s, m, al, MediumInterface(nothing))
 end
 

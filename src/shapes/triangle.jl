@@ -3,7 +3,7 @@ struct Triangle <: Shape
     vertices::SVector{3, Pnt3}
     normals::Maybe{SVector{3, Nml3}}
     uvs::Maybe{SVector{3, Pnt2}}
-    alpha_mask::Maybe{AbstractTexture{Float64}}
+    alpha_mask::Maybe{String}
     shading_tangent::Nothing
 
     function Triangle(
@@ -11,10 +11,12 @@ struct Triangle <: Shape
         vertices::SVector{3, Pnt3},
         normals::Maybe{SVector{3, Nml3}},
         uvs::Maybe{SVector{3, Pnt2}},
-        alpha_mask::Maybe{AbstractTexture{Float64}}
+        alpha_mask::Maybe{String}
     )
         vertices = shape_core.object_to_world.(vertices)
-        normals = shape_core.object_to_world.(normals)
+        if !(normals isa Nothing)
+            normals = shape_core.object_to_world.(normals)
+        end
         return new(shape_core, vertices, normals, uvs, alpha_mask, nothing)
     end
 end
@@ -36,7 +38,7 @@ function construct_triangle_mesh(
     uvs::Maybe{Vector{Pnt2}},
     uv_indices::Maybe{Vector{Int64}},
     
-    alpha_mask::Maybe{AbstractTexture{Float64}}
+    alpha_mask::Maybe{String}
 )
     tris = Vector{Triangle}(undef, n_triangles)
     for i in 0:(n_triangles - 1)
@@ -73,21 +75,35 @@ end
 # "The Triangle shape is one of the shapes that can compute a better world space bound than can be found by transforming its 
 # object space bounding box to world space. Its world space bound can be directly computed from the world space vertices."
 function ObjectBounds(tri::Triangle)::Bounds3
-    # TODO
-    # triangles have their vertices already in world space so go backwards because
-    # results of this function are transformed back
-    # ugh
+    # Transform vertices to object space
     p0 = tri.core.world_to_object(tri.vertices[1])
     p1 = tri.core.world_to_object(tri.vertices[2])
     p2 = tri.core.world_to_object(tri.vertices[3])
-    # TODO why must I do this
-    buffer = Float64[0, 0, 0]
-    for i in 1:3
-        if p0[i] == p1[i] == p2[i]
-            buffer[i] = .0001
-        end
+    
+    # Compute bounds directly without intermediate allocations
+    min_x = min(p0[1], p1[1], p2[1])
+    max_x = max(p0[1], p1[1], p2[1])
+    min_y = min(p0[2], p1[2], p2[2])
+    max_y = max(p0[2], p1[2], p2[2])
+    min_z = min(p0[3], p1[3], p2[3])
+    max_z = max(p0[3], p1[3], p2[3])
+    
+    # Add buffer only where needed, avoiding allocation
+    EPSILON = 0.0001
+    if min_x == max_x
+        min_x -= EPSILON
+        max_x += EPSILON
     end
-    return world_bounds(world_bounds(Bounds3(p0-buffer, p0+buffer), Bounds3(p1-buffer, p1+buffer)), Bounds3(p2-buffer, p2+buffer))
+    if min_y == max_y
+        min_y -= EPSILON
+        max_y += EPSILON
+    end
+    if min_z == max_z
+        min_z -= EPSILON
+        max_z += EPSILON
+    end
+    
+    return Bounds3((min_x, min_y, min_z), (max_x, max_y, max_z))
 end
 
 ##################################################
@@ -200,19 +216,21 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     # Test intersection against alpha texture, if present
     if !(tri.alpha_mask isa Nothing)
         si = InstantiateSurfaceInteraction(
-                phit,
-                0.0,
-                Vec3(1,1,1),
-                uvhit,
-                Vec3(1,1,1),
-                Vec3(1,1,1),
-                Nml3(1,1,1),
-                Nml3(1,1,1),
-                tri,
-                nothing,
-                nothing
-            )
-        if tri.alpha_mask(si) == spectrum_from_float(1.0, 1.0, 1.0)
+            phit,
+            0.0,
+            Vec3(1,1,1),
+            uvhit,
+            Vec3(1,1,1),
+            Vec3(1,1,1),
+            Nml3(1,1,1),
+            Nml3(1,1,1),
+            tri,
+            nothing,
+            nothing
+        )
+        alpha_mask = get_texture(tri.alpha_mask)
+        
+        if alpha_mask(si) == spectrum_from_float(0.0, 0.0, 0.0)
             return false, 0.0, si
         end
     end

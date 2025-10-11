@@ -1,18 +1,27 @@
 function make_scene101(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     # materials
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(0.6, 0.6, 0.6)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    push!(materials, mat_gray)
+
     mat_blue = Matte(
+        "mat_blue",
         ConstantTexture(spectrum_from_float(0.2, 1.0, 0.2)),
         ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
         nothing
     )
+    push!(materials, mat_blue)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     ###############
     ### a thing ###
@@ -28,7 +37,7 @@ function make_scene101(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     for tri in cup
-        push!(primitives, Primitive(tri, mat_blue, nothing))
+        push!(primitives, Primitive(tri, "mat_blue", nothing))
     end
 
     floor_transform = Translate(Pnt3(0,0,0))

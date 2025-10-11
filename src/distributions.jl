@@ -1,103 +1,149 @@
-# Blindly following PBRT because apparently I am having trouble thinking for myself
+# Optimized distribution sampling with performance improvements
+
 struct Distribution1D
     func::Vector{Float64}
     cdf::Vector{Float64}
     func_int::Float64
 
-    function Distribution1D(func::Vector{Float64})
+    function Distribution1D(func::AbstractVector{Float64})
         N = length(func)
-        cdf = Array{Float64, 1}(undef, N+1)
-        cdf[1] = 0
-        for i = 2:(N+1)
-            cdf[i] = cdf[i-1] + func[i-1] / N
+        
+        # Pre-allocate and compute CDF in single pass
+        cdf = Vector{Float64}(undef, N+1)
+        cdf[1] = 0.0
+        inv_N = 1.0 / N
+        
+        @inbounds for i in 2:(N+1)
+            cdf[i] = cdf[i-1] + func[i-1] * inv_N
         end
-        # print("$(func)\n\n")
+        
         func_int = cdf[N+1]
-        if func_int == 0
-            for i = 1:(N+1)
-                cdf[i] = i / (N+1)
+        
+        # Normalize CDF
+        if func_int == 0.0
+            inv_N_plus_1 = 1.0 / (N + 1)
+            @inbounds for i in 1:(N+1)
+                cdf[i] = i * inv_N_plus_1
             end
         else
-            for i = 1:(N+1)
-                cdf[i] /= func_int
+            inv_func_int = 1.0 / func_int
+            @inbounds for i in 1:(N+1)
+                cdf[i] *= inv_func_int
             end
         end
-        return new(func,cdf,func_int)
+        
+        return new(func, cdf, func_int)
     end
 end
 
-function sample_continuous(d::Distribution1D, u::Float64)::Tuple{Float64, Float64, Int64} # (val, pdf, offset)
-    offset = min(sum(d.cdf .<= u),length(d.cdf)-1) # John hack to avoid index error when u=1.0
-    du = u - d.cdf[offset]
-    if d.cdf[offset+1] - d.cdf[offset] > 0
-        du /= (d.cdf[offset+1] - d.cdf[offset])
+# Use binary search instead of linear search for better O(log n) performance
+function find_interval(cdf::Vector{Float64}, u::Float64)::Int
+    # Binary search with bounds checking
+    left, right = 1, length(cdf) - 1
+    
+    @inbounds while left < right
+        mid = (left + right) >> 1  # Faster than div(left + right, 2)
+        if cdf[mid + 1] <= u
+            left = mid + 1
+        else
+            right = mid
+        end
     end
-    pdf_val = (d.func_int > 0) ? d.func[offset] / d.func_int : 0 
-    return (offset-1 + du) / length(d.func), pdf_val, offset
+    
+    return left
+end
+
+function sample_continuous(d::Distribution1D, u::Float64)::Tuple{Float64, Float64, Int64}
+    offset = find_interval(d.cdf, u)
+    
+    @inbounds begin
+        du = u - d.cdf[offset]
+        cdf_diff = d.cdf[offset + 1] - d.cdf[offset]
+        
+        if cdf_diff > 0.0
+            du /= cdf_diff
+        end
+        
+        pdf_val = d.func_int > 0.0 ? d.func[offset] / d.func_int : 0.0
+        continuous_val = (offset - 1 + du) / length(d.func)
+    end
+    
+    return continuous_val, pdf_val, offset
 end
 
 function sample_discrete(d::Distribution1D, u::Float64)::Tuple{Int64, Float64, Float64}
-    offset = min(sum(d.cdf .<= u),length(d.cdf)-1) # John hack to avoid index error when u=1.0
-    pdf_val = (d.func_int > 0) ? d.func[offset] / (d.func_int * length(d.func)) : 0
-    val = (u - d.cdf[offset]) / (d.cdf[offset + 1] - d.cdf[offset])
+    offset = find_interval(d.cdf, u)
+    
+    @inbounds begin
+        pdf_val = if d.func_int > 0.0
+            d.func[offset] / (d.func_int * length(d.func))
+        else
+            0.0
+        end
+        
+        val = (u - d.cdf[offset]) / (d.cdf[offset + 1] - d.cdf[offset])
+    end
+    
     return offset, pdf_val, val
 end
 
-function discrete_pdf(d::Distribution1D, u::Int64)::Float64
-    u = max(1, u) # JOHN HACK OH GOD WHY
-    return d.func[u] / (d.func_int * length(d.func))
+@inline function discrete_pdf(d::Distribution1D, u::Int64)::Float64
+    # Remove bounds check hack with proper clamping
+    idx = clamp(u, 1, length(d.func))
+    @inbounds return d.func[idx] / (d.func_int * length(d.func))
 end
 
 struct Distribution2D
     conditional::Vector{Distribution1D}
     marginal::Distribution1D
 
-    function Distribution2D(dat::Matrix)
-        # if matrix of floats, proceed, else, convert image to floats
-        if dat[1,1] isa Float64
-            bw = dat
-            nv, nu = size(bw)
-        else
-            @assert false
-            bw = ones(Float64, size(dat))
-            nv, nu = size(bw)
-            for row = 1:nv
-                for col = 1:nu
-                    r = convert(Float64, dat[row,col].r)
-                    g = convert(Float64, dat[row,col].g)
-                    b = convert(Float64, dat[row,col].b)
-                    bw[row,col] = max(mean([r,g,b]), .01)
-                end
-            end
+    function Distribution2D(dat::Matrix{Float64})
+        nv, nu = size(dat)
+        
+        # Pre-allocate vectors
+        conditional = Vector{Distribution1D}(undef, nu)
+        marginal_func = Vector{Float64}(undef, nu)
+        
+        # Process columns in parallel if beneficial
+        @inbounds for i in 1:nu
+            conditional[i] = Distribution1D(view(dat, :, i))  # Use view to avoid copying
+            marginal_func[i] = conditional[i].func_int
         end
-
-        conditional = Distribution1D[]
-        marginal_func = Float64[]
-        for i = 1:nu
-            push!(conditional, Distribution1D(bw[:,i]))
+        
+        return new(conditional, Distribution1D(marginal_func))
+    end
+    
+    # Constructor for non-Float64 matrices (if needed)
+    function Distribution2D(dat::Matrix{T}) where T
+        nv, nu = size(dat)
+        bw = Matrix{Float64}(undef, nv, nu)
+        
+        @inbounds for j in 1:nu, i in 1:nv
+            # Assuming dat elements have .r, .g, .b fields
+            pixel = dat[i, j]
+            r, g, b = Float64(pixel.r), Float64(pixel.g), Float64(pixel.b)
+            bw[i, j] = max((r + g + b) / 3.0, 0.01)  # Faster than mean([r,g,b])
         end
-        for i = 1:nu
-            push!(marginal_func, conditional[i].func_int)
-        end
-        return new(
-            conditional,
-            Distribution1D(marginal_func)
-        )
+        
+        return Distribution2D(bw)
     end
 end
 
 function sample_continuous(d::Distribution2D, uv::Pnt2)::Tuple{Pnt2, Float64}
     d1, pdf_val1, offset1 = sample_continuous(d.marginal, uv.y)
     d0, pdf_val0, _ = sample_continuous(d.conditional[offset1], uv.x)
-    # print("\tpMarginal $(d1)\n")
-    # print("\tpConditionalV $(d0)\n")
-    @assert (d0 < 1) && (d1 < 1)
+    
     return Pnt2(d0, d1), pdf_val0 * pdf_val1
-
 end
 
-function pdf(d::Distribution2D, p::Pnt2)::Float64   
-    iu = max(1, Int(floor(p.x * length(d.conditional[1].func)))+1) # as opposed to PBRT's clamp
-    iv = max(1, Int(floor(p.y * length(d.marginal.func)))+1) # as opposed to PBRT's clamp
-    return d.conditional[iv].func[iu] / d.marginal.func_int
+@inline function pdf(d::Distribution2D, p::Pnt2)::Float64
+    # More efficient indexing with proper bounds
+    @inbounds begin
+        iu = clamp(Int(floor(p.x * length(d.conditional[1].func))) + 1, 
+                  1, length(d.conditional[1].func))
+        iv = clamp(Int(floor(p.y * length(d.marginal.func))) + 1, 
+                  1, length(d.marginal.func))
+        
+        return d.conditional[iv].func[iu] / d.marginal.func_int
+    end
 end

@@ -1,28 +1,43 @@
 function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     # MATERIALS
     mat_gray = Matte(
+        "mat_gray",
         ConstantTexture(spectrum_from_float(.4, .4, .4)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_gray)
+
     mat_blue = Matte(
+        "mat_blue",
         ConstantTexture(spectrum_from_float(0.05, 0.05, .9)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_blue)
+
     mat_red = Matte(
+        "mat_red",
         ConstantTexture(spectrum_from_float(0.9, 0.05, 0.1)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_red)
+
     mat_green = Matte(
+        "mat_green",
         ConstantTexture(spectrum_from_float(0.1, 0.92, 0.15)),
         ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_green)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate objects
     identity_shape_core = ShapeCore()
@@ -95,7 +110,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false
         )
     )
-    push!(primitives, Primitive(union_shape, mat_red, nothing))
+    push!(primitives, Primitive(union_shape, "mat_red", nothing))
 
     #############
     ## PART 2 ###
@@ -111,7 +126,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ShapeCore()
     )
     union_shape = SDFUnion(0.5, torus, frame_box, ShapeCore())
-    push!(primitives, Primitive(union_shape, mat_blue, nothing))
+    push!(primitives, Primitive(union_shape, "mat_blue", nothing))
 
     #############
     ## PART 3 ###
@@ -130,7 +145,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     u_t = Translate(Pnt3(0, 0, 6))
     union_shape = SDFUnion(0.5, rounded_cone, hexagonal_prism, ShapeCore(u_t, Inv(u_t), false, false))
-    push!(primitives, Primitive(union_shape, mat_green, nothing))
+    push!(primitives, Primitive(union_shape, "mat_green", nothing))
 
     #############
     ## PART 3 ###
@@ -144,7 +159,7 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         Vec3(-s, -3, s),
         ShapeCore(),
     )
-    push!(primitives, Primitive(quad, mat_gray, nothing))
+    push!(primitives, Primitive(quad, "mat_gray", nothing))
 
     #########################
     #########################

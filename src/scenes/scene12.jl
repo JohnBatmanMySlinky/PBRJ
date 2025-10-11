@@ -1,17 +1,26 @@
 function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
+    materials = Material[]
 
     mat_sphere = Metal(
+        "mat_sphere",
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.eta.spd"))),
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.k.spd"))),
-        ConstantTexture(spectrum_from_float(0.0)),
+        ConstantTexture(0.0),
     )
+    push!(materials, mat_sphere)
+
     mat_floor = Matte(
+        "mat_floor",
         ConstantTexture(spectrum_from_float(0.025, 0.025, 0.025)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
+    push!(materials, mat_floor)
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     sphere_transform = Translate(Pnt3(1, 1, -1)) * Rotate(180.0, Vec3(0, 1, 0)) * Translate(Pnt3(-0.75, 0, -0.75)) * Scale(2.0, 2.0, 2.0) * Translate(Pnt3(0.375, 0.0, 0.375))
     sphere = Sphere(
@@ -23,7 +32,7 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ),
         0.1
     )
-    push!(primitives, Primitive(sphere, mat_sphere, nothing))
+    push!(primitives, Primitive(sphere, "mat_sphere", nothing))
 
     smoke_t = Translate(Pnt3(1, 0, -1)) * Rotate(180.0, Vec3(0,1,0)) * Translate(Pnt3(-0.75, 0.0, -0.75)) * Scale(2.0, 2.0, 2.0)
     sphere2 = Sphere(
@@ -42,10 +51,10 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             spectrum_from_float(20.0),
             spectrum_from_float(160.0),
             1.0,
-            Pnt3(0.00, 0.00, 0.00),
-            Pnt3(0.75, 1.00, 0.75),
+            spectrum_from_float(0.0),
+            1.0,
             0.0,
-            Pnt3(256, 256, 256)
+            Pnt3i(256, 256, 256)
         ),
         nothing
     )
@@ -55,15 +64,16 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     floor = BilinearPatchGenerator(
         ShapeCore(floor_t, Inv(floor_t), false, false),
         1,
-        4,
-        Int64[0, 1, 2, 3],
         Pnt3[Pnt3(-50, 0, -50), Pnt3(-50, 0, 50), Pnt3(50, 0, -50), Pnt3(50, 0, 50)],
+        Int64[1, 2, 3, 4],
+        nothing,
+        nothing,
         nothing,
         nothing,
         nothing
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_floor, nothing))
+        push!(primitives, Primitive(tri, "mat_floor", nothing))
     end
 
     # instantiate accelerator
@@ -87,7 +97,7 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,

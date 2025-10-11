@@ -95,7 +95,7 @@ struct BVH <: BVHAccel
         )
 
         # traverse tree
-        offset = Ref{UInt32}(1)
+        offset = Ref{UInt64}(1)
         flattened = Vector{LinearBVH}(undef, total_nodes[])
         _traverse(flattened, root, offset)
         @assert total_nodes[] + 1 == offset[]
@@ -148,7 +148,7 @@ function _build_tree(
         buckets = BucketInfo[BucketInfo(0,Bounds3(Pnt3(0,0,0))) for _ in 1:n_buckets]
 
         for i in from:to
-            b = Int32(floor(n_buckets * offset(centroid_bounds, primitives_info[i].centroid)[dim])) + 1
+            b = Int64(floor(n_buckets * offset(centroid_bounds, primitives_info[i].centroid)[dim])) + 1
             (b == n_buckets + 1) && (b -= 1)
             buckets[b].count += 1
             buckets[b].bounds = world_bounds(buckets[b].bounds,primitives_info[i].bounds)
@@ -168,7 +168,7 @@ function _build_tree(
                     mapreduce(b -> buckets[b].bounds, world_bounds, it2),
                 )
             end
-            costs[i] = 1f0 + (s1 + s2) / surface_area(bounds)
+            costs[i] = 1.0 + (s1 + s2) / surface_area(bounds)
         end
         # Find bucket to split that minimizes SAH metric.
         min_cost_id = costs |> argmin
@@ -179,7 +179,7 @@ function _build_tree(
             || costs[min_cost_id] < leaf_cost
         ) && return _create_leaf()
         mid = partition!(primitives_info, from:to, i -> begin
-            b = Int32(floor(
+            b = Int64(floor(
                 n_buckets * offset(centroid_bounds, i.centroid)[dim]
             )) + 1
             (b == n_buckets + 1) && (b -= 1)
@@ -198,7 +198,7 @@ function _build_tree(
 end
 
 function _traverse(
-    linear_nodes::Vector{LinearBVH}, node::BVHNode, offset::Ref{UInt32},
+    linear_nodes::Vector{LinearBVH}, node::BVHNode, offset::Ref{UInt64},
 )
     l_offset = offset[]
     offset[] += 1
@@ -245,7 +245,7 @@ function intersect!(bvh::BVH, ray::AbstractRay, shadow_ray::Bool=false)
     dir_is_neg = ray.direction |> is_dir_negative
 
     to_visit_offset, current_node_i = 1, 1
-    nodes_to_visit = zeros(Int32, 64)
+    nodes_to_visit = zeros(Int64, 128) # JOHN HACK WHY 64 NOT WORKING???
 
     while true
         ln = bvh.nodes[current_node_i]
@@ -288,11 +288,11 @@ function intersect_p(bvh::BVH, ray::AbstractRay)
     length(bvh.nodes) == 0 && return false
 
     ray |> check_direction!
-    inv_dir = 1f0 ./ ray.direction
+    inv_dir = 1.0 ./ ray.direction
     dir_is_neg = ray.direction |> is_dir_negative
 
     to_visit_offset, current_node_i = 1, 1
-    nodes_to_visit = zeros(Int32, 64)
+    nodes_to_visit = zeros(Int64, 128) # JOHN HACK WHY 64 NOT WORKING???
 
     while true
         ln = bvh.nodes[current_node_i]

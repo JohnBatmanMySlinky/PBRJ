@@ -5,7 +5,7 @@ struct BilinearPatch <: Shape
     uv::Maybe{SVector{4, Vec2}}
     area::Float64
     min_spherical_sample_area::Float64
-    alpha_mask::Maybe{Texture{Float64}}
+    alpha_mask::Maybe{String}
 
     function BilinearPatch(
         core::ShapeCore,
@@ -14,13 +14,14 @@ struct BilinearPatch <: Shape
         uv::Maybe{SVector{4, Vec2}},
         area::Float64,
         min_spherical_sample_area::Float64,
-        alpha_mask::Maybe{Texture{Float64}}
+        alpha_mask::Maybe{String}
     )
     p = core.object_to_world.(p)
     if !(n isa Nothing)
         n = core.object_to_world.(n)
     end
-    return new(core, p, n, uv, area, min_spherical_sample, alpha_mask)
+        return new(core, p, n, uv, area, min_spherical_sample_area, alpha_mask)
+    end
 end
 
 function BilinearPatchGenerator(
@@ -31,12 +32,12 @@ function BilinearPatchGenerator(
     p_indices::Vector{Int64},
 
     n::Maybe{Vector{Nml3}},
-    n_indices::Vector{Int64},
+    n_indices::Maybe{Vector{Int64}},
 
     uv::Maybe{Vector{Pnt2}},
-    uv_indices::Vector{Int64},
+    uv_indices::Maybe{Vector{Int64}},
 
-    alpha_mask::Maybe{AbstractTexture{Float64}},
+    alpha_mask::Maybe{String},
 )::Vector{BilinearPatch}
 
     patches = Vector{BilinearPatch}(undef, n_patches)
@@ -53,20 +54,20 @@ function BilinearPatchGenerator(
         else
             # Compute approximate area of bilinear patch
             na = 3
-            p = zeros(Pnt3, na+1, na+1)
+            grid = zeros(Pnt3, na+1, na+1)
             for i in 0:(na-1)
                 u = Float64(i) / Float64(na)
                 for j in 0:(na-1)
                     v = Float64(j) / Float64(na)
-                    p[i+1, j+1] += lerp(u, lerp(v, p00, p01), lerp(v, p10, p11))
+                    grid[i+1, j+1] = lerp(u, lerp(v, p00, p01), lerp(v, p10, p11))
                 end
             end
             area = 0.0
             for i in 0:(na-1-1)
                 for j in 0:(na-1-1)
                     area += 0.5 * length_pbrt(Vec3(cross(
-                        p[i + 1 + 1, j + 1 + 1] - p[i + 1, j + 1],
-                        p[i + 1 + 1, j + 1] - p[i + 1, j + 1 + 1]
+                        grid[i + 1 + 1, j + 1 + 1] - grid[i + 1, j + 1],
+                        grid[i + 1 + 1, j + 1] - grid[i + 1, j + 1 + 1]
                     )))
                 end
             end
@@ -92,6 +93,8 @@ function BilinearPatchGenerator(
                 uv[uv_indices[ii + 2]],
                 uv[uv_indices[ii + 3]],
             ),
+            area,
+            3e-4,
             alpha_mask
         )
     end
@@ -100,31 +103,36 @@ function BilinearPatchGenerator(
 end
 
 function ObjectBounds(blp::BilinearPatch)::Bounds3
-    # TODO
-    # BLP have their vertices already in world space so go backwards because
-    # results of this function are transformed back
-    # ugh
-    p00 = blp.core.world_to_object.(blp.p[1])
-    p10 = blp.core.world_to_object.(blp.p[2])
-    p01 = blp.core.world_to_object.(blp.p[3])
-    p11 = blp.core.world_to_object.(blp.p[4])
-    # TODO why must I do this
-    buffer = Float64[0, 0, 0]
-    for i in 1:3
-        if p00[i] == p10[i] == p01[i] == p11[i]
-            buffer[i] = .0001
-        end
+    # Transform vertices to object space
+    p00 = blp.core.world_to_object(blp.p[1])
+    p10 = blp.core.world_to_object(blp.p[2])
+    p01 = blp.core.world_to_object(blp.p[3])
+    p11 = blp.core.world_to_object(blp.p[4])
+    
+    # Compute bounds directly without intermediate allocations
+    min_x = min(p00[1], p10[1], p01[1], p11[1])
+    max_x = max(p00[1], p10[1], p01[1], p11[1])
+    min_y = min(p00[2], p10[2], p01[2], p11[2])
+    max_y = max(p00[2], p10[2], p01[2], p11[2])
+    min_z = min(p00[3], p10[3], p01[3], p11[3])
+    max_z = max(p00[3], p10[3], p01[3], p11[3])
+    
+    # Add buffer only where needed, avoiding allocation
+    EPSILON = 0.0001
+    if min_x == max_x
+        min_x -= EPSILON
+        max_x += EPSILON
     end
-    return world_bounds(
-            world_bounds(
-                    Bounds3(p00-buffer, p00+buffer), 
-                    Bounds3(p10-buffer, p10+buffer)
-                ), 
-            world_bounds(
-                Bounds3(p01-buffer, p01+buffer),
-                Bounds3(p11-buffer, p11+buffer)
-            )
-        )
+    if min_y == max_y
+        min_y -= EPSILON
+        max_y += EPSILON
+    end
+    if min_z == max_z
+        min_z -= EPSILON
+        max_z += EPSILON
+    end
+    
+    return Bounds3((min_x, min_y, min_z), (max_x, max_y, max_z))
 end
 
 function is_rectangle(p00::Pnt3, p10::Pnt3, p01::Pnt3, p11::Pnt3)::Bool
@@ -140,12 +148,12 @@ function is_rectangle(p00::Pnt3, p10::Pnt3, p01::Pnt3, p11::Pnt3)::Bool
 
     # Check if planar vertices form a rectangle>> 
     p_center = Pnt3(p00 + p01 + p10 + p11) / 4.0
-    d2 = Float64[
+    d2 = SVector{4, Float64}(
         distance_squared(p00, p_center), 
         distance_squared(p01, p_center), 
         distance_squared(p10, p_center), 
         distance_squared(p11, p_center)
-    ]
+    )
     for i in 1:3
         if abs(d2[i+1] - d2[0+1]) / d2[0+1] > 1e-4
             return false
@@ -183,7 +191,7 @@ function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bo
     dvds = 0.0
     dvdt = 1.0
 
-    if !(blp.mesh.uv isa Nothing)
+    if !(blp.uv isa Nothing)
         # Compute texture coordinates for bilinear patch intersection point
         uv00 = blp.uv[1]
         uv10 = blp.uv[2]
@@ -260,7 +268,7 @@ function intersect(blp::BilinearPatch, ray::AbstractRay, ::Bool=false)::Tuple{Bo
     )
 
     # Compute bilinear patch shading normal if necessary
-    if !(blp.mesh.n isa Nothing)
+    if !(blp.n isa Nothing)
         # Compute shading normals for bilinear patch intersection point
         n00 = blp.n[1]
         n10 = blp.n[2]
@@ -325,8 +333,14 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
         p2 = length_squared(perp)
 
         # Compute matrix determinants for $v$ and $t$ numerators
-        v1 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
-        t1 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
+        # v1 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
+        # t1 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
+        v1 = det(Mat3([deltao.x deltao.y deltao.z;
+               ray.direction.x ray.direction.y ray.direction.z;
+               perp.x perp.y perp.z]))
+        t1 = det(Mat3([deltao.x deltao.y deltao.z;
+               ud.x ud.y ud.z;
+               perp.x perp.y perp.z]))
 
         #  Set _u_, _v_, and _t_ if intersection is valid
         if ((t1 > p2 * eps) && (0.0 <= v1) && (v1 <= p2))
@@ -343,13 +357,43 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
         deltao = uo - ray.origin
         perp = cross(ray.direction, ud)
         p2 = length_squared(perp)
-        v2 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
-        t2 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
+        # v2 = det(Mat3([deltao.x ray.direction.x perp.x deltao.y ray.direction.y perp.y deltao.z ray.direction.z perp.z]))
+        # t2 = det(Mat3([deltao.x ud.x perp.x deltao.y ud.y perp.y deltao.z ud.z perp.z]))
+        v2 = det(Mat3([deltao.x deltao.y deltao.z;
+                    ray.direction.x ray.direction.y ray.direction.z;
+                    perp.x perp.y perp.z]))
+        t2 = det(Mat3([deltao.x deltao.y deltao.z;
+                    ud.x ud.y ud.z;
+                    perp.x perp.y perp.z]))
         t2 /= p2
         if (0.0 <= v2 && v2 <= p2 && t > t2 && t2 > eps)
             t = t2
             u = u2
             v = v2 / p2
+        end
+    end
+
+    # tossing alpha test here for now
+    # JOHN TO DO MOVE TO Primitive
+    # Test intersection against alpha texture, if present
+    if !(blp.alpha_mask isa Nothing)
+        si = InstantiateSurfaceInteraction(
+            lerp(u, lerp(v, p00, p01), lerp(v, p10, p11)),
+            0.0,
+            Vec3(1,1,1),
+            Pnt2(u, v),
+            Vec3(1,1,1),
+            Vec3(1,1,1),
+            Nml3(1,1,1),
+            Nml3(1,1,1),
+            blp,
+            nothing,
+            nothing
+        )
+        alpha_mask = get_texture(blp.alpha_mask)
+        
+        if alpha_mask(si) == 0.0
+            return false, nothing, nothing
         end
     end
 
@@ -361,7 +405,7 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
     return true, Pnt2(u,v), t
 end
 
-function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
+function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Pnt2, Float64}
     p00 = blp.p[1]
     p10 = blp.p[2]
     p01 = blp.p[3]
@@ -399,11 +443,11 @@ function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
     dpdu::Vec3 = pu1 - pu0
     dpdv::Vec3 = lerp(uv[0+1], p01, p11) - lerp(uv[0+1], p00, p10)
     if (length_squared(dpdu) == 0.0 || length_squared(dpdv) == 0.0)
-        return Pnt3(), Nml3(), 0.0
+        return Pnt3(), Nml3(), uv, 0.0
     end
 
     st = uv
-    if !(blp.mesh.uv isa Nothing)
+    if !(blp.uv isa Nothing)
         @assert false # NOT DONE 
         # // Compute texture coordinates for bilinear patch intersection point
         # uv00 = mesh->uv[v[0]], uv10 = mesh->uv[v[1]];
@@ -413,7 +457,7 @@ function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
     # Compute surface normal for sampled bilinear patch $(u,v)$
     n = Nml3(normalize(cross(dpdu, dpdv)))
     # Flip normal at sampled $(u,v)$ if necessary
-    if !(blp.mesh.n isa Nothing)
+    if !(blp.n isa Nothing)
         @assert false # TODO NOT DONE
         # Normal3f n00 = mesh->n[v[0]], n10 = mesh->n[v[1]];
         # Normal3f n01 = mesh->n[v[2]], n11 = mesh->n[v[3]];
@@ -428,10 +472,10 @@ function sample(blp::BilinearPatch, u::Pnt2)::Tuple{Pnt3, Nml3, Float64}
     # Vector3f pError = gamma(6) * Vector3f(pAbsSum);
 
     # Return _ShapeSample_ for sampled bilinear patch point
-    return p, n, pdf_val / length_pbrt(cross(dpdu, dpdv))
+    return p, n, uv, pdf_val / length_pbrt(cross(dpdu, dpdv))
 end
 
-function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Float64} 
+function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml3, Pnt2, Float64} 
     # Get bilinear patch vertices in _p00_, _p01_, _p10_, and _p11_
     p00 = blp.p[1]
     p10 = blp.p[2]
@@ -446,7 +490,7 @@ function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml
     # if (!is_rectangle(p00, p10, p01, p11) || mesh->imageDistribution || SphericalQuadArea(v00, v10, v11, v01) <= MinSphericalSampleArea) {
     if (!is_rectangle(p00, p10, p01, p11) || spherical_quad_area(v00, v10, v11, v01) <= blp.min_spherical_sample_area)
         # Sample shape by area and compute incident direction _wi_
-        ss_p, ss_n, ss_pdf = sample(blp, u)
+        ss_p, ss_n, ss_uv, ss_pdf = sample(blp, u)
         wi::Vec3 = ss_p - intr.p
         if (length_squared(wi) == 0.0)
             return Pnt3(), Nml3(), 0.0
@@ -457,7 +501,7 @@ function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml
         ss_pdf /= abs(dot(ss_n, -wi)) / distance_squared(intr.p, ss_p);
         # if (IsInf(ss->pdf))
         #     return {};
-        return ss_p, ss_n, ss_pdf
+        return ss_p, ss_n, ss_uv, ss_pdf
     end
 
     # Sample direction to rectangular bilinear patch
@@ -489,7 +533,7 @@ function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml
     )
     n = Nml3(normalize(cross(eu, ev)))
     # Flip normal at sampled $(u,v)$ if necessary
-    if !(blp.mesh.n isa Nothing)
+    if !(blp.n isa Nothing)
         @assert false # TODO DO THIS
         # Normal3f n00 = mesh->n[v[0]], n10 = mesh->n[v[1]];
         # Normal3f n01 = mesh->n[v[2]], n11 = mesh->n[v[3]];
@@ -501,7 +545,7 @@ function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml
 
     # Compute $(s,t)$ texture coordinates for sampled $(u,v)$
     st = uv
-    if !(blp.mesh.uv isa Nothing)
+    if !(blp.uv isa Nothing)
         @assert false # TODO DO THIS
         # Compute texture coordinates for bilinear patch intersection point
         # Point2f uv00 = mesh->uv[v[0]], uv10 = mesh->uv[v[1]];
@@ -509,5 +553,5 @@ function sample(blp::BilinearPatch, intr::Interaction, u::Pnt2)::Tuple{Pnt3, Nml
         # st = Lerp(uv[0], Lerp(uv[1], uv00, uv01), Lerp(uv[1], uv10, uv11));
     end
 
-    return p, n, pdf_val
+    return p, n, uv, pdf_val
 end

@@ -1,5 +1,5 @@
 function render(
-    i::Union{WhittedIntegrator, PathIntegrator, AOIntegrator, SimpleIntegrator, SimpleVolPathIntegrator}, 
+    i::Union{AOIntegrator, SimpleIntegrator, SimpleVolPathIntegrator}, 
     scene::Scene, 
     ::Dict{String, Any},
     ::Tuple{Int64,Int64}  
@@ -18,6 +18,20 @@ function render(
 
     print("Utilizing $(Threads.nthreads()) threads\n")
     Threads.@threads for k in 0:total_tiles
+        # this is a bullshit ass hack
+        for wtf in 1:length(scene.b.primitives)
+            if !(scene.b.primitives[wtf].mi.inside isa Nothing)
+                if scene.b.primitives[wtf].mi.inside isa NanoVDBMedium
+                    NanoVDB.init(scene.b.primitives[wtf].mi.inside.nanovdb_grid)
+                end
+            end
+            if !(scene.b.primitives[wtf].mi.outside isa Nothing)
+                if scene.b.primitives[wtf].mi.outside isa NanoVDBMedium
+                    NanoVDB.init(scene.b.primitives[wtf].mi.outside.nanovdb_grid)
+                end
+            end
+        end
+        
         x, y = k % width, k ÷ width
         tile = Pnt2(x, y)
         sampler = deepcopy(i.sampler)
