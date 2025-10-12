@@ -1,22 +1,23 @@
 """
 scene 1: indoor office ✅
     - add geometry
+    - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 500 500 --samples-per-pixel 16 --file-name "1-office-scene.exr"
 scene 2: caustic glass 🟨
-    - https://www.pbrt.org/scenes-v3_images/f16-9c.jpg
-    - black lines in glass are missing in mine
-    - fov and dimensions are differnet
+    - hmmm spot light needs debugging
+    - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 525 750 --samples-per-pixel 16 --file-name "2-caustic-glass.exr"
 scene 3: AOIntegrator + dragon ✅
+    - julia -t 4 RayTracing.jl --scene-number 3 --image-dim 500 500 --samples-per-pixel 16 --file-name "3-ao-dragon.exr"
 scene 4: cornell box ✅
     - need to mess with medium params to make it a bit less dense
+    - julia -t 4 RayTracing.jl --scene-number 4 --image-dim 500 500 --samples-per-pixel 16 --file-name "4-cornell-box.exr"
 scene 5: soft bodies ✅
-    - better material? 
-    - infinite light?
+    - julia -t 4 RayTracing.jl --scene-number 5 --image-dim 500 500 --samples-per-pixel 16 --file-name "5-soft-bodies.exr"
 scene 6: goursat ✅
     - better material? 
     - infinite light?
     - something fucky with the normals...
 scene 7: julia logo w/ tea pots ✅
-    - more interesting floor. maybe water???
+    - julia -t 4 RayTracing.jl --scene-number 7 --image-dim 500 500 --samples-per-pixel 16 --file-name "7-julia-logo.exr"
 scene 8: an anemic leafless procedural tree ✅
     - add leaves
 scene 9: lte orb ✅

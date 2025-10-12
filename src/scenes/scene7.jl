@@ -12,6 +12,14 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_gray)
 
+    mat_dark_gray = Matte(
+        "mat_dark_gray",
+        ConstantTexture(spectrum_from_float(.1, .1, .1)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_dark_gray)
+
     mat_white = Matte(
         "mat_white",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
@@ -178,6 +186,34 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
     end
 
+    Random.seed!(parsed_args["seed"])
+    N_DODECA = 50
+    area_1_box = Bounds3(
+        Pnt3(-80, 10, -180),
+        Pnt3(-10, 60, 60)
+    )
+    area_2_box = Bounds3(
+        Pnt3(10, 10, -180),
+        Pnt3(80, 60, 60)
+    )
+    for box in [area_1_box, area_2_box]
+        for _ in 1:N_DODECA
+            scale = (rand() + 1.0)
+            translate = Pnt3(
+                (box.pMax.x - box.pMin.x) * rand() + box.pMin.x,
+                (box.pMax.y - box.pMin.y) * rand() + box.pMin.y,
+                (box.pMax.z - box.pMin.z) * rand() + box.pMin.z
+            )
+            platonic_solid_t = Translate(translate) * RotateX(rand() * 360.0) * RotateY(rand() * 360.0) * RotateZ(rand() * 360.0) * Scale(Vec3(scale, scale, scale))
+            platonic_solid = parse_obj("/Users/johnmyslinski/Documents/PBRJ/ref/dodecahedron.obj", platonic_solid_t, false, false, nothing)
+            for tris in platonic_solid
+                for tri in tris
+                    push!(primitives, Primitive(tri, "mat_dark_gray", nothing))
+                end
+            end
+        end
+    end
+
     # instantiate lights
     light_t = Translate(Pnt3(0, 100, 0))
     light_sc = ShapeCore(light_t, Inv(light_t), false, false)
@@ -222,19 +258,10 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(85, 35, 35)
     look_at = Pnt3(0, teapot_y_shift + sqrt(asdf^2 - (asdf/2.0)^2) / 2.0, 0)
     up = Vec3(0, 1, 0)
-    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 55.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 55.0, film)
 
     # Instantiate a Sampler
-    S = ZSobolSampler(
-        parsed_args["samples-per-pixel"], 
-        Pnt2i(
-            parsed_args["image-dim"][1], 
-            parsed_args["image-dim"][2]
-        ), 
-        Int8(2),
-        parsed_args["seed"]
-    )
+    S = SamplerFactory(parsed_args)
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene

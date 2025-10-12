@@ -3,13 +3,21 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     lights = Light[]
     materials = Material[]
 
-    mat_gray = Matte(
-        "mat_gray",
-        ConstantTexture(spectrum_from_float(.5, .5, .5)),
-        ConstantTexture(0.0),
-        nothing
+    mat_floor = Uber(
+        "mat_floor",
+        ConstantTexture(spectrum_from_float(0.6399999857, 0.6399999857, 0.6399999857)),
+        ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0104080001),
+        nothing,
+        nothing,
+        ConstantTexture(1.0),
+        onstantTexture(spectrum_from_float(1.0)),
+        nothing,
+        true
     )
-    push!(materials, mat_gray)
+    push!(materials, mat_floor)
 
     mat_white = Matte(
         "mat_white",
@@ -61,7 +69,7 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in floor
         for tri in tris
-            push!(primitives, Primitive(tri, "mat_gray", nothing))
+            push!(primitives, Primitive(tri, "mat_floor", nothing))
         end
     end
 
@@ -96,7 +104,7 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
-        1.0,
+        1.5,
         parsed_args["file-name"]
     )
 
@@ -104,11 +112,10 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(-5.5, 7, -5.5)
     look_at = Pnt3(-4.75, 2.25, 0)
     up = Vec3(0, 1, 0)
-    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 30.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 30.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
+    S = SamplerFactory(parsed_args)
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
 
     # Instantiate Scene

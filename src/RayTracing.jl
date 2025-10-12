@@ -13,6 +13,7 @@ using Dates
 using OpenEXR
 using Roots
 using IterTools
+using Printf
 
 abstract type AbstractBSDF end
 abstract type AbstractBxDF end
