@@ -1,5 +1,6 @@
 function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
+    primitives2 = Primitive[]
     lights = Light[]
     materials = Material[]
 
@@ -46,7 +47,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mat_julia_red = Matte(
         "mat_julia_red",
-        ConstantTexture(spectrum_from_float(.235, .2, .796)),
+        ConstantTexture(spectrum_from_float(.796, .235, .2)),
         ConstantTexture(0.0),
         nothing
     )
@@ -162,7 +163,9 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     teapot_scale = 0.175
     teapot_y_shift = 20
     rotate_y = 45.0
-    teapot_t1 = Translate(Pnt3(0, teapot_y_shift, asdf/2.0)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
+    z_scale = 1.2
+    y_scale = 0.95
+    teapot_t1 = Translate(Pnt3(0, teapot_y_shift, asdf/2.0 * z_scale)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
     teapot1 = parse_obj("../ref/teapot.obj", teapot_t1, false, false, nothing) 
     for tris in teapot1
         for tri in tris
@@ -170,7 +173,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
     end
 
-    teapot_t2 = Translate(Pnt3(0, teapot_y_shift, -asdf/2.0)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
+    teapot_t2 = Translate(Pnt3(0, teapot_y_shift, -asdf/2.0 * z_scale)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
     teapot2 = parse_obj("../ref/teapot.obj", teapot_t2, false, false, nothing) 
     for tris in teapot2
         for tri in tris
@@ -178,7 +181,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
     end
 
-    teapot_t3 = Translate(Pnt3(0, teapot_y_shift + sqrt(asdf^2 - (asdf/2.0)^2), 0)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
+    teapot_t3 = Translate(Pnt3(0, teapot_y_shift + sqrt(asdf^2 - (asdf/2.0)^2) * y_scale, 0)) * RotateY(rotate_y) * Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
     teapot3 = parse_obj("../ref/teapot.obj", teapot_t3, false, false, nothing) 
     for tris in teapot3
         for tri in tris
