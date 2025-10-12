@@ -14,6 +14,7 @@ scene 4: cornell box ✅
 scene 5: soft bodies ✅
     - julia -t 4 RayTracing.jl --scene-number 5 --image-dim 500 500 --samples-per-pixel 16 --file-name "5-soft-bodies.exr"
 scene 6: goursat ✅
+    - julia -t 4 RayTracing.jl --scene-number 6 --image-dim 500 500 --samples-per-pixel 16 --file-name "6-goursat.exr"
     - better material? 
     - infinite light?
     - something fucky with the normals...
