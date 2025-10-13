@@ -20,6 +20,6 @@ struct BSSRDFTable
     end
 end
 
-function eval_profile(table::BSSRDF, rho_index::Int64, radius_index::Int64)::Float64
+function eval_profile(table::BSSRDFTable, rho_index::Int64, radius_index::Int64)::Float64
     return table.profile[rho_index * table.n_radius_samples + radius_index + 1]
 end
