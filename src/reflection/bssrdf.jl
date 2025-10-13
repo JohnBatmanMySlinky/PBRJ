@@ -16,7 +16,7 @@ struct BSSRDFTable
         profile = zeros(Float64, n_rho_samples * n_radius_samples)
         rho_eff = zoers(Float64, n_rho_samples)
         profile_cdf = zeros(Float64, n_rho_samples * n_radius_samples)
-        return new(n_rho_samples, n_radius_samples, rho_samples, radius_samples, rho_eff, profile_cdf)
+        return new(n_rho_samples, n_radius_samples, rho_samples, radius_samples, profile, rho_eff, profile_cdf)
     end
 end
 
