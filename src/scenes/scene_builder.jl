@@ -23,7 +23,7 @@ scene 7: julia logo w/ tea pots ✅
 scene 8: an anemic leafless procedural tree ✅
     - add leaves
 scene 9: lte orb ✅
-    - get more interesting measured bsdf's
+    - julia -t 4 RayTracing.jl --scene-number 9 --image-dim 500 500 --samples-per-pixel 16 --file-name "9-lte-orb.exr"
 scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅
     - parser broken
 scene 11: dragon with fun materials ✅
