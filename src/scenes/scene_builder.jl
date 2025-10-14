@@ -65,6 +65,7 @@ scene 103: check board test
     - simple scene to test checker board pattern....
 scene 104: mipmap debug
     - corresponds to mipmap-debug.pbrt
+scene 105: his name is doug
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -120,8 +121,10 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene102(parsed_args)
     elseif parsed_args["scene-number"] == 103
         return make_scene103(parsed_args)
-elseif parsed_args["scene-number"] == 104
-        return make_scene104(parsed_args)
+    elseif parsed_args["scene-number"] == 104
+            return make_scene104(parsed_args)
+    elseif parsed_args["scene-number"] == 105
+            return make_scene105(parsed_args)
     else
         @assert false
     end
