@@ -40,8 +40,7 @@ function make_scene105(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
-    # l_2_w = Scale(Vec3(-1, 0, 0)) * RotateX(-90.0) * RotateZ(90.0)
-    l_2_w = Translate(Pnt3(0, 0, 0))
+    l_2_w = Scale(Vec3(-1, 0, 0)) * Rotate(90.0, Vec3(-1, 0, 0)) * Rotate(90.0, Vec3(0, 0, 1))
     light = InfiniteLight(
         world_bounds(bvh),
         l_2_w,
