@@ -142,7 +142,14 @@ function pdf_li(il::InfiniteLight, isect::SurfaceInteraction, w::Vec3)::Float64
         sin_theta = sin(theta)
         (sin_theta == 0.0) && return 0.0
         uv = Pnt2(phi / 2pi, theta / pi)
-        pdf_val = pdf(il.distribution, uv) / (2 * pi * pi * sin_theta)
+        try
+            pdf_val = pdf(il.distribution, uv) / (2 * pi * pi * sin_theta)
+        catch e
+            println("UV: $uv")
+            println("w: $w")
+            println("wi: $wi")
+            @assert false
+        end
     end
     return pdf_val
 end
