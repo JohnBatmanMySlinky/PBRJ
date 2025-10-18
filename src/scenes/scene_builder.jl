@@ -66,6 +66,7 @@ scene 103: check board test
 scene 104: mipmap debug
     - corresponds to mipmap-debug.pbrt
 scene 105: his name is doug
+    - BSSRDF + VolPathIntegratorv3
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
