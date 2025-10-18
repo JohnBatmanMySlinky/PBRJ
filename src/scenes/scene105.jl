@@ -4,15 +4,23 @@ function make_scene105(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     materials = Material[]
 
     # MATERIALS
-    mat_head = Matte(
+    mat_head = KdSubSurface(
         "mat_head",
         ImageTexture(
             UVMapping2D(),
             jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/head/textures/head_albedomap.png"),
             false
         ),
-        ConstantTexture(0.0),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(spectrum_from_float(1.2953e-03, 9.5238e-04, 6.7114e-04)),
+        ConstantTexture(0.05),
+        ConstantTexture(0.05),
+        1.0,
+        1.33,
+        0.0,
         nothing,
+        false
     )
     push!(materials, mat_head)
 

@@ -22,15 +22,15 @@ struct KdSubSurface{
 
     function KdSubSurface(
         name::String,
-        Kd::KD=ConstantTexture(spectrum_from_float(1.0)),
+        Kd::KD=ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
         Kr::KR=ConstantTexture(spectrum_from_float(1.0)),
         Kt::KT=ConstantTexture(spectrum_from_float(1.0)),
         Mfp::MFP=ConstantTexture(spectrum_from_float(1.0)),
         u_roughness::U=ConstantTexture(0.0),
         v_roughness::V=ConstantTexture(0.0),
         scale::Float64=1.0,
-        eta::Float64=1.0,
-        g::Float64=1.0,
+        eta::Float64=1.33,
+        g::Float64=0.0,
         bump_map::BM=nothing,
         remap_roughness::Bool=true
     )::KdSubSurface where {
