@@ -4,7 +4,7 @@ struct VolPathIntegratorv3 <: AbstractIntegrator
     max_depth::Int64
 end
 
-function li(svp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
+function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
     # declare local variables for delta tracking integration
     LL = spectrum_from_float(0.0)
     beta = spectrum_from_float(1.0)
@@ -45,49 +45,52 @@ function li(svp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int
         end
 
         # Terminate path if ray escaped or _maxDepth_ was reached
-        if ((si isa Nothing) || (bounces >= depth)) 
+        if ((si isa Nothing) || (bounces >= vp.max_depth)) 
             break
         end
 
         compute_scattering!(si, ray, true, Radiance)
         if si.bsdf isa Nothing
             ray = spawn_ray(si.core, ray.direction)
-            bounces -= 1
+            # bounces -= 1 ignored due to incrementing at the bottom
             continue
         end
 
         # Sample illumination from lights to find attenuated path contribution
         light_distribution = lookup(light_distribution_generator, si.core.p)
-        L += beta * uniform_sample_one_light(si, scene, i.sampler, light_distribution, true)
+
+        # JOHN HACK 
+        # SWITCH TO ON TO HANDLE MEDIA
+        LL += beta * uniform_sample_one_light(si, scene, sampler, light_distribution, false)
 
         # Sample BSDF to get new path direction
         wo = -ray.direction
-        wi, f, pdf_val, sampled_type = sample_f(si.bsdf, wo, get_2D!(i.sampler), BSDF_ALL)
+        wi, f, pdf_val, sampled_type = sample_f(si.bsdf, wo, get_2D!(sampler), BSDF_ALL)
         if (pdf_val == 0.0) || is_black(f)
             break
         end
         beta *= f * abs(dot(wi, si.shading.n)) / pdf_val
         specular_bounce = (sampled_type & BSDF_SPECULAR) != 0
-        if ((sampled_type & BSDF_SPECULAR) && (sampled_type & BSDF_TRANSMISSION))
+        if ((sampled_type & BSDF_SPECULAR) != 0) && ((sampled_type & BSDF_TRANSMISSION) != 0)
             eta = si.bsdf.eta
             # Update the term that tracks radiance scaling for refraction
             # depending on whether the ray is entering or leaving the
             # medium.
-            eta_scale *= (dot(wo, si.n) > 0) ? (eta * eta) : 1.0 / (eta * eta);
+            eta_scale *= (dot(wo, si.core.n) > 0) ? (eta * eta) : 1.0 / (eta * eta)
         end
         ray = spawn_ray(si.core, wi)
 
-        if !(is.bssrdf isa Nothing) && (sampled_type & BSDF_TRANSMISSION)
-            @assert false
-        end
+        # if !(si.bssrdf isa Nothing) && ((sampled_type & BSDF_TRANSMISSION) != 0)
+        #     @assert false
+        # end
 
         # Possibly terminate the path with Russian roulette.
         # Factor out radiance scaling due to refraction in rrBeta.
         rr_beta = beta * eta_scale
         rr_threshold = 1.0
         if (maximum(rr_beta) < rr_threshold) && (bounces > 3)
-            q = max(.05, 1 - max(rr_beta))
-            if (Get1D!(sampler) < q)
+            q = max(0.05, 1 - maximum(rr_beta))
+            if (get_1D!(sampler) < q)
                 break
             end
             beta /= 1.0 - q

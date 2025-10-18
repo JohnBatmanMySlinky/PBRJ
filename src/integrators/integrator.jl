@@ -150,7 +150,7 @@ function estimate_direct(
 
         # find intersection and compute transmittance
         ray = spawn_ray(isect.core, wi)
-        Tr = spectrum_from_float(1,1,1)
+        Tr = spectrum_from_float(1.0, 1.0, 1.0)
         # assuming no media to handle
         found_surface_interaction, t, light_isect = intersect!(scene.b, ray)
 
