@@ -45,7 +45,7 @@ function li(svp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int
         end
 
         # Terminate path if ray escaped or _maxDepth_ was reached
-        if ((is isa Nothing) || (bounces >= depth)) 
+        if ((si isa Nothing) || (bounces >= depth)) 
             break
         end
 
