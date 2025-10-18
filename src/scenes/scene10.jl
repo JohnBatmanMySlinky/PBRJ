@@ -100,7 +100,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     
     # Instantiate an Integrator
     # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
-    I = SimpleVolPathIntegrator(C, S, parsed_args["max-depth"])
+    I = SimpleVolPathIntegratorv4(C, S, parsed_args["max-depth"])
 
     return I, scene
 end

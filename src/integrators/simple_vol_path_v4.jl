@@ -1,10 +1,10 @@
-struct SimpleVolPathIntegrator <: AbstractIntegrator
+struct SimpleVolPathIntegratorv4 <: AbstractIntegrator
     camera::C where C <: Camera
     sampler::S where S <: AbstractSampler
     max_depth::Int64
 end
 
-function li(svp::SimpleVolPathIntegrator, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
+function li(svp::SimpleVolPathIntegratorv4, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
     # declare local variables for delta tracking integration
     LL = spectrum_from_float(0.0)
     beta = 1.0
