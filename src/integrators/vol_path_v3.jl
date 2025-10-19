@@ -80,9 +80,33 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
         end
         ray = spawn_ray(si.core, wi)
 
-        # if !(si.bssrdf isa Nothing) && ((sampled_type & BSDF_TRANSMISSION) != 0)
-        #     @assert false
-        # end
+        if !(si.bssrdf isa Nothing) && ((sampled_type & BSDF_TRANSMISSION) != 0)
+            # Importance sample the BSSRDF
+            S, pisect, pdf_val = sample_s(si.bssrdf, scene, get_1D!(sampler), get_2D!(sampler))
+            if (is_black(S) || pdf_val == 0) 
+                break
+            end
+            beta *= S / pdf_val
+
+            # Account for the attenuated direct subsurface scattering component
+            # JOHN HACK ON THE MEDIA = false
+            L += beta * uniform_sample_one_light(
+                pisect, 
+                scene, 
+                sampler, 
+                lookup(light_distribution_generator, pisec.core.p), 
+                false
+            )
+
+            # Account for the indirect subsurface scattering component
+            wi, f, pdf_val, sampled_type = sample_f(si.bsdf, pisect.wo, get_2D!(sampler), BSDF_ALL)
+            if (is_black(f) || pdf_val == 0) 
+                break
+            end
+            beta *= f * abs(dot(wi, pisect.shading.n)) / pdf_val
+            specular_bounce = (flags & BSDF_SPECULAR) != 0
+            ray = spawn_ray(pisect, wi)
+        end
 
         # Possibly terminate the path with Russian roulette.
         # Factor out radiance scaling due to refraction in rrBeta.

@@ -524,8 +524,8 @@ end
 # Spline Interpolation Definitions
 function sample_catmull_rom_2D(
     size1::Int64, size2::Int64,
-    nodes1::Vector{Float64}, nodes2::Vector{Float64}, 
-    values::Vector{Float64}, cdf::Vector{Float64},
+    nodes1::AbstractArray{Float64}, nodes2::AbstractArray{Float64}, 
+    values::AbstractArray{Float64}, cdf::AbstractArray{Float64},
     alpha::Float64, u::Float64,
 )::Tuple{Float64, Float64, Float64}
     @info "FourierBSDF::SampleCatmullRom2D"
@@ -538,7 +538,7 @@ function sample_catmull_rom_2D(
     @info "FourierBSDF::SampleCatmullRom2D: weights = $weights"
 
     # Define a lambda function to interpolate table entries
-    function interpolate(array::Vector{Float64}, idx::Int64)::Float64
+    function interpolate(array::AbstractArray{Float64}, idx::Int64)::Float64
         value = 0.0
         for i in 0:3
             if weights[i + 1] != 0.0
@@ -631,7 +631,7 @@ function sample_catmull_rom_2D(
     return (x0 + width * t, fhat, fhat / max_val)
 end
 
-function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::Tuple{Bool, Int64, Vector{Float64}}
+function catmull_rom_weights(size::Int64, nodes::AbstractArray{Float64}, x::Float64)::Tuple{Bool, Int64, Vector{Float64}}
     weights = zeros(Float64, 4)
     # Return _false_ if _x_ is out of bounds
     @info "FourierBSDF::CatmullRomWeights"

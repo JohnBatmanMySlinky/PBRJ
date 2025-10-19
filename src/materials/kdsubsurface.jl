@@ -47,10 +47,23 @@ struct KdSubSurface{
     end
 end
 
-struct TabulatedBSSRDF <: AbstractBSSRDF
-    po::SurfaceInteraction
+struct SeperableBSSRDF
+    ns::Nml3
+    ss::Vec3
+    ts::Vec3
     material::Material
     mode::Type{T} where T <: TransportMode
+
+    function SeperableBSSRDF(po::SurfaceInteraction, material::Material, mode::Type{T}) where T <: TransportMode
+        ns = po.shading.n
+        ss = normalize(po.shading.dpdu)
+        ts = cross(ns, ss)
+        return new(ns, ss, ts, material, mode)
+    end
+end
+
+struct TabulatedBSSRDF <: AbstractBSSRDF
+    seperable_bssrdf::SeperableBSSRDF
     sigma_t::Spectrum
     rho::Spectrum
 
@@ -60,7 +73,11 @@ struct TabulatedBSSRDF <: AbstractBSSRDF
         for c in 0:(nSpectralSamples - 1)
             rho[c + 1] = sigma_t[c + 1] != 0.0 ? (sig_s[c + 1] / sigma_t[c + 1]) : 0.0
         end
-        return new(po, ss, mode, sigma_t, Spectrum(rho))
+        return new(
+            SeperableBSSRDF(po, ss, mode),
+            sigma_t,
+            Spectrum(rho)
+        )
     end
 end
 

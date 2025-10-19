@@ -27,7 +27,11 @@ end
 # for other types of interacion points where the notation of an outgoing direction doesnt apply
 # ie those found by randomly sampling points on a surface of a shape wo has the value Vec3(0)
 function Interaction(p::Pnt3, t::Float64, n::Nml3)::Interaction
-    return Interaction(p, t, Vec3(0.0), n, MediumInterface(nothing))
+    return Interaction(p, t, Vec3(0.0, 0.0, 0.0), n, MediumInterface(nothing))
+end
+
+function Interaction(p::Pnt3, t::Float64)::Interaction
+    return Interaction(p, t, Vec3(0.0, 0.0, 0.0), Nml3(0.0, 0.0, 0.0), MediumInterface(nothing))
 end
 
 function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3)::Interaction
@@ -39,11 +43,11 @@ function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3, m::Maybe{AbstractMe
 end
 
 function Interaction(p::Pnt3, t::Float64, wo::Vec3, mi::MediumInterface)::Interaction
-    return Interaction(p, t, wo, Nml3(0), mi)
+    return Interaction(p, t, wo, Nml3(0.0, 0.0, 0.0), mi)
 end
 
 function Interaction(p::Pnt3, t::Float64, wo::Vec3, m::AbstractMedium)::Interaction
-    return Interaction(p, t, wo, Nml3(0), MediumInterface(m))
+    return Interaction(p, t, wo, Nml3(0.0, 0.0, 0.0), MediumInterface(m))
 end
 
 mutable struct ShadingInteraction
@@ -67,6 +71,7 @@ mutable struct SurfaceInteraction
     shape::Maybe{Shape}
     primitive::Maybe{Primitive}
     bsdf::Maybe{AbstractBSDF}
+    bssrdf::Maybe{AbstractBSSRDF}
 
     # more partials
     dudx::Float64
@@ -89,6 +94,7 @@ function InstantiateSurfaceInteraction(
     shape::Maybe{Shape}=nothing,
     primitive::Maybe{Primitive}=nothing,
     bsdf::Maybe{AbstractBSDF}=nothing,
+    bssrdf::Maybe{AbstractBSSRDF}=nothing
 )::SurfaceInteraction
     n = Nml3(normalize(cross(dpdu, dpdv)))
 
@@ -113,6 +119,7 @@ function InstantiateSurfaceInteraction(
         shape,
         primitive,
         bsdf,
+        bssrdf,
         0,
         0,
         0,
