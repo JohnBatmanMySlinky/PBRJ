@@ -765,6 +765,36 @@ function invert_catmull_rom(n::Int64, x::AbstractArray{Float64}, values::Abstrac
     return x0 + t * width
 end
 
+function integrate_catmull_rom!(n::Int64, x::AbstractArray{Float64}, values::AbstractArray{Float64}, cdf::AbstractArray{Float64})::Float64
+    SUM = 0.0
+    cdf[0 + 1] = 0.0
+    for i in 0:(n-1-1)
+        # Look up  x_i and function values of spline segment _i_
+        x0 = x[i + 1]
+        x1 = x[i + 1 + 1]
+        f0 = values[i + 1]
+        f1 = values[i + 1 + 1]
+        width = x1 - x0
+
+        # Approximate derivatives using finite differences
+        if (i > 0)
+            d0 = width * (f1 - values[i - 1 + 1]) / (x1 - x[i - 1 + 1])
+        else
+            d0 = f1 - f0
+        end
+        if (i + 2 < n)
+            d1 = width * (values[i + 2 + 1] - f0) / (x[i + 2 + 1] - x0)
+        else
+            d1 = f1 - f0
+        end
+
+        # Keep a running sum and build a cumulative distribution function
+        SUM += ((d0 - d1) * (1.0 / 12.0) + (f0 + f1) * 0.5) * width
+        cdf[i + 1 + 1] = SUM
+    end
+    return SUM
+end
+
 """
 Float CatmullRom(int size, const Float *nodes, const Float *values, Float x) {
     if (!(x >= nodes[0] && x <= nodes[size - 1])) return 0;
@@ -854,33 +884,5 @@ Float SampleCatmullRom(int n, const Float *x, const Float *f, const Float *F,
     if (fval) *fval = fhat;
     if (pdf) *pdf = fhat / F[n - 1];
     return x0 + width * t;
-}
-
-Float IntegrateCatmullRom(int n, const Float *x, const Float *values,
-                          Float *cdf) {
-    Float sum = 0;
-    cdf[0] = 0;
-    for (int i = 0; i < n - 1; ++i) {
-        // Look up  x_i and function values of spline segment _i_
-        Float x0 = x[i], x1 = x[i + 1];
-        Float f0 = values[i], f1 = values[i + 1];
-        Float width = x1 - x0;
-
-        // Approximate derivatives using finite differences
-        Float d0, d1;
-        if (i > 0)
-            d0 = width * (f1 - values[i - 1]) / (x1 - x[i - 1]);
-        else
-            d0 = f1 - f0;
-        if (i + 2 < n)
-            d1 = width * (values[i + 2] - f0) / (x[i + 2] - x0);
-        else
-            d1 = f1 - f0;
-
-        // Keep a running sum and build a cumulative distribution function
-        sum += ((d0 - d1) * (1.f / 12.f) + (f0 + f1) * .5f) * width;
-        cdf[i + 1] = sum;
-    }
-    return sum;
 }
 """

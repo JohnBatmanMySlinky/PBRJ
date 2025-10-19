@@ -38,7 +38,7 @@ struct BSSRDFTable
                 )
             end
 
-            rho_eff[i + 1] = integrate_catmull_rom(
+            rho_eff[i + 1] = integrate_catmull_rom!(
                 n_radius_samples,
                 radius_samples,
                 profile[i * n_radius_samples + 1],
@@ -67,4 +67,77 @@ function subsurface_from_diffuse(table::BSSRDFTable, rho_eff::Spectrum, mfp::Spe
         sigma_s[c + 1] = rho / mfp[c + 1]
     end
     return Spectrum(sigma_a), Spectrum(sigma_s)
+end
+
+function beam_diffusion_ms(sigma_s::Float64, sigma_a::Float64, g::Float64, eta::Float64, r::Float64)::Float64
+    n_samples = 100
+    Ed = 0.0
+    # Precompute information for dipole integrand
+
+    # Compute reduced scattering coefficients $\sigmaps, \sigmapt$ and albedo $\rhop$
+    sigmap_s = sigma_s * (1.0 - g)
+    sigmap_t = sigma_a + sigmap_s
+    rhop = sigmap_s / sigmap_t
+
+    # Compute non-classical diffusion coefficient $D_\roman{G}$ using Equation (15.24)
+    D_g = (2.0 * sigma_a + sigmap_s) / (3.0 * sigmap_t * sigmap_t)
+
+    # Compute effective transport coefficient $\sigmatr$ based on $D_\roman{G}$
+    sigma_tr = sqrt(sigma_a / D_g)
+
+    # Determine linear extrapolation distance $\depthextrapolation$ using Equation (15.28)
+    fm1 = fresnel_moment_1(eta)
+    fm2 = fresnel_moment_1(eta)
+    ze = -2.0 * D_g * (1.0 + 3.0 * fm2) / (1.0 - 2.0 * fm1);
+
+    # Determine exitance scale factors using Equations (15.31) and (15.32)
+    cPhi = 0.25 * (1.0 - 2.0 * fm1)
+    cE = 0.5 * (1.0 - 3.0 * fm2)
+    for i in 0:(n_samples - 1)
+        # Sample real point source depth $\depthreal$
+        zr = -log(1 - (i + 0.5) / n_samples) / sigmap_t;
+
+        # Evaluate dipole integrand $E_{\roman{d}}$ at $\depthreal$ and add to _Ed_
+        zv = -zr + 2.0 * ze
+        dr = sqrt(r * r + zr * zr)
+        dv = sqrt(r * r + zv * zv)
+
+        # Compute dipole fluence rate $\dipole(r)$ using Equation (15.27)
+        phiD = (0.25 / pi) / D_g * (exp(-sigma_tr * dr) / dr - exp(-sigma_tr * dv) / dv)
+
+        # Compute dipole vector irradiance $-\N{}\cdot\dipoleE(r)$ using Equation (15.27)
+        EDn = (0.25 / pi) * (zr * (1 + sigma_tr * dr) *
+            exp(-sigma_tr * dr) / (dr * dr * dr) -
+            zv * (1 + sigma_tr * dv) *
+            exp(-sigma_tr * dv) / (dv * dv * dv))
+
+        # Add contribution from dipole for depth $\depthreal$ to _Ed_
+        E = phiD * cPhi + EDn * cE;
+        kappa = 1.0 - exp(-2.0 * sigmap_t * (dr + zr))
+        Ed += kappa * rhop * rhop * E
+    end
+    return Ed / n_samples
+end
+
+function beam_diffusion_ss(simga_s::Float64, simga_a::Float64, g::Float64, eta::Float64, r::Float64)::Float64
+    # Compute material parameters and minimum $t$ below the critical angle
+    sigma_t = sigma_a + sigma_s
+    rho = sigma_s / sigma_t
+    tCrit = r * sqrt(eta * eta - 1)
+    Ess = 0.0
+    n_samples = 100
+    for i in 0:(n_samples - 1)
+        # Evaluate single scattering integrand and add to _Ess_
+        ti = tCrit - log(1 - (i + 0.5) / nSamples) / sigma_t
+
+        # Determine length $d$ of connecting segment and $\cos\theta_\roman{o}$
+        d = sqrt(r * r + ti * ti)
+        cosThetaO = ti / d
+
+        # Add contribution of single scattering at depth $t$
+        Ess += rho * exp(-sigma_t * (d + tCrit)) / (d * d) * 
+            phase_hg(cosThetaO, g) * (1 - fresnel_dielectric(-cosThetaO, 1.0, eta)) *
+            std::abs(cosThetaO)
+    end
+    return Ess / n_samples
 end
