@@ -692,6 +692,79 @@ function catmull_rom_weights(size::Int64, nodes::Vector{Float64}, x::Float64)::T
     return (true, offset, weights)
 end
 
+function invert_catmull_rom(n::Int64, x::AbstractArray{Float64}, values::AbstractArray{Float64}, u::Float64)::Float64
+    # Stop when _u_ is out of bounds
+    if (!(u > values[0 + 1]))
+        return x[0 + 1]
+    elseif (!(u < values[n - 1 + 1]))
+        return x[n - 1 + 1]
+    end
+
+    # Map _u_ to a spline interval by inverting _values_
+    i = find_inteval(n, z -> values[i + 1] <= u)
+
+    # Look up  x_i and function values of spline segment _i_
+    x0 = x[i + 1]
+    x1 = x[i + 1 + 1]
+    f0 = values[i + 1]
+    f1 = values[i + 1 + 1]
+    width = x1 - x0
+
+    # Approximate derivatives using finite differences
+    if (i > 0)
+        d0 = width * (f1 - values[i - 1 + 1]) / (x1 - x[i - 1 + 1])
+    else
+        d0 = f1 - f0
+    end
+    if (i + 2 < n)
+        d1 = width * (values[i + 2 + 1] - f0) / (x[i + 2 + 1] - x0)
+    else
+        d1 = f1 - f0
+    end
+
+    # Invert the spline interpolant using Newton-Bisection
+    a = 0.0
+    b = 1.0
+    t = 0.5
+    ITER = 0
+    MAX_ITER = 1_000
+    while true
+        ITER += 1
+        (ITER > MAX_ITER) && break
+
+        # Fall back to a bisection step when _t_ is out of bounds
+        if (!((t > a) && (t < b))) 
+            t = 0.5 * (a + b)
+        end
+
+        # Compute powers of _t_
+        t2 = t * t
+        t3 = t2 * t
+
+        # Set _Fhat_ using Equation (8.27)
+        Fhat = (2 * t3 - 3 * t2 + 1) * f0 + (-2 * t3 + 3 * t2) * f1 + (t3 - 2 * t2 + t) * d0 + (t3 - t2) * d1
+
+        # Set _fhat_ using Equation (not present)
+        fhat = (6 * t2 - 6 * t) * f0 + (-6 * t2 + 6 * t) * f1 + (3 * t2 - 4 * t + 1) * d0 + (3 * t2 - 2 * t) * d1
+
+        # Stop the iteration if converged
+        if (abs(Fhat - u) < 1e-6 || b - a < 1e-6) 
+            break
+        end
+
+        # Update bisection bounds using updated _t_
+        if (Fhat - u < 0.0)
+            a = t
+        else
+            b = t
+        end
+
+        # Perform a Newton step
+        t -= (Fhat - u) / fhat
+    end
+    return x0 + t * width
+end
+
 """
 Float CatmullRom(int size, const Float *nodes, const Float *values, Float x) {
     if (!(x >= nodes[0] && x <= nodes[size - 1])) return 0;
@@ -810,65 +883,4 @@ Float IntegrateCatmullRom(int n, const Float *x, const Float *values,
     }
     return sum;
 }
-
-Float InvertCatmullRom(int n, const Float *x, const Float *values, Float u) {
-    // Stop when _u_ is out of bounds
-    if (!(u > values[0]))
-        return x[0];
-    else if (!(u < values[n - 1]))
-        return x[n - 1];
-
-    // Map _u_ to a spline interval by inverting _values_
-    int i = FindInterval(n, [&](int i) { return values[i] <= u; });
-
-    // Look up  x_i and function values of spline segment _i_
-    Float x0 = x[i], x1 = x[i + 1];
-    Float f0 = values[i], f1 = values[i + 1];
-    Float width = x1 - x0;
-
-    // Approximate derivatives using finite differences
-    Float d0, d1;
-    if (i > 0)
-        d0 = width * (f1 - values[i - 1]) / (x1 - x[i - 1]);
-    else
-        d0 = f1 - f0;
-    if (i + 2 < n)
-        d1 = width * (values[i + 2] - f0) / (x[i + 2] - x0);
-    else
-        d1 = f1 - f0;
-
-    // Invert the spline interpolant using Newton-Bisection
-    Float a = 0, b = 1, t = .5f;
-    Float Fhat, fhat;
-    while (true) {
-        // Fall back to a bisection step when _t_ is out of bounds
-        if (!(t > a && t < b)) t = 0.5f * (a + b);
-
-        // Compute powers of _t_
-        Float t2 = t * t, t3 = t2 * t;
-
-        // Set _Fhat_ using Equation (8.27)
-        Fhat = (2 * t3 - 3 * t2 + 1) * f0 + (-2 * t3 + 3 * t2) * f1 +
-               (t3 - 2 * t2 + t) * d0 + (t3 - t2) * d1;
-
-        // Set _fhat_ using Equation (not present)
-        fhat = (6 * t2 - 6 * t) * f0 + (-6 * t2 + 6 * t) * f1 +
-               (3 * t2 - 4 * t + 1) * d0 + (3 * t2 - 2 * t) * d1;
-
-        // Stop the iteration if converged
-        if (std::abs(Fhat - u) < 1e-6f || b - a < 1e-6f) break;
-
-        // Update bisection bounds using updated _t_
-        if (Fhat - u < 0)
-            a = t;
-        else
-            b = t;
-
-        // Perform a Newton step
-        t -= (Fhat - u) / fhat;
-    }
-    return x0 + t * width;
-}
-
-// Fourier Interpolation Definitions
 """

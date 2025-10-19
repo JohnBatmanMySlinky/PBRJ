@@ -16,6 +16,7 @@ using IterTools
 using Printf
 
 abstract type AbstractBSDF end
+abstract type AbstractBSSRDF end
 abstract type AbstractBxDF end
 abstract type AbstractIntegrator end
 abstract type AbstractLightDistribution end
