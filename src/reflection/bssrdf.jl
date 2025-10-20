@@ -34,7 +34,7 @@ struct BSSRDFTable
                 r = radius_samples[j + 1]
                 profile[i * n_radius_samples + j + 1] = 2 * pi * r * (
                     beam_diffusion_ss(rho, 1.0 - rho, g, eta, r) + 
-                    beam_diffusion_ms(rho, 1.0 - rho, g, eta, r1)
+                    beam_diffusion_ms(rho, 1.0 - rho, g, eta, r)
                 )
             end
 
@@ -119,7 +119,7 @@ function beam_diffusion_ms(sigma_s::Float64, sigma_a::Float64, g::Float64, eta::
     return Ed / n_samples
 end
 
-function beam_diffusion_ss(simga_s::Float64, simga_a::Float64, g::Float64, eta::Float64, r::Float64)::Float64
+function beam_diffusion_ss(sigma_s::Float64, sigma_a::Float64, g::Float64, eta::Float64, r::Float64)::Float64
     # Compute material parameters and minimum $t$ below the critical angle
     sigma_t = sigma_a + sigma_s
     rho = sigma_s / sigma_t
@@ -128,7 +128,7 @@ function beam_diffusion_ss(simga_s::Float64, simga_a::Float64, g::Float64, eta::
     n_samples = 100
     for i in 0:(n_samples - 1)
         # Evaluate single scattering integrand and add to _Ess_
-        ti = tCrit - log(1 - (i + 0.5) / nSamples) / sigma_t
+        ti = tCrit - log(1 - (i + 0.5) / n_samples) / sigma_t
 
         # Determine length $d$ of connecting segment and $\cos\theta_\roman{o}$
         d = sqrt(r * r + ti * ti)
@@ -136,8 +136,30 @@ function beam_diffusion_ss(simga_s::Float64, simga_a::Float64, g::Float64, eta::
 
         # Add contribution of single scattering at depth $t$
         Ess += rho * exp(-sigma_t * (d + tCrit)) / (d * d) * 
-            phase_hg(cosThetaO, g) * (1 - fresnel_dielectric(-cosThetaO, 1.0, eta)) *
-            std::abs(cosThetaO)
+            phase_HG(cosThetaO, g) * (1 - fresnel_dielectric(-cosThetaO, 1.0, eta)) *
+            abs(cosThetaO)
     end
     return Ess / n_samples
+end
+
+function fresnel_moment_1(eta::Float64)::Float64
+    if eta < 1.0
+        return 0.45966 - 1.73965 * eta + 3.37668 * eta^2 - 3.904945 * eta^3 +
+               2.49277 * eta^4 - 0.68441 * eta^5
+    else
+        return -4.61686 + 11.1136 * eta - 10.4646 * eta^2 + 5.11455 * eta^3 -
+               1.27198 * eta^4 + 0.12746 * eta^5
+    end
+end
+
+function fresnel_moment_2(eta::Float64)::Float64
+    if eta < 1.0
+        return 0.27614 - 0.87350 * eta + 1.12077 * eta^2 - 0.65095 * eta^3 +
+               0.07883 * eta^4 + 0.04860 * eta^5
+    else
+        
+        return -547.033 + 45.3087 * (1.0 / (r_eta^3)) - 218.725 * (1.0 / (r_eta^2)) +
+               458.843 * (1.0 / r_eta) + 404.557 * eta - 189.519 * eta^2 +
+               54.9327 * eta^3 - 9.00603 * eta^4 + 0.63942 * eta^5
+    end
 end

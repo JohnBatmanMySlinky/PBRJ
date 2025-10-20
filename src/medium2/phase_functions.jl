@@ -7,6 +7,11 @@ function phase_HG(hg::HenyeyGreenstein, cos_theta::Float64)::Float64
     return (1.0 - hg.g^2) / (denom * sqrt(denom) * 4pi)
 end
 
+function phase_HG(cos_theta::Float64, g::Float64)::Float64
+    denom = 1.0 + g^2 + 2.0 * g * cos_theta
+    return (1.0 - g^2) / (denom * sqrt(denom) * 4pi)
+end
+
 function (hg::HenyeyGreenstein)(wo::Vec3, wi::Vec3)::Float64
     return phase_HG(hg, dot(wo, wi))
 end
