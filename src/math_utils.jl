@@ -701,7 +701,7 @@ function invert_catmull_rom(n::Int64, x::AbstractArray{Float64}, values::Abstrac
     end
 
     # Map _u_ to a spline interval by inverting _values_
-    i = find_inteval(n, z -> values[i + 1] <= u)
+    i = find_interval(n, z -> values[z + 1] <= u)
 
     # Look up  x_i and function values of spline segment _i_
     x0 = x[i + 1]
