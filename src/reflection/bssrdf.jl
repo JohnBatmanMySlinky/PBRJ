@@ -41,8 +41,9 @@ struct BSSRDFTable
             rho_eff[i + 1] = integrate_catmull_rom!(
                 n_radius_samples,
                 radius_samples,
-                profile[i * n_radius_samples + 1:end],
-                profile_cdf[i * n_radius_samples + 1:end]
+                profile,
+                profile_cdf,
+                i * n_radius_samples
             )
         end
         return new(n_rho_samples, n_radius_samples, rho_samples, radius_samples, profile, rho_eff, profile_cdf)

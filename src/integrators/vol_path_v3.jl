@@ -82,7 +82,9 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
 
         if !(si.bssrdf isa Nothing) && ((sampled_type & BSDF_TRANSMISSION) != 0)
             # Importance sample the BSSRDF
+            println("beep boop integrating: importance sampling the BSSDRF")
             S, pisect, pdf_val = sample_s(si.bssrdf, scene, get_1D!(sampler), get_2D!(sampler))
+            println("beep boop integrating: we survived sample_s")
             if (is_black(S) || pdf_val == 0) 
                 break
             end

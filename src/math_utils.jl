@@ -765,32 +765,32 @@ function invert_catmull_rom(n::Int64, x::AbstractArray{Float64}, values::Abstrac
     return x0 + t * width
 end
 
-function integrate_catmull_rom!(n::Int64, x::AbstractArray{Float64}, values::AbstractArray{Float64}, cdf::AbstractArray{Float64})::Float64
+function integrate_catmull_rom!(n::Int64, x::AbstractArray{Float64}, values::AbstractArray{Float64}, cdf::AbstractArray{Float64}, offset::Int64=0)::Float64
     SUM = 0.0
-    cdf[0 + 1] = 0.0
+    cdf[offset + 0 + 1] = 0.0
     for i in 0:(n-1-1)
-        # Look up  x_i and function values of spline segment _i_
+        # Look up x_i and function values of spline segment _i_
         x0 = x[i + 1]
         x1 = x[i + 1 + 1]
-        f0 = values[i + 1]
-        f1 = values[i + 1 + 1]
+        f0 = values[offset + i + 1]
+        f1 = values[offset + i + 1 + 1]
         width = x1 - x0
 
         # Approximate derivatives using finite differences
         if (i > 0)
-            d0 = width * (f1 - values[i - 1 + 1]) / (x1 - x[i - 1 + 1])
+            d0 = width * (f1 - values[offset + i - 1 + 1]) / (x1 - x[i - 1 + 1])
         else
             d0 = f1 - f0
         end
         if (i + 2 < n)
-            d1 = width * (values[i + 2 + 1] - f0) / (x[i + 2 + 1] - x0)
+            d1 = width * (values[offset + i + 2 + 1] - f0) / (x[i + 2 + 1] - x0)
         else
             d1 = f1 - f0
         end
 
         # Keep a running sum and build a cumulative distribution function
         SUM += ((d0 - d1) * (1.0 / 12.0) + (f0 + f1) * 0.5) * width
-        cdf[i + 1 + 1] = SUM
+        cdf[offset + i + 1 + 1] = SUM
     end
     return SUM
 end

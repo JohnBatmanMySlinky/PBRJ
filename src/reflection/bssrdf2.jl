@@ -2,6 +2,7 @@
 function sample_s(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2)::Tuple{Spectrum, SurfaceInteraction, Float64}
     si = empty_surface_interation()
     Sp, pdf_val = sample_sp!(bssrdf, scene, u1, u2, si)
+    println("beep boop integrating: we survived sample_sp!")
     if !is_black(Sp)
         # Initialize material model at sampled surface interaction
         si.bsdf = BSDF(si)
@@ -38,6 +39,7 @@ function sample_sp!(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2,
 
     # Sample BSSRDF profile in polar coordinates
     r = sample_sr(bssrdf, ch, u2[0 + 1])
+    println("beep boop integrating: we survived sample_sr x 1")
     if (r < 0.0)
         return spectrum_from_float(0.0), 0.0
     end
@@ -45,6 +47,7 @@ function sample_sp!(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2,
 
     # Compute BSSRDF profile bounds and intersection height
     rMax = sample_sr(bssrdf, ch, 0.999)
+    println("beep boop integrating: we survived sample_sr x 2")
     if (r >= rMax)
         return spectrum_from_float(0.0), 0.0
     end
