@@ -1,16 +1,16 @@
 struct BSSRDFTable
     n_rho_samples::Int64
     n_radius_samples::Int64
-    rho_samples::SVector{100, Float64}
-    radius_samples::SVector{64, Float64}
-    profile::SVector{100 * 64, Float64}
-    rho_eff::SVector{100, Float64}
-    profile_cdf::SVector{100 * 64, Float64}
+    rho_samples::SVector{5, Float64}
+    radius_samples::SVector{2, Float64}
+    profile::SVector{5 * 2, Float64}
+    rho_eff::SVector{5, Float64}
+    profile_cdf::SVector{5 * 2, Float64}
 
     # equivalent to ComputeBeamDiffusionBSSRDF()
     function BSSRDFTable(g::Float64, eta::Float64)
-        n_rho_samples = 100
-        n_radius_samples = 64
+        n_rho_samples = 5
+        n_radius_samples = 2
         rho_samples = zeros(Float64, n_rho_samples)
         radius_samples = zeros(Float64, n_radius_samples)
         profile = zeros(Float64, n_rho_samples * n_radius_samples)
@@ -24,9 +24,20 @@ struct BSSRDFTable
             radius_samples[i + 1] = radius_samples[i - 1 + 1] * 1.2
         end
 
+        for i in 0:(n_radius_samples-1)
+            @info "BSSDRFTABLE::radiusSamples $i = $(radius_samples[i+1])"
+        end
+
         # Choose albedo values of the diffusion profile discretization
         for i in 0:(n_rho_samples - 1)
             rho_samples[i + 1] = (1.0 - exp(-8.0 * i / (n_rho_samples - 1))) / (1.0 - exp(-8.0))
+        end
+
+        for i in 1:n_rho_samples
+            @info "BSSDRFTABLE::rhoSamples $i = $(rho_samples[i])"
+        end
+
+        for i in 0:(n_rho_samples - 1)
             # Compute the diffusion profile for the _i_th albedo sample
             # Compute scattering profile for chosen albedo $\rho$
             for j in 0:(n_radius_samples - 1)
@@ -36,6 +47,9 @@ struct BSSRDFTable
                     beam_diffusion_ss(rho, 1.0 - rho, g, eta, r) + 
                     beam_diffusion_ms(rho, 1.0 - rho, g, eta, r)
                 )
+            @info "BSSDRFTABLE::BeamDiffusionSS ($i, $j) = $(beam_diffusion_ss(rho, 1.0 - rho, g, eta, r))"
+            @info "BSSDRFTABLE::BeamDiffusionMS ($i, $j) = $(beam_diffusion_ms(rho, 1.0 - rho, g, eta, r))"
+            @info "BSSDRFTABLE::profile ($i, $j) = $(profile[i * n_radius_samples + j + 1])"
             end
 
             rho_eff[i + 1] = integrate_catmull_rom!(
@@ -45,6 +59,7 @@ struct BSSRDFTable
                 profile_cdf,
                 i * n_radius_samples
             )
+            @info "BSSDRFTABLE::rhoEff $i = $(rho_eff[i + 1])"
         end
         return new(n_rho_samples, n_radius_samples, rho_samples, radius_samples, profile, rho_eff, profile_cdf)
     end
@@ -88,7 +103,7 @@ function beam_diffusion_ms(sigma_s::Float64, sigma_a::Float64, g::Float64, eta::
 
     # Determine linear extrapolation distance $\depthextrapolation$ using Equation (15.28)
     fm1 = fresnel_moment_1(eta)
-    fm2 = fresnel_moment_1(eta)
+    fm2 = fresnel_moment_2(eta)
     ze = -2.0 * D_g * (1.0 + 3.0 * fm2) / (1.0 - 2.0 * fm1);
 
     # Determine exitance scale factors using Equations (15.31) and (15.32)
@@ -158,9 +173,9 @@ function fresnel_moment_2(eta::Float64)::Float64
         return 0.27614 - 0.87350 * eta + 1.12077 * eta^2 - 0.65095 * eta^3 +
                0.07883 * eta^4 + 0.04860 * eta^5
     else
-        
-        return -547.033 + 45.3087 * (1.0 / (r_eta^3)) - 218.725 * (1.0 / (r_eta^2)) +
-               458.843 * (1.0 / r_eta) + 404.557 * eta - 189.519 * eta^2 +
+        r_eta = 1.0 / eta
+        return -547.033 + 45.3087 * (r_eta ^ 3) - 218.725 * (r_eta^2) +
+               458.843 * r_eta + 404.557 * eta - 189.519 * eta^2 +
                54.9327 * eta^3 - 9.00603 * eta^4 + 0.63942 * eta^5
     end
 end

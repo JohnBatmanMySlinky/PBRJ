@@ -48,6 +48,8 @@ struct KdSubSurface{
 end
 
 struct SeperableBSSRDF
+    po::SurfaceInteraction
+    eta::Float64
     ns::Nml3
     ss::Vec3
     ts::Vec3
@@ -58,7 +60,7 @@ struct SeperableBSSRDF
         ns = po.shading.n
         ss = normalize(po.shading.dpdu)
         ts = cross(ns, ss)
-        return new(ns, ss, ts, material, mode)
+        return new(po, material.eta, ns, ss, ts, material, mode)
     end
 end
 
