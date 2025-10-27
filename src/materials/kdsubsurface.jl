@@ -53,14 +53,14 @@ struct SeperableBSSRDF
     ns::Nml3
     ss::Vec3
     ts::Vec3
-    material::Material
+    material_name::String
     mode::Type{T} where T <: TransportMode
 
     function SeperableBSSRDF(po::SurfaceInteraction, material::Material, mode::Type{T}) where T <: TransportMode
         ns = po.shading.n
         ss = normalize(po.shading.dpdu)
         ts = cross(ns, ss)
-        return new(po, material.eta, ns, ss, ts, material, mode)
+        return new(po, material.eta, ns, ss, ts, material.name, mode)
     end
 end
 

@@ -66,6 +66,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
     
     while true
         ray = spawn_ray_to(base, p_target)
+        @info "beep boop integratint::booping around $ray"
         
         if ray.direction == Vec3(0, 0, 0)
             break
@@ -76,11 +77,12 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
             break
         end
         
-        base = Interaction(si_tmp.p, si_tmp.time)
+        base = Interaction(si_tmp.core.p, si_tmp.core.t)
         @info "beep boop integratint::booping around $base"
         
         # Only store admissible intersections
-        if get_material(si_tmp.primitive) === bssrdf.material
+        if si_tmp.primitive.material === bssrdf.seperable_bssrdf.material_name
+            @info "PUSHHHHHH"
             push!(intersections, si_tmp)
         end
     end
@@ -95,57 +97,157 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
 
     # Compute sample PDF and return the spatial BSSRDF term Sp
     pdf_val = pdf_sp(bssrdf, selected_si) / nfound
-    sp = sp(bssrdf, selected_si)
+    @info "beep boop integratint::pdf_val $pdf_val"
+    sp = Sp(bssrdf, selected_si)
     return (sp, selected_si, pdf_val)
 end
 
-    # Intersect BSSRDF sampling ray against the scene geometry
-    # // Declare _IntersectionChain_ and linked list
-    # struct IntersectionChain {
-    #     SurfaceInteraction si;
-    #     IntersectionChain *next = nullptr;
-    # };
-    # IntersectionChain *chain = ARENA_ALLOC(arena, IntersectionChain)();
+function Sr(bssrdf::AbstractBSSRDF, r::Float64)::Spectrum
+    Sr_val = MVector{nSpectralSamples, Float64}(undef)
+    for ch in 0:(nSpectralSamples - 1)
+        # Convert $r$ into unitless optical radius $r_{\roman{optical}}$
+        rOptical = r * bssrdf.sigma_t[ch + 1]
 
-    # // Accumulate chain of intersections along ray
-    # IntersectionChain *ptr = chain;
-    # int nFound = 0;
-    # while (true) {
-    #     Ray r = base.SpawnRayTo(pTarget);
-    #     if (r.d == Vector3f(0, 0, 0) || !scene.Intersect(r, &ptr->si))
-    #         break;
+        # Compute spline weights to interpolate BSSRDF on channel _ch_
+        table = get_material(bssrdf.seperable_bssrdf.material_name).table
 
-    #     base = ptr->si;
-    #     // Append admissible intersection to _IntersectionChain_
-    #     if (ptr->si.primitive->GetMaterial() == this->material) {
-    #         IntersectionChain *next = ARENA_ALLOC(arena, IntersectionChain)();
-    #         ptr->next = next;
-    #         ptr = next;
-    #         nFound++;
-    #     }
-    # }
+        # Compute spline weights to interpolate BSSRDF density on channel _ch_
+        rho_check, rho_offset, rho_weights = catmull_rom_weights(
+            table.n_rho_samples, 
+            table.rho_samples,
+            bssrdf.rho[ch + 1]    
+        )
+        if !rho_check
+            continue
+        end
+        radius_check, radius_offset, radius_weights = catmull_rom_weights(
+            table.n_radius_samples, 
+            table.radius_samples,
+            rOptical  
+        )  
+        if !radius_check
+            continue
+        end  
 
-    # // Randomly choose one of several intersections during BSSRDF sampling
-    # if (nFound == 0) return Spectrum(0.0f);
-    # int selected = Clamp((int)(u1 * nFound), 0, nFound - 1);
-    # while (selected-- > 0) chain = chain->next;
-    # *pi = chain->si;
+        # Set BSSRDF value _Sr[ch]_ using tensor spline interpolation
+        sr = 0.0
+        for i in 0:3
+            for j in 0:3
+                weight = rho_weights[i + 1] * radius_weights[j + 1]
+                if (weight != 0.0)
+                    sr += weight * eval_profile(table, rho_offset + i, radius_offset + j)
+                end
+            end
+        end
 
-    # // Compute sample PDF and return the spatial BSSRDF term $\Sp$
-    # *pdf = this->Pdf_Sp(*pi) / nFound;
-    # return this->Sp(*pi);
+        # Cancel marginal PDF factor from tabulated BSSRDF profile
+        if (rOptical != 0.0) 
+            sr /= 2 * pi * rOptical
+        end
+        Sr_val[ch + 1] = sr
+    end
+
+    # Transform BSSRDF value into world space units
+    Sr_val .*= bssrdf.sigma_t .* bssrdf.sigma_t
+    return clamp.(Sr_val, 0.0, 1.0)
+end
+
+function Sp(bssrdf::AbstractBSSRDF, p_i::SurfaceInteraction)::Spectrum
+    return Sr(bssrdf, distance(bssrdf.seperable_bssrdf.po.core.p, p_i.core.p))
+end
+
+function pdf_sr(bssrdf::AbstractBSSRDF, ch::Int64, r::Float64)::Float64
+    # Convert $r$ into unitless optical radius $r_{\roman{optical}}$
+    rOptical = r * bssrdf.sigma_t[ch + 1]
+
+    table = get_material(bssrdf.seperable_bssrdf.material_name).table
+
+    # Compute spline weights to interpolate BSSRDF density on channel _ch_
+    rho_check, rho_offset, rho_weights = catmull_rom_weights(
+        table.n_rho_samples, 
+        table.rho_samples,
+        bssrdf.rho[ch + 1]    
+    )
+    if !rho_check
+        return 0.0
+    end
+    radius_check, radius_offset, radius_weights = catmull_rom_weights(
+        table.n_radius_samples, 
+        table.radius_samples,
+        rOptical  
+    )  
+    if !radius_check
+        return 0.0
+    end  
+
+    # Return BSSRDF profile density for channel _ch_
+    sr = 0.0
+    rhoEff = 0.0
+    for i in 0:3
+        if (rho_weights[i + 1] == 0.0) 
+            continue
+        end
+        rhoEff += table.rho_eff[rho_offset + i + 1] * rho_weights[i + 1]
+        for j in 0:3
+            if radius_weights[j + 1] == 0.0
+                continue
+            end
+            sr += eval_profile(table, rho_offset + i, radius_offset + j) * rho_weights[i + 1] * radius_weights[j + 1]
+        end
+    end
+
+    # Cancel marginal PDF factor from tabulated BSSRDF profile
+    if (rOptical != 0.0) 
+        sr /= 2 * pi * rOptical
+    end
+    return max(0.0, sr * bssrdf.sigma_t[ch + 1] * bssrdf.sigma_t[ch + 1] / rhoEff)
+end
+
+function pdf_sp(bssrdf::AbstractBSSRDF, p_i::SurfaceInteraction)::Float64
+    # Express $\pti-\pto$ and $\bold{n}_i$ with respect to local coordinates at $\pto$
+    d = bssrdf.seperable_bssrdf.po.core.p - p_i.core.p
+    dLocal = Vec3(
+        dot(bssrdf.seperable_bssrdf.ss, d), 
+        dot(bssrdf.seperable_bssrdf.ts, d), 
+        dot(bssrdf.seperable_bssrdf.ns, d)
+    )
+    nLocal = Nml3(
+        dot(bssrdf.seperable_bssrdf.ss, p_i.core.n), 
+        dot(bssrdf.seperable_bssrdf.ts, p_i.core.n), 
+        dot(bssrdf.seperable_bssrdf.ns, p_i.core.n)
+    )
+
+    # Compute BSSRDF profile radius under projection along each axis
+    rProj = SVector(
+        sqrt(dLocal.y * dLocal.y + dLocal.z * dLocal.z),
+        sqrt(dLocal.z * dLocal.z + dLocal.x * dLocal.x),
+        sqrt(dLocal.x * dLocal.x + dLocal.y * dLocal.y)
+    )
+
+    # Return combined probability from all BSSRDF sampling strategies
+    pdf_val = 0.0 
+    axisProb = SVector(0.25, 0.25, 0.5)
+    chProb = 1.0 / nSpectralSamples
+    for axis in 0:2
+        for ch in 0:(nSpectralSamples - 1)
+            pdf_val += pdf_sr(bssrdf, ch, rProj[axis + 1] * abs(nLocal[axis + 1])) * chProb * axisProb[axis + 1]
+        end
+    end
+    return pdf_val
+end
 
 function sample_sr(bssrdf::AbstractBSSRDF, ch::Int64, u::Float64)::Float64
     if bssrdf.sigma_t[ch + 1] == 0
         return -1.0
     end
+    mat = get_material(bssrdf.seperable_bssrdf.material_name)
     f_val, _, _ = sample_catmull_rom_2D(
-        bssrdf.seperable_bssrdf.material.table.n_rho_samples,
-        bssrdf.seperable_bssrdf.material.table.n_radius_samples,
-        bssrdf.seperable_bssrdf.material.table.rho_samples,
-        bssrdf.seperable_bssrdf.material.table.radius_samples,
-        bssrdf.seperable_bssrdf.material.table.profile,
-        bssrdf.seperable_bssrdf.material.table.profile_cdf,
+        mat.table.n_rho_samples,
+        mat.table.n_radius_samples,
+        mat.table.rho_samples,
+        mat.table.radius_samples,
+        mat.table.profile,
+        mat.table.profile_cdf,
         bssrdf.rho[ch + 1], 
         u
     )

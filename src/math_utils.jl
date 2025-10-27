@@ -636,7 +636,7 @@ function catmull_rom_weights(size::Int64, nodes::AbstractArray{Float64}, x::Floa
     # Return _false_ if _x_ is out of bounds
     @info "FourierBSDF::CatmullRomWeights"
     if !((x >= nodes[0+1]) && (x <= nodes[size - 1 + 1]))
-        return (false, 0, 0.0)
+        return (false, 0, Float64[0.0])
     end
 
     # Search for the interval _idx_ containing _x_
