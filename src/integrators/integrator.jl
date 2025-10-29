@@ -34,7 +34,8 @@ function render(
         
         x, y = k % width, k ÷ width
         tile = Pnt2(x, y)
-        sampler = deepcopy(i.sampler)
+        seed = Int64(tile.y * width + tile.x)
+        sampler = clone(i.sampler, seed)
 
         tb_min = sample_bounds.pMin .+ tile .* tile_size
         tb_max = min.(tb_min .+ (tile_size - 1), sample_bounds.pMax)
