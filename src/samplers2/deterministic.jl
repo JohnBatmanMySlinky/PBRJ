@@ -33,9 +33,13 @@ function get_1D!(sampler::DeterministicSampler)::Float64
 end
 
 function get_2D!(sampler::DeterministicSampler)::Pnt2
-    return Pnt2(get_float(sampler), get_float(sampler))
+    why = get_float(sampler)
+    god = get_float(sampler)
+    return Pnt2(god, why)
 end
 
 function get_pixel_2D!(sampler::DeterministicSampler)::Pnt2
-    return Pnt2(get_float(sampler), get_float(sampler))
+    why = get_float(sampler)
+    god = get_float(sampler)
+    return Pnt2(god, why)
 end

@@ -47,6 +47,7 @@ function render(
                 start_pixel_sample!(sampler, pixel, sample_index-1)
 
                 camera_sample = get_camera_sample!(sampler, pixel)
+                @info "camera_sample: $camera_sample"
                 ray, w = generate_ray_differential(i.camera, camera_sample)
                 scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
                 L = spectrum_from_float(0.0)

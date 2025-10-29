@@ -66,7 +66,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
     
     while true
         ray = spawn_ray_to(base, p_target)
-        @info "beep boop integratint::booping around $ray"
+        @info "beep boop integrating::booping around $ray"
         
         if ray.direction == Vec3(0, 0, 0)
             break
@@ -78,7 +78,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
         end
         
         base = Interaction(si_tmp.core.p, si_tmp.core.t)
-        @info "beep boop integratint::booping around $base"
+        @info "beep boop integrating::booping around $base"
         
         # Only store admissible intersections
         if si_tmp.primitive.material === bssrdf.seperable_bssrdf.material_name

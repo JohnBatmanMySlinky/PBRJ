@@ -528,14 +528,14 @@ function sample_catmull_rom_2D(
     values::AbstractArray{Float64}, cdf::AbstractArray{Float64},
     alpha::Float64, u::Float64,
 )::Tuple{Float64, Float64, Float64}
-    @info "FourierBSDF::SampleCatmullRom2D"
+    # @info "FourierBSDF::SampleCatmullRom2D"
     # Determine offset and coefficients for the _alpha_ parameter
     check, offset, weights = catmull_rom_weights(size1, nodes1, alpha)
     if !check
         return 0.0, 0.0, 0.0
     end
-    @info "FourierBSDF::SampleCatmullRom2D: offset = $offset"
-    @info "FourierBSDF::SampleCatmullRom2D: weights = $weights"
+    # @info "FourierBSDF::SampleCatmullRom2D: offset = $offset"
+    # @info "FourierBSDF::SampleCatmullRom2D: weights = $weights"
 
     # Define a lambda function to interpolate table entries
     function interpolate(array::AbstractArray{Float64}, idx::Int64)::Float64
@@ -550,12 +550,12 @@ function sample_catmull_rom_2D(
 
     # Map _u_ to a spline interval by inverting the interpolated _cdf_
     max_val = interpolate(cdf, size2 - 1)
-    @info "FourierBSDF::SampleCatmullRom2D: max_val = $max_val"
+    # @info "FourierBSDF::SampleCatmullRom2D: max_val = $max_val"
     u_scaled = u * max_val
-    @info "FourierBSDF::SampleCatmullRom2D: u = $u"
-    @info "FourierBSDF::SampleCatmullRom2D: u_scaled = $u_scaled"
+    # @info "FourierBSDF::SampleCatmullRom2D: u = $u"
+    # @info "FourierBSDF::SampleCatmullRom2D: u_scaled = $u_scaled"
     idx = find_interval(size2, z -> interpolate(cdf, z) <= u_scaled)
-    @info "FourierBSDF::SampleCatmullRom2D: idx = $idx"
+    # @info "FourierBSDF::SampleCatmullRom2D: idx = $idx"
 
     # Look up node positions and interpolated function values
     f0 = interpolate(values, idx)
@@ -634,35 +634,35 @@ end
 function catmull_rom_weights(size::Int64, nodes::AbstractArray{Float64}, x::Float64)::Tuple{Bool, Int64, Vector{Float64}}
     weights = zeros(Float64, 4)
     # Return _false_ if _x_ is out of bounds
-    @info "FourierBSDF::CatmullRomWeights"
+    # @info "FourierBSDF::CatmullRomWeights"
     if !((x >= nodes[0+1]) && (x <= nodes[size - 1 + 1]))
         return (false, 0, Float64[0.0])
     end
 
     # Search for the interval _idx_ containing _x_
     idx = find_interval(size, v -> nodes[v] <= x) - 1
-    @info "FourierBSDF::CatmullRomWeights size $size"
-    @info "FourierBSDF::CatmullRomWeights x $x"
-    @info "FourierBSDF::CatmullRomWeights idx $idx"
+    # @info "FourierBSDF::CatmullRomWeights size $size"
+    # @info "FourierBSDF::CatmullRomWeights x $x"
+    # @info "FourierBSDF::CatmullRomWeights idx $idx"
 
     offset = idx - 1
     x0 = nodes[idx + 1]
     x1 = nodes[idx + 1 + 1]
-    @info "FourierBSDF::CatmullRomWeights x0 $x0"
-    @info "FourierBSDF::CatmullRomWeights x1 $x1"
+    # @info "FourierBSDF::CatmullRomWeights x0 $x0"
+    # @info "FourierBSDF::CatmullRomWeights x1 $x1"
 
     # Compute the  t parameter and powers
     t = (x - x0) / (x1 - x0)
     t2 = t * t
     t3 = t2 * t
-    @info "FourierBSDF::CatmullRomWeights t $t"
-    @info "FourierBSDF::CatmullRomWeights t2 $t2"
-    @info "FourierBSDF::CatmullRomWeights t3 $t3"
+    # @info "FourierBSDF::CatmullRomWeights t $t"
+    # @info "FourierBSDF::CatmullRomWeights t2 $t2"
+    # @info "FourierBSDF::CatmullRomWeights t3 $t3"
 
     # Compute initial node weights  w_1 and  w_2
     weights[1 + 1] = 2 * t3 - 3 * t2 + 1
     weights[2 + 1] = -2 * t3 + 3 * t2
-    @info "FourierBSDF::CatmullRomWeights weights $weights"
+    # @info "FourierBSDF::CatmullRomWeights weights $weights"
 
     # Compute first node weight  w_0
     if (idx > 0)
@@ -675,7 +675,7 @@ function catmull_rom_weights(size::Int64, nodes::AbstractArray{Float64}, x::Floa
         weights[1 + 1] -= w0
         weights[2 + 1] += w0
     end
-    @info "FourierBSDF::CatmullRomWeights weights $weights"
+    # @info "FourierBSDF::CatmullRomWeights weights $weights"
 
     # Compute last node weight  w_3
     if (idx + 2 < size)
@@ -688,7 +688,7 @@ function catmull_rom_weights(size::Int64, nodes::AbstractArray{Float64}, x::Floa
         weights[2 + 1] += w3
         weights[3 + 1] = 0.0
     end
-    @info "FourierBSDF::CatmullRomWeights weights $weights"
+    # @info "FourierBSDF::CatmullRomWeights weights $weights"
     return (true, offset, weights)
 end
 
