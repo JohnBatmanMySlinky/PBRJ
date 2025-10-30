@@ -12,6 +12,7 @@ function sample_s(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2)::
 end
 
 function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, si::SurfaceInteraction)::Tuple{Spectrum, SurfaceInteraction, Float64}
+    @info "why: $u1, god: $u2"
     # Choose projection axis for BSSRDF sampling
     if (u1 < 0.5)
         vx = bssrdf.seperable_bssrdf.ss
@@ -38,7 +39,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
 
     # Sample BSSRDF profile in polar coordinates
     r = sample_sr(bssrdf, ch, u2[0 + 1])
-    @info "beep boop integrating::sample_sr:: $r"
+    @info "beep boop integrating::sample_sr:: $r - $ch - $(u2[0 + 1])"
     if (r < 0.0)
         return spectrum_from_float(0.0), si, 0.0
     end

@@ -35,11 +35,11 @@ end
 function get_2D!(sampler::DeterministicSampler)::Pnt2
     why = get_float(sampler)
     god = get_float(sampler)
-    return Pnt2(god, why)
+    return Pnt2(why, god)
 end
 
 function get_pixel_2D!(sampler::DeterministicSampler)::Pnt2
     why = get_float(sampler)
     god = get_float(sampler)
-    return Pnt2(god, why)
+    return Pnt2(why, god)
 end
