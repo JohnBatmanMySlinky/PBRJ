@@ -1,16 +1,16 @@
 struct BSSRDFTable
     n_rho_samples::Int64
     n_radius_samples::Int64
-    rho_samples::SVector{7, Float64}
-    radius_samples::SVector{3, Float64}
-    profile::SVector{7 * 3, Float64}
-    rho_eff::SVector{7, Float64}
-    profile_cdf::SVector{7 * 3, Float64}
+    rho_samples::SVector{100, Float64}
+    radius_samples::SVector{64, Float64}
+    profile::SVector{100 * 64, Float64}
+    rho_eff::SVector{100, Float64}
+    profile_cdf::SVector{100 * 64, Float64}
 
     # equivalent to ComputeBeamDiffusionBSSRDF()
     function BSSRDFTable(g::Float64, eta::Float64)
-        n_rho_samples = 7
-        n_radius_samples = 3
+        n_rho_samples = 100
+        n_radius_samples = 64
         rho_samples = zeros(Float64, n_rho_samples)
         radius_samples = zeros(Float64, n_radius_samples)
         profile = zeros(Float64, n_rho_samples * n_radius_samples)
