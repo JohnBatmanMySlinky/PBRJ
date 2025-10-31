@@ -93,11 +93,11 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
 
             # Account for the attenuated direct subsurface scattering component
             # JOHN HACK ON THE MEDIA = false
-            L += beta * uniform_sample_one_light(
+            LL += beta * uniform_sample_one_light(
                 pisect, 
                 scene, 
                 sampler, 
-                lookup(light_distribution_generator, pisec.core.p), 
+                lookup(light_distribution_generator, pisect.core.p), 
                 false
             )
 

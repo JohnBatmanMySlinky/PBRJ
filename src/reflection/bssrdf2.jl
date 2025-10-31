@@ -1,3 +1,13 @@
+struct SeperableBSSRDFAdapter <: AbstractBxDF
+	type::UInt8
+	bssrdf::AbstractBSSRDF
+
+    function SeperableBSSRDFAdapter(bssrdf::AbstractBSSRDF)
+		bxdf = BSDF_GLOSSY | BSDF_REFLECTION | BSDF_TRANSMISSION
+        return new(BSDF_REFLECTION | BSDF_DIFFUSE, bssrdf)
+    end
+end
+
 # new file because 'Scene' dependency >:(
 function sample_s(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2)::Tuple{Spectrum, SurfaceInteraction, Float64}
     si = empty_surface_interation()
