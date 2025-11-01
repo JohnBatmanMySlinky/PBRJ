@@ -102,13 +102,13 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
             )
 
             # Account for the indirect subsurface scattering component
-            wi, f, pdf_val, sampled_type = sample_f(si.bsdf, pisect.wo, get_2D!(sampler), BSDF_ALL)
+            wi, f, pdf_val, sampled_type = sample_f(pisect.bsdf, pisect.core.wo, get_2D!(sampler), BSDF_ALL)
             if (is_black(f) || pdf_val == 0) 
                 break
             end
             beta *= f * abs(dot(wi, pisect.shading.n)) / pdf_val
-            specular_bounce = (flags & BSDF_SPECULAR) != 0
-            ray = spawn_ray(pisect, wi)
+            specular_bounce = (sampled_type & BSDF_SPECULAR) != 0
+            ray = spawn_ray(pisect.core, wi)
         end
 
         # Possibly terminate the path with Russian roulette.

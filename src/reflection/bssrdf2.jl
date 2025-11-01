@@ -8,6 +8,21 @@ struct SeperableBSSRDFAdapter <: AbstractBxDF
     end
 end
 
+function f(adapter::SeperableBSSRDFAdapter, wo::Vec3, wi::Vec3)::Spectrum
+    f_val = Sw(adapter.bssrdf, wi)
+    # Update BSSRDF transmission term to account for adjoint light transport
+    if adapter.bssrdf.seperable_bssrdf.mode == Radiance
+        f_val *= adapter.bssrdf.seperable_bssrdf.eta ^ 2
+    end
+    return f_val
+end
+
+function Sw(bssrdf::AbstractBSSRDF, w::Vec3)::Spectrum
+    c = 1.0 - 2.0 * fresnel_moment_1(1.0 / bssrdf.seperable_bssrdf.eta)
+    x = (1.0 - fresnel_dielectric(cos_theta(w), 1.0, bssrdf.seperable_bssrdf.eta)) / (c * pi)
+    return spectrum_from_float(x)
+end
+
 # new file because 'Scene' dependency >:(
 function sample_s(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2)::Tuple{Spectrum, SurfaceInteraction, Float64}
     si = empty_surface_interation()
@@ -104,12 +119,13 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
     
     selected_idx = clamp(floor(Int, u1 * nfound), 0, nfound - 1) + 1
     selected_si = intersections[selected_idx]
-    @info "beep boop integratint::selected_si $selected_si"
+    @info "beep boop integrating::selected_si $selected_si"
 
     # Compute sample PDF and return the spatial BSSRDF term Sp
     pdf_val = pdf_sp(bssrdf, selected_si) / nfound
-    @info "beep boop integratint::pdf_val $pdf_val"
+    @info "beep boop integrating::pdf_val $pdf_val"
     sp = Sp(bssrdf, selected_si)
+    @info "beep boop integrating::sp $sp"
     return (sp, selected_si, pdf_val)
 end
 
@@ -160,7 +176,7 @@ function Sr(bssrdf::AbstractBSSRDF, r::Float64)::Spectrum
 
     # Transform BSSRDF value into world space units
     Sr_val .*= bssrdf.sigma_t .* bssrdf.sigma_t
-    return clamp.(Sr_val, 0.0, 1.0)
+    return Sr_val
 end
 
 function Sp(bssrdf::AbstractBSSRDF, p_i::SurfaceInteraction)::Spectrum
@@ -190,6 +206,10 @@ function pdf_sr(bssrdf::AbstractBSSRDF, ch::Int64, r::Float64)::Float64
     if !radius_check
         return 0.0
     end  
+    @info "beeb boop integrating::pdf_sr $r - $(bssrdf.sigma_t) - $ch - $rOptical"
+    @info "beeb boop integrating::pdf_sr $rho_offset $radius_offset"
+    @info "beeb boop integrating::pdf_sr $rho_weights" 
+    @info "beeb boop integrating::pdf_sr $radius_weights"
 
     # Return BSSRDF profile density for channel _ch_
     sr = 0.0
@@ -235,13 +255,18 @@ function pdf_sp(bssrdf::AbstractBSSRDF, p_i::SurfaceInteraction)::Float64
         sqrt(dLocal.x * dLocal.x + dLocal.y * dLocal.y)
     )
 
+    @info "beep boop integrating:: $dLocal"
+    @info "beep boop integrating:: $nLocal"
+    @info "beep boop integrating:: $rProj"
+
     # Return combined probability from all BSSRDF sampling strategies
     pdf_val = 0.0 
     axisProb = SVector(0.25, 0.25, 0.5)
     chProb = 1.0 / nSpectralSamples
     for axis in 0:2
         for ch in 0:(nSpectralSamples - 1)
-            pdf_val += pdf_sr(bssrdf, ch, rProj[axis + 1] * abs(nLocal[axis + 1])) * chProb * axisProb[axis + 1]
+            @info "beep boop integrating:: $axis - $ch - $(pdf_sr(bssrdf, ch, rProj[axis + 1]))"
+            pdf_val += pdf_sr(bssrdf, ch, rProj[axis + 1]) * abs(nLocal[axis + 1]) * chProb * axisProb[axis + 1]
         end
     end
     return pdf_val

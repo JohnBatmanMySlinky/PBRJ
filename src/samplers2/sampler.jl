@@ -33,6 +33,8 @@ function SamplerFactory(args::Dict)::AbstractSampler
                 spp,
                 jitter
             )
+        elseif type == "deterministic"
+            return DeterministicSampler(spp)
         else
             @assert false
         end

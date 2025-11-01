@@ -186,22 +186,22 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     else
         uv = (Pnt2(0, 0), Pnt2(1, 0), Pnt2(1, 1))
     end
-    @info "Triangle: p=$p0, $p1, $p2"
-    @info "Triangle: UVS=$uv"
+    # @info "Triangle: p=$p0, $p1, $p2"
+    # @info "Triangle: UVS=$uv"
     duv02 = uv[0+1] - uv[2+1]
     duv12 = uv[1+1] - uv[2+1]
     dp02 = p0 - p2
     dp12 = p1 - p2
-    @info "Triangle: duv02=$duv02, duv12=$duv12"
-    @info "Triangle: dp02=$dp02, dp12=$dp12"
+    # @info "Triangle: duv02=$duv02, duv12=$duv12"
+    # @info "Triangle: dp02=$dp02, dp12=$dp12"
     determinate = duv02[0+1] * duv12[1+1] - duv02[1+1] * duv12[0+1]
-    @info "Triangle: det=$determinate"
+    # @info "Triangle: det=$determinate"
     degenerateUV = abs(determinate) < 1e-8
     if !degenerateUV
         inv_det = 1.0/determinate
         dpdu = Vec3(( duv12[1+1] * dp02 - duv02[1+1] * dp12) * inv_det)
         dpdv = Vec3((-duv12[0+1] * dp02 + duv02[0+1] * dp12) * inv_det)
-        @info "Triangle: dpdu=$dpdu, dpdv=$dpdv"
+        # @info "Triangle: dpdu=$dpdu, dpdv=$dpdv"
     end
     if degenerateUV || norm(cross(dpdu, dpdv))^2==0
         # Handle zero determinant for triangle partial derivative matrix
@@ -213,7 +213,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         dpdu = Vec3(dpu)
         dpdv = Vec3(dpv)
     end
-    @info "Triangle: dpdu=$dpdu, dpdv=$dpdv"
+    # @info "Triangle: dpdu=$dpdu, dpdv=$dpdv"
     # @info "\t\tTriangle: dpdu=$(dpdu), dpdv=$(dpdv)"
 
     # interpolate uv coords and hit point
