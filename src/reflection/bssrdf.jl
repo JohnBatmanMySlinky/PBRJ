@@ -24,18 +24,18 @@ struct BSSRDFTable
             radius_samples[i + 1] = radius_samples[i - 1 + 1] * 1.2
         end
 
-        for i in 0:(n_radius_samples-1)
-            @info "BSSDRFTABLE::radiusSamples $i = $(radius_samples[i+1])"
-        end
+        # for i in 0:(n_radius_samples-1)
+        #     @info "BSSDRFTABLE::radiusSamples $i = $(radius_samples[i+1])"
+        # end
 
         # Choose albedo values of the diffusion profile discretization
         for i in 0:(n_rho_samples - 1)
             rho_samples[i + 1] = (1.0 - exp(-8.0 * i / (n_rho_samples - 1))) / (1.0 - exp(-8.0))
         end
 
-        for i in 1:n_rho_samples
-            @info "BSSDRFTABLE::rhoSamples $i = $(rho_samples[i])"
-        end
+        # for i in 1:n_rho_samples
+        #     @info "BSSDRFTABLE::rhoSamples $i = $(rho_samples[i])"
+        # end
 
         for i in 0:(n_rho_samples - 1)
             # Compute the diffusion profile for the _i_th albedo sample
@@ -47,9 +47,9 @@ struct BSSRDFTable
                     beam_diffusion_ss(rho, 1.0 - rho, g, eta, r) + 
                     beam_diffusion_ms(rho, 1.0 - rho, g, eta, r)
                 )
-            @info "BSSDRFTABLE::BeamDiffusionSS ($i, $j) = $(beam_diffusion_ss(rho, 1.0 - rho, g, eta, r))"
-            @info "BSSDRFTABLE::BeamDiffusionMS ($i, $j) = $(beam_diffusion_ms(rho, 1.0 - rho, g, eta, r))"
-            @info "BSSDRFTABLE::profile ($i, $j) = $(profile[i * n_radius_samples + j + 1])"
+            # @info "BSSDRFTABLE::BeamDiffusionSS ($i, $j) = $(beam_diffusion_ss(rho, 1.0 - rho, g, eta, r))"
+            # @info "BSSDRFTABLE::BeamDiffusionMS ($i, $j) = $(beam_diffusion_ms(rho, 1.0 - rho, g, eta, r))"
+            # @info "BSSDRFTABLE::profile ($i, $j) = $(profile[i * n_radius_samples + j + 1])"
             end
 
             rho_eff[i + 1] = integrate_catmull_rom!(
@@ -59,7 +59,7 @@ struct BSSRDFTable
                 profile_cdf,
                 i * n_radius_samples
             )
-            @info "BSSDRFTABLE::rhoEff $i = $(rho_eff[i + 1])"
+            # @info "BSSDRFTABLE::rhoEff $i = $(rho_eff[i + 1])"
         end
         return new(n_rho_samples, n_radius_samples, rho_samples, radius_samples, profile, rho_eff, profile_cdf)
     end

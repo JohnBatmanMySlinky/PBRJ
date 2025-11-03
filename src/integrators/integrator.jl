@@ -65,18 +65,19 @@ function render(
                 start_pixel_sample!(sampler, pixel, sample_index-1)
 
                 camera_sample = get_camera_sample!(sampler, pixel)
-                @info "camera_sample: $camera_sample"
+                # @info "camera_sample: $camera_sample"
                 ray, w = generate_ray_differential(i.camera, camera_sample)
                 scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
                 L = spectrum_from_float(0.0)
 
-                if w > 0
-                    L = li(i, ray, scene, 0, sampler)
-                end
+                # if w > 0
+                #     L = li(i, ray, scene, 0, sampler)
+                # end
 
-                if any(isnan.(L))
-                    L = spectrum_from_float(0.0)
-                end
+                # if any(isnan.(L))
+                #     L = spectrum_from_float(0.0)
+                # end
+                L = spectrum_from_float((Float64(pixel.x) * Float64(pixel.y))/(640.0 * 360.0))
                 
                 @info "FIN: Added sample $L @ $pixel"
                 add_sample!(film_tile, camera_sample.film, L, 1.0)
@@ -125,14 +126,14 @@ function estimate_direct(
     
     # sample light source with multiple importance sampling
     Li, wi, light_pdf, vis, _, _  = sample_li(light, isect.core, u_light)
-    @info "EstimateDirect uLight: $u_light -> Li: $Li, wi: $wi, pdf: $light_pdf"
+    # @info "EstimateDirect uLight: $u_light -> Li: $Li, wi: $wi, pdf: $light_pdf"
     if (light_pdf > 0.0) && (!is_black(Li))
         # compute BSDF or phase functions value for light sample
         # TODO: not checking for phase function, assuming is surface interaction
         if is_surface_interaction(isect)
             f = isect.bsdf(isect.core.wo, wi, bsdf_flags) * abs(dot(wi, isect.shading.n))
             scattering_pdf = compute_pdf(isect.bsdf, isect.core.wo, wi, bsdf_flags)
-            @info "  surf f*dot : $f, scatteringPdf: $scattering_pdf"
+            # @info "  surf f*dot : $f, scatteringPdf: $scattering_pdf"
         else
             @assert false
         end
@@ -141,13 +142,13 @@ function estimate_direct(
             # compute effect of visibility for light source sample
             if handle_media
                 Li *= tr(vis, scene.b, sampler)
-                @info "  after Tr, Li: $Li"
+                # @info "  after Tr, Li: $Li"
             else
                 if !unoccluded(vis, scene.b)
                     Li = spectrum_from_float(0.0)
-                    @info "  shadow ray blocked"
+                    # @info "  shadow ray blocked"
                 else
-                    @info "  shadow ray unoccluded"
+                    # @info "  shadow ray unoccluded"
                 end
             end
 
@@ -174,7 +175,7 @@ function estimate_direct(
         else
             @assert false
         end
-        @info "  BSDF / phase sampling f: $f, scatteringPdf: $scattering_pdf"
+        # @info "  BSDF / phase sampling f: $f, scatteringPdf: $scattering_pdf"
 
         # ASSUMING IS NOT BLACK
         if (!is_black(f) && (scattering_pdf > 0.0))
@@ -192,23 +193,23 @@ function estimate_direct(
             # assuming no media to handle
             found_surface_interaction, t, light_isect = intersect!(scene.b, ray)
 
-            @info "TR: $Tr"
+            # @info "TR: $Tr"
 
             # add light contribution from material sampling
             Li = spectrum_from_float(0.0)
             if found_surface_interaction
                 if !(light_isect.primitive.area_light isa Nothing)
                     Li = le(light_isect, -wi)
-                    @info "Li: $Li"
+                    # @info "Li: $Li"
                 end
             else
                 Li = le(light, ray)
-                @info "Li: $Li"
+                # @info "Li: $Li"
             end
             # IF NOT BLACK
             if !is_black(Li)
                 Ld += f * Li * Tr * weight / scattering_pdf
-                @info "Ld: $Ld"
+                # @info "Ld: $Ld"
             end
         end
     end

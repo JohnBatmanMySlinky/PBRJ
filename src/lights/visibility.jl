@@ -14,7 +14,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
     inv_w = spectrum_from_float(1.0)
     while true
         check, t, isect = intersect!(scene, ray, true)
-        @info "VisiblityTesting: ray: $(ray), check: $(check), isect: $(isect)"
+        # @info "VisiblityTesting: ray: $(ray), check: $(check), isect: $(isect)"
         if check && !(isect.primitive.material isa Nothing)
             return spectrum_from_float(0.0)
         end
@@ -39,7 +39,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
             done = false
             if !(iter isa Nothing)
                 for seg in iter
-                    @info "VISIBILITY: seg: $seg"
+                    # @info "VISIBILITY: seg: $seg"
                     SEG_COUNTER += 1
                     # Get next majorant segment from iterator and sample it
 
@@ -53,7 +53,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
 
                     # Generate samples along current majorant segment
                     t_min = seg.t_min
-                    @info "VISIBILITY: t_min: $t_min"
+                    # @info "VISIBILITY: t_min: $t_min"
 
                     INNER_COUNTER = 0
                     while true
@@ -61,7 +61,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
                         # Try to generate sample along current majorant segment
                         t = t_min + sample_exponential(u, y_spectrum(seg.sigma_maj))
                         u = get_1D!(sampler)
-                        @info "VISIBILITY: u: $u, t: $t, seg: $(seg), Tr: $Tr"
+                        # @info "VISIBILITY: u: $u, t: $t, seg: $(seg), Tr: $Tr"
                         if t < seg.t_max
                             # Call callback function for sample within segment
                             T_maj *= exp.(-(t - t_min) * seg.sigma_maj)
@@ -99,13 +99,13 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
                             break
                         end
                     end
-                    @info "VSIBILITY: INNERS: $INNER_COUNTER"
+                    # @info "VSIBILITY: INNERS: $INNER_COUNTER"
                     if done
                         break
                     end
                 end
             end 
-            @info "VISIBILITY: SEGS: $SEG_COUNTER"
+            # @info "VISIBILITY: SEGS: $SEG_COUNTER"
         end
         if isect isa Nothing
             break

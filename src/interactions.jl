@@ -260,8 +260,8 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
     else
         dim = Pnt2i(0, 1)
     end
-    @info "Computed Differentials: $(si.dpdu), $(si.dpdv)"
-    @info "Computed Differentials: $dim"
+    # @info "Computed Differentials: $(si.dpdu), $(si.dpdv)"
+    # @info "Computed Differentials: $dim"
 
     # Initialization for offset computation.
     a = Mat2([
@@ -278,7 +278,7 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
     )
     sx = a \ bx
     sy = a \ by
-    @info "Computed differentials: $a $bx $by $sx $sy"
+    # @info "Computed differentials: $a $bx $by $sx $sy"
 
     si.dudx, si.dvdx = any(.!isfinite.(sx)) ? (0, 0) : sx
     si.dudy, si.dvdy = any(.!isfinite.(sy)) ? (0, 0) : sy

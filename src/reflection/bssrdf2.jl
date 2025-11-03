@@ -37,7 +37,7 @@ function sample_s(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2)::
 end
 
 function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, si::SurfaceInteraction)::Tuple{Spectrum, SurfaceInteraction, Float64}
-    @info "why: $u1, god: $u2"
+    # @info "why: $u1, god: $u2"
     # Choose projection axis for BSSRDF sampling
     if (u1 < 0.5)
         vx = bssrdf.seperable_bssrdf.ss
@@ -64,7 +64,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
 
     # Sample BSSRDF profile in polar coordinates
     r = sample_sr(bssrdf, ch, u2[0 + 1])
-    @info "beep boop integrating::sample_sr:: $r - $ch - $(u2[0 + 1])"
+    # @info "beep boop integrating::sample_sr:: $r - $ch - $(u2[0 + 1])"
     if (r < 0.0)
         return spectrum_from_float(0.0), si, 0.0
     end
@@ -72,7 +72,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
 
     # Compute BSSRDF profile bounds and intersection height
     rMax = sample_sr(bssrdf, ch, 0.999)
-    @info "beep boop integrating::sample_sr:: $rMax"
+    # @info "beep boop integrating::sample_sr:: $rMax"
     if (r >= rMax)
         return spectrum_from_float(0.0), si, 0.0
     end
@@ -83,7 +83,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
         bssrdf.seperable_bssrdf.po.core.p + r * (vx * cos(phi) + vy * sin(phi)) - l * vz * 0.5,
         bssrdf.seperable_bssrdf.po.core.t
     )
-    @info "beep boop integratint::interaction $base"
+    # @info "beep boop integratint::interaction $base"
     p_target = base.p + l * vz
 
     # Pre-allocate vector for valid intersections
@@ -92,7 +92,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
     
     while true
         ray = spawn_ray_to(base, p_target)
-        @info "beep boop integrating::booping around $ray"
+        # @info "beep boop integrating::booping around $ray"
         
         if ray.direction == Vec3(0, 0, 0)
             break
@@ -104,11 +104,11 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
         end
         
         base = Interaction(si_tmp.core.p, si_tmp.core.t)
-        @info "beep boop integrating::booping around $base"
+        # @info "beep boop integrating::booping around $base"
         
         # Only store admissible intersections
         if si_tmp.primitive.material === bssrdf.seperable_bssrdf.material_name
-            @info "PUSHHHHHH"
+            # @info "PUSHHHHHH"
             push!(intersections, si_tmp)
         end
     end
@@ -119,13 +119,13 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
     
     selected_idx = clamp(floor(Int, u1 * nfound), 0, nfound - 1) + 1
     selected_si = intersections[selected_idx]
-    @info "beep boop integrating::selected_si $selected_si"
+    # @info "beep boop integrating::selected_si $selected_si"
 
     # Compute sample PDF and return the spatial BSSRDF term Sp
     pdf_val = pdf_sp(bssrdf, selected_si) / nfound
-    @info "beep boop integrating::pdf_val $pdf_val"
+    # @info "beep boop integrating::pdf_val $pdf_val"
     sp = Sp(bssrdf, selected_si)
-    @info "beep boop integrating::sp $sp"
+    # @info "beep boop integrating::sp $sp"
     return (sp, selected_si, pdf_val)
 end
 
@@ -206,10 +206,10 @@ function pdf_sr(bssrdf::AbstractBSSRDF, ch::Int64, r::Float64)::Float64
     if !radius_check
         return 0.0
     end  
-    @info "beeb boop integrating::pdf_sr $r - $(bssrdf.sigma_t) - $ch - $rOptical"
-    @info "beeb boop integrating::pdf_sr $rho_offset $radius_offset"
-    @info "beeb boop integrating::pdf_sr $rho_weights" 
-    @info "beeb boop integrating::pdf_sr $radius_weights"
+    # @info "beeb boop integrating::pdf_sr $r - $(bssrdf.sigma_t) - $ch - $rOptical"
+    # @info "beeb boop integrating::pdf_sr $rho_offset $radius_offset"
+    # @info "beeb boop integrating::pdf_sr $rho_weights" 
+    # @info "beeb boop integrating::pdf_sr $radius_weights"
 
     # Return BSSRDF profile density for channel _ch_
     sr = 0.0
@@ -255,9 +255,9 @@ function pdf_sp(bssrdf::AbstractBSSRDF, p_i::SurfaceInteraction)::Float64
         sqrt(dLocal.x * dLocal.x + dLocal.y * dLocal.y)
     )
 
-    @info "beep boop integrating:: $dLocal"
-    @info "beep boop integrating:: $nLocal"
-    @info "beep boop integrating:: $rProj"
+    # @info "beep boop integrating:: $dLocal"
+    # @info "beep boop integrating:: $nLocal"
+    # @info "beep boop integrating:: $rProj"
 
     # Return combined probability from all BSSRDF sampling strategies
     pdf_val = 0.0 
@@ -265,7 +265,7 @@ function pdf_sp(bssrdf::AbstractBSSRDF, p_i::SurfaceInteraction)::Float64
     chProb = 1.0 / nSpectralSamples
     for axis in 0:2
         for ch in 0:(nSpectralSamples - 1)
-            @info "beep boop integrating:: $axis - $ch - $(pdf_sr(bssrdf, ch, rProj[axis + 1]))"
+            # @info "beep boop integrating:: $axis - $ch - $(pdf_sr(bssrdf, ch, rProj[axis + 1]))"
             pdf_val += pdf_sr(bssrdf, ch, rProj[axis + 1]) * abs(nLocal[axis + 1]) * chProb * axisProb[axis + 1]
         end
     end

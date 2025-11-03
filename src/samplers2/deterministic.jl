@@ -24,7 +24,7 @@ function get_float(sampler::DeterministicSampler)::Float64
     # LCG: Numerical Recipes parameters (same as C++)
     sampler.state = sampler.state * 0x19660d + 0x3c6ef35f
     sampler.counter += 1
-    @info "LCG: counter = $(sampler.counter), u = $((sampler.state >> 8) * (1.0 / 16777216.0))"
+    # @info "LCG: counter = $(sampler.counter), u = $((sampler.state >> 8) * (1.0 / 16777216.0))"
     return (sampler.state >> 8) * (1.0 / 16777216.0)
 end
 

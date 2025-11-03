@@ -133,25 +133,27 @@ function add_sample!(t::FilmTile, point::Pnt2, spectrum::S, sample_weight::Float
     p1 = min.(p1, t.pixel_bounds.pMax)   
 
     # Precompute x & y filter offsets.
-    offsets_x = Vector{Int64}(undef, p1.x - p0.x + 1)
-    offsets_y = Vector{Int64}(undef, p1.y - p0.y + 1)
-    for (i, x) in enumerate(p0.x:p1.x)
+    offsets_x = Vector{Int64}(undef, p1.x - p0.x)
+    offsets_y = Vector{Int64}(undef, p1.y - p0.y)
+    for x in p0.x:(p1.x-1)
         fx = abs((x - discrete_point.x) * t.inv_filter_radius.x * t.filter_table_width)
-        offsets_x[i] = clamp(ceil(fx), 1, t.filter_table_width)  # TODO is clipping ok?
+        offsets_x[x - p0.x + 1] = min(floor(fx), t.filter_table_width - 1) 
     end
-    for (i, y) in enumerate(p0.y:p1.y)
+    for y in p0.y:(p1.y-1)
         fy = abs((y - discrete_point.y) * t.inv_filter_radius.y * t.filter_table_width)
-        offsets_y[i] = clamp(floor(fy), 1, t.filter_table_width)
+        offsets_y[y - p0.y + 1] = min(floor(fy), t.filter_table_width - 1)
     end
     # Loop over filter support & add sample to pixel array.
-    for (j, y) in enumerate(p0.y:p1.y)
-        for (i, x) in enumerate(p0.x:p1.x)
-            w = t.filter_table[offsets_y[j], offsets_x[i]]
+    for y in p0.y:(p1.y-1)
+        for x in p0.x:(p1.x-1)
+            #  Evaluate filter value at $(x,y)$ pixel
+            offset = offsets_y[y - p0.y + 1] * filterTableSize + offsets_x[x - p0.x + 1]
+            filterWeight = filterTable[offset + 1]
+
+            # Update pixel values with filtered sample contribution
             pixel = get_pixel(t, Pnt2i(x, y))
-            @assert sample_weight <= 1
-            @assert w <= 1
-            pixel.contrib_sum += spectrum * sample_weight * w
-            pixel.filter_weight_sum += w
+            pixel.contribSum += spectrum * sampleWeight * filterWeight
+            pixel.filterWeightSum += filterWeight
         end
     end
 end
