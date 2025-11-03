@@ -34,7 +34,7 @@ function render(
     # @assert false
 
     print("Utilizing $(Threads.nthreads()) threads\n")
-    Threads.@threads for k in 0:(n_tiles.x * n_tiles.y - 1)
+    Threads.@threads for k in 0:(total_tiles - 1)
         # this is a bullshit ass hack
         for wtf in 1:length(scene.b.primitives)
             if !(scene.b.primitives[wtf].mi.inside isa Nothing)

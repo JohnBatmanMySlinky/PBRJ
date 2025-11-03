@@ -1,6 +1,7 @@
 import sys
 import re
 import json
+import numpy as np
 
 if len(sys.argv) != 3:
 	assert False
@@ -88,8 +89,19 @@ for x in range(LL, LU+1):
 urg = [[k,v] for k,v in results.items() if v["D"] != "NOPE"]
 urg.sort(key = lambda x: max(x[1]["D"]))
 urg.reverse()
+agh = [[k,v] for k,v in results.items() if v["D"] == "NOPE"]
+print(f"There are {len(agh)} NOPES")
+fin = urg + agh
+
+max_errors = [max(v["D"]) for k,v in urg]
+for p in [0, 25, 50, 75, 90, 100]:
+	print(f"Abs error {p}th percentile: {np.percentile(max_errors, q=p):.5}")
+print(f"{len([x for x in max_errors if x < 1e-6])/len(urg):.2%} percent of pixels are the SAME")
+print(f"Abs error mean: {sum(max_errors)/len(max_errors):.5}")
+print(f"Abs error mean | there is an error: {sum([x for x in max_errors if x >= 1e-6])/len([x for x in max_errors if x >= 1e-6]):.5}")
+
 
 with open("RESULTS.txt", "w") as f:
-	json.dump(urg, f, indent=1)
+	json.dump(fin, f, indent=1)
 
 print("DONE")
