@@ -43,9 +43,16 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
                 end
             end
         end
+        @info "LL = $LL - $beta"
 
         # Terminate path if ray escaped or _maxDepth_ was reached
-        if ((si isa Nothing) || (bounces >= vp.max_depth)) 
+        if (si isa Nothing)
+            @info "Terminated due to no hit"
+            break
+        end
+
+        if (bounces >= vp.max_depth)
+            @info "Terminated due to max depth"
             break
         end
 
@@ -61,7 +68,8 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
 
         # JOHN HACK 
         # SWITCH TO ON TO HANDLE MEDIA
-        LL += beta * uniform_sample_one_light(si, scene, sampler, light_distribution, false)
+        LL += beta * uniform_sample_one_light(si, scene, sampler, light_distribution, true)
+        @info "LL = $LL - $beta"
 
         # Sample BSDF to get new path direction
         wo = -ray.direction
@@ -98,8 +106,9 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
                 scene, 
                 sampler, 
                 lookup(light_distribution_generator, pisect.core.p), 
-                false
+                true
             )
+            @info "LL = $LL - $beta"
 
             # Account for the indirect subsurface scattering component
             wi, f, pdf_val, sampled_type = sample_f(pisect.bsdf, pisect.core.wo, get_2D!(sampler), BSDF_ALL)
@@ -113,6 +122,7 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
 
         # Possibly terminate the path with Russian roulette.
         # Factor out radiance scaling due to refraction in rrBeta.
+        @info "beep booping around:: $beta - $eta_scale"
         rr_beta = beta * eta_scale
         rr_threshold = 1.0
         if (maximum(rr_beta) < rr_threshold) && (bounces > 3)

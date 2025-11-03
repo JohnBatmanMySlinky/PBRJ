@@ -97,7 +97,9 @@ function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tupl
         sin_theta = sin(theta)
         sin_phi = sin(phi)
         cos_phi = cos(phi)
+        @info "sample_li::wi $(Vec3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta))"
         wi = il.light_to_world(Vec3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta))
+        @info "sample_li::wi $wi"
     end
     # @info "InfLight sample_li: uv $uv - map_pdf $map_pdf - wi $wi"
 

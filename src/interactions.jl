@@ -50,6 +50,10 @@ function Interaction(p::Pnt3, t::Float64, wo::Vec3, m::AbstractMedium)::Interact
     return Interaction(p, t, wo, Nml3(0.0, 0.0, 0.0), MediumInterface(m))
 end
 
+function is_surface_interaction(isect::Interaction)::Bool
+    return isect.n != Nml3(0, 0, 0)
+end
+
 mutable struct ShadingInteraction
     n::Nml3
     dpdu::Vec3
@@ -80,6 +84,10 @@ mutable struct SurfaceInteraction
     dvdy::Float64
     dpdx::Vec3
     dpdy::Vec3
+end
+
+function is_surface_interaction(isect::SurfaceInteraction)::Bool
+    return isect.core.n != Nml3(0, 0, 0)
 end
 
 function InstantiateSurfaceInteraction(
