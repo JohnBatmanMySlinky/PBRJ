@@ -1,31 +1,36 @@
 """
 scene 1: indoor office ✅
     - add geometry
+    - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 500 500 --samples-per-pixel 16 --file-name "1-office-scene.exr"
 scene 2: caustic glass 🟨
-    - https://www.pbrt.org/scenes-v3_images/f16-9c.jpg
-    - black lines in glass are missing in mine
-    - fov and dimensions are differnet
+    - DEBUG: spot light - what's good with that???
+    - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 525 750 --samples-per-pixel 16 --file-name "2-caustic-glass.exr"
 scene 3: AOIntegrator + dragon ✅
+    - julia -t 4 RayTracing.jl --scene-number 3 --image-dim 500 500 --samples-per-pixel 16 --file-name "3-ao-dragon.exr"
 scene 4: cornell box ✅
+    - DEBUG: top back right coner - what's good with that???
     - need to mess with medium params to make it a bit less dense
+    - julia -t 4 RayTracing.jl --scene-number 4 --image-dim 500 500 --samples-per-pixel 16 --file-name "4-cornell-box.exr"
 scene 5: soft bodies ✅
-    - better material? 
-    - infinite light?
+    - julia -t 4 RayTracing.jl --scene-number 5 --image-dim 500 500 --samples-per-pixel 16 --file-name "5-soft-bodies.exr"
 scene 6: goursat ✅
+    - julia -t 4 RayTracing.jl --scene-number 6 --image-dim 500 500 --samples-per-pixel 16 --file-name "6-goursat.exr"
     - better material? 
     - infinite light?
     - something fucky with the normals...
 scene 7: julia logo w/ tea pots ✅
-    - more interesting floor. maybe water???
+    - julia -t 4 RayTracing.jl --scene-number 7 --image-dim 500 500 --samples-per-pixel 16 --file-name "7-julia-logo.exr"
 scene 8: an anemic leafless procedural tree ✅
     - add leaves
 scene 9: lte orb ✅
-    - get more interesting measured bsdf's
+    - julia -t 4 RayTracing.jl --scene-number 9 --image-dim 500 500 --samples-per-pixel 16 --file-name "9-lte-orb.exr"
 scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅
     - parser broken
 scene 11: dragon with fun materials ✅
 scene 12: v4 smoke plume (v4 GridMedium) ✅
-scene 13: DISNEY CLOUD (v4 NanoVDBMedium) ✅
+scene 13: DISNEY CLOUD (v4 NanoVDBMedium) 🟨
+    - re-render with screen fix
+    - fix reflections from disk
 scene 14: Anemone (v4 GridMedium) 🟨
     - emmissive medium is only supported by VolPath (v4) integrator. 
     - Looks as good as it can with BDPT at the moment
@@ -39,9 +44,10 @@ scene 17: barcelona pavillion 🟨
     - remove fourier material convergence hack
 scene 18: SDFs baby! 🟨
     - lighting kinda fucked
-scene 19: bunny cloud (v4 NanoVDB) ✅
+scene 19: bunny cloud (v4 NanoVDB) 🟨
     - only works single threaded? ok cool
     - hmmm gets all fucky when voxel grid is 3x3x3 - probably majorant iterator...
+    - blue floor
 scene 20: explosion + SimpleVolPathIntegrator (v4 NanoVDB) 🟨
     - caffeinate -di julia -t 4 RayTracing.jl --scene-number 20 --image-dim 1000 1000 --samples-per-pixel 16
     - hmmmmm maybe black body is off?
@@ -57,6 +63,8 @@ scene 102: party blob ✅
     - see NB for animation 
 scene 103: check board test
     - simple scene to test checker board pattern....
+scene 104: mipmap debug
+    - corresponds to mipmap-debug.pbrt
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -112,6 +120,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene102(parsed_args)
     elseif parsed_args["scene-number"] == 103
         return make_scene103(parsed_args)
+elseif parsed_args["scene-number"] == 104
+        return make_scene104(parsed_args)
     else
         @assert false
     end

@@ -39,8 +39,8 @@ function make_scene5(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false
     )
     floor = Rectangle(
-        Pnt2(-25, -25), 
-        Pnt2(25, 25), 
+        Pnt2(-250, -250), 
+        Pnt2(250, 250), 
         0.0,
         2, 
         identity_shape_core,
@@ -129,14 +129,15 @@ function make_scene5(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
-    # l_2_w = Translate(Pnt3(0,0,0))
-    # light = InfiniteLight(
-    #     world_bounds(bvh), 
-    #     l_2_w, 
-    #     Spectrum(2.0, 2.0, 2.0), 
-    #     "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"
-    # )
-    # push!(lights, light)
+    l_2_w = Translate(Pnt3(0,0,0))
+    light = InfiniteLight(
+        world_bounds(bvh), 
+        l_2_w, 
+        spectrum_from_float(0.05, 0.05, 0.05), 
+        "/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr",
+        false
+    )
+    push!(lights, light)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.5, .5))
@@ -155,19 +156,10 @@ function make_scene5(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(20, 30, 10)
     look_at = Pnt3(0, 0, 0)
     up = Vec3(0, 1, 0)
-    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 55.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 55.0, film)
 
     # Instantiate a Sampler
-    S = ZSobolSampler(
-        parsed_args["samples-per-pixel"], 
-        Pnt2i(
-            parsed_args["image-dim"][1], 
-            parsed_args["image-dim"][2]
-        ), 
-        Int8(2),
-        parsed_args["seed"]
-    )
+    S = SamplerFactory(parsed_args)
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene

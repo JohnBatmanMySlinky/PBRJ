@@ -126,6 +126,13 @@ function render(
                 @info "BDPT: Number of real camera vertices: $(num_real_camera_vertices)"
                 @info "BDPT: Number of real light vertices: $(num_real_light_vertices)"
 
+                for iii in 1:num_real_camera_vertices
+                    @info "$(camera_vertices[iii])"
+                end
+                for iii in 1:num_real_light_vertices
+                    @info "$(light_vertices[iii])"
+                end
+
                 # for iii in 1:num_real_camera_vertices
                 #     if camera_vertices[iii].ei isa Nothing
                 #         pos = camera_vertices[iii].si.core.p
@@ -137,9 +144,9 @@ function render(
                 #     @info "BDPT: Camera Vertex $(iii): $(camera_vertices[iii].type) @ $(pos) $(lig)"
                 # end
 
-                for iii in 1:num_real_camera_vertices
-                    @info "BDPT: Camera Vertex Hacky but OK $(iii): $(camera_vertices[iii].type) $(p(camera_vertices[iii]))"
-                end
+                # for iii in 1:num_real_camera_vertices
+                #     @info "BDPT: Camera Vertex Hacky but OK $(iii): $(camera_vertices[iii].type) $(p(camera_vertices[iii]))"
+                # end
 
                 # execute all BDPT connection strategies
                 # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
@@ -221,7 +228,7 @@ function generate_camera_subpath!(
     # generate first vertex on camera subpath and start random walk
     path[0+1] = create_camera_vertex(camera, ray, beta)
     pdf_pos, pdf_dir = pdf_we(camera, ray)
-    @info "Starting camera subpath.\n\tRay $(ray.origin) $(ray.direction)\n\tbeta $(beta)\n\t pdfPos $(pdf_pos)\n\tpdfDir $(pdf_dir) "
+    @info "Starting camera subpath.\n\tRay $(ray)\n\tbeta $(beta)\n\t pdfPos $(pdf_pos)\n\tpdfDir $(pdf_dir) "
     return random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1)
 end
 
@@ -292,15 +299,15 @@ function random_walk!(
     COUNTER = 0
 
     while true
-        @info "Random walk\n\tbeta: $(beta)\n\tbounces $(bounces-path_offset) (path_offset $(path_offset))\n\tmaxdepth $(max_depth)\n\tpdfFwd $(pdf_fwd)\n\tpdfRev $(pdf_rev)"
+        @info "Random walk. Bounces $(bounces), beta $(beta), pdfFwd $(pdf_fwd), pdfRev $(pdf_rev)"
 
         COUNTER += 1
         # attempt to create the next subpath verte in *path*
-        @info "Ray current has a medium: $(!(ray.medium isa Nothing))"
+        # @info "Ray current has a medium: $(!(ray.medium isa Nothing))"
         check, t, isect = intersect!(scene.b, ray)
         if check
-            @info "Random walk: intersection\n\tp $(isect.core.p)\n\two $(isect.core.wo)\n\tn $(isect.core.n)\n\tshading n $(isect.shading.n)"
-            @info "Isect Medium Interface: INSIDE $(!(isect.core.mi.inside isa Nothing)), OUTSIDE $(!(isect.core.mi.outside isa Nothing))";
+            @info "Random walk: intersection\n\tp $(isect.core.p)\n\two $(isect.core.wo)\n\tn $(isect.core.n)\n\tshading n $(isect.shading.n)\n\t shading dpdu: $(isect.shading.dpdu)\n\t shading dpdv $(isect.shading.dpdv)"
+            # @info "Isect Medium Interface: INSIDE $(!(isect.core.mi.inside isa Nothing)), OUTSIDE $(!(isect.core.mi.outside isa Nothing))";
         end
 
         # JOHN HACK --> using indexes
@@ -311,7 +318,7 @@ function random_walk!(
         terminated = false
 
         if !(ray.medium isa Nothing)
-            @info "MEDIUM BEEN HIT"
+            # @info "MEDIUM BEEN HIT"
             u = get_1D!(sampler)
             t_max = (t isa Nothing) ? typemax(Float64) : t
 
@@ -394,7 +401,7 @@ function random_walk!(
             if mode == Radiance
                 @info "Random walk: Capture escaped rays when tracing from the camera - RADIANCE"
                 path[vertex] = create_light_vertex(EndpointInteraction(ray), beta, pdf_fwd)
-                @info "HAHA: $(p(path[vertex])) $ray"
+                # @info "HAHA: $(p(path[vertex])) $ray"
                 bounces += 1
             end
             @info "Random walk: exited due to escaped rays"
@@ -418,21 +425,27 @@ function random_walk!(
         # sample BSDF at current vertex and compute reverse probability
         wo = isect.core.wo
         wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
+        @info "Random walk sampled dir $wi f: $f, pdfFwd: $pdf_fwd, sampled_type: $sampled_type"
         if (pdf_fwd == 0.0) || is_black(f)
             break
         end
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
+        @info "Random walk beta now $beta"
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
+        @info "random walk pdf_rev = $pdf_rev"
         if (sampled_type & BSDF_SPECULAR) > 0
             path[vertex].delta = true
             pdf_rev = 0.0
             pdf_fwd = 0.0
         end
         beta *= correct_shading_normal(isect, wo, wi, mode)
+        @info "Random walk beta after shading normal correction $beta"
         ray = spawn_ray(isect.core, wi)
         
         # Compute reverse area density at preceding vertex
+        @info "pdf_rev - before - $(path[prev].pdf_rev)"
         path[prev].pdf_rev = convert_density(path[vertex], pdf_rev, path[prev])
+        @info "pdf_rev - after - $(path[prev].pdf_rev)"
     end
     return bounces
 end
@@ -509,7 +522,7 @@ function connect_BDPT(
         """
         pt = camera_vertices[t-1+1]
         if is_connectible(pt)
-            @info "is connectable"
+            # @info "is connectable"
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
             sampled_li, wi, pdf_val, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
@@ -520,6 +533,7 @@ function connect_BDPT(
                 sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled, Radiance) * sampled.beta
+                @info "pt.beta = $(pt.beta), f = $(f(pt, sampled, Radiance)), sampled.beta = $(sampled.beta)"
                 @info "L: $(L)"
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))
@@ -546,7 +560,7 @@ function connect_BDPT(
 
     # compute MIS weight for connection strategy
     mis_weight = is_black(L) ? 0.0 : MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr, light_num)
-    @info "MIS weight for (s,t) = ($(s),$(t)) connection $(mis_weight)"
+    # @info "MIS weight for (s,t) = ($(s),$(t)) connection $(mis_weight)"
     (DO_MIS_WEIGHT) && (L *= mis_weight)
     return L, mis_weight, pfilm
 end
@@ -564,14 +578,14 @@ function MIS_weight(
     (s + t == 2) && (return 1.0)
     sum_ri = 0.0
 
-    for i in 0:(t-1)
-        @info "MISWEIGHT LOOP CAMERA BEFORE: $(i)"
-        @info "\t\tRev $(camera_vertices[i+1].pdf_rev), Fwd $(camera_vertices[i+1].pdf_fwd)"
-    end
-    for i in 0:(s)
-        @info "MISWEIGHT LOOP LIGHT BEFORE: $(i)"
-        @info "\t\tRev $(light_vertices[i+1].pdf_rev), Fwd $(light_vertices[i+1].pdf_fwd)"
-    end
+    # for i in 0:(t-1)
+    #     @info "MISWEIGHT LOOP CAMERA BEFORE: $(i)"
+    #     @info "\t\tRev $(camera_vertices[i+1].pdf_rev), Fwd $(camera_vertices[i+1].pdf_fwd)"
+    # end
+    # for i in 0:(s)
+    #     @info "MISWEIGHT LOOP LIGHT BEFORE: $(i)"
+    #     @info "\t\tRev $(light_vertices[i+1].pdf_rev), Fwd $(light_vertices[i+1].pdf_fwd)"
+    # end
 
     # Temporarily update vertex properties for current strategy
 
@@ -582,12 +596,12 @@ function MIS_weight(
     qs_minus = (s > 1) ? s-2+1 : 0 # --> LIGHT
     pt_minus = (t > 1) ? t-2+1 : 0 # --> CAMERA
 
-    @info """Inventory
-    qs, $qs
-    pt, $pt - $(camera_vertices[pt])
-    qsMinus, $qs_minus
-    ptMinus, $pt_minus
-    """
+    # @info """Inventory
+    # qs, $qs
+    # pt, $pt - $(camera_vertices[pt])
+    # qsMinus, $qs_minus
+    # ptMinus, $pt_minus
+    # """
 
     # # LOG INITIAL STATE
     # logg = Dict{Tuple{Int64,Int64}, VertexLog}()
@@ -670,19 +684,19 @@ function MIS_weight(
     if pt > 0 
         if s > 0
             if qs_minus == 0
-                @info "A"
+                # @info "A"
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, nothing, camera_vertices[pt])
             else
-                @info "B"
+                # @info "B"
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, light_vertices[qs_minus], camera_vertices[pt])
             end
         else
-            @info "C"
+            # @info "C"
             camera_vertices[pt].pdf_rev = pdf_light_origin(camera_vertices[pt], scene, camera_vertices[pt_minus], light_distr, light_num)
         end
     end
 
-    @info "pt, $pt - $(camera_vertices[pt])"
+    # @info "pt, $pt - $(camera_vertices[pt])"
 
     if s==1 && t==2
         # @info "MISWEIGHT: <<a4>> $(camera_vertices[1+1].pdf_rev)"

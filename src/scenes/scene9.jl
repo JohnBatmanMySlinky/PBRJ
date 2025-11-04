@@ -148,11 +148,10 @@ function make_scene9(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(0.2, 0.4, -0.5)
     look_at = Pnt3(0, 0.1, 0)
     up = Vec3(0, 1, 0)
-    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), screen, 0.0, 1.0, 0.0, 1e6, 37.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), 0.0, 1.0, 0.0, 1e6, 37.0, film)
 
     # Instantiate a Sampler
-    S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
+    S = SamplerFactory(parsed_args)
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene

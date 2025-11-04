@@ -116,7 +116,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     p0 = tri.vertices[1]
     p1 = tri.vertices[2]
     p2 = tri.vertices[3]
-    @info "\t\tTRIANGLE: Vertices - $p0, $p1, $p2"
+    # @info "\t\tTRIANGLE: Vertices - $p0, $p1, $p2"
     
     # perform ray-triangle intersection test
     ## transform vertices to ray coord space
@@ -184,18 +184,24 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     if !(tri.uvs isa Nothing)
         uv = tri.uvs
     else
-        uv = (Pnt2(0, 0), Pnt2(0, 1), Pnt2(1, 1))
+        uv = (Pnt2(0, 0), Pnt2(1, 0), Pnt2(1, 1))
     end
-    duv13 = uv[1] - uv[3]
-    duv23 = uv[2] - uv[3]
-    dp13 = p0 - p2
-    dp23 = p1  - p2
-    determinate = duv13[1] * duv23[2] - duv13[2] * duv23[1]
+    @info "Triangle: p=$p0, $p1, $p2"
+    @info "Triangle: UVS=$uv"
+    duv02 = uv[0+1] - uv[2+1]
+    duv12 = uv[1+1] - uv[2+1]
+    dp02 = p0 - p2
+    dp12 = p1 - p2
+    @info "Triangle: duv02=$duv02, duv12=$duv12"
+    @info "Triangle: dp02=$dp02, dp12=$dp12"
+    determinate = duv02[0+1] * duv12[1+1] - duv02[1+1] * duv12[0+1]
+    @info "Triangle: det=$determinate"
     degenerateUV = abs(determinate) < 1e-8
     if !degenerateUV
         inv_det = 1.0/determinate
-        dpdu = Vec3(( duv23[2]*dp13 - duv13[2]*dp23) * inv_det)
-        dpdv = Vec3((-duv23[1]*dp13 + duv13[1]*dp23) * inv_det)
+        dpdu = Vec3(( duv12[1+1] * dp02 - duv02[1+1] * dp12) * inv_det)
+        dpdv = Vec3((-duv12[0+1] * dp02 + duv02[0+1] * dp12) * inv_det)
+        @info "Triangle: dpdu=$dpdu, dpdv=$dpdv"
     end
     if degenerateUV || norm(cross(dpdu, dpdv))^2==0
         # Handle zero determinant for triangle partial derivative matrix
@@ -207,7 +213,8 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         dpdu = Vec3(dpu)
         dpdv = Vec3(dpv)
     end
-    @info "\t\tTriangle: dpdu=$(dpdu), dpdv=$(dpdv)"
+    @info "Triangle: dpdu=$dpdu, dpdv=$dpdv"
+    # @info "\t\tTriangle: dpdu=$(dpdu), dpdv=$(dpdv)"
 
     # interpolate uv coords and hit point
     phit = b0 * p0 + b1 * p1 + b2 * p2
@@ -239,17 +246,17 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     interaction = InstantiateSurfaceInteraction(phit, ray.t, -ray.direction, uvhit, dpdu, dpdv, Nml3(0,0,0), Nml3(0,0,0), tri)
 
     # Override surface normal in _isect_ for triangle
-    interaction.core.n = interaction.shading.n = Nml3(normalize(cross(dp13, dp23)))
-    @info "Original normal: $(interaction.core.n)"
+    interaction.core.n = interaction.shading.n = Nml3(normalize(cross(dp02, dp12)))
+    # @info "Original normal: $(interaction.core.n)"
     if tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
-        @info "FLIPPED NORMAL"
+        # @info "FLIPPED NORMAL"
         interaction.core.n = interaction.shading.n = -interaction.core.n    
     end
 
     # TODO making shading tangents real
     if !(tri.normals isa Nothing) || !(tri.shading_tangent isa Nothing)
         # Initialize _Triangle_ shading geometry
-        @info "NOOOOOOOOO"
+        # @info "NOOOOOOOOO"
 
         # Compute shading normal _ns_ for triangle
         if !(tri.normals isa Nothing)
@@ -283,14 +290,14 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
 
         # Compute shading bitangent _ts_ for triangle and adjust _ss_
         ts = cross(ss, ns)
-        @info "TRIANGLE: ts=$(ts), ss=$(ss), ns=$(ns)"
+        # @info "TRIANGLE: ts=$(ts), ss=$(ss), ns=$(ns)"
         if length_squared(ts) > 0.0
             ts = normalize(ts)
             ss = cross(ts, ns)
         else
             _, ss, ts = orthonormal_basis(Vec3(ns))
         end
-        @info "TRIANGLE AGAIN: ts=$(ts), ss=$(ss), ns=$(ns)"
+        # @info "TRIANGLE AGAIN: ts=$(ts), ss=$(ss), ns=$(ns)"
 
         # Compute $\dndu$ and $\dndv$ for triangle shading geometry
         if !(tri.normals isa Nothing)
@@ -327,11 +334,11 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         if tri.core.reverse_orientation
             ts = -ts
         end
-        @info "OYE $(interaction.core.n)"
+        # @info "OYE $(interaction.core.n)"
         set_shading_geomerty!(interaction, ss, ts, dndu, dndv, true)
-        @info "Original Normal Post Shading Geom: $(interaction.core.n)"
+        # @info "Original Normal Post Shading Geom: $(interaction.core.n)"
     end
-    @info "Original Normal AT THE END: $(interaction)"
+    # @info "Original Normal AT THE END: $(interaction)"
     return true, t, interaction 
 end
 

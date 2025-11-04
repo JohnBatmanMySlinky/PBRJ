@@ -40,7 +40,10 @@ end
 function (g::Glass)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Type{T}) where T <: TransportMode
     # if bump map, update si
     if !(g.bump_map isa Nothing)
+        @info "BUMP BUMP BUMP"
+        @info "SI PRE :\n\tp: $(si.core.p)\n\t:t: $(si.core.t)\n\two: $(si.core.wo)\n\tn: $(si.core.n)\n\tuv: $(si.uv)\n\tdpdu: $(si.dpdu)\n\tdpdv: $(si.dpdv)\n\tdndu: $(si.dndu)\n\tdndv: $(si.dndv)\n\tsn: $(si.shading.n)\n\tsdpdu: $(si.shading.dpdu)\n\tsdpdv: $(si.shading.dpdv)\n\tdudx: $(si.dudx)\n\tdudy: $(si.dudy)\n\tdvdx: $(si.dvdx)\n\tdvdy: $(si.dvdy)\n\t:dpdx: $(si.dpdx)\n\t:dpdy: $(si.dpdy)"
         bump!(g, si)
+        @info "SI POST:\n\tp: $(si.core.p)\n\t:t: $(si.core.t)\n\two: $(si.core.wo)\n\tn: $(si.core.n)\n\tuv: $(si.uv)\n\tdpdu: $(si.dpdu)\n\tdpdv: $(si.dpdv)\n\tdndu: $(si.dndu)\n\tdndv: $(si.dndv)\n\tsn: $(si.shading.n)\n\tsdpdu: $(si.shading.dpdu)\n\tsdpdv: $(si.shading.dpdv)\n\tdudx: $(si.dudx)\n\tdudy: $(si.dudy)\n\tdvdx: $(si.dvdx)\n\tdvdy: $(si.dvdy)\n\t:dpdx: $(si.dpdx)\n\t:dpdy: $(si.dpdy)"
     end
     
     eta::Float64 = g.idx(si)

@@ -1,5 +1,5 @@
 function get_medium(inter::Interaction, w::Vec3)::Maybe{AbstractMedium}
-    @info "\t\t Get Medium: $(w), $(inter.n)"
+    # @info "\t\t Get Medium: $(w), $(inter.n)"
     return dot(w, inter.n) > 0.0 ? inter.mi.outside : inter.mi.inside
 end
 

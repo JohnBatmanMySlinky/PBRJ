@@ -226,10 +226,10 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
 
     # Estimate screen change in p and (u, v).
     # Compute auxiliary intersection points with plane.
-    d = -dot(si.core.n, Vec3(si.core.p))
-    tx = (-dot(si.core.n, Vec3(ray.rx_origin)) - d) / dot(si.core.n, ray.rx_direction)
+    d = dot(si.core.n, Vec3(si.core.p))
+    tx = -(dot(si.core.n, Vec3(ray.rx_origin)) - d) / dot(si.core.n, ray.rx_direction)
     px = ray.rx_origin + tx * ray.rx_direction
-    ty = (-dot(si.core.n, Vec3(ray.ry_origin)) - d) / dot(si.core.n, ray.ry_direction)
+    ty = -(dot(si.core.n, Vec3(ray.ry_origin)) - d) / dot(si.core.n, ray.ry_direction)
     py = ray.ry_origin + ty * ray.ry_direction
 
     si.dpdx = px - si.core.p
@@ -238,31 +238,32 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
     # Compute (u, v) offsets at auxiliary points.
     # Choose two dimensions for ray offset computation.
     n = abs.(si.core.n)
-    if n[1] > n[2] && n[1] > n[3]
-        dim = Pnt2(2, 3)
-    elseif n[2] > n[3]
-        dim = Pnt2(1, 3)
+    if (abs(n.x) > abs(n.y)) && (abs(n.x) > abs(n.z))
+        dim = Pnt2i(1, 2)
+    elseif abs(n.y) > abs(n.z)
+        dim = Pnt2i(0, 2)
     else
-        dim = Pnt2(1, 2)
+        dim = Pnt2i(0, 1)
     end
+    @info "Computed Differentials: $(si.dpdu), $(si.dpdv)"
+    @info "Computed Differentials: $dim"
 
     # Initialization for offset computation.
     a = Mat2([
-        si.shading.dpdu[Int(dim[1])]
-        si.shading.dpdv[Int(dim[1])]
-        si.shading.dpdu[Int(dim[2])]
-        si.shading.dpdv[Int(dim[2])]
+        si.dpdu[dim[0+1]+1] si.dpdv[dim[0+1]+1]
+        si.dpdu[dim[1+1]+1] si.dpdv[dim[1+1]+1]
     ])
     bx = Pnt2(
-        px[Int(dim[1])] - si.core.p[Int(dim[1])],
-        px[Int(dim[2])] - si.core.p[Int(dim[2])]
+        px[dim[0+1]+1] - si.core.p[dim[0+1]+1],
+        px[dim[1+1]+1] - si.core.p[dim[1+1]+1]
     )
     by = Pnt2(
-        py[Int(dim[1])] - si.core.p[Int(dim[1])],
-        py[Int(dim[2])] - si.core.p[Int(dim[2])]
+        py[dim[0+1]+1] - si.core.p[dim[0+1]+1],
+        py[dim[1+1]+1] - si.core.p[dim[1+1]+1]
     )
     sx = a \ bx
     sy = a \ by
+    @info "Computed differentials: $a $bx $by $sx $sy"
 
     si.dudx, si.dvdx = any(.!isfinite.(sx)) ? (0, 0) : sx
     si.dudy, si.dvdy = any(.!isfinite.(sy)) ? (0, 0) : sy

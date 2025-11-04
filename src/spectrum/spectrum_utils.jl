@@ -3,7 +3,7 @@ function Base.convert(::Type{Float64}, s::Spectrum)
 end
 
 function lerp(t::Float64, a::Float64, b::Float64)::Float64
-    return a + t * (b - a)
+    return (1.0 - t) * a + t * b
 end
 
 function check_monotonic(a::Vector{Float64})::Bool

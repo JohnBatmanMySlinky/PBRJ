@@ -17,8 +17,14 @@ struct InfiniteLight <: Light
             print("YOU SHOULD PROBABLY BE DOING OCTAHEDRAL=false")
         end
 
-        dat2, L, W = read_image(texmap, LL)
-
+        dat2, L, W = read_image(texmap)
+        i = 0
+        for l in 1:L
+            for w in 1:W
+                i += 1
+                dat2[i] = LL * dat2[i] # Scale by radiance scaling factor
+            end
+        end
         Lmap = MIPMap(Pnt2i(W, L), dat2, false) # NOTE THE FLIP HERE
 
         world_center, world_radius = bounding_sphere(bounds)
@@ -78,6 +84,7 @@ end
 function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     # Find $(u,v)$ sample coordinates in infinite light texture
     uv, map_pdf = sample_continuous(il.distribution, uvu)
+    @info "SampleLi: uv = $uv, map_pdf = $map_pdf"
     (map_pdf == 0) && return spectrum_from_float(0.0), Vec3(0), 0.0, VisibilityTester(Interaction(), Interaction()), Pnt3(0.0), Nml3(0)
 
     # Convert infinite light sample point to direction
@@ -92,7 +99,7 @@ function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tupl
         cos_phi = cos(phi)
         wi = il.light_to_world(Vec3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta))
     end
-    @info "InfLight sample_li: uv $uv - map_pdf $map_pdf - wi $wi"
+    # @info "InfLight sample_li: uv $uv - map_pdf $map_pdf - wi $wi"
 
     # Compute PDF for sampled infinite light direction
     if il.do_octahedral
@@ -116,7 +123,10 @@ function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tupl
 
     radiance = lookup(il.Lmap, uv)
     @info "InfLight sample_li: Lmap $radiance Spectrum $(spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant))"
-    radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
+    # JOHN HACK these aren't RGB they are RGBSpectrum. 
+    # a little confusing but works with barcelona pavilion
+    # radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
+    radiance = spectrum_from_float(radiance.a, radiance.b, radiance.c)
 
     return radiance, wi, pdf_val, visibility, Pnt3(0,0,0), Nml3(0,0,0)
 end
@@ -176,7 +186,10 @@ function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spe
 
     pdf_pos = 1.0 / (pi * il.world_radius * il.world_radius)
     radiance = lookup(il.Lmap, uv)
-    radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
+    @info "Radiance raw: $radiance"
+    # radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
+    radiance = spectrum_from_float(radiance.a, radiance.b, radiance.c) #JOHN HACK - NO ILLUMINANT
+    @info "Radiance spectrum: $radiance"
     return radiance, ray, nlight, pdf_pos, pdf_dir
 end
 

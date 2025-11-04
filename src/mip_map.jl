@@ -22,7 +22,7 @@ function resample_weights(old_res::Int64, new_res::Int64)::Vector{ResampleWeight
 	return wt
 end
 
-struct MIPMap{T <: Union{Spectrum, Float64}}
+struct MIPMap{T <: Union{Spectrum, Float64}} 
 	do_trilinear::Bool
 	max_anisotropy::Float64
 	wrap_mode::Int8
@@ -33,45 +33,43 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 
 	function MIPMap(
 		resolution::Pnt2i, 
-		data::Union{Vector{Float64}, Vector{Spectrum}},
-		convert_to_float::Bool,
+		data::Union{Vector{T}},
 		do_trilinear::Bool=false, 
 		max_anisotropy::Float64=8.0, 
 		wrap_mode::Int8=Int8(0)
-	)
-		data_type = convert_to_float ? Float64 : Spectrum
+	) where T <: Union{Spectrum, Float64}
 		resampled = false
 		res_pow_2 = Pnt2(0,0)
 		if (!ispow2(resolution.x)) || (!ispow2(resolution.y))
 			resampled = true
 			# Resample image to power-of-two resolution
 			res_pow_2 = Pnt2i(round_up_pow2(resolution.x), round_up_pow2(resolution.y))
-			@info "Resampling MIPMap from $(resolution) to $(res_pow_2). Ratio = $((res_pow_2.x * res_pow_2.y)/(resolution.x * resolution.y))"
+			# @info "Resampling MIPMap from $(resolution) to $(res_pow_2). Ratio = $((res_pow_2.x * res_pow_2.y)/(resolution.x * resolution.y))"
 
-			for x in 1:length(data)
-				@info "Original Image $x $(data[x])"
-			end
-			@info "------------------------------------------------"
+			# for x in 1:length(data)
+			# 	@info "Original Image $x $(data[x])"
+			# end
+			# @info "------------------------------------------------"
 			
 			# Resample image in $s$ direction
 			s_weights = resample_weights(resolution.x, res_pow_2.x)
-			resampled_image = Vector{data_type}(undef, res_pow_2.x * res_pow_2.y)
+			resampled_image = zeros(T, res_pow_2.x * res_pow_2.y)
 
-			for x in 1:length(s_weights)
-				@info "Original Image $x $(s_weights[x])"
-			end
-			@info "------------------------------------------------"
+			# for x in 1:length(s_weights)
+			# 	@info "Resample weights $x $(s_weights[x])"
+			# end
+			# @info "------------------------------------------------"
 
-			
+			# @info "Wrap mode: $(wrap_mode)"
 			# apply _sweights_ t zoom in $s$ direction
 			for t in 0:(resolution.y-1)
 				for s in 0:(res_pow_2.x-1)
 					# compute texel $(s,t)$ in $s$-zoomed image
-					resampled_image[t * res_pow_2.x + s + 1] = data[1] * 0.0 # JOHN HACK LOL
+					resampled_image[t * res_pow_2.x + s + 1] = data[1] * 0.0 # BIG BRAIN JOHN HACK
 					for j in 0:3
 						orig_s = s_weights[s+1].first_texel + j
 						if wrap_mode == Int8(0) # repeat
-							orig_s = orig_s % resolution.x
+							orig_s = mod(orig_s, resolution.x)
 						elseif wrap_mode == Int8(1) # clamp
 							orig_s = clamp(orig_s, 0, resolution.x - 1)
 						else
@@ -80,31 +78,30 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 						
 						if (orig_s >= 0) && (orig_s < resolution.x)
 							resampled_image[t * res_pow_2.x + s + 1] = resampled_image[t * res_pow_2.x + s + 1] .+ (s_weights[s+1].weight[j+1] .* data[t * resolution.x + orig_s + 1])
-							@info "MIPMAP READ: $(s), $(orig_s), $(t), $(j), $(resampled_image[t * res_pow_2.x + s + 1]) $(s_weights[s+1].weight[j+1]), $(data[t * resolution.x + orig_s + 1])"
-
+							# @info "MIPMAP READ: $(s), $(orig_s), $(t), $(j), $(resampled_image[t * res_pow_2.x + s + 1]) $(s_weights[s+1].weight[j+1]), $(data[t * resolution.x + orig_s + 1])"
 						end
 					end
 				end
 			end
-			@info "------------------------------------------------"
+			# @info "------------------------------------------------"
 
 
-			for x in 1:length(resampled_image)
-				@info "Resampled Image $x $(resampled_image[x])"
-			end
-			@info "------------------------------------------------"
+			# for x in 1:length(resampled_image)
+			# 	@info "Resampled Image $x $(resampled_image[x])"
+			# end
+			# @info "------------------------------------------------"
 
 
 			# resample image in $t$ direction
 			t_weights = resample_weights(resolution.y, res_pow_2.y)
 			for s in 0:(res_pow_2.x - 1)
-				work_data = Vector{data_type}(undef, res_pow_2.y)
+				work_data = Vector{T}(undef, res_pow_2.y)
 				for t in 0:(res_pow_2.y - 1)
 					work_data[t+1] = data[1] * 0.0 # BIG BRAIN JOHN HACK
 					for j in 0:3
 						offset = t_weights[t+1].first_texel + j
 						if wrap_mode == Int8(0) # repeat
-							offset = offset % resolution.y
+							offset = mod(offset, resolution.y)
 						elseif wrap_mode == Int8(1) # clamp
 							offset = clamp(offset, 0, resolution.y - 1)
 						else
@@ -121,17 +118,17 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 					resampled_image[t * res_pow_2.x + s + 1] = clamp.(work_data[t+1], 0, typemax(Float64))
 				end
 			end
-			for x in 1:length(resampled_image)
-				@info "Resampled Image $x $(resampled_image[x])"
-			end
-			@info "------------------------------------------------"
+			# for x in 1:length(resampled_image)
+			# 	@info "Resampled Image $x $(resampled_image[x])"
+			# end
+			# @info "------------------------------------------------"
 		end
 		
 		# initialize levels of MIPMap from image
 		n_levels = 1 + log_2_int(UInt32(max(maximum(res_pow_2), maximum(resolution))))
-		@info "N LEVELS: $(n_levels)" 
+		# @info "N LEVELS: $(n_levels)" 
 
-		pyramid = Vector{Matrix{data_type}}(undef, n_levels)
+		pyramid = Vector{Matrix{T}}(undef, n_levels)
 		pyrsize = Vector{Pnt2i}(undef, n_levels) # JOHN HACK oh god i hope this doesnt bite me later
 		
 		# Initialize most detailed level of MIPMap
@@ -149,7 +146,7 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 			s_res::Int64 = max(1, pyrsize[i-1+1].x ÷ 2)
 			t_res::Int64 = max(1, pyrsize[i-1+1].y ÷ 2)
 			# @info "PYR BUILD: $(i), $(s_res), $(t_res)"
-			pyramid[i+1] = zeros(data_type, s_res, t_res)
+			pyramid[i+1] = zeros(T, s_res, t_res)
 			pyrsize[i+1] = Pnt2(s_res, t_res)
 
 			for t in 0:(t_res-1)
@@ -164,11 +161,11 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
 				end
 			end
 
-			# for s in 0:(s_res-1)
-			# 	for t in 0:(t_res-1)
-			# 		# @info "PYRAMID: ($i, $(s), $(t)) $(pyramid[i+1][s+1,t+1])"
-			# 	end
-			# end
+			for s in 0:(s_res-1)
+				for t in 0:(t_res-1)
+					# @info "PYRAMID: ($i, $(s), $(t)) $(pyramid[i+1][s+1,t+1])"
+				end
+			end
 		end
 
 		# debugging crap
@@ -191,14 +188,14 @@ struct MIPMap{T <: Union{Spectrum, Float64}}
     	weight_lut = zeros(Float64, 128) # JOHN HACK HARDCODING
 		# Initialize EWA filter weights if needed
 		if weight_lut[0+1] == 0.0
-			for i in 1:(length(weight_lut)-1)
+			for i in 0:(length(weight_lut)-1)
 				alpha = 2.0
 				r2 = i / (length(weight_lut) - 1.0)
-				weight_lut[i+1] = -exp(-alpha * r2) - exp(-alpha)
+				weight_lut[i+1] = exp(-alpha * r2) - exp(-alpha)
 			end
 		end
 
-		return new{data_type}(
+		return new{T}(
 			do_trilinear,
 			max_anisotropy,
 			wrap_mode,
@@ -233,7 +230,7 @@ function levels(mip_map::MIPMap)::Int64
 end
 
 function lerp(t::Float64, a::T, b::T)::T where {T <: Union{Spectrum, Float64}}
-	return t .* a + (1.0 - t) .* b 
+	return (1.0 - t) .* a + t .* b
 end
 
 function triangle(mip_map::MIPMap{T}, level::Int64, st::Pnt2)::T where {T <: Union{Spectrum, Float64}}
@@ -268,7 +265,9 @@ function lookup(mip_map::MIPMap{T}, st::Pnt2, width::Float64=0.0)::T where {T <:
 end
 
 function lookup(mip_map::MIPMap{T}, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {T <: Union{Spectrum, Float64}}
+	@info "mipmap: wrap_mode: $(mip_map.wrap_mode)"
 	if mip_map.do_trilinear
+		@info "mipmap: Doing Trilinear"
 		width = max(maximum(abs.(dst0)), maximum(abs.(dst1)))
 		return lookup(mip_map, st, width)
 	end
@@ -279,20 +278,42 @@ function lookup(mip_map::MIPMap{T}, st::Pnt2, dst0::Vec2, dst1::Vec2)::T where {
 	end
 	major_length = length_pbrt(dst0)
 	minor_length = length_pbrt(dst1)
+
+	@info "mipmap: dst0: $dst0, dst1: $dst1, major_length: $major_length, minor_length: $minor_length"
    
 	# clamp ellipse eccentricity if too large
 	if (minor_length * mip_map.max_anisotropy < major_length) && (minor_length > 0)
 		scale = major_length / (minor_length * mip_map.max_anisotropy)
 		dst1 = dst1 * scale
 		minor_length = minor_length * scale
+		@info "mipmap: dst0: $dst0, dst1: $dst1, major_length: $major_length, minor_length: $minor_length"
 	end
+
+	@info "mipmap: triangle: st: $st"
+	level = clamp(0, 0, levels(mip_map) - 1)
+	s = st.x * mip_map.pyrsize[level + 1].x - 0.5
+	t = st.y * mip_map.pyrsize[level + 1].y - 0.5
+
+	s0::Int64 = floor(s)
+	t0::Int64 = floor(t)
+	ds = s - s0
+	dt = t - t0
+	@info "ImageTexture: st= $st -> (s,t)=($s, $t), (s0,t0)=($s0, $t0), (ds,dt)=($ds, $dt)"
+	johna = (1 - ds) * (1 - dt) * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0    , t0) 
+	johnb = (1 - ds) *       dt * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0    , t0 + 1)
+	johnc = ds * (1 - dt) * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0 + 1, t0)
+	johnd = ds *       dt * texel(mip_map.pyramid[level + 1], mip_map.pyrsize[level + 1], mip_map.wrap_mode, s0 + 1, t0 + 1)
+	@info "ImageTexture: a: $johna, b: $johnb, c: $johnc, d: $johnd"
+
 	if (minor_length == 0) || isinf(minor_length)
-        return triangle(mip_map, 0, st)
+		return triangle(mip_map, 0, st)
     end
    
 	# chose level of detail for EWA lookup and perform EWA filtering
 	lod = max(0.0, levels(mip_map) - 1.0 + log2(minor_length))
 	ilod::Int64 = floor(lod)
+	@info "mipmap: levels = $(levels(mip_map)), lod = $lod, ilod = $ilod"
+    @info "mipmap: EWA1: $(EWA(mip_map, ilod, st, dst0, dst1)), EWA2: $(EWA(mip_map, ilod + 1, st, dst0, dst1))"
 	return lerp(lod-ilod, EWA(mip_map, ilod, st, dst0, dst1), EWA(mip_map, ilod+1, st, dst0, dst1))
 end
 
@@ -309,6 +330,8 @@ function EWA(mip_map::MIPMap{T}, level::Int64, st::Pnt2, dst0::Vec2, dst1::Vec2)
 	dst0::Vec2 = dst0 .* mip_map.pyrsize[level+1]
 	dst1::Vec2 = dst1 .* mip_map.pyrsize[level+1]
 
+	@info "EWA: st: $st, dst0: $dst0, dst1: $dst1"
+
 	# Compute ellipse coefficients to bound EWA filter region
 	A = dst0[1+1] * dst0[1+1] + dst1[1+1] * dst1[1+1] + 1
 	B = -2 * (dst0[0+1] * dst0[1+1] + dst1[0+1] * dst1[1+1]);
@@ -319,15 +342,20 @@ function EWA(mip_map::MIPMap{T}, level::Int64, st::Pnt2, dst0::Vec2, dst1::Vec2)
 	B *= invF
 	C *= invF
 
+	@info "EWA: A: $A, B: $B, C: $C"
+
+
 	# Compute the ellipse's $(s,t)$ bounding box in texture space
 	det = -B * B + 4 * A * C;
-	invDet = 1 / det;
+	invDet = 1.0 / det;
 	uSqrt = sqrt(det * C)
 	vSqrt = sqrt(A * det)
-	s0::Int64 = ceil(st[0+1] - 2 * invDet * uSqrt)
+	s0::Int64 = ceil( st[0+1] - 2 * invDet * uSqrt)
 	s1::Int64 = floor(st[0+1] + 2 * invDet * uSqrt)
-	t0::Int64 = ceil(st[1+1] - 2 * invDet * vSqrt)
+	t0::Int64 = ceil( st[1+1] - 2 * invDet * vSqrt)
 	t1::Int64 = floor(st[1+1] + 2 * invDet * vSqrt)
+
+	@info "EWA: s0: $s0, s1: $s1, t0: $t0, t1: $t1"
 
 	# Scan over ellipse bound and compute quadratic equation
 	total = mip_map.pyramid[1][1] * 0.0
@@ -343,6 +371,7 @@ function EWA(mip_map::MIPMap{T}, level::Int64, st::Pnt2, dst0::Vec2, dst1::Vec2)
 				weight = mip_map.weight_lut[index+1]
 				total = total + texel(mip_map.pyramid[level+1], mip_map.pyrsize[level+1], mip_map.wrap_mode, is, it) * weight
 				sumWts += weight
+				@info "EWA: index: $index, weight: $weight, texel: $(texel(mip_map.pyramid[level+1], mip_map.pyrsize[level+1], mip_map.wrap_mode, is, it)), total: $total, sumWts: $sumWts"
 			end
 		end
 	end

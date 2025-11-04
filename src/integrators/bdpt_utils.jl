@@ -3,8 +3,8 @@ function convert_density(curr::Vertex, pdf::Float64, nxt::Vertex)::Float64
     is_infinite_light(nxt) && return pdf
     
     w = p(nxt) - p(curr)
-    (dot(w,w) == 0.0) && (return 0.0)
-    inv_dist2 = 1 / dot(w,w)
+    (length_squared(w) == 0.0) && (return 0.0)
+    inv_dist2 = 1.0 / length_squared(w)
     if is_on_surface(nxt)
         return pdf * abs(dot(ng(nxt), w*sqrt(inv_dist2))) * inv_dist2
     else
@@ -19,10 +19,10 @@ function infinite_light_density(lights::Vector{Light}, light_distr::Distribution
         light = lights[i]
         if is_infinite_light(light)
             pdf += pdf_li(light, empty_surface_interation(), -w) * light_distr.func[i]
-            @info "MISWEIGHT <<a4>> SHENANIGANS: pdf $(pdf)"
+            # @info "MISWEIGHT <<a4>> SHENANIGANS: pdf $(pdf)"
         end
     end
-    @info "MISWEIGHT <<a4>> SHENANIGANS: func_int $(light_distr.func_int) count $(length(light_distr.func))"
+    # @info "MISWEIGHT <<a4>> SHENANIGANS: func_int $(light_distr.func_int) count $(length(light_distr.func))"
     return pdf / (light_distr.func_int * length(light_distr.func))
 end
 

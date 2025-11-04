@@ -19,7 +19,7 @@ struct Metal{
         name::String,
         eta::ETA=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperN, CopperSamples)),
         k::K=ConstantTexture(spectrum_from_sampled(CopperWavelengths, CopperK, CopperSamples)),
-        roughness::R=ConstantTexture(0.1),
+        roughness::R=ConstantTexture(0.01),
         u_roughness::U=nothing,
         v_roughness::V=nothing,
         bump_map::BM=nothing,
@@ -96,6 +96,8 @@ function (m::Metal)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
 
     @info "uRough POST: $u_rough"
     @info "vRough POST: $v_rough"
+    @info "eta: $(m.eta(si))"
+    @info "k: $(m.k(si))"
 
     fresnel = FresnelConductor(spectrum_from_float(1.0), m.eta(si), m.k(si))
     distrib = TrowbridgeReitzDistribution(u_rough, v_rough)

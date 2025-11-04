@@ -13,6 +13,7 @@ using Dates
 using OpenEXR
 using Roots
 using IterTools
+using Printf
 
 abstract type AbstractBSDF end
 abstract type AbstractBxDF end
@@ -140,6 +141,7 @@ include("samplers2/sobol.jl")
 include("samplers2/zsobol.jl")
 include("samplers2/dumb.jl")
 include("samplers2/sampling.jl")
+include("samplers2/sampler.jl")
 include("reflection/flags.jl")
 include("reflection/math.jl")
 include("reflection/fresnel.jl")
@@ -221,6 +223,7 @@ include("scenes/scene100.jl")
 include("scenes/scene101.jl")
 include("scenes/scene102.jl")
 include("scenes/scene103.jl")
+include("scenes/scene104.jl")
 include("scenes/scene_builder.jl")
 include("denoising/edge_avoiding_a_trous.jl")
 include("medium2/phase_functions.jl")
@@ -277,6 +280,10 @@ function render_scene(parsed_args::Dict)
         end
         
         if bdpt_pass == (-1,-1)
+            # gamma correct out
+            image = map(v -> gamma_correct(v), image)
+
+            # save
             OpenEXR.save(I.camera.core.core.film.filename, image)
         else
             OpenEXR.save(replace(I.camera.core.core.film.filename, ".exr"=>"")*"_s_"*string(bdpt_pass[1])*"_t_"*string(bdpt_pass[2])*".exr", image)
