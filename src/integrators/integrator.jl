@@ -49,7 +49,7 @@ function render(
             end
         end
         
-        tile = Pnt2i(k % n_tiles.x, k ÷ n_tiles.y)
+        tile = Pnt2i(k % n_tiles.x, k ÷ n_tiles.x)
         seed::Int64 = tile.y * n_tiles.x + tile.x
         sampler = clone(i.sampler, seed)
 
@@ -63,24 +63,23 @@ function render(
             @info "WORKING ON PIXEL $pixel"
             for sample_index in 1:sampler.samples_per_pixel
                 start_pixel_sample!(sampler, pixel, sample_index-1)
-
                 camera_sample = get_camera_sample!(sampler, pixel)
                 # @info "camera_sample: $camera_sample"
                 ray, w = generate_ray_differential(i.camera, camera_sample)
                 scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
                 L = spectrum_from_float(0.0)
 
-                # if w > 0
-                #     L = li(i, ray, scene, 0, sampler)
-                # end
+                if w > 0
+                    L = li(i, ray, scene, 0, sampler)
+                end
 
-                # if any(isnan.(L))
-                #     L = spectrum_from_float(0.0)
-                # end
-                L = spectrum_from_float((Float64(pixel.x) * Float64(pixel.y))/(640.0 * 360.0))
+                if any(isnan.(L))
+                    L = spectrum_from_float(0.0)
+                end
+                # L = spectrum_from_float((Float64(pixel.x) * Float64(pixel.y))/(sample_bounds.pMax.x * sample_bounds.pMax.y))
                 
                 @info "FIN: Added sample $L @ $pixel"
-                add_sample!(film_tile, camera_sample.film, L, 1.0)
+                add_sample!(film_tile, camera_sample.film, L, w)
             end
         end
         merge_film_tile!(i.camera.core.core.film , film_tile)
