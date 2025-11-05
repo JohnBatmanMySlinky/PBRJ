@@ -95,12 +95,6 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
-- BSSRDF
-    - reflection/bssrdf.jl
-    - materials/kdsubsurface.jl
-    - scenes/scene105.jl --> to use kdsubsurface material
-    - integrators/vol_path_v3.jl
-	- carve out participating media - for now - because that's on v4
 - function for platonic solids
 - function for geodesic sphere
 - SDF
