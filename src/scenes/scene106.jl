@@ -4,13 +4,9 @@ function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     materials = Material[]
 
     # MATERIALS
-    mat_head = KdSubSurface(
-        "mat_head",
-        ImageTexture(
-            UVMapping2D(),
-            jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/head/textures/head_albedomap.png"),
-            false
-        ),
+    mat_subsurface = KdSubSurface(
+        "mat_subsurface",
+        ConstantTexture(spectrum_from_float(0.22, 0.596, .149)),
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ConstantTexture(spectrum_from_float(1.2953e-03, 9.5238e-04, 6.7114e-04)),
@@ -22,26 +18,42 @@ function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
         false
     )
-    push!(materials, mat_head)
+    push!(materials, mat_subsurface)
+
+    mat_gray = Matte(
+        "mat_gray",
+        ConstantTexture(spectrum_from_float(.4, .4, .4)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_gray)
+
+    mat_green = Matte(
+        "mat_green",
+        ConstantTexture(spectrum_from_float(0.22, 0.596, .149)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_green)
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate objects
-    head_t = Translate(Pnt3(0,0,0)) 
-    head = parse_obj(
-        jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/head/geometry/head_ascii.obj"),
-        head_t,
-        false,
-        false,
-        nothing
-    )
-    for tris in head
+    teapot_scale = 0.05
+    teapot_t1 = Scale(Vec3(teapot_scale, teapot_scale, teapot_scale))
+    teapot1 = parse_obj("../ref/teapot.obj", teapot_t1, false, false, nothing) 
+    for tris in teapot1
         for tri in tris
-            push!(primitives, Primitive(tri, "mat_head", nothing))
+            push!(primitives, Primitive(tri, "mat_subsurface", nothing))
         end
     end
-  
+
+    sc = ShapeCore()
+    ground_tris = Rectangle(Pnt2(-10, -10), Pnt2(10, 10), -4.0, 2, sc, false, nothing)
+    for tri in ground_tris
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
+    end
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -49,12 +61,12 @@ function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Done building BVH\n")
 
     # l_2_w = Scale(Vec3(-1, 0, 0)) * Rotate(90.0, Vec3(-1, 0, 0)) * Rotate(90.0, Vec3(0, 0, 1))
-    l_2_w = Translate(Pnt3(0,0,0))
+    l_2_w = Rotate(-10.0, Vec3(0,0,1)) * Rotate(-160.0, Vec3(0,1,0)) * Rotate(-90.0, Vec3(1,0,0)) 
     light = InfiniteLight(
         world_bounds(bvh),
         l_2_w,
         spectrum_from_float(1.0),
-        jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/head/textures/doge2_latlong.exr"),
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/sky.exr"),
         false
     )
     push!(lights, light)
@@ -73,9 +85,9 @@ function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(0.322839, 0.0534825, 0.504299)
-    look_at = Pnt3(-0.140808, -0.162727, -0.354936)
-    up = Vec3(0.0355799, 0.964444, -0.261882)
+    look_from = Pnt3(20.0, 20.0, 20.0)
+    look_at = Pnt3(0, 0, 0)
+    up = Vec3(0, 1, 0)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 30.0, film)
 
     # Instantiate a Sampler
