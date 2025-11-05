@@ -68,8 +68,6 @@ scene 104: mipmap debug
 scene 105: his name is doug
     - BSSRDF + VolPathIntegratorv3
     - julia -t auto RayTracing.jl --scene-number 105 --samples-per-pixel 256 --image-dim 640 360 --sampler zsobol --max-depth 2 --file-name "105-head.exr"
-scene 106: fleshy tea pot
-    - BSSRDF + VolPathIntegratorv3
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -129,8 +127,6 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             return make_scene104(parsed_args)
     elseif parsed_args["scene-number"] == 105
             return make_scene105(parsed_args)
-    elseif parsed_args["scene-number"] == 106
-            return make_scene106(parsed_args)
     else
         @assert false
     end
