@@ -68,6 +68,8 @@ scene 104: mipmap debug
 scene 105: his name is doug
     - BSSRDF + VolPathIntegratorv3
     - julia -t auto RayTracing.jl --scene-number 105 --samples-per-pixel 256 --image-dim 640 360 --sampler zsobol --max-depth 2 --file-name "105-head.exr"
+scene 106: fleshy dragon?
+    - BSSRDF + VolPathIntegratorv3
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
