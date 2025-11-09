@@ -528,13 +528,14 @@ function sample_catmull_rom_2D(
     values::AbstractArray{Float64}, cdf::AbstractArray{Float64},
     alpha::Float64, u::Float64,
 )::Tuple{Float64, Float64, Float64}
-    # @info "FourierBSDF::SampleCatmullRom2D"
+    # @info "FourierBSDF::SampleCatmullRom2D: alpha = $alpha"
     # Determine offset and coefficients for the _alpha_ parameter
     check, offset, weights = catmull_rom_weights(size1, nodes1, alpha)
     if !check
         return 0.0, 0.0, 0.0
     end
     # @info "FourierBSDF::SampleCatmullRom2D: offset = $offset"
+    # @assert false
     # @info "FourierBSDF::SampleCatmullRom2D: weights = $weights"
 
     # Define a lambda function to interpolate table entries

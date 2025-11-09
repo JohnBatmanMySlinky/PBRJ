@@ -35,6 +35,7 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
             # Add emitted light at path vertex or from the environment
             if !(si isa Nothing)
                 LL += beta * le(si, -ray.direction)
+                @info "Added Le -> L = $LL"
             else
                 for light in scene.lights
                     if is_infinite_light(light)
@@ -112,10 +113,12 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
 
             # Account for the indirect subsurface scattering component
             wi, f, pdf_val, sampled_type = sample_f(pisect.bsdf, pisect.core.wo, get_2D!(sampler), BSDF_ALL)
+            @info "Sampled BSDF, f = $f, pdf = $pdf_val"
             if (is_black(f) || pdf_val == 0) 
                 break
             end
             beta *= f * abs(dot(wi, pisect.shading.n)) / pdf_val
+            @info "Updated beta = $beta"
             specular_bounce = (sampled_type & BSDF_SPECULAR) != 0
             ray = spawn_ray(pisect.core, wi)
         end

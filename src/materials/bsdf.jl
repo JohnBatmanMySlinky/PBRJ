@@ -21,7 +21,7 @@ mutable struct BSDF <: AbstractBSDF
         ns = si.shading.n
         ss = normalize(si.shading.dpdu)
         ts = cross(ns,ss)
-        # @info "BSDF::BSDF ng = $ng, ns = $ns, ss = $ss, ts = $ts"
+        @info "BSDF::BSDF ns = $ns, ng = $ng, ss = $ss, ts = $ts"
         new(
             eta, ng, ns, ss, ts, UInt8(0),
             Vector{B where B <: AbstractBxDF}(undef, MAX_BxDF),
@@ -96,7 +96,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
         count -= 1
     end
 
-    # @info "BSDF::Sample_f chose comp = $component / matching = $matching_components, bxdf: $bxdf"
+    @info "BSDF::Sample_f chose comp = $component / matching = $matching_components, bxdf: $bxdf"
     
 
     # Remap BxDF sample u to [0, 1)^2.
@@ -107,13 +107,13 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
 
     # Sample chosen BxDF.
     wo = world_to_local(b, wo_world)
-    # @info "wo_world: $wo_world, wo: $wo"
+    @info "wo_world: $wo_world, wo: $wo"
     wo.z == 0 && return (Vec3(0), spectrum_from_float(0.0), 0, BSDF_NONE)   
 
     # TODO when to update sampled type
     sampled_type = bxdf.type
     wi, f_val, pdf_val, sampled_type_tmp = sample_f(bxdf, wo, u_remapped, sampled_type)
-    # @info "For wo = $wo, sampled f = $f_val, pdf = $pdf_val, ratio = $(pdf_val > 0 ? (f_val / pdf_val) : spectrum_from_float(0.0)), wi = $wi, sampled_type_tmp: $sampled_type_tmp"
+    @info "For wo = $wo, sampled f = $f_val, pdf = $pdf_val, ratio = $(pdf_val > 0 ? (f_val / pdf_val) : spectrum_from_float(0.0)), wi = $wi, sampled_type_tmp: $sampled_type_tmp"
     if !(sampled_type_tmp isa Nothing)
         sampled_type = sampled_type_tmp
     end
@@ -146,7 +146,7 @@ function sample_f(b::BSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Sp
             end
         end
     end
-    # @info "Overall f = $f_val, pdf = $pdf_val, ratio = $(pdf_val > 0 ? (f_val / pdf_val) : spectrum_from_float(0.0))"
+    @info "Overall f = $f_val, pdf = $pdf_val, ratio = $(pdf_val > 0 ? (f_val / pdf_val) : spectrum_from_float(0.0))"
     return wi_world, f_val, pdf_val, sampled_type
 end
 

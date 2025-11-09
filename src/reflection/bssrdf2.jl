@@ -64,7 +64,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
 
     # Sample BSSRDF profile in polar coordinates
     r = sample_sr(bssrdf, ch, u2[0 + 1])
-    # @info "beep boop integrating::sample_sr:: $r - $ch - $(u2[0 + 1])"
+    @info "beep boop integrating::sample_sr:: $r - $ch - $(u2[0 + 1])"
     if (r < 0.0)
         return spectrum_from_float(0.0), si, 0.0
     end
@@ -72,7 +72,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
 
     # Compute BSSRDF profile bounds and intersection height
     rMax = sample_sr(bssrdf, ch, 0.999)
-    # @info "beep boop integrating::sample_sr:: $rMax"
+    @info "beep boop integrating::sample_sr:: $rMax"
     if (r >= rMax)
         return spectrum_from_float(0.0), si, 0.0
     end
@@ -83,7 +83,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
         bssrdf.seperable_bssrdf.po.core.p + r * (vx * cos(phi) + vy * sin(phi)) - l * vz * 0.5,
         bssrdf.seperable_bssrdf.po.core.t
     )
-    # @info "beep boop integratint::interaction $base"
+    @info "beep boop integratint::interaction $base"
     p_target = base.p + l * vz
 
     # Pre-allocate vector for valid intersections
@@ -92,7 +92,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
     
     while true
         ray = spawn_ray_to(base, p_target)
-        # @info "beep boop integrating::booping around $ray"
+        @info "beep boop integrating::booping around $ray"
         
         if ray.direction == Vec3(0, 0, 0)
             break
@@ -119,13 +119,13 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
     
     selected_idx = clamp(floor(Int, u1 * nfound), 0, nfound - 1) + 1
     selected_si = intersections[selected_idx]
-    # @info "beep boop integrating::selected_si $selected_si"
+    @info "beep boop integrating::selected_si $selected_si"
 
     # Compute sample PDF and return the spatial BSSRDF term Sp
     pdf_val = pdf_sp(bssrdf, selected_si) / nfound
-    # @info "beep boop integrating::pdf_val $pdf_val"
+    @info "beep boop integrating::pdf_val $pdf_val"
     sp = Sp(bssrdf, selected_si)
-    # @info "beep boop integrating::sp $sp"
+    @info "beep boop integrating::sp $sp"
     return (sp, selected_si, pdf_val)
 end
 

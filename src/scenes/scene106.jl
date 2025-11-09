@@ -4,12 +4,13 @@ function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     materials = Material[]
 
     # MATERIALS
+    sigma_a, sigma_s = SUBSURFACE_PARAMS["Skin1"]
     mat_skin = SubSurface(
         "mat_skin",
         ConstantTexture(spectrum_from_float(1.0)),
         ConstantTexture(spectrum_from_float(1.0)),
-        ConstantTexture(spectrum_from_float(.0011, .0024, .014)),
-        ConstantTexture(spectrum_from_float(2.55, 3.21, 3.77)),
+        ConstantTexture(sigma_a),
+        ConstantTexture(sigma_s),
         ConstantTexture(0.0),
         ConstantTexture(0.0),
         10.0,
@@ -36,19 +37,26 @@ function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate objects
-    dragon_t = Translate(Pnt3(0.2, 0.3, 0.78)) * Rotate(90.0, Vec3(1, 0, 0)) * Rotate(-90.0, Vec3(0, 1, 0)) * Scale(Vec3(0.02, 0.02, 0.02))
-    dragon = parse_obj(
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sssdragon/geometry/dragon_ascii.obj"),
-        dragon_t,
-        false,
-        false,
-        nothing
+    # dragon_t = Translate(Pnt3(0.2, 0.3, 0.78)) * Rotate(90.0, Vec3(1, 0, 0)) * Rotate(-90.0, Vec3(0, 1, 0)) * Scale(Vec3(0.02, 0.02, 0.02))
+    # dragon = parse_obj(
+    #     jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sssdragon/geometry/dragon_ascii.obj"),
+    #     dragon_t,
+    #     false,
+    #     false,
+    #     nothing
+    # )
+    # for tris in dragon
+    #     for tri in tris
+    #         push!(primitives, Primitive(tri, "mat_skin", nothing))
+    #     end
+    # end
+
+    sphere_t = Translate(Pnt3(0.00325, 0.25559, 0.64526))
+    sphere = Sphere(
+        ShapeCore(sphere_t, Inv(sphere_t), false, false),
+        0.75
     )
-    for tris in dragon
-        for tri in tris
-            push!(primitives, Primitive(tri, "mat_skin", nothing))
-        end
-    end
+    push!(primitives, Primitive(sphere, "mat_skin", nothing))
 
     floor_t = Translate(Pnt3(0, 0, 0))
     floor = parse_obj(
@@ -71,7 +79,8 @@ function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Done building BVH\n")
 
     # l_2_w = Scale(Vec3(-1, 0, 0)) * Rotate(90.0, Vec3(-1, 0, 0)) * Rotate(90.0, Vec3(0, 0, 1))
-    l_2_w = Translate(Pnt3(0,0,0))
+    l_2_w_matrix = Mat4([-0.224951, 0.0, -0.97437, 0.0, -0.97437, 0.0, 0.224951, 0.0, 0.0, 1.0, 0.0, 8.87, 0.0, 0.0, 0.0, 1.0])
+    l_2_w = Transformation(l_2_w_matrix, inv(l_2_w_matrix))
     light = InfiniteLight(
         world_bounds(bvh),
         l_2_w,
@@ -90,7 +99,7 @@ function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
-        4.0,
+        1.0,
         parsed_args["file-name"]
     )
 

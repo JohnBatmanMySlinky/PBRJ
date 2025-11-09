@@ -121,10 +121,12 @@ struct TabulatedBSSRDF <: AbstractBSSRDF
 
     function TabulatedBSSRDF(po::SurfaceInteraction, ss::Union{KdSubSurface, SubSurface}, mode::Type{T}, sig_a::Spectrum, sig_s::Spectrum) where T <: TransportMode
         sigma_t = sig_a + sig_s
+        @info "TabulatedBSSRDF::sigma_a = $sig_a, sigma_s = $sig_s, sigma_t = $sigma_t"
         rho = zeros(Float64, nSpectralSamples)
         for c in 0:(nSpectralSamples - 1)
             rho[c + 1] = sigma_t[c + 1] != 0.0 ? (sig_s[c + 1] / sigma_t[c + 1]) : 0.0
         end
+        @info "TabulatedBSSRDF::rho_raw = $rho, rho_spectrum = $(Spectrum(rho))"
         return new(
             SeperableBSSRDF(po, ss, mode),
             sigma_t,
@@ -145,10 +147,10 @@ function (ss::KdSubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, 
     # Initialize _bsdf_ for smooth or rough dielectric
     si.bsdf = BSDF(si, ss.eta)
 
-    RR = clamp.(ss.Kr(si), 0.0, 1.0)
-    TT = clamp.(ss.Kt(si), 0.0, 1.0)
-    u_rough = clamp.(ss.u_roughness(si), 0.0, 1.0)
-    v_rough = clamp.(ss.v_roughness(si), 0.0, 1.0)
+    RR = ss.Kr(si)
+    TT = ss.Kt(si)
+    u_rough = ss.u_roughness(si)
+    v_rough = ss.v_roughness(si)
 
     if is_black(RR) && is_black(TT)
         #JOHN HACK Hmmmmmm is this going to flow thru OK?
@@ -184,8 +186,8 @@ function (ss::KdSubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, 
         end
     end
 
-    mfree = ss.scale * clamp.(ss.Mfp(si), 0.0, 1.0)
-    kd = clamp.(ss.Kd(si), 0.0, 1.0)
+    mfree = ss.scale * ss.Mfp(si)
+    kd = ss.Kd(si)
     sig_a, sig_s = subsurface_from_diffuse(ss.table, kd, mfree)
     si.bssrdf = TabulatedBSSRDF(si, ss, mode, sig_a, sig_s)
 end
@@ -199,10 +201,10 @@ function (ss::SubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mo
     # Initialize _bsdf_ for smooth or rough dielectric
     si.bsdf = BSDF(si, ss.eta)
 
-    RR = clamp.(ss.Kr(si), 0.0, 1.0)
-    TT = clamp.(ss.Kt(si), 0.0, 1.0)
-    u_rough = clamp.(ss.u_roughness(si), 0.0, 1.0)
-    v_rough = clamp.(ss.v_roughness(si), 0.0, 1.0)
+    RR = ss.Kr(si)
+    TT = ss.Kt(si)
+    u_rough = ss.u_roughness(si)
+    v_rough = ss.v_roughness(si)
 
     if is_black(RR) && is_black(TT)
         #JOHN HACK Hmmmmmm is this going to flow thru OK?
@@ -238,7 +240,7 @@ function (ss::SubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mo
         end
     end
 
-    sig_a = ss.scale * clamp.(ss.sigma_a(si), 0.0, 1.0)
-    sig_s = ss.scale * clamp.(ss.sigma_s(si), 0.0, 1.0)
+    sig_a = ss.scale * ss.sigma_a(si)
+    sig_s = ss.scale * ss.sigma_s(si)
     si.bssrdf = TabulatedBSSRDF(si, ss, mode, sig_a, sig_s)
 end
