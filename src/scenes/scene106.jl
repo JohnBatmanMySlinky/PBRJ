@@ -4,7 +4,7 @@ function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     materials = Material[]
 
     # MATERIALS
-    sigma_a, sigma_s = SUBSURFACE_PARAMS["Skin1"]
+    sigma_s, sigma_a = SUBSURFACE_PARAMS["Skin1"]
     mat_skin = SubSurface(
         "mat_skin",
         ConstantTexture(spectrum_from_float(1.0)),
@@ -37,26 +37,26 @@ function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate objects
-    # dragon_t = Translate(Pnt3(0.2, 0.3, 0.78)) * Rotate(90.0, Vec3(1, 0, 0)) * Rotate(-90.0, Vec3(0, 1, 0)) * Scale(Vec3(0.02, 0.02, 0.02))
-    # dragon = parse_obj(
-    #     jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sssdragon/geometry/dragon_ascii.obj"),
-    #     dragon_t,
-    #     false,
-    #     false,
-    #     nothing
-    # )
-    # for tris in dragon
-    #     for tri in tris
-    #         push!(primitives, Primitive(tri, "mat_skin", nothing))
-    #     end
-    # end
-
-    sphere_t = Translate(Pnt3(0.00325, 0.25559, 0.64526))
-    sphere = Sphere(
-        ShapeCore(sphere_t, Inv(sphere_t), false, false),
-        0.75
+    dragon_t = Translate(Pnt3(0.2, 0.3, 0.78)) * Rotate(90.0, Vec3(1, 0, 0)) * Rotate(-90.0, Vec3(0, 1, 0)) * Scale(Vec3(0.02, 0.02, 0.02))
+    dragon = parse_obj(
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sssdragon/geometry/dragon_ascii.obj"),
+        dragon_t,
+        false,
+        false,
+        nothing
     )
-    push!(primitives, Primitive(sphere, "mat_skin", nothing))
+    for tris in dragon
+        for tri in tris
+            push!(primitives, Primitive(tri, "mat_skin", nothing))
+        end
+    end
+
+    # sphere_t = Translate(Pnt3(0.00325, 0.25559, 0.64526))
+    # sphere = Sphere(
+    #     ShapeCore(sphere_t, Inv(sphere_t), false, false),
+    #     0.75
+    # )
+    # push!(primitives, Primitive(sphere, "mat_skin", nothing))
 
     floor_t = Translate(Pnt3(0, 0, 0))
     floor = parse_obj(
