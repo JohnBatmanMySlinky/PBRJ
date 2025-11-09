@@ -76,11 +76,11 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 # Features Implemented
 - Accelerators: BVH
 - Cameras: Perspective
-- Integrators: BDPT, ambient occlusion, and simple volumetric path (v4)
+- Integrators: BDPT, ambient occlusion, simple volumetric path (v4), and volumetric path (v3)
 - Lights: Area, distant, image infinite, uniform infinite, point, and spot
     - Uniform, Power, and Spatial (Voxel) light distributions
-- Materials: Glass, matte, metal, mirror, plastic, substrate, and fourier materials
-- Samplers: Stratified, z-sobol, and sobol
+- Materials: Glass, matte, metal, mirror, plastic, substrate, fourier, and subsurface materials
+- Samplers: LCG, Stratified, z-sobol, and sobol
 - Shapes: Box, cylindar, disk, rectangle, sphere, and triangle
     - Very very very very basic L-system
     - Implicit surfaces: Goursat surface & metaballs
@@ -95,39 +95,32 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
-- function for platonic solids
-- function for geodesic sphere
-- SDF
-    - Torus
-	- 4 subtracted spheres at (1,0), (0, 1), (-1,0), (0, -1)
-	- 4 unioned spheres at (1,1), (1,-1), (-1,-1), (-1,1)
-- revisit SDF tree to create my tree from my presentation
-    - Union(Sphere, Substract(Box, Intersect(FrameBox, Torus)))
-- re-factor all scenes to use SamplerFactory
+- BDPT pixels and tiles... I got it working for volumetric path (v3)
+- SDF scene
+    - idea 1
+        - Torus
+        - 4 subtracted spheres at (1,0), (0, 1), (-1,0), (0, -1)
+        - 4 unioned spheres at (1,1), (1,-1), (-1,-1), (-1,1)
+    - revisit SDF tree to create my tree from my presentation
+        - Union(Sphere, Substract(Box, Intersect(FrameBox, Torus)))
+    - displacements!!! https://iquilezles.org/articles/distfunctions/
+        - try again with quad!
 - stochastic alpha test re pbrtv4 and move to primitive???
-- UVMapping2D() for all textures
-- need to go firefly hunting again......
 - Back to TriangleMesh but instead use Ref{}
 - for materials/bsdf
     - use mvector with a union type
     - ::MVector{MAX_BxDF, UnionType}
     - need to define structs, then define bsdf, then define struct() for dependency hell
 - add a python jmfp to python utils in src/scripts
-- add do block to simple_vol_path.jl + a scene
-- add vol_path.jl
 - Improve scene build descriptive statistics and printing
-- SDFs
-    - displacements!!! https://iquilezles.org/articles/distfunctions/
-        - try again with quad!
-- regression test suite with simple RMSE report
 - Fourier to use immutable struct
+- CatmullRom to use static arrays? or views?
 - Fourier BSDF convergence is hacked
 - get rid of deep copys in parser
+    - use clone()?
 - i see some Mat3([]) that need to re factored in bilinear patch
 - parse_obj's FIN::Vector{Any} is gong to kill performance
 - fix old scenes that now broke with parser_obj::FIN
-- Fix up old scenes
-    - run them and squash bugs
 - Time to make my OBJ parser suck less
     - Pre-allocate arrays within parse_obj
     - Bilinear patch support for quads
@@ -140,75 +133,16 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Finish adding glass tests from pxl-th and look at more pbrt-v4 tests
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
-- Performance
-    - add an array of materials. store the index instead of the material in the primitive. --> What about type stability tho?
-    - Create a simple sample scene in Trace.jl and benchmark. Because my testing is showing no performance benefit from Float32 and Parametric Typing
-        - TYPE MORE CONCRETELY, use a NB and copy pxl-th
-        - Convert to Float32
-    - What if I instantiated the samplers within the parallel loop instead of deepcopy'ing?
-    - Make sure I am sampling purely over the solid angle. PBRT has this covered in a test suite.
-    - triangle sampling is really slow? Is it sampling more than one light at a time is slow? 
-    - ~~convert arrays to tuples after scene construction and before rendering begins aka ::Tuple{Vararg{Material}}~~ NOPE because if big tuple it get slow
-    - ~~implement a Pnt3 but it's Ints not Float to avoid some conversions~~
-    - ~~sampling over the solid angle~~
-    - ~~use inplace operations where possible ie `normalize!()` vs `normalize`~~
-    - ~~Liberal use of `const` in all mutable structs~~ --> revisit once I am typing more concretely
 - New stuff
     - Tidy up implicit Surfaces
         - Add kiss surface (https://mathworld.wolfram.com/KissSurface.html) aka $ x^2 + y^2 = (1-z)x^4 $
         - Improve goursat scene
     - Add leafs to l-systems
-    - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
 - combine `scratch/` and `src/notebooks`
 - PBRT Features
     - LightBVH from pbrt-v4
     - SimplePathIntegrator
     - VolPathIntegrator
-    - Work with images better
-	    - ~~MIPMap~~
-            - OctahedralVector
-	    - ~~InfiniteAreaLight~~
-            - CompensatedDistribution
-            - If infinite area light always uses the same width in the lookup... whats the value of a mipmp?
-        - ~~ImageTexture implementation to use MIPMaps~~
-    - Add sub div surfaces
-    - Robustly parse .pbrt scene files
-    - Implement more materials
-        - Add glass material
-            - make sure all paths of Glass's compute scattering function work
-            - pass all pxl-th's tests
-        - ~~Add metal material~~
-        - ~~Add fourier material~~
-        - Add subsurface scattering
-    - Implement light BVH for more efficient sampling
-    - Implement Metroplois Light Transport Integrator
-    - ~~Implement texture sampling and use those ray differentials~~
-    - ~~Uniform infinite light~~
-    - ~~Move to EXR~~
-        - ~~for env lights~~
-        - ~~for final image~~
-    - ~~Move the pbrt-v4's sampler structure~~
-        - ~~Sobol~~
-        - ~~PaddedSobol~~
-        - ~~ZSobol~~
-        - ~~Does it matter what my hash function is?~~
-    - ~~Seperate Textures into {Type}FloatTexture & {Type}SpectrumTexture as per pbrt-v4 and update materials accordingly~~
-    - ~~Add mediums~~
-         - ~~Homogenous medium~~
-         - ~~Grid medium~~
-         - ~~OpenVDB~~
-    - ~~Add bi-linear patches~~
-# Clean up 
-    - ~~Use y(::Spectrum) and dont hack with mean~~
-    - remove duplicate world_to_X and X_to_world
-    - use more enums?
-    - create a LightCore similar to book
-    - textures to use `evaluate()`
-    - Build in rendering passes natively (don't just use 1 spp for rendering passes)
-    - Make obj_parser less anemic.
-    - Parameterize more stuff
-        - integrator
-        - ~~logging~~
 
 # Bugs
 - IF FILM FILTER < 0.5 I GET BLACK LINES
