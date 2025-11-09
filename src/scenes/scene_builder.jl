@@ -70,6 +70,7 @@ scene 105: his name is doug
     - julia -t auto RayTracing.jl --scene-number 105 --samples-per-pixel 256 --image-dim 640 360 --sampler zsobol --max-depth 2 --file-name "105-head.exr"
 scene 106: fleshy dragon?
     - BSSRDF + VolPathIntegratorv3
+    - caffeinate -di julia -t auto RayTracing.jl --scene-number 106 --samples-per-pixel 64 --image-dim 683 512 --max-depth 3 --file-name "106-dragon_10.exr"
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
