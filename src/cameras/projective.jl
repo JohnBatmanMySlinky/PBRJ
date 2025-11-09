@@ -103,12 +103,12 @@ struct PerspectiveCamera <: Camera
 
         p_min = projcam.raster_to_camera(Pnt3(0.0))
         p_max = projcam.raster_to_camera(Pnt3(film.full_resolution.x, film.full_resolution.y, 0))
-        @info "p_min: $(p_min), p_max: $(p_max)"
+        # @info "p_min: $(p_min), p_max: $(p_max)"
         p_min /= p_min.z
         p_max /= p_max.z
-        @info "p_min: $(p_min), p_max: $(p_max)"
+        # @info "p_min: $(p_min), p_max: $(p_max)"
         A = abs((p_max.x - p_min.x)*(p_max.y - p_min.y))
-        @info "A: $(A)"
+        # @info "A: $(A)"
         new(projcam, dx_camera, dy_camera, A)
     end
 end
@@ -175,9 +175,9 @@ function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSamp
         camera.core.core.shutter_closed,
     )
     ray = camera.core.core.camera_to_world(ray)
-    @info "Camera to world: $(camera.core.core.camera_to_world)"
+    # @info "Camera to world: $(camera.core.core.camera_to_world)"
     ray.has_differentials = true
-    @info "p_film: $(p_film), p_camera: $(p_camera), ray: $(ray)"
+    # @info "p_film: $(p_film), p_camera: $(p_camera), ray: $(ray)"Camera to world: 
     return ray, 1.0
 end
 

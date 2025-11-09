@@ -304,6 +304,7 @@ function (t::Transformation)(si::SurfaceInteraction)::SurfaceInteraction
         si.shape,
         si.primitive,
         nothing,
+        nothing,
         si.dudx,
         si.dudy,
         si.dvdx,

@@ -5,7 +5,13 @@ function SamplerFactory(args::Dict)::AbstractSampler
     seed = args["seed"]
     jitter = args["jitter"]
     if debug 
-        return DumbSampler(spp)
+        if type == "dumb"
+            return DumbSampler(spp)
+        elseif type == "deterministic"
+            return DeterministicSampler(spp)
+        else
+            @assert false
+        end
     else
         if type == "independent"
             return IndependentSampler(spp)
@@ -27,6 +33,8 @@ function SamplerFactory(args::Dict)::AbstractSampler
                 spp,
                 jitter
             )
+        elseif type == "deterministic"
+            return DeterministicSampler(spp)
         else
             @assert false
         end

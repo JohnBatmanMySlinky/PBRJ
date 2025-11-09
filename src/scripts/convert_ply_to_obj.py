@@ -4,9 +4,12 @@ import os
 
 # PATH = '/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/geometry'
 # PATH = "/home/jmyslinski/random_stuff/pbrt-v3-scenes/sanmiguel/geometry/"
-PATH = "/Users/johnmyslinski/Documents/PBRJ/ref/caustic-glass/geometry/"
+# PATH = "/Users/johnmyslinski/Documents/PBRJ/ref/caustic-glass/geometry/"
 # PATH = "/home/jmyslinski/random_stuff/pbrt-v3-scenes/dragon/geometry/"
 # PATH = "/home/jmyslinski/random_stuff/pbrt-v4-scenes/lte-orb/geometry/"
+# PATH = "/home/jmyslinski/random_stuff/pbrt-v3-scenes/head/geometry/"
+# PATH = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/head/geometry/"
+PATH = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/sssdragon/geometry/"
 
 # Convert binary PLY to ASCII PLY
 for root, _, fnames in os.walk(PATH):

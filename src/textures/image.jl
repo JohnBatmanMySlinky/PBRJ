@@ -67,7 +67,7 @@ end
 function (it::ImageTexture{T})(si::SurfaceInteraction)::T where T <: Union{Float64, Spectrum}
     st, dstdx, dstdy = it.mapping(si)
     mem = lookup(it.mipmap, st, dstdx, dstdy)
-    @info "ImageTexture: st: $st, dstdx: $dstdx, dstdy: $dstdy, mem: $mem"
+    # @info "ImageTexture: st: $st, dstdx: $dstdx, dstdy: $dstdy, mem: $mem"
     if T == Float64
         # For Float64, return the specified channel
         return mem[it.channel + 1]  # Julia is 1-indexed

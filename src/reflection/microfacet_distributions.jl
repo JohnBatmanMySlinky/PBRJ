@@ -53,7 +53,7 @@ function D(md::TrowbridgeReitzDistribution, wh::Vec3)
     isinf(tan2theta) && return 0
     cos4theta = cos_2_theta(wh)^2
     E = tan2theta * (cos_2_phi(wh)/(md.alpha_x^2) + sin_2_phi(wh)/(md.alpha_y^2))
-    @info "TBR-D: tan2theta = $tan2theta, cos4theta = $cos4theta, e=$E"
+    # @info "TBR-D: tan2theta = $tan2theta, cos4theta = $cos4theta, e=$E"
     return 1.0 / (pi * md.alpha_x * md.alpha_y * cos4theta * (1+E)^2)
 end
 
@@ -72,7 +72,7 @@ function roughness_to_alpha(roughness::Float64)
 end
 
 function sample_wh(md::TrowbridgeReitzDistribution, wo::Vec3, u::Pnt2)::Vec3
-    @info "TrowbridgeReitzDistribution::Sample_wh: sampleVisibleArea: $(md.sample_visible_area)"
+    # @info "TrowbridgeReitzDistribution::Sample_wh: sampleVisibleArea: $(md.sample_visible_area)"
     if (!md.sample_visible_area)
         # @info "MD: NOT sample visible area"
         cosTheta = 0.0
@@ -104,7 +104,7 @@ function sample_wh(md::TrowbridgeReitzDistribution, wo::Vec3, u::Pnt2)::Vec3
         # @info "MD: sample visible area"
         flip = wo.z < 0
         wh = TrowbridgeReitzSample(flip ? -wo : wo, md.alpha_x, md.alpha_y, u.x, u.y)
-        @info "TrowbridgeReitzDistribution::Sample_wh: flip: $flip, wh: $wh, wo: $wo, alphax: $(md.alpha_x), alphay: $(md.alpha_y), u: $u"
+        # @info "TrowbridgeReitzDistribution::Sample_wh: flip: $flip, wh: $wh, wo: $wo, alphax: $(md.alpha_x), alphay: $(md.alpha_y), u: $u"
         if flip
             wh = -wh
         end
@@ -115,17 +115,17 @@ end
 function TrowbridgeReitzSample(wi::Vec3, alpha_x::Float64, alpha_y::Float64, U1::Float64, U2::Float64)
     # 1. stretch wi
     wiStretched = normalize(Vec3(alpha_x * wi.x, alpha_y * wi.y, wi.z))
-    @info "TrowbridgeReitzSample: wiStretched: $wiStretched"
+    # @info "TrowbridgeReitzSample: wiStretched: $wiStretched"
 
     # 2. simulate P22_{wi}(x_slope, y_slope, 1, 1)
     slope_x, slope_y = TrowbridgeReitzSample11(cos_theta(wiStretched), U1, U2)
-    @info "TrowbridgeReitzSample: slope_x: $slope_x, slope_y: $slope_y"
+    # @info "TrowbridgeReitzSample: slope_x: $slope_x, slope_y: $slope_y"
 
     # 3. rotate
     tmp = cos_phi(wiStretched) * slope_x - sin_phi(wiStretched) * slope_y
     slope_y = sin_phi(wiStretched) * slope_x + cos_phi(wiStretched) * slope_y
     slope_x = tmp
-    @info "TrowbridgeReitzSample: slope_x: $slope_x, slope_y: $slope_y"
+    # @info "TrowbridgeReitzSample: slope_x: $slope_x, slope_y: $slope_y"
 
     # 4. unstretch
     slope_x = alpha_x * slope_x
@@ -137,36 +137,36 @@ end
 
 function TrowbridgeReitzSample11(cosTheta::Float64, U1::Float64, U2::Float64)::Tuple{Float64, Float64}
     # special case (normal incidence)
-    @info "TrowbridgeReitzSample11: cosTheta: $cosTheta, U1: $U1, U2: $U2"
+    # @info "TrowbridgeReitzSample11: cosTheta: $cosTheta, U1: $U1, U2: $U2"
     if (cosTheta > .9999) 
         r = sqrt(U1 / (1 - U1))
         phi = 6.28318530718 * U2
-        @info "TrowbridgeReitzSample11: r: $r, phi: $phi"
+        # @info "TrowbridgeReitzSample11: r: $r, phi: $phi"
         return r * cos(phi), r * sin(phi)
     end
     sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta))
     tanTheta = sinTheta / cosTheta
     a = 1.0 / tanTheta;
     G1 = 2.0 / (1.0 + sqrt(1.0 + 1.0 / (a * a)))
-    @info "TrowbridgeReitzSample11: G1: $G1"
+    # @info "TrowbridgeReitzSample11: G1: $G1"
 
     # sample slope_x
     A = 2.0 * U1 / G1 - 1.0
-    @info "TrowbridgeReitzSample11: A: $A"
+    # @info "TrowbridgeReitzSample11: A: $A"
     tmp = 1.0 / (A * A - 1.0)
     if (tmp > 1e10) 
         tmp = 1e10
     end
-    @info "TrowbridgeReitzSample11: tmp: $tmp"
+    # @info "TrowbridgeReitzSample11: tmp: $tmp"
     B = tanTheta
-    @info "TrowbridgeReitzSample11: B: $B"
+    # @info "TrowbridgeReitzSample11: B: $B"
     D = sqrt(max(B * B * tmp * tmp - (A * A - B * B) * tmp, 0.0))
-    @info "TrowbridgeReitzSample11: D: $D"
+    # @info "TrowbridgeReitzSample11: D: $D"
     slope_x_1 = B * tmp - D
     slope_x_2 = B * tmp + D
     slope_x = ((A < 0) || (slope_x_2 > 1.0 / tanTheta)) ? slope_x_1 : slope_x_2
-    @info "TrowbridgeReitzSample11: slope_x_1: $slope_x_1, slope_x_2: $slope_x_2"
-    @info "TrowbridgeReitzSample11: slope_x: $slope_x"
+    # @info "TrowbridgeReitzSample11: slope_x_1: $slope_x_1, slope_x_2: $slope_x_2"
+    # @info "TrowbridgeReitzSample11: slope_x: $slope_x"
 
     # sample slope_y
     if (U2 > 0.5)
@@ -176,11 +176,11 @@ function TrowbridgeReitzSample11(cosTheta::Float64, U1::Float64, U2::Float64)::T
         S = -1.0
         U2 = 2.0 * (.5 - U2)
     end
-    @info "TrowbridgeReitzSample11: S: $S, U2: $U2"
+    # @info "TrowbridgeReitzSample11: S: $S, U2: $U2"
     z = (U2 * (U2 * (U2 * 0.27385 - 0.73369) + 0.46341)) / (U2 * (U2 * (U2 * 0.093073 + 0.309420) - 1.000000) + 0.597999)
     slope_y = S * z * sqrt(1.0 + slope_x * slope_x)
-    @info "TrowbridgeReitzSample11: z: $z"
-    @info "TrowbridgeReitzSample11: slope_y: $slope_y"
+    # @info "TrowbridgeReitzSample11: z: $z"
+    # @info "TrowbridgeReitzSample11: slope_y: $slope_y"
 
 
     @assert isfinite(slope_x)
@@ -207,8 +207,8 @@ end
 
 function compute_pdf(md::MicrofacetDistribution, wo::Vec3, wh::Vec3)::Float64
     if md.sample_visible_area
-        @info "TBR-D: $(D(md, wh))"
-        @info "TBR-G1: $(G1(md, wo))"
+        # @info "TBR-D: $(D(md, wh))"
+        # @info "TBR-G1: $(G1(md, wo))"
         return D(md, wh) * G1(md, wo) * abs(dot(wo, wh)) / abs_cos_theta(wo)
     else
         return D(md, wh) * abs_cos_theta(wh)

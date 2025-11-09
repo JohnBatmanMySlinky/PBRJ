@@ -30,14 +30,14 @@ struct InfiniteLight <: Light
         world_center, world_radius = bounding_sphere(bounds)
         # world_center = Pnt3( 0.0449999571, 1.04499996, -0.75000006 )
         # world_radius = 2.42487
-        @info "Infinite Light center: $(world_center), radius: $(world_radius)"
+        # @info "Infinite Light center: $(world_centeInfinite Light center: r), radius: $(world_radius)"
 
         # Initialize sampling PDFs for infinite area light
         # Compute scalar-valued image img from environment map
         # create im for pdf creation
         width::Int64 = 2 * Lmap.resolution.x
         height::Int64 = 2 * Lmap.resolution.y
-        @info "Infinite Light Sampling Dist ($(width), $(height))"
+        # @info "Infinite Light Sampling Dist ($(width), $(height))"
         fwidth = 0.5 / min(width, height)
         im = zeros(Float64, width, height)
         for v in 0:(height-1)
@@ -84,7 +84,7 @@ end
 function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tuple{Spectrum, Vec3, Float64, VisibilityTester, Pnt3, Nml3}
     # Find $(u,v)$ sample coordinates in infinite light texture
     uv, map_pdf = sample_continuous(il.distribution, uvu)
-    @info "SampleLi: uv = $uv, map_pdf = $map_pdf"
+    # @info "SampleLi: uv = $uv, map_pdf = $map_pdf"
     (map_pdf == 0) && return spectrum_from_float(0.0), Vec3(0), 0.0, VisibilityTester(Interaction(), Interaction()), Pnt3(0.0), Nml3(0)
 
     # Convert infinite light sample point to direction
@@ -97,7 +97,9 @@ function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tupl
         sin_theta = sin(theta)
         sin_phi = sin(phi)
         cos_phi = cos(phi)
+        # @info "sample_li::wi $(Vec3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta))"
         wi = il.light_to_world(Vec3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta))
+        # @info "sample_li::wi $wi"
     end
     # @info "InfLight sample_li: uv $uv - map_pdf $map_pdf - wi $wi"
 
@@ -122,7 +124,7 @@ function sample_li(il::InfiniteLight, interaction::Interaction, uvu::Pnt2)::Tupl
     )
 
     radiance = lookup(il.Lmap, uv)
-    @info "InfLight sample_li: Lmap $radiance Spectrum $(spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant))"
+    # @info "InfLight sample_li: Lmap $radiance Spectrum $(spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant))"
     # JOHN HACK these aren't RGB they are RGBSpectrum. 
     # a little confusing but works with barcelona pavilion
     # radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
@@ -142,7 +144,14 @@ function pdf_li(il::InfiniteLight, isect::SurfaceInteraction, w::Vec3)::Float64
         sin_theta = sin(theta)
         (sin_theta == 0.0) && return 0.0
         uv = Pnt2(phi / 2pi, theta / pi)
-        pdf_val = pdf(il.distribution, uv) / (2 * pi * pi * sin_theta)
+        try
+            pdf_val = pdf(il.distribution, uv) / (2 * pi * pi * sin_theta)
+        catch e
+            # println("UV: $uv")
+            # println("w: $w")
+            # println("wi: $wi")
+            @assert false
+        end
     end
     return pdf_val
 end
@@ -154,7 +163,7 @@ end
 function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spectrum, RayDifferential, Nml3, Float64, Float64}
     u = u1
     uv, map_pdf = sample_continuous(il.distribution, u)
-    @info "Sampling Light: UV: $(uv), map_pdf: $(map_pdf)"
+    # @info "Sampling Light: UV: $(uv), map_pdf: $(map_pdf)"
     (map_pdf == 0.0) && return spectrum_from_float(0.0), RayDifferential(Ray()), Nml3(0), 0.0, 0.0
 
     if il.do_octahedral
@@ -168,14 +177,14 @@ function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spe
         cos_phi = cos(phi)
         d = -il.light_to_world(Vec3(sin_theta * cos_phi, sin_theta * sin_phi, cos_theta))
     end
-    @info "Sampling Light: d: $d"
+    # @info "Sampling Light: d: $d"
     nlight = Nml3(d)
 
     _, v1, v2 = orthonormal_basis(-d)
     cd = random_in_concentric_disk(u2)
     p_disk = il.world_center + il.world_radius * (cd.x * v1 + cd.y * v2)
-    @info "world_center: $(il.world_center)  world_radius: $(il.world_radius)"
-    @info "Sampling Light: p_disk: $p_disk"
+    # @info "world_center: $(il.world_center)  world_radius: $(il.world_radius)"
+    # @info "Sampling Light: p_disk: $p_disk"
     ray = RayDifferential(Ray(p_disk + il.world_radius * -d, d, t, typemax(Float64)))
 
     if il.do_octahedral
@@ -186,10 +195,10 @@ function sample_le(il::InfiniteLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tuple{Spe
 
     pdf_pos = 1.0 / (pi * il.world_radius * il.world_radius)
     radiance = lookup(il.Lmap, uv)
-    @info "Radiance raw: $radiance"
+    # @info "Radiance raw: $radiance"
     # radiance = spectrum_from_RGB(radiance.a, radiance.b, radiance.c, Illuminant)
     radiance = spectrum_from_float(radiance.a, radiance.b, radiance.c) #JOHN HACK - NO ILLUMINANT
-    @info "Radiance spectrum: $radiance"
+    # @info "Radiance spectrum: $radiance"
     return radiance, ray, nlight, pdf_pos, pdf_dir
 end
 

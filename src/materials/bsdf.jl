@@ -21,7 +21,7 @@ mutable struct BSDF <: AbstractBSDF
         ns = si.shading.n
         ss = normalize(si.shading.dpdu)
         ts = cross(ns,ss)
-        @info "BSDF::BSDF ng = $ng, ns = $ns, ss = $ss, ts = $ts"
+        @info "BSDF::BSDF ns = $ns, ng = $ng, ss = $ss, ts = $ts"
         new(
             eta, ng, ns, ss, ts, UInt8(0),
             Vector{B where B <: AbstractBxDF}(undef, MAX_BxDF),
@@ -51,17 +51,17 @@ end
 
 # Equivalent to PBR's f()
 function (b::BSDF)(woW::Vec3, wiW::Vec3, flags::UInt8=BSDF_ALL)::Spectrum
-    @info "BSDF::f woW: $woW, wiW: $wiW"
+    # @info "BSDF::f woW: $woW, wiW: $wiW"
     wo = world_to_local(b, woW)
     wo.z == 0 && return spectrum_from_float(0.0)
     wi = world_to_local(b, wiW)
-    @info "BSDF::f wo: $wo, wi: $wi"
+    # @info "BSDF::f wo: $wo, wi: $wi"
     reflect = (dot(wiW, b.ng) * dot(woW, b.ng)) > 0.0 
     output = spectrum_from_float(0.0)
     for i in 1:b.n_bxdfs
         bxdf = b.bxdfs[i]
         if (bxdf & flags) && ((reflect && (bxdf.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf.type & BSDF_TRANSMISSION != 0)))
-            @info "BSDF::f = $(f(bxdf, wo, wi)), wo = $wo, wi = $wi"
+            # @info "BSDF::f = $(f(bxdf, wo, wi)), wo = $wo, wi = $wi"
             output += f(bxdf, wo, wi)
         end
     end

@@ -8,3 +8,7 @@ function get_camera_sample!(sampler::AbstractSampler, p_raster::Pnt2i)
         timesample
     )
 end
+
+function clone(as::AbstractSampler, ::Int64)
+    return as
+end

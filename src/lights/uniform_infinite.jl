@@ -10,7 +10,7 @@ struct UniformInfiniteLight <: Light
 
     function UniformInfiniteLight(bounds::Bounds3, light_to_world::Transformation, LL::Spectrum)
         world_center, world_radius = bounding_sphere(bounds)
-        @info "Infinite Light center: $(world_center), radius: $(world_radius)"
+        # @info "Infinite Light center: $(woInfinite Light center: rld_center), radius: $(world_radius)"
 
         return new(
             LL,

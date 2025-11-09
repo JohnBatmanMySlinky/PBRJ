@@ -432,24 +432,17 @@ function intersect_p(b::Bounds3, ray::AbstractRay, ray_t_max::Float64)::Tuple{Bo
     return true, t0, t1
 end
 
-function Base.iterate(b::Bounds2i, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2i, Integer}}
+function Base.iterate(b::Bounds2i, i::Integer = 1)::Union{Nothing, Tuple{Pnt2i, Integer}}
     if i > length(b)
         return nothing
     end
 
     j = i - 1
-    delta = b.pMax .- b.pMin
-    return b.pMin .+ Pnt2i(j % delta[1], j ÷ delta[1]), i + 1
-end
-
-function Base.iterate(b::Bounds2, i::Integer = 1,)::Union{Nothing, Tuple{Pnt2, Integer}}
-    if i > length(b)
-        return nothing
-    end
-
-    j = i - 1
-    delta = b.pMax .- b.pMin
-    return b.pMin .+ Pnt2(j % delta[1], j ÷ delta[1]), i + 1
+    width = b.pMax.x - b.pMin.x  # 0-indexed width
+    x_offset = j % width
+    y_offset = j ÷ width
+    
+    return Pnt2i(b.pMin.x + x_offset, b.pMin.y + y_offset), i + 1
 end
 
 function Bounds3(p::Pnt3)
