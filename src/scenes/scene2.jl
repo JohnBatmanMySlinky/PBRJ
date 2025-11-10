@@ -13,7 +13,7 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
         nothing,
         ConstantTexture(1.0),
-        onstantTexture(spectrum_from_float(1.0)),
+        ConstantTexture(spectrum_from_float(1.0)),
         nothing,
         true
     )

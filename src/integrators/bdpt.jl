@@ -28,8 +28,8 @@ function render(
     @info "Sample Bounds $(sample_bounds)"
     sample_extent = diagonal(sample_bounds)
     tile_size = 16
-    n_x_tiles, n_y_tiles = Int64.(floor.((sample_extent .+ tile_size .- 1) ./ tile_size))
-    total_tiles = n_x_tiles * n_y_tiles
+    n_tiles = Pnt2i(floor.((sample_extent .+ tile_size .- 1) ./ tile_size))
+    total_tiles = n_tiles.x * n_tiles.y
 
     # progress stuff
     prog = Progress(total_tiles)
@@ -55,13 +55,15 @@ function render(
         end
 
         # Render a single tile using BDPT
-        x, y = k % n_x_tiles, k ÷ n_x_tiles
-        tile = Pnt2i(x, y)
-        sampler = deepcopy(i.sampler)
+        tile = Pnt2i(k % n_tiles.x, k ÷ n_tiles.x)
+        seed::Int64 = tile.y * n_tiles.x + tile.x
+        sampler = clone(i.sampler, seed)
 
-        tb_min = sample_bounds.pMin .+ tile .* tile_size
-        tb_max = min.(tb_min .+ (tile_size - 1), sample_bounds.pMax)
-        tile_bounds = Bounds2i(tb_min, tb_max)
+        x0 = sample_bounds.pMin.x + tile.x * tile_size
+        x1 = min(x0 + tile_size, sample_bounds.pMax.x)
+        y0 = sample_bounds.pMin.y + tile.y * tile_size
+        y1 = min(y0 + tile_size, sample_bounds.pMax.y)
+        tile_bounds = Bounds2i(Pnt2i(x0, y0), Pnt2i(x1, y1))
         film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
             @info "########################\nWorking on Pixel: $(pixel)\n########################\n\n\n"
@@ -246,8 +248,10 @@ function generate_light_subpath!(
     light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
     @info "Light subpath light #$(light_num) aka $(light_num-1) in c++"
     light = scene.lights[light_num]
-    Le, ray, n_light, pdf_pos, pdf_dir = sample_le(light, get_2D!(sampler), get_2D!(sampler), t)
-    @info "Sample_le: $Le, $n_light, $ray"
+    why = get_2D!(sampler)
+    god = get_2D!(sampler)
+    Le, ray, n_light, pdf_pos, pdf_dir = sample_le(light, why, god, t)
+    @info "Sample_le: $Le, $n_light, $ray, $pdf_pos, $pdf_dir"
     if (pdf_pos == 0.0) || (pdf_dir == 0.0) || is_black(Le)
         return 0, 0
     end

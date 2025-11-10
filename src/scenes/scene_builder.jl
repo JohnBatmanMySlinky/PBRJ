@@ -1,13 +1,13 @@
 """
 scene 1: indoor office ✅
     - add geometry
-    - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 500 500 --samples-per-pixel 16 --file-name "1-office-scene.exr"
-scene 2: caustic glass 🟨
+    - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 500 500 --samples-per-pixel 64 --file-name "1-office-scene.exr"
+scene 2: caustic glass ✅
     - DEBUG: spot light - what's good with that???
-    - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 525 750 --samples-per-pixel 16 --file-name "2-caustic-glass.exr"
+    - julia -t 4 RayTracing.jl --scene-number 2 --image-dim 525 750 --samples-per-pixel 16 --file-name "2-caustic-glass.exr"
 scene 3: AOIntegrator + dragon ✅
     - julia -t 4 RayTracing.jl --scene-number 3 --image-dim 500 500 --samples-per-pixel 16 --file-name "3-ao-dragon.exr"
-scene 4: cornell box ✅
+scene 4: cornell box 🟨
     - DEBUG: top back right coner - what's good with that???
     - need to mess with medium params to make it a bit less dense
     - julia -t 4 RayTracing.jl --scene-number 4 --image-dim 500 500 --samples-per-pixel 16 --file-name "4-cornell-box.exr"
@@ -65,10 +65,10 @@ scene 103: check board test
     - simple scene to test checker board pattern....
 scene 104: mipmap debug
     - corresponds to mipmap-debug.pbrt
-scene 105: his name is doug
+scene 105: his name is doug ✅
     - BSSRDF + VolPathIntegratorv3
     - julia -t auto RayTracing.jl --scene-number 105 --samples-per-pixel 256 --image-dim 640 360 --sampler zsobol --max-depth 2 --file-name "105-head.exr"
-scene 106: fleshy dragon?
+scene 106: fleshy dragon? ✅
     - BSSRDF + VolPathIntegratorv3
     - caffeinate -di julia -t auto RayTracing.jl --scene-number 106 --samples-per-pixel 64 --image-dim 683 512 --max-depth 3 --file-name "106-dragon_10.exr"
 """
