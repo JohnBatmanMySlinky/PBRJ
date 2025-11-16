@@ -3,7 +3,6 @@ scene 1: indoor office ✅
     - add geometry
     - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 500 500 --samples-per-pixel 64 --file-name "1-office-scene.exr"
 scene 2: caustic glass ✅
-    - DEBUG: spot light - what's good with that???
     - julia -t 4 RayTracing.jl --scene-number 2 --image-dim 525 750 --samples-per-pixel 16 --file-name "2-caustic-glass.exr"
 scene 3: AOIntegrator + dragon ✅
     - julia -t 4 RayTracing.jl --scene-number 3 --image-dim 500 500 --samples-per-pixel 16 --file-name "3-ao-dragon.exr"
