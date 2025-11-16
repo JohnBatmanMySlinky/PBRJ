@@ -95,6 +95,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- use GLMakie as an image viewer to view renders as they progress
 - make sure samplers are working as intended...
 - BDPT pixels and tiles... I got it working for volumetric path (v3)
 - SDF scene
