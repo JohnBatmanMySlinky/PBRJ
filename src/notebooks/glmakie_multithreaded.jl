@@ -16,7 +16,7 @@ end
 
 function complicated_trace_ray(x, y, height, width)
     _ = [x^2 for x in 1:10_000]  # Simulate work]
-    sleep(0.000000001)
+    # sleep(0.000000001)
     return RGB{Float32}((x*y)/(height*width), (x*y)/(height*width), (x*y)/(height*width))
 end
 
