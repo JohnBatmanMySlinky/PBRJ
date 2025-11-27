@@ -284,9 +284,6 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for tri in floor
         push!(primitives, Primitive(tri, "mat_concrete", nothing))
     end
-    for tri in floor
-        push!(primitives2, Primitive(tri, "mat_red", nothing))
-    end
 
     ################# CEILING
     # Opting for an OBJ because my alpha map hack was fucking with the lighting!!!
@@ -353,7 +350,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     stair_light_t = Translate(Pnt3(
         (RWALL_E1 + RWALL_S2) / 2,
         ceiling_height,
-        -foyer_dim/2 - stairs_depth
+        -foyer_dim/2 - stairs_depth/2
     ))
     stair_light = Sphere(
         ShapeCore(
@@ -370,7 +367,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false
     )
     push!(lights, stair_light_alight)
+    push!(lights2, stair_light_alight)
     push!(primitives, Primitive(stair_light, "mat_white", stair_light_alight))
+    push!(primitives2, Primitive(stair_light, "mat_white", stair_light_alight))
 
     stairs = create_stair_rectangles(
         Pnt3(
@@ -392,7 +391,29 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for tris in stairs
         for tri in tris
             push!(primitives, Primitive(tri, "mat_concrete", nothing))
+            push!(primitives2, Primitive(tri, "mat_concrete", nothing))
         end
+    end
+
+    stairs_landing_t = Translate(Pnt3(0,0,0))
+    stairs_landing = Rectangle(
+        Pnt2(
+            RWALL_S2,
+            -foyer_dim/2 - stairs_depth * 2
+        ),
+        Pnt2(
+            RWALL_S2 - stairs_total_width * 2,
+            -foyer_dim/2 - stairs_depth
+        ),
+        ceiling_height/2,
+        2,
+        ShapeCore(stairs_landing_t, Inv(stairs_landing_t), false, false),
+        false,
+        nothing
+    )
+    for tri in stairs_landing
+        push!(primitives, Primitive(tri, "mat_concrete", nothing))
+        push!(primitives2, Primitive(tri, "mat_concrete", nothing))
     end
 
 
@@ -539,8 +560,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                     tri,
                     false
                 )
-                push!(lights2, alight)
-                push!(primitives2, Primitive(tri, "mat_tmp", alight))
+                # push!(lights2, alight)
+                # push!(primitives2, Primitive(tri, "mat_tmp", alight))
             end
         end
     end
@@ -670,9 +691,17 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
     
     # instantiate accelerator
-    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
-    @time bvh = BVH(primitives)
+    print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
+    @time bvh = BVH(primitives2)
     print("Done building BVH\n")
+
+    l_2_w = Translate(Pnt3(0,0,0))
+    light = UniformInfiniteLight(
+        world_bounds(bvh), 
+        l_2_w, 
+        Spectrum(0.6, 0.6, 0.6), 
+    )
+    push!(lights2, light)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.5, .5))
@@ -688,7 +717,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(150, 120, 400)
+    look_from = Pnt3(150, 200, 400)
     look_at = Pnt3(0, 100, 0)
     up = Vec3(0, 1, 0)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 65.0, film)
@@ -698,8 +727,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
-    print("There are " * num2str(length(lights)) * " lights in the scene\n")
-    scene = Scene(lights, bvh)
+    print("There are " * num2str(length(lights2)) * " lights in the scene\n")
+    scene = Scene(lights2, bvh)
     
     # Instantiate an Integrator
     I = BDPTIntegrator(C, S, parsed_args["max-depth"])
