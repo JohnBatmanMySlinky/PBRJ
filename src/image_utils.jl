@@ -2,7 +2,7 @@ function read_image(texmap::String)::Tuple{Vector{RayTracing.Spectrum}, Int64, I
     ident = texmap[end-3:end]
     if ident == ".exr"
         dat = OpenEXR.load(texmap)
-    elseif ident == ".jpg"
+    elseif (ident == ".jpg") || ident == "jpeg"
         dat = FileIO.load(texmap)
     elseif ident == ".png"
         dat = FileIO.load(texmap)

@@ -55,17 +55,33 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         "mat_concrete",
         ImageTexture(
             UVMapping2D(), 
-            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_BaseColor.jpg"), 
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_baseColor.jpeg"), 
             false
         ), # kd
-        ConstantTexture(spectrum_from_float(0.15, 0.15, 0.15)), # ks
-        ConstantTexture(.003), # u
-        ConstantTexture(.003), # v
         ImageTexture(
             UVMapping2D(), 
-            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Substance_Graph_Height.jpg"),
-            true
-        ), # bumo
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_specular.jpeg"), 
+            false
+        ), # ks
+        # ConstantTexture(spectrum_from_float(0.15, 0.15, 0.15)),
+        # ImageTexture(
+        #     UVMapping2D(), 
+        #     jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
+        #     true
+        # ), # roughness u
+        ConstantTexture(.003),
+        # ImageTexture(
+        #     UVMapping2D(), 
+        #     jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
+        #     true
+        # ), # roughness v
+        ConstantTexture(.003),
+        # ImageTexture(
+        #     UVMapping2D(), 
+        #     jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_ambientOcclusion.jpeg"),
+        #     true
+        # ), # bump
+        nothing,
         true # remap
     )
     push!(materials, mat_concrete)
@@ -77,6 +93,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ceiling_height = 200.0 # ~10ft * 20
     hallway_width = 160.0 # ~8ft * 20
     hallway_width_extra = 20.0
+    stairs_total_width = 120.0 # ~6ft * 20
+    stairs_offset = 250.0
+    stairs_depth = stairs_total_width * 3
     pillar_width_1 = 60.0 # ~4.5ft * 20
     pillar_width_2 = 20.0 # ~ 1.5ft * 20
     foyer_dim = 600.0 # ~30ft * 20
@@ -174,25 +193,40 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     end
 
     ################# CEILING
-    ceiling_transform = Translate(Pnt3(0,0,0))
-    ceiling = Rectangle(
-        Pnt2(-foyer_dim/2, -foyer_dim/2), 
-        Pnt2(foyer_dim/2, foyer_dim/2), 
-        ceiling_height,
-        2, 
-        ShapeCore(ceiling_transform, Inv(ceiling_transform), true, false),
+    # Opting for an OBJ because my alpha map hack was fucking with the lighting!!!
+    # So something in my lighting code is broken... maybe some interplay between area lights and alpha masks and shadow rays?
+    # thanks claude for generating blender code for me :)
+    # https://claude.ai/chat/568340db-6a11-496c-a205-99bc0fbdd481
+    ceiling_transform = Translate(Pnt3(0,0,0)) 
+    ceiling = parse_obj(
+        jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/scene_1_ceiling.obj"),
+        ceiling_transform,
         false,
-        "tex_ceiling"
+        false,
+        nothing
     )
-    for tri in ceiling
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-    end
+    for tris in ceiling
+        for tri in tris
+            push!(primitives, Primitive(tri, "mat_white", nothing))
+        end
+    end    
 
     ################# RIGHT WALL
+    RWALL_S = -foyer_dim/2 + sqrt(hallway_corner_offset^2/2) # ~ -131
+
+    RWALL_S1 = RWALL_S
+    RWALL_E1 = RWALL_S + stairs_offset
+    
+    RWALL_S2 = RWALL_S + stairs_offset + stairs_total_width
+    RWALL_E2 = foyer_dim/2 # ~ 300
+
+    @assert RWALL_E1 > RWALL_S1
+    @assert RWALL_E2 > RWALL_S2
+
     rwall_transform = Translate(Pnt3(0,0,0))
     rwall = Rectangle(
-        Pnt2(-foyer_dim/2 + sqrt(hallway_corner_offset^2/2), 0), 
-        Pnt2(foyer_dim/2, ceiling_height), 
+        Pnt2(RWALL_S1, 0), 
+        Pnt2(RWALL_E1, ceiling_height), 
         -foyer_dim/2,
         3, 
         ShapeCore(rwall_transform, Inv(rwall_transform), false, false),
@@ -202,6 +236,46 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for tri in rwall
         push!(primitives, Primitive(tri, "mat_white", nothing))
     end
+
+    rwall_transform = Translate(Pnt3(0,0,0))
+    rwall = Rectangle(
+        Pnt2(RWALL_S2, 0), 
+        Pnt2(RWALL_E2, ceiling_height), 
+        -foyer_dim/2,
+        3, 
+        ShapeCore(rwall_transform, Inv(rwall_transform), false, false),
+        false,
+        nothing
+    )
+    for tri in rwall
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+    end
+
+    ################# STAIRS
+
+    # a dummy light to illuminate new work
+    stair_light_t = Translate(Pnt3(
+        (RWALL_E1 + RWALL_S2) / 2,
+        ceiling_height / 2,
+        -foyer_dim/2 - stairs_depth
+    ))
+    stair_light = Sphere(
+        ShapeCore(
+            stair_light_t,
+            Inv(stair_light_t),
+            false,
+            false
+        ),  
+        25.0
+    )
+    stair_light_alight = DiffuseAreaLight(
+        spectrum_from_float(1.0, 1.0, 1.0),
+        stair_light,
+        false
+    )
+    push!(lights, stair_light_alight)
+    push!(primitives, Primitive(stair_light, "mat_white", stair_light_alight))
+
 
     ################# LEFT WALL
     lwall_transform = Translate(Pnt3(0,0,0))

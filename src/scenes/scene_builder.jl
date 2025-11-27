@@ -1,6 +1,7 @@
 """
 scene 1: indoor office ✅
     - add stairs in back
+    - add light behind camera, add light above tube
     - new concretee material
     - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 500 500 --samples-per-pixel 64 --file-name "1-office-scene.exr"
 scene 2: caustic glass ✅
