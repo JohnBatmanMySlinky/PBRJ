@@ -1,3 +1,99 @@
+function create_stair_rectangles(
+    pMin::Pnt3,
+    pMax::Pnt3,
+    N::Int,
+    axis::Int64,  # Which axis the stairs ascend (1=x, 2=y, 3=z)
+    sc::ShapeCore,
+    flip_normals::Bool,
+    alpha_mask::Maybe{String}
+)::Vector{Vector{Triangle}}
+    
+    stairs = Vector{Vector{Triangle}}()
+    
+    # Determine the dimensions
+    width = pMax - pMin
+    
+    # Calculate step dimensions
+    if axis == 1  # Stairs along X axis
+        step_depth = width[1] / N
+        step_height = width[3] / N
+        
+        for i in 0:(N-1)
+            # Current step position
+            x_start = pMin[1] + i * step_depth
+            x_end = pMin[1] + (i + 1) * step_depth
+            z_current = pMin[3] + i * step_height
+            z_next = pMin[3] + (i + 1) * step_height
+            
+            # Top surface of step
+            top_min = Pnt2(x_start, pMin[2])
+            top_max = Pnt2(x_end, pMax[2])
+            top = Rectangle(top_min, top_max, z_next, 3, sc, flip_normals, alpha_mask)
+            push!(stairs, top)
+            
+            # Vertical riser (if not the first step)
+            if i > 0
+                riser_min = Pnt2(z_current, pMin[2])
+                riser_max = Pnt2(z_next, pMax[2])
+                riser = Rectangle(riser_min, riser_max, x_start, 1, sc, flip_normals, alpha_mask)
+                push!(stairs, riser)
+            end
+        end
+        
+    elseif axis == 2  # Stairs along Y axis
+        step_depth = width[2] / N
+        step_height = width[3] / N
+        
+        for i in 0:(N-1)
+            y_start = pMin[2] + i * step_depth
+            y_end = pMin[2] + (i + 1) * step_depth
+            z_current = pMin[3] + i * step_height
+            z_next = pMin[3] + (i + 1) * step_height
+            
+            # Top surface
+            top_min = Pnt2(pMin[1], y_start)
+            top_max = Pnt2(pMax[1], y_end)
+            top = Rectangle(top_min, top_max, z_next, 3, sc, flip_normals, alpha_mask)
+            push!(stairs, top)
+            
+            # Riser
+            if i > 0
+                riser_min = Pnt2(pMin[1], z_current)
+                riser_max = Pnt2(pMax[1], z_next)
+                riser = Rectangle(riser_min, riser_max, y_start, 2, sc, flip_normals, alpha_mask)
+                push!(stairs, riser)
+            end
+        end
+        
+    else  # axis == 3, stairs along Z axis
+        step_depth = width[3] / N
+        step_height = width[2] / N  # Or width[1] depending on desired orientation
+        
+        for i in 0:(N-1)
+            z_start = pMin[3] + i * step_depth
+            z_end = pMin[3] + (i + 1) * step_depth
+            y_current = pMin[2] + i * step_height
+            y_next = pMin[2] + (i + 1) * step_height
+            
+            # Top surface
+            top_min = Pnt2(pMin[1], z_start)
+            top_max = Pnt2(pMax[1], z_end)
+            top = Rectangle(top_min, top_max, y_next, 2, sc, flip_normals, alpha_mask)
+            push!(stairs, top)
+            
+            # Riser
+            if i > 0
+                riser_min = Pnt2(pMin[1], y_current)
+                riser_max = Pnt2(pMax[1], y_next)
+                riser = Rectangle(riser_min, riser_max, z_start, 3, sc, flip_normals, alpha_mask)
+                push!(stairs, riser)
+            end
+        end
+    end
+    
+    return stairs
+end
+
 function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ###########################
     ######## Materials ########
@@ -64,18 +160,18 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false
         ), # ks
         # ConstantTexture(spectrum_from_float(0.15, 0.15, 0.15)),
-        # ImageTexture(
-        #     UVMapping2D(), 
-        #     jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
-        #     true
-        # ), # roughness u
-        ConstantTexture(.003),
-        # ImageTexture(
-        #     UVMapping2D(), 
-        #     jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
-        #     true
-        # ), # roughness v
-        ConstantTexture(.003),
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
+            true
+        ), # roughness u
+        # ConstantTexture(.003),
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
+            true
+        ), # roughness v
+        # ConstantTexture(.003),
         # ImageTexture(
         #     UVMapping2D(), 
         #     jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_ambientOcclusion.jpeg"),
@@ -256,7 +352,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # a dummy light to illuminate new work
     stair_light_t = Translate(Pnt3(
         (RWALL_E1 + RWALL_S2) / 2,
-        ceiling_height / 2,
+        ceiling_height,
         -foyer_dim/2 - stairs_depth
     ))
     stair_light = Sphere(
@@ -275,6 +371,29 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(lights, stair_light_alight)
     push!(primitives, Primitive(stair_light, "mat_white", stair_light_alight))
+
+    stairs = create_stair_rectangles(
+        Pnt3(
+            RWALL_E1,
+            0.0,
+            -foyer_dim/2
+        ),
+        Pnt3(
+            RWALL_S2,
+            ceiling_height/2,
+            -foyer_dim/2 - stairs_depth
+        ),
+        6,
+        3,
+        ShapeCore(),
+        false,
+        nothing
+    )
+    for tris in stairs
+        for tri in tris
+            push!(primitives, Primitive(tri, "mat_concrete", nothing))
+        end
+    end
 
 
     ################# LEFT WALL
