@@ -32,12 +32,10 @@ function create_stair_rectangles(
             push!(stairs, top)
             
             # Vertical riser (if not the first step)
-            if i > 0
-                riser_min = Pnt2(z_current, pMin[2])
-                riser_max = Pnt2(z_next, pMax[2])
-                riser = Rectangle(riser_min, riser_max, x_start, 1, sc, flip_normals, alpha_mask)
-                push!(stairs, riser)
-            end
+            riser_min = Pnt2(z_current, pMin[2])
+            riser_max = Pnt2(z_next, pMax[2])
+            riser = Rectangle(riser_min, riser_max, x_start, 1, sc, flip_normals, alpha_mask)
+            push!(stairs, riser)
         end
         
     elseif axis == 2  # Stairs along Y axis
@@ -57,12 +55,10 @@ function create_stair_rectangles(
             push!(stairs, top)
             
             # Riser
-            if i > 0
-                riser_min = Pnt2(pMin[1], z_current)
-                riser_max = Pnt2(pMax[1], z_next)
-                riser = Rectangle(riser_min, riser_max, y_start, 2, sc, flip_normals, alpha_mask)
-                push!(stairs, riser)
-            end
+            riser_min = Pnt2(pMin[1], z_current)
+            riser_max = Pnt2(pMax[1], z_next)
+            riser = Rectangle(riser_min, riser_max, y_start, 2, sc, flip_normals, alpha_mask)
+            push!(stairs, riser)
         end
         
     else  # axis == 3, stairs along Z axis
@@ -82,12 +78,10 @@ function create_stair_rectangles(
             push!(stairs, top)
             
             # Riser
-            if i > 0
-                riser_min = Pnt2(pMin[1], y_current)
-                riser_max = Pnt2(pMax[1], y_next)
-                riser = Rectangle(riser_min, riser_max, z_start, 3, sc, flip_normals, alpha_mask)
-                push!(stairs, riser)
-            end
+            riser_min = Pnt2(pMin[1], y_current)
+            riser_max = Pnt2(pMax[1], y_next)
+            riser = Rectangle(riser_min, riser_max, z_start, 3, sc, flip_normals, alpha_mask)
+            push!(stairs, riser)
         end
     end
     
@@ -182,6 +176,18 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_concrete)
 
+    mat_metal_door = Metal(
+        "mat_metal_door",
+        ConstantTexture(spectrum_from_float(0.155, 0.116, 0.138)),
+        ConstantTexture(spectrum_from_float(0.482, 0.312, 0.214)),
+        nothing,
+        ConstantTexture(.001),
+        ConstantTexture(.3),
+        nothing,
+        true
+    )
+    push!(materials, mat_metal_door)
+
     ###################################
     ###### GEOMETRICAL CONSTANTS ######
     ###################################
@@ -190,8 +196,10 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     hallway_width = 160.0 # ~8ft * 20
     hallway_width_extra = 20.0
     stairs_total_width = 120.0 # ~6ft * 20
-    stairs_offset = 250.0
+    stairs_offset = 275.0
     stairs_depth = stairs_total_width * 3
+    elevator_total_width = 30.0
+    elevator_offset = 100.0
     pillar_width_1 = 60.0 # ~4.5ft * 20
     pillar_width_2 = 20.0 # ~ 1.5ft * 20
     foyer_dim = 600.0 # ~30ft * 20
@@ -349,7 +357,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # a dummy light to illuminate new work
     stair_light_t = Translate(Pnt3(
         (RWALL_E1 + RWALL_S2) / 2,
-        ceiling_height,
+        ceiling_height * 2,
         -foyer_dim/2 - stairs_depth/2
     ))
     stair_light = Sphere(
@@ -416,12 +424,67 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives2, Primitive(tri, "mat_concrete", nothing))
     end
 
+    stairs_left_wall_t = Translate(Pnt3(0,0,0))
+    stairs_left_wall = Rectangle(
+        Pnt2(0.0, -foyer_dim/2),
+        Pnt2(ceiling_height * 2, -foyer_dim/2 - stairs_depth * 2),
+        RWALL_S2,
+        1,
+        ShapeCore(stairs_left_wall_t, Inv(stairs_left_wall_t), false, false),
+        false,
+        nothing
+    )
+    for tri in stairs_left_wall
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
+    end
+
+    stairs_right_wall_t = Translate(Pnt3(0,0,0))
+    stairs_right_wall = Rectangle(
+        Pnt2(0.0, -foyer_dim/2),
+        Pnt2(ceiling_height * 2, -foyer_dim/2 - stairs_depth),
+        RWALL_E1,
+        1,
+        ShapeCore(stairs_right_wall_t, Inv(stairs_right_wall_t), false, false),
+        false,
+        nothing
+    )
+    for tri in stairs_right_wall
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
+    end
+
+    stairs_back_wall_t = Translate(Pnt3(0, 0, 0))
+    stairs_back_wall = Rectangle(
+        Pnt2(RWALL_S2, 0.0),
+        Pnt2(RWALL_S2 - stairs_total_width * 2, ceiling_height*2),
+        -foyer_dim/2 - stairs_depth * 2,
+        3,
+        ShapeCore(stairs_back_wall_t, Inv(stairs_back_wall_t), false, false),
+        false,
+        nothing
+    )
+    for tri in stairs_back_wall
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
+    end
 
     ################# LEFT WALL
+    LWALL_S = -foyer_dim/2 + sqrt(hallway_corner_offset^2/2) # ~ -131
+
+    LWALL_S1 = LWALL_S
+    LWALL_E1 = LWALL_S + elevator_offset
+    
+    LWALL_S2 = LWALL_S + elevator_offset + elevator_total_width
+    LWALL_E2 = foyer_dim/2 # ~ 300
+
+    @assert LWALL_E1 > LWALL_S1
+    @assert LWALL_E2 > LWALL_S2
+
     lwall_transform = Translate(Pnt3(0,0,0))
     lwall = Rectangle(
-        Pnt2(0, -foyer_dim/2+sqrt(hallway_corner_offset^2/2)), 
-        Pnt2(ceiling_height, foyer_dim/2), 
+        Pnt2(0, LWALL_S1), 
+        Pnt2(ceiling_height, LWALL_E1), 
         -foyer_dim/2,
         1, 
         ShapeCore(lwall_transform, Inv(lwall_transform), false, false),
@@ -430,6 +493,36 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in lwall
         push!(primitives, Primitive(tri, "mat_white", nothing))
+    end
+
+    lwall_transform = Translate(Pnt3(0,0,0))
+    lwall = Rectangle(
+        Pnt2(0.0, LWALL_S2), 
+        Pnt2(ceiling_height, LWALL_E2), 
+        -foyer_dim/2,
+        1, 
+        ShapeCore(lwall_transform, Inv(lwall_transform), false, false),
+        false,
+        nothing
+    )
+    for tri in lwall
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+    end
+
+    ################# Elevator
+
+    elevator_t = Translate(Pnt3(0,0,0))
+    elevator = Rectangle(
+        Pnt2(0.0, LWALL_E1), 
+        Pnt2(ceiling_height, LWALL_S2), 
+        -foyer_dim/2,
+        1, 
+        ShapeCore(elevator_t, Inv(elevator_t), false, false),
+        false,
+        nothing
+    )
+    for tri in elevator
+        push!(primitives, Primitive(tri, "mat_metal_door", nothing))
     end
 
     ################# Pillar 1
@@ -492,7 +585,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     push!(primitives, Primitive(disk, "mat_white", nothing))
 
     ################# Pillar Area Lights
-    MULT = 5
+    MULT = 0.8
     yellow = spectrum_from_float(1.0, 1.0, 0.0)
     white = spectrum_from_float(1.0, 1.0, 1.0)
     blue = spectrum_from_float(0.0, 0.0, 1.0)
@@ -538,7 +631,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         mat_tmp = Matte(
             "mat_tmp_" * mat_name,
-            ConstantTexture(brightness),
+            ConstantTexture(brightness * MULT),
             ConstantTexture(0.0),
             nothing
         )
@@ -691,16 +784,17 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
     
     # instantiate accelerator
-    print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
-    @time bvh = BVH(primitives2)
+    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+    @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
     l_2_w = Translate(Pnt3(0,0,0))
     light = UniformInfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        Spectrum(0.6, 0.6, 0.6), 
+        Spectrum(0.1, 0.1, 0.1), 
     )
+    push!(lights, light)
     push!(lights2, light)
 
     # Instantiate a Filter
@@ -717,7 +811,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(150, 200, 400)
+    # look_from = Pnt3(150, 200, 400)
+    look_from = Pnt3(150, 120, 400)
     look_at = Pnt3(0, 100, 0)
     up = Vec3(0, 1, 0)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 65.0, film)
@@ -727,8 +822,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
-    print("There are " * num2str(length(lights2)) * " lights in the scene\n")
-    scene = Scene(lights2, bvh)
+    print("There are " * num2str(length(lights)) * " lights in the scene\n")
+    scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
     I = BDPTIntegrator(C, S, parsed_args["max-depth"])
