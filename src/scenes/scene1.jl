@@ -198,8 +198,10 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     stairs_total_width = 120.0 # ~6ft * 20
     stairs_offset = 275.0
     stairs_depth = stairs_total_width * 3
-    elevator_total_width = 30.0
+    elevator_total_width = 80.0
     elevator_offset = 100.0
+    elevator_door_gap = 3.0
+    elevator_depth = 15.0
     pillar_width_1 = 60.0 # ~4.5ft * 20
     pillar_width_2 = 20.0 # ~ 1.5ft * 20
     foyer_dim = 600.0 # ~30ft * 20
@@ -511,17 +513,31 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     ################# Elevator
 
-    elevator_t = Translate(Pnt3(0,0,0))
-    elevator = Rectangle(
+    elevator_door1_t = Translate(Pnt3(0,0,0))
+    elevator_door1 = Rectangle(
         Pnt2(0.0, LWALL_E1), 
-        Pnt2(ceiling_height, LWALL_S2), 
+        Pnt2(ceiling_height, LWALL_E1 + elevator_total_width/2 - elevator_door_gap / 2), 
         -foyer_dim/2,
         1, 
-        ShapeCore(elevator_t, Inv(elevator_t), false, false),
+        ShapeCore(elevator_door1_t, Inv(elevator_door1_t), false, false),
         false,
         nothing
     )
-    for tri in elevator
+    for tri in elevator_door1
+        push!(primitives, Primitive(tri, "mat_metal_door", nothing))
+    end
+
+    elevator_door2_t = Translate(Pnt3(0,0,0))
+    elevator_door2 = Rectangle(
+        Pnt2(0.0, LWALL_E1 + elevator_total_width/2 + elevator_door_gap / 2), 
+        Pnt2(ceiling_height, LWALL_S2), 
+        -foyer_dim/2,
+        1, 
+        ShapeCore(elevator_door2_t, Inv(elevator_door2_t), false, false),
+        false,
+        nothing
+    )
+    for tri in elevator_door2
         push!(primitives, Primitive(tri, "mat_metal_door", nothing))
     end
 
@@ -646,17 +662,17 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(lights, alight)
             push!(primitives, Primitive(tri, "mat_tmp_" * mat_name, alight))
         end
-        if (i == 6) || (i == 7) || (i == 8) || (i == 9) || (i == 10)
-            for tri in tmp_rec
-                alight = DiffuseAreaLight(
-                    brightness*MULT,
-                    tri,
-                    false
-                )
-                # push!(lights2, alight)
-                # push!(primitives2, Primitive(tri, "mat_tmp", alight))
-            end
-        end
+        # if (i == 6) || (i == 7) || (i == 8) || (i == 9) || (i == 10)
+        #     for tri in tmp_rec
+        #         alight = DiffuseAreaLight(
+        #             brightness*MULT,
+        #             tri,
+        #             false
+        #         )
+        #         push!(lights2, alight)
+        #         push!(primitives2, Primitive(tri, "mat_tmp", alight))
+        #     end
+        # end
     end
 
     ################# CORNER WALLS
