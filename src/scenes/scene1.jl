@@ -569,7 +569,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     push!(primitives, Primitive(disk, "mat_white", nothing))
 
     ################# Pillar Area Lights
-    MULT1 = 0.1
+    MULT1 = 0.8
     MULT2 = 5.0
     yellow = spectrum_from_float(1.0, 1.0, 0.0)
     white = spectrum_from_float(1.0, 1.0, 1.0)

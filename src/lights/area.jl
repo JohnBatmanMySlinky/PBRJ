@@ -6,6 +6,7 @@ struct DiffuseAreaLight <: Light
     two_sided::Bool
     medium::Maybe{Medium}
     image::Maybe{MIPMap}
+    LL::Float64
 
     function DiffuseAreaLight(
         Lemit::Spectrum, shape::Shape, two_sided::Bool, 
@@ -27,6 +28,7 @@ struct DiffuseAreaLight <: Light
             two_sided,
             medium,
             Lmap,
+            LL
         )
     end
 end
@@ -38,15 +40,15 @@ end
 function L(dal::DiffuseAreaLight, n::Nml3, w::Vec3, uv::Pnt2)::Spectrum
     # Check for zero emitted radiance from point on area light
     if !(dal.two_sided || dot(n, w) > 0)
-        return spectrum_from_float(0.0)
+        return dal.LL * spectrum_from_float(0.0)
     end
 
     if !(dal.image isa Nothing)
         # return the DiffuseAreaLight emission using image
-        return lookup(dal.image, uv)
+        return dal.LL * lookup(dal.image, uv)
     end
 
-    return dal.Lemit
+    return dal.LL * dal.Lemit
 end
 
 function power(li::DiffuseAreaLight)::Spectrum

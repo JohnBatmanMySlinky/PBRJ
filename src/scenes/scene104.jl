@@ -14,14 +14,15 @@ function make_scene104(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mat_sphere = Matte(
         "mat_sphere",
-        MixMultTexture(
-            ImageTexture(
-                UVMapping2D(),
-                jmfp("/Users/johnmyslinski/Documents/PBRJ/src/notebooks/colorful_grid_seed_42_5x9.png"),
-                false
-            ),
-            ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0))
-        ),
+        # MixMultTexture(
+        #     ImageTexture(
+        #         UVMapping2D(),
+        #         jmfp("/Users/johnmyslinski/Documents/PBRJ/src/notebooks/colorful_grid_seed_42_5x9.png"),
+        #         false
+        #     ),
+        #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0))
+        # ),
+        ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
         ConstantTexture(0.0),
         nothing
     )
@@ -63,7 +64,7 @@ function make_scene104(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         nothing,
         jmfp("/Users/johnmyslinski/Documents/PBRJ/src/notebooks/colorful_grid_seed_42_5x9.png"),
-        1.0
+        10.0
     )
     push!(lights, alight)
 
@@ -74,13 +75,13 @@ function make_scene104(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
-    # l_2_w = Translate(Pnt3(0,0,0))
-    # light = UniformInfiniteLight(
-    #     world_bounds(bvh), 
-    #     l_2_w, 
-    #     Spectrum(0.5, 0.5, 0.5), 
-    # )
-    # push!(lights, light)
+    l_2_w = Translate(Pnt3(0,0,0))
+    light = UniformInfiniteLight(
+        world_bounds(bvh), 
+        l_2_w, 
+        Spectrum(0.5, 0.5, 0.5), 
+    )
+    push!(lights, light)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.5, .5))
