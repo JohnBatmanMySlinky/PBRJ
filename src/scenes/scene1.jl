@@ -101,38 +101,6 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_white)
 
-    mat_red = Matte(
-        "mat_red",
-        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
-        ConstantTexture(0.0),
-        nothing
-    )
-    push!(materials, mat_red)
-
-    mat_green = Matte(
-        "mat_green",
-        ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
-        ConstantTexture(0.0),
-        nothing
-    )
-    push!(materials, mat_green)
-
-    mat_blue = Matte(
-        "mat_blue",
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
-        ConstantTexture(0.0),
-        nothing
-    )
-    push!(materials, mat_blue)
-
-    mat_yellow = Matte(
-        "mat_yellow",
-        ConstantTexture(spectrum_from_float(1.0, 1.0, 0.0)),
-        ConstantTexture(0.0),
-        nothing
-    )
-    push!(materials, mat_yellow)
-
     mat_gray = Matte(
         "mat_gray",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 0.0)),
@@ -601,7 +569,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     push!(primitives, Primitive(disk, "mat_white", nothing))
 
     ################# Pillar Area Lights
-    MULT = 0.8
+    MULT1 = 0.1
+    MULT2 = 5.0
     yellow = spectrum_from_float(1.0, 1.0, 0.0)
     white = spectrum_from_float(1.0, 1.0, 1.0)
     blue = spectrum_from_float(0.0, 0.0, 1.0)
@@ -647,7 +616,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         mat_tmp = Matte(
             "mat_tmp_" * mat_name,
-            ConstantTexture(brightness * MULT),
+            ConstantTexture(brightness * MULT1),
             ConstantTexture(0.0),
             nothing
         )
@@ -655,24 +624,13 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         
         for tri in tmp_rec
             alight = DiffuseAreaLight(
-                brightness*MULT,
+                brightness * MULT2,
                 tri,
                 false
             )
             push!(lights, alight)
             push!(primitives, Primitive(tri, "mat_tmp_" * mat_name, alight))
         end
-        # if (i == 6) || (i == 7) || (i == 8) || (i == 9) || (i == 10)
-        #     for tri in tmp_rec
-        #         alight = DiffuseAreaLight(
-        #             brightness*MULT,
-        #             tri,
-        #             false
-        #         )
-        #         push!(lights2, alight)
-        #         push!(primitives2, Primitive(tri, "mat_tmp", alight))
-        #     end
-        # end
     end
 
     ################# CORNER WALLS

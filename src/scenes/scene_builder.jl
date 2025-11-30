@@ -1,9 +1,9 @@
 """
 scene 1: indoor office ✅
-    - add stairs in back
     - add bannister to stairs
-    - add emissive materials for pillar
+    - add emissive materials for pillar (https://drive.google.com/drive/folders/1-Vf2M99AjMC7Wc_vdeqIutzdiXbcp9ta)
     - balance specular ness of floor and brightness of lights
+    - add lil raised edges around lights on pillar
     - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 500 500 --samples-per-pixel 64 --file-name "1-office-scene.exr"
 scene 2: caustic glass ✅
     - julia -t 4 RayTracing.jl --scene-number 2 --image-dim 525 750 --samples-per-pixel 16 --file-name "2-caustic-glass.exr"
@@ -65,8 +65,7 @@ scene 102: party blob ✅
     - see NB for animation 
 scene 103: check board test
     - simple scene to test checker board pattern....
-scene 104: mipmap debug
-    - corresponds to mipmap-debug.pbrt
+scene 104: emissive images testing
 scene 105: his name is doug ✅
     - BSSRDF + VolPathIntegratorv3
     - julia -t auto RayTracing.jl --scene-number 105 --samples-per-pixel 256 --image-dim 640 360 --sampler zsobol --max-depth 2 --file-name "105-head.exr"
