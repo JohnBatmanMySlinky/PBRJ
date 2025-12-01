@@ -49,26 +49,24 @@ function make_scene104(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     end
 
     ########## Sphere
-    sphere_radius = 5.0
-    sphere_t = Translate(Pnt3(0, sphere_radius + 3, 0))
-    sphere = Sphere(
-        ShapeCore(sphere_t, Inv(sphere_t), false, false),
-        sphere_radius
-    )
-    push!(primitives, Primitive(sphere, "mat_sphere", nothing))
+    # sphere_radius = 5.0
+    # sphere_t = Translate(Pnt3(0, sphere_radius + 3, 0))
+    # sphere = Sphere(
+    #     ShapeCore(sphere_t, Inv(sphere_t), false, false),
+    #     sphere_radius
+    # )
+    # push!(primitives, Primitive(sphere, "mat_sphere", nothing))
 
 
-    alight = DiffuseAreaLight(
-        spectrum_from_float(1.0, 1.0, 1.0),
-        sphere,
-        false,
-        nothing,
-        jmfp("/Users/johnmyslinski/Documents/PBRJ/src/notebooks/colorful_grid_seed_42_5x9.png"),
-        10.0
-    )
-    push!(lights, alight)
-
-
+    # alight = DiffuseAreaLight(
+    #     spectrum_from_float(1.0, 1.0, 1.0),
+    #     sphere,
+    #     false,
+    #     nothing,
+    #     jmfp("/Users/johnmyslinski/Documents/PBRJ/src/notebooks/colorful_grid_seed_42_5x9.png"),
+    #     10.0
+    # )
+    # push!(lights, alight)
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

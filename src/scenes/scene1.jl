@@ -641,8 +641,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                     jmfp("/Users/johnmyslinski/Documents/PBRJ/src/notebooks/colorful_grid_seed_42_5x9.png"),
                     1.0
                 )
-                push!(primitives, Primitive(tri, "mat_checker", alight))
-                push!(primitives2, Primitive(tri, "mat_checker", alight))
+                push!(primitives, Primitive(tri, "mat_checker", nothing))
+                push!(primitives2, Primitive(tri, "mat_checker", nothing))
                 push!(lights, alight)
                 push!(lights2, alight)
             end
