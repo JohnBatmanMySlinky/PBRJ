@@ -261,6 +261,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in floor
         push!(primitives, Primitive(tri, "mat_concrete", nothing))
+        push!(primitives2, Primitive(tri, "mat_concrete", nothing))
     end
 
     ################# CEILING
@@ -614,22 +615,55 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             nothing
         )
-        mat_tmp = Matte(
-            "mat_tmp_" * mat_name,
-            ConstantTexture(brightness * MULT1),
-            ConstantTexture(0.0),
-            nothing
-        )
-        push!(materials, mat_tmp)
-        
-        for tri in tmp_rec
-            alight = DiffuseAreaLight(
-                brightness * MULT2,
-                tri,
-                false
+        if i == 6
+            mat_checker = Matte(
+                "mat_checker",
+                # MixMultTexture(
+                #     ImageTexture(
+                #         UVMapping2D(),
+                #         jmfp("/Users/johnmyslinski/Documents/PBRJ/src/notebooks/colorful_grid_seed_42_5x9.png"),
+                #         false
+                #     ),
+                #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0))
+                # ),
+                ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
+                ConstantTexture(0.0),
+                nothing
             )
-            push!(lights, alight)
-            push!(primitives, Primitive(tri, "mat_tmp_" * mat_name, alight))
+            push!(materials, mat_checker)
+
+            for tri in tmp_rec
+                alight = DiffuseAreaLight(
+                    spectrum_from_float(1.0, 1.0, 1.0),
+                    tri,
+                    false,
+                    nothing,
+                    jmfp("/Users/johnmyslinski/Documents/PBRJ/src/notebooks/colorful_grid_seed_42_5x9.png"),
+                    1.0
+                )
+                push!(primitives, Primitive(tri, "mat_checker", alight))
+                push!(primitives2, Primitive(tri, "mat_checker", alight))
+                push!(lights, alight)
+                push!(lights2, alight)
+            end
+        else
+            mat_tmp = Matte(
+                "mat_tmp_" * mat_name,
+                ConstantTexture(brightness * MULT1),
+                ConstantTexture(0.0),
+                nothing
+            )
+            push!(materials, mat_tmp)
+            
+            for tri in tmp_rec
+                alight = DiffuseAreaLight(
+                    brightness * MULT2,
+                    tri,
+                    false
+                )
+                push!(lights, alight)
+                push!(primitives, Primitive(tri, "mat_tmp_" * mat_name, alight))
+            end
         end
     end
 
@@ -758,8 +792,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
     
     # instantiate accelerator
-    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
-    @time bvh = BVH(primitives)
+    print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
+    @time bvh = BVH(primitives2)
     print("Done building BVH\n")
 
     l_2_w = Translate(Pnt3(0,0,0))
@@ -796,8 +830,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
-    print("There are " * num2str(length(lights)) * " lights in the scene\n")
-    scene = Scene(lights, bvh)
+    print("There are " * num2str(length(lights2)) * " lights in the scene\n")
+    scene = Scene(lights2, bvh)
     
     # Instantiate an Integrator
     I = BDPTIntegrator(C, S, parsed_args["max-depth"])
