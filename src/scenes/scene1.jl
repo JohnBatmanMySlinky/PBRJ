@@ -570,8 +570,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     push!(primitives, Primitive(disk, "mat_white", nothing))
 
     ################# Pillar Area Lights
-    MULT1 = 0.8
-    MULT2 = 5.0
+    MULT_albedo = 3.0
+    MULT_light = 5.0
     yellow = spectrum_from_float(1.0, 1.0, 0.0)
     white = spectrum_from_float(1.0, 1.0, 1.0)
     blue = spectrum_from_float(0.0, 0.0, 1.0)
@@ -615,55 +615,31 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             nothing
         )
-        if i == 6
-            mat_checker = Matte(
-                "mat_checker",
-                # MixMultTexture(
-                #     ImageTexture(
-                #         UVMapping2D(),
-                #         jmfp("/Users/johnmyslinski/Documents/PBRJ/src/notebooks/colorful_grid_seed_42_5x9.png"),
-                #         false
-                #     ),
-                #     ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0))
-                # ),
-                ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
-                ConstantTexture(0.0),
-                nothing
-            )
-            push!(materials, mat_checker)
-
-            for tri in tmp_rec
-                alight = DiffuseAreaLight(
-                    spectrum_from_float(1.0, 1.0, 1.0),
-                    tri,
-                    false,
-                    nothing,
-                    jmfp("/Users/johnmyslinski/Documents/PBRJ/src/notebooks/colorful_grid_seed_42_5x9.png"),
-                    1.0
-                )
-                push!(primitives, Primitive(tri, "mat_checker", nothing))
-                push!(primitives2, Primitive(tri, "mat_checker", nothing))
-                push!(lights, alight)
-                push!(lights2, alight)
-            end
-        else
-            mat_tmp = Matte(
-                "mat_tmp_" * mat_name,
-                ConstantTexture(brightness * MULT1),
-                ConstantTexture(0.0),
-                nothing
-            )
-            push!(materials, mat_tmp)
-            
-            for tri in tmp_rec
-                alight = DiffuseAreaLight(
-                    brightness * MULT2,
-                    tri,
+        mat_parchment = Matte(
+            "mat_parchment_" * mat_name,
+            MixMultTexture(
+                ImageTexture(
+                    UVMapping2D(),
+                    jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_1.jpg"),
                     false
-                )
-                push!(lights, alight)
-                push!(primitives, Primitive(tri, "mat_tmp_" * mat_name, alight))
-            end
+                ),
+                ConstantTexture(brightness * MULT_albedo)
+            ),
+            ConstantTexture(0.0),
+            nothing
+        )
+        push!(materials, mat_parchment)
+
+        for tri in tmp_rec
+            alight = DiffuseAreaLight(
+                brightness * MULT_light,
+                tri,
+                false
+            )
+            push!(primitives, Primitive(tri, "mat_parchment_" * mat_name, nothing))
+            push!(primitives2, Primitive(tri, "mat_parchment_" * mat_name, nothing))
+            push!(lights, alight)
+            push!(lights2, alight)
         end
     end
 
@@ -792,8 +768,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
     
     # instantiate accelerator
-    print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
-    @time bvh = BVH(primitives2)
+    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+    @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
     l_2_w = Translate(Pnt3(0,0,0))
@@ -830,8 +806,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
-    print("There are " * num2str(length(lights2)) * " lights in the scene\n")
-    scene = Scene(lights2, bvh)
+    print("There are " * num2str(length(lights)) * " lights in the scene\n")
+    scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
     I = BDPTIntegrator(C, S, parsed_args["max-depth"])
