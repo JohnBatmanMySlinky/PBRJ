@@ -34,7 +34,7 @@ function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     end
     
     si.bsdf = BSDF(si)
-    r = clamp.(m.Kd(si),0.0,1.0)
+    r = m.Kd(si)
 
     @info "Spectrum Kd: $(r)"
 
