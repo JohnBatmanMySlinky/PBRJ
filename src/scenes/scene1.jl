@@ -538,8 +538,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     end
 
     ################# Pillar Edges
-    pillar_front_left_t = Translate(Pnt3(0,0,0))
-    pillar_front_left = Box(
+    pillar_front_right_t = Translate(Pnt3(0,0,0))
+    pillar_front_right = Box(
         Pnt3(
             -pillar_width_2 - pillar_edge_thickness,
             0,
@@ -550,10 +550,10 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ceiling_circle_height, 
             pillar_width_1 + pillar_edge_thickness
         ), 
-        ShapeCore(pillar_front_left_t, Inv(pillar_front_left_t), false, false),
+        ShapeCore(pillar_front_right_t, Inv(pillar_front_right_t), false, false),
         nothing
     )
-    for tri in pillar_front_left
+    for tri in pillar_front_right
         push!(primitives, Primitive(tri, "mat_white", nothing))
         push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
@@ -835,7 +835,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     
     # Instantiate an Integrator
     # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
-    I = AOIntegrator(C, S, true)
+    I = AOIntegrator(C, S, false)
 
     return I, scene
 end
