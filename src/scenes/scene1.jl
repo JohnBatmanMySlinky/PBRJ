@@ -835,7 +835,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     
     # Instantiate an Integrator
     # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
-    I = AOIntegrator(C, S, false)
+    I = AOIntegrator(C, S, true)
 
     return I, scene
 end
