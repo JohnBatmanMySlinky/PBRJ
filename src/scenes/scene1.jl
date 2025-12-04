@@ -172,6 +172,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     elevator_depth = 15.0
     pillar_width_1 = 60.0 # ~4.5ft * 20
     pillar_width_2 = 20.0 # ~ 1.5ft * 20
+    pillar_edge_thickness = 2.0
     foyer_dim = 600.0 # ~30ft * 20
     ceiling_whole_size = 130.0 # ~6.5ft * 20
     ceiling_circle_thickness = 20.0 # ~1ft * 20
@@ -520,6 +521,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in pillar_1
         push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     ################# Pillar 2
@@ -532,6 +534,28 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in pillar_2
         push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
+    end
+
+    ################# Pillar Edges
+    pillar_front_left_t = Translate(Pnt3(0,0,0))
+    pillar_front_left = Box(
+        Pnt3(
+            -pillar_width_2 - pillar_edge_thickness,
+            0,
+            pillar_width_1
+        ), 
+        Pnt3(
+            -pillar_width_2,  
+            ceiling_circle_height, 
+            pillar_width_1 + pillar_edge_thickness
+        ), 
+        ShapeCore(pillar_front_left_t, Inv(pillar_front_left_t), false, false),
+        nothing
+    )
+    for tri in pillar_front_left
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     ################# CEILING CYLINDAR
@@ -768,8 +792,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
     
     # instantiate accelerator
-    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
-    @time bvh = BVH(primitives)
+    print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
+    @time bvh = BVH(primitives2)
     print("Done building BVH\n")
 
     l_2_w = Translate(Pnt3(0,0,0))
@@ -806,11 +830,12 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
-    print("There are " * num2str(length(lights)) * " lights in the scene\n")
-    scene = Scene(lights, bvh)
+    print("There are " * num2str(length(lights2)) * " lights in the scene\n")
+    scene = Scene(lights2, bvh)
     
     # Instantiate an Integrator
-    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    I = AOIntegrator(C, S, true)
 
     return I, scene
 end
