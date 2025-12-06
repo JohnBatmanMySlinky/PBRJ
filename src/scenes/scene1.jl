@@ -558,6 +558,26 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
+    pillar_front_left_t = Translate(Pnt3(0,0,0))
+    pillar_front_left = Box(
+        Pnt3(
+            pillar_width_2,
+            0,
+            pillar_width_1
+        ), 
+        Pnt3(
+            pillar_width_2 + pillar_edge_thickness,  
+            ceiling_circle_height, 
+            pillar_width_1 + pillar_edge_thickness
+        ), 
+        ShapeCore(pillar_front_left_t, Inv(pillar_front_left_t), false, false),
+        nothing
+    )
+    for tri in pillar_front_left
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
+    end
+
     ################# CEILING CYLINDAR
     outer_cyl_t = RotateX(-90.0)
     outer_cyl = Cylindar(
