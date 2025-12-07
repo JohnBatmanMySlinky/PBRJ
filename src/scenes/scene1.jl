@@ -117,38 +117,45 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_pink)
 
-    mat_concrete = Substrate(
+    # mat_concrete = Substrate(
+    #     "mat_concrete",
+    #     ImageTexture(
+    #         UVMapping2D(), 
+    #         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_baseColor.jpeg"), 
+    #         false
+    #     ), # kd
+    #     ImageTexture(
+    #         UVMapping2D(), 
+    #         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_specular.jpeg"), 
+    #         false
+    #     ), # ks
+    #     # ConstantTexture(spectrum_from_float(0.15, 0.15, 0.15)),
+    #     ImageTexture(
+    #         UVMapping2D(), 
+    #         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
+    #         true
+    #     ), # roughness u
+    #     # ConstantTexture(.003),
+    #     ImageTexture(
+    #         UVMapping2D(), 
+    #         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
+    #         true
+    #     ), # roughness v
+    #     # ConstantTexture(.003),
+    #     # ImageTexture(
+    #     #     UVMapping2D(), 
+    #     #     jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_ambientOcclusion.jpeg"),
+    #     #     true
+    #     # ), # bump
+    #     nothing,
+    #     true # remap
+    # )
+    # push!(materials, mat_concrete)
+    mat_concrete = Matte(
         "mat_concrete",
-        ImageTexture(
-            UVMapping2D(), 
-            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_baseColor.jpeg"), 
-            false
-        ), # kd
-        ImageTexture(
-            UVMapping2D(), 
-            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_specular.jpeg"), 
-            false
-        ), # ks
-        # ConstantTexture(spectrum_from_float(0.15, 0.15, 0.15)),
-        ImageTexture(
-            UVMapping2D(), 
-            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
-            true
-        ), # roughness u
-        # ConstantTexture(.003),
-        ImageTexture(
-            UVMapping2D(), 
-            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
-            true
-        ), # roughness v
-        # ConstantTexture(.003),
-        # ImageTexture(
-        #     UVMapping2D(), 
-        #     jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_ambientOcclusion.jpeg"),
-        #     true
-        # ), # bump
-        nothing,
-        true # remap
+        ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
+        ConstantTexture(0.0),
+        nothing
     )
     push!(materials, mat_concrete)
 
@@ -336,6 +343,22 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     end
 
     ################# STAIRS
+
+    # jfc these transforms
+    bannister_t = Scale(15.0, 15.0, 15.0) * Translate(Pnt3(12, 8, -3)) * RotateY(90.0) * RotateX(90.0)
+    bannister = parse_obj(
+        jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/scene_1_bannister.obj"),
+        bannister_t,
+        false,
+        false,
+        nothing
+    )
+    for tris in bannister
+        for tri in tris
+            push!(primitives, Primitive(tri, "mat_pink", nothing))
+            push!(primitives2, Primitive(tri, "mat_pink", nothing))
+        end
+    end    
 
     # a dummy light to illuminate new work
     stair_light_t = Translate(Pnt3(
@@ -625,7 +648,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in pillar_1
         push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        # push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     ################# Pillar 2
@@ -638,7 +661,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in pillar_2
         push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        # push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     ################# Front Pillar Edges
@@ -659,7 +682,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in pillar_front_right
         push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        # push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     pillar_front_left_t = Translate(Pnt3(0,0,0))
@@ -679,7 +702,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in pillar_front_left
         push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        # push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     pillar_front_horizonal_t = Translate(Pnt3(0, 0, 0))
@@ -701,7 +724,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in pillar_front_horizontal
             push!(primitives, Primitive(tri, "mat_white", nothing))
-            push!(primitives2, Primitive(tri, "mat_white", nothing))
+            # push!(primitives2, Primitive(tri, "mat_white", nothing))
         end
     end
 
@@ -723,7 +746,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in pillar_right_right
         push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        # push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     pillar_right_left_t = Translate(Pnt3(0,0,0))
@@ -743,7 +766,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in pillar_right_left
         push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        # push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     pillar_right_horizonal_t = Translate(Pnt3(0, 0, 0))
@@ -765,7 +788,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in pillar_right_horizontal
             push!(primitives, Primitive(tri, "mat_white", nothing))
-            push!(primitives2, Primitive(tri, "mat_white", nothing))
+            # push!(primitives2, Primitive(tri, "mat_white", nothing))
         end
     end
 
@@ -787,7 +810,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in pillar_left_right
         push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        # push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     pillar_left_left_t = Translate(Pnt3(0,0,0))
@@ -807,7 +830,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in pillar_left_left
         push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        # push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     pillar_left_horizonal_t = Translate(Pnt3(0, 0, 0))
@@ -829,7 +852,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         )
         for tri in pillar_left_horizontal
             push!(primitives, Primitive(tri, "mat_white", nothing))
-            push!(primitives2, Primitive(tri, "mat_white", nothing))
+            # push!(primitives2, Primitive(tri, "mat_white", nothing))
         end
     end
 
@@ -938,9 +961,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 false
             )
             push!(primitives, Primitive(tri, "mat_parchment_" * mat_name, nothing))
-            push!(primitives2, Primitive(tri, "mat_parchment_" * mat_name, nothing))
+            # push!(primitives2, Primitive(tri, "mat_parchment_" * mat_name, nothing))
             push!(lights, alight)
-            push!(lights2, alight)
+            # push!(lights2, alight)
         end
     end
 
@@ -1069,8 +1092,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
     
     # instantiate accelerator
-    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
-    @time bvh = BVH(primitives)
+    print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
+    @time bvh = BVH(primitives2)
     print("Done building BVH\n")
 
     l_2_w = Translate(Pnt3(0,0,0))
@@ -1107,13 +1130,13 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
-    print("There are " * num2str(length(lights)) * " lights in the scene\n")
-    scene = Scene(lights, bvh)
+    print("There are " * num2str(length(lights2)) * " lights in the scene\n")
+    scene = Scene(lights2, bvh)
     
     # Instantiate an Integrator
-    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
     # I = AOIntegrator(C, S, true)
-    # I = SimpleIntegrator(C, S)
+    I = SimpleIntegrator(C, S)
 
     return I, scene
 end

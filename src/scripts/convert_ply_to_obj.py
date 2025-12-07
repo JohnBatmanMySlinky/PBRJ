@@ -9,12 +9,12 @@ import os
 # PATH = "/home/jmyslinski/random_stuff/pbrt-v4-scenes/lte-orb/geometry/"
 # PATH = "/home/jmyslinski/random_stuff/pbrt-v3-scenes/head/geometry/"
 # PATH = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/head/geometry/"
-PATH = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/sssdragon/geometry/"
+PATH = "/Users/johnmyslinski/Documents/PBRJ/ref"
 
 # Convert binary PLY to ASCII PLY
 for root, _, fnames in os.walk(PATH):
     for fname in fnames:
-        if fname.endswith(".ply") and "ascii" not in fname:
+        if fname.endswith(".ply") and "ascii" not in fname and "bannister" in fname:
             path = Path(root, fname)
             new_fname = fname.replace(".ply", "_ascii.ply")
             if new_fname not in fnames: 
