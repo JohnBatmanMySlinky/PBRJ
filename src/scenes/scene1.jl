@@ -554,7 +554,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in elevator_trim_left
-        push!(primitives, Primitive(tri, "mat_pink", nothing))
+        push!(primitives, Primitive(tri, "mat_metal_door", nothing))
     end
 
     elevator_trim_right_t = Translate(Pnt3(0, 0, 0))
@@ -573,7 +573,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in elevator_trim_right
-        push!(primitives, Primitive(tri, "mat_pink", nothing))
+        push!(primitives, Primitive(tri, "mat_metal_door", nothing))
     end
 
     elevator_trim_top_t = Translate(Pnt3(0, 0, 0))
@@ -592,7 +592,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in elevator_trim_top
-        push!(primitives, Primitive(tri, "mat_pink", nothing))
+        push!(primitives, Primitive(tri, "mat_metal_door", nothing))
     end
 
     elevator_floor_t = Translate(Pnt3(0, 0, 0))
