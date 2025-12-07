@@ -117,6 +117,22 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_pink)
 
+    mat_gray = Matte(
+        "mat_gray",
+        ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_gray)
+
+    mat_blue = Matte(
+        "mat_blue",
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.9)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_blue)
+
     # mat_concrete = Substrate(
     #     "mat_concrete",
     #     ImageTexture(
@@ -303,7 +319,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     end    
 
     ################# RIGHT WALL
-    RWALL_S = -foyer_dim/2 + sqrt(hallway_corner_offset^2/2) # ~ -131
+    RWALL_S = -foyer_dim/2 + sqrt(hallway_corner_offset^2/2) # ~ -130.3
 
     RWALL_S1 = RWALL_S
     RWALL_E1 = RWALL_S + stairs_offset
@@ -345,7 +361,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ################# STAIRS
 
     # jfc these transforms
-    bannister_t = Scale(15.0, 15.0, 15.0) * Translate(Pnt3(12, 8, -3)) * RotateY(90.0) * RotateX(90.0)
+    bannister_t = Translate(Pnt3(0, 0, 0))
     bannister = parse_obj(
         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/scene_1_bannister.obj"),
         bannister_t,
@@ -353,12 +369,17 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         nothing
     )
+    primitives3 = Primitive[]
     for tris in bannister
         for tri in tris
             push!(primitives, Primitive(tri, "mat_pink", nothing))
             push!(primitives2, Primitive(tri, "mat_pink", nothing))
+            push!(primitives3, Primitive(tri, "mat_pink", nothing))
         end
-    end    
+    end
+
+    dumb = BVH(primitives3)
+    println(world_bounds(dumb))
 
     # a dummy light to illuminate new work
     stair_light_t = Translate(Pnt3(
@@ -426,8 +447,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in stairs_landing
-        push!(primitives, Primitive(tri, "mat_concrete", nothing))
-        push!(primitives2, Primitive(tri, "mat_concrete", nothing))
+        push!(primitives, Primitive(tri, "mat_blue", nothing))
+        push!(primitives2, Primitive(tri, "mat_blue", nothing))
     end
 
     stairs_left_wall_t = Translate(Pnt3(0,0,0))
@@ -471,8 +492,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in stairs_back_wall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
+        push!(primitives2, Primitive(tri, "mat_gray", nothing))
     end
 
     ################# LEFT WALL
@@ -1119,7 +1140,6 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    # look_from = Pnt3(150, 200, 400)
     look_from = Pnt3(150, 120, 400)
     look_at = Pnt3(0, 100, 0)
     up = Vec3(0, 1, 0)
@@ -1134,9 +1154,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     scene = Scene(lights2, bvh)
     
     # Instantiate an Integrator
-    # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
     # I = AOIntegrator(C, S, true)
-    I = SimpleIntegrator(C, S)
+    # I = SimpleIntegrator(C, S)
 
     return I, scene
 end
