@@ -160,6 +160,7 @@ include("materials/registry.jl")
 const MATERIAL_REGISTRY = Ref{MaterialRegistry}()
 
 include("materials/bsdf.jl")
+include("materials/bump.jl")
 include("materials/matte.jl")
 include("materials/plastic.jl")
 include("materials/mirror.jl")

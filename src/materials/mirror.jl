@@ -28,3 +28,7 @@ function (m::Mirror)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Trans
     r = clamp.(m.Kr(si), 0, 1)
     add!(si.bsdf, SpecularReflection(r, FresnelNoOp()))
 end
+
+function albedo(m::Mirror, si::SurfaceInteraction)::Spectrum
+    return m.Kr(si)
+end

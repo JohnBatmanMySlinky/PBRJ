@@ -103,3 +103,16 @@ function (m::Metal)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
     add!(si.bsdf, MicrofacetReflection(spectrum_from_float(1.0), distrib, fresnel))
 end
+
+function albedo(m::Metal, si::SurfaceInteraction)::Spectrum
+    eta = m.eta(si)
+    k = m.k(si)
+    
+    # Fresnel reflectance at normal incidence
+    # R = ((eta - 1)^2 + k^2) / ((eta + 1)^2 + k^2)
+    eta_minus_1_sq = (eta - spectrum_from_float(1.0)) .^ 2
+    eta_plus_1_sq = (eta + spectrum_from_float(1.0)) .^ 2
+    k_sq = k .^ 2
+    
+    return (eta_minus_1_sq + k_sq) ./ (eta_plus_1_sq + k_sq)
+end

@@ -214,6 +214,16 @@ smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
 
 - Logging this too since im lazy and can never remember the logging args / params: `/Users/johnmyslinski/Documents/pbrt-v3/not_debug/pbrt ../scenes/cornell_box_not_debug.pbrt --logdir . --v 3`
 
+## DeadEnds
+
+### LightBVH
+- doesnt fit well with my API - i pass around a Distribution1D but that's workable?
+- LightBVH has two methods: Sample(ctx, u) & Sample(u) ctx has a Pnt3 member but that method is only used by direct lighting estimators. aka nothing in BDPT
+
+### Integrators
+- SimpleVolPathv4 doesnt do surface intersections - why amenome won't work
+- VolPathv4 requires v4 material APIs
+
 ## Metaball learnings
 - To start, I want to talk about **Functions**. The function $f(x,y,z) = x^2 + y^2 + z^2$ takes in 3 numbers, $x, y, z$ and returns one number. Since I am only really interested in 3D rendering, let's equate these three numbers to a single point in space. Swithing to points let's re-write $f(p) = p_x^2 + p_y^2 + p_z^2$. Now the intuition is that for any point in 3D space, this function returns a single number. For instance at the origin $(0,0,0)$ this function returns $0$ and for any other point it returns the distance from the origin.
 - Functions are nice, but we want to render Shapes, aka Surfaces. One way to think about Surfaces, is as a collection of specific points (very 3D rendering view of the world here...). Functions return an unconstrained collection of points, where Surfaces are a collection of specific points. The trick to go from Functions to Surfaces is thresholding aka root finding. With our previous example, let's find the collection of points that is the solution to $f(p) = 0.5$ (0.5 being the threshold here). In this particular example the collection of points that is the solution to our constrained function is a sphere! I also like the note that this setup gives us a very easy check to determine if a point is in fact on the surface, but gives us zilch in terms of programmatic ways of finding those points that make up the surface.

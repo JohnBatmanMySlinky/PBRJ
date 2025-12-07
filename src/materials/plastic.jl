@@ -53,11 +53,11 @@ function (p::Plastic)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tran
     
     # initialize diffuse component of plastic material
     si.bsdf = BSDF(si)
-    kd = spectrum_from_float(clamp.(p.Kd(si),0,1)...)
+    kd = p.Kd(si)
     add!(si.bsdf, LambertianReflection(kd))
 
     # initialize specular component of plastic material
-    ks = spectrum_from_float(clamp.(p.Ks(si),0,1)...)
+    ks = p.Ks(si)
     fresnel = FresnelDielectric(1.0, 1.5)
     rough = mean(p.roughness(si))
     if p.remap_roughness
@@ -67,3 +67,14 @@ function (p::Plastic)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tran
     add!(si.bsdf, MicrofacetReflection(ks, distrib, fresnel))
 end
 
+function albedo(m::Plastic, si::SurfaceInteraction)::Spectrum
+    kd = m.Kd(si)
+    ks = m.Ks(si)
+    
+    # Fresnel reflectance at normal incidence for dielectric (n1=1.0, n2=1.5)
+    eta = 1.5
+    F0 = ((eta - 1.0) / (eta + 1.0))^2  # = 0.04
+    
+    # Energy not reflected goes into diffuse layer
+    return kd .* (1.0 - F0) .+ ks .* F0
+end

@@ -545,7 +545,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
-    ################# Pillar Edges
+    ################# Front Pillar Edges
     pillar_front_right_t = Translate(Pnt3(0,0,0))
     pillar_front_right = Box(
         Pnt3(
@@ -562,8 +562,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_front_right
-        push!(primitives, Primitive(tri, "mat_pink", nothing))
-        push!(primitives2, Primitive(tri, "mat_pink", nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     pillar_front_left_t = Translate(Pnt3(0,0,0))
@@ -582,8 +582,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_front_left
-        push!(primitives, Primitive(tri, "mat_pink", nothing))
-        push!(primitives2, Primitive(tri, "mat_pink", nothing))
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
     end
 
     pillar_front_horizonal_t = Translate(Pnt3(0, 0, 0))
@@ -604,8 +604,136 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in pillar_front_horizontal
-            push!(primitives, Primitive(tri, "mat_pink", nothing))
-            push!(primitives2, Primitive(tri, "mat_pink", nothing))
+            push!(primitives, Primitive(tri, "mat_white", nothing))
+            push!(primitives2, Primitive(tri, "mat_white", nothing))
+        end
+    end
+
+    ################# Right Pillar Edges
+    pillar_right_right_t = Translate(Pnt3(0,0,0))
+    pillar_right_right = Box(
+        Pnt3(
+            -pillar_width_1-pillar_edge_thickness,
+            0,
+            -pillar_width_2
+        ), 
+        Pnt3(
+            -pillar_width_1,  
+            ceiling_circle_height, 
+            -pillar_width_2 + pillar_edge_thickness
+        ), 
+        ShapeCore(pillar_right_right_t, Inv(pillar_right_right_t), false, false),
+        nothing
+    )
+    for tri in pillar_right_right
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
+    end
+
+    pillar_right_left_t = Translate(Pnt3(0,0,0))
+    pillar_right_left = Box(
+        Pnt3(
+            -pillar_width_1 - pillar_edge_thickness,
+            0,
+            pillar_width_2 - pillar_edge_thickness
+        ), 
+        Pnt3(
+            -pillar_width_1,  
+            ceiling_circle_height, 
+            pillar_width_2
+        ), 
+        ShapeCore(pillar_right_left_t, Inv(pillar_right_left_t), false, false),
+        nothing
+    )
+    for tri in pillar_right_left
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
+    end
+
+    pillar_right_horizonal_t = Translate(Pnt3(0, 0, 0))
+    heights = Int64[0, 55, 110, 165, 210]
+    for height in heights
+        pillar_right_horizontal = Box(
+            Pnt3(
+                -pillar_width_1 - pillar_edge_thickness,
+                height,
+                -pillar_width_2 + pillar_edge_thickness
+            ),
+            Pnt3(
+                -pillar_width_1,
+                height + 5,
+                pillar_width_2 - pillar_edge_thickness
+            ),
+            ShapeCore(pillar_right_horizonal_t, Inv(pillar_right_horizonal_t), false, false),
+            nothing
+        )
+        for tri in pillar_right_horizontal
+            push!(primitives, Primitive(tri, "mat_white", nothing))
+            push!(primitives2, Primitive(tri, "mat_white", nothing))
+        end
+    end
+
+    ################# Left Pillar Edges
+    pillar_left_right_t = Translate(Pnt3(0,0,0))
+    pillar_left_right = Box(
+        Pnt3(
+            pillar_width_1,
+            0,
+            -pillar_width_2
+        ), 
+        Pnt3(
+            pillar_width_1 + pillar_edge_thickness,  
+            ceiling_circle_height, 
+            -pillar_width_2 + pillar_edge_thickness
+        ), 
+        ShapeCore(pillar_left_right_t, Inv(pillar_left_right_t), false, false),
+        nothing
+    )
+    for tri in pillar_left_right
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
+    end
+
+    pillar_left_left_t = Translate(Pnt3(0,0,0))
+    pillar_left_left = Box(
+        Pnt3(
+            pillar_width_1,
+            0,
+            pillar_width_2 - pillar_edge_thickness
+        ), 
+        Pnt3(
+            pillar_width_1 + pillar_edge_thickness,  
+            ceiling_circle_height, 
+            pillar_width_2
+        ), 
+        ShapeCore(pillar_left_left_t, Inv(pillar_left_left_t), false, false),
+        nothing
+    )
+    for tri in pillar_left_left
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives2, Primitive(tri, "mat_white", nothing))
+    end
+
+    pillar_left_horizonal_t = Translate(Pnt3(0, 0, 0))
+    heights = Int64[0, 55, 110, 165, 210]
+    for height in heights
+        pillar_left_horizontal = Box(
+            Pnt3(
+                pillar_width_1,
+                height,
+                -pillar_width_2 + pillar_edge_thickness
+            ),
+            Pnt3(
+                pillar_width_1 + pillar_edge_thickness,
+                height + 5,
+                pillar_width_2 - pillar_edge_thickness
+            ),
+            ShapeCore(pillar_left_horizonal_t, Inv(pillar_left_horizonal_t), false, false),
+            nothing
+        )
+        for tri in pillar_left_horizontal
+            push!(primitives, Primitive(tri, "mat_white", nothing))
+            push!(primitives2, Primitive(tri, "mat_white", nothing))
         end
     end
 
@@ -844,8 +972,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
     
     # instantiate accelerator
-    print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
-    @time bvh = BVH(primitives2)
+    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+    @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
     l_2_w = Translate(Pnt3(0,0,0))
@@ -882,13 +1010,13 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
-    print("There are " * num2str(length(lights2)) * " lights in the scene\n")
-    scene = Scene(lights2, bvh)
+    print("There are " * num2str(length(lights)) * " lights in the scene\n")
+    scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
-    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
     # I = AOIntegrator(C, S, true)
-    # I = SimpleIntegrator(C, S)
+    I = SimpleIntegrator(C, S)
 
     return I, scene
 end

@@ -244,3 +244,41 @@ function (ss::SubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mo
     sig_s = ss.scale * ss.sigma_s(si)
     si.bssrdf = TabulatedBSSRDF(si, ss, mode, sig_a, sig_s)
 end
+
+function albedo(m::KdSubSurface, si::SurfaceInteraction)::Spectrum
+    # Surface reflection component
+    RR = m.Kr(si)
+    
+    # Fresnel reflectance at normal incidence for dielectric
+    F0 = ((m.eta - 1.0) / (m.eta + 1.0))^2
+    
+    # Diffuse subsurface component
+    kd = m.Kd(si)
+    
+    # Combine: surface reflection + transmitted light that scatters back out
+    # Energy that transmits into the material: (1 - F0)
+    # Of that, kd determines how much scatters back (approximate)
+    return RR .* F0 .+ kd .* (1.0 - F0)
+end
+
+function albedo(m::SubSurface, si::SurfaceInteraction)::Spectrum
+    # Surface reflection component
+    RR = m.Kr(si)
+    
+    # Fresnel reflectance at normal incidence
+    F0 = ((m.eta - 1.0) / (m.eta + 1.0))^2
+    
+    # Single-scattering albedo from absorption and scattering coefficients
+    sig_a = m.scale * m.sigma_a(si)
+    sig_s = m.scale * m.sigma_s(si)
+    sigma_t = sig_a + sig_s
+    
+    # Single-scattering albedo: rho = sigma_s / sigma_t
+    rho = similar(sig_s)
+    for c in 1:length(sigma_t)
+        rho[c] = sigma_t[c] != 0.0 ? (sig_s[c] / sigma_t[c]) : 0.0
+    end
+    
+    # Combine surface and subsurface components
+    return RR .* F0 .+ rho .* (1.0 - F0)
+end

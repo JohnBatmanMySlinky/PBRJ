@@ -9,7 +9,7 @@ function li(si::SimpleIntegrator, ray::AbstractRay, scene::Scene, depth::Int64, 
         L = spectrum_from_float(0.0)
     else
         material = get_material(interaction.primitive.material)
-        L = material.Kd(interaction)
+        L = albedo(material, interaction)
     end
     return L
 end
