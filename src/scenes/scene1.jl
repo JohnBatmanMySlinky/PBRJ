@@ -178,6 +178,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     elevator_offset = 100.0
     elevator_door_gap = 3.0
     elevator_depth = 15.0
+    elevator_height = ceiling_height * 0.8
+    elevator_trim_width = 5.0
+    elevator_trim_extrude = 2.0
     pillar_width_1 = 60.0 # ~4.5ft * 20
     pillar_width_2 = 20.0 # ~ 1.5ft * 20
     pillar_edge_thickness = 2.0
@@ -461,6 +464,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     @assert LWALL_E1 > LWALL_S1
     @assert LWALL_E2 > LWALL_S2
 
+    # left part
     lwall_transform = Translate(Pnt3(0,0,0))
     lwall = Rectangle(
         Pnt2(0, LWALL_S1), 
@@ -475,6 +479,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(tri, "mat_white", nothing))
     end
 
+    # right part
     lwall_transform = Translate(Pnt3(0,0,0))
     lwall = Rectangle(
         Pnt2(0.0, LWALL_S2), 
@@ -489,13 +494,27 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(tri, "mat_white", nothing))
     end
 
-    ################# Elevator
+    # above the elevator part
+    lwall_transform = Translate(Pnt3(0,0,0))
+    lwall = Rectangle(
+        Pnt2(elevator_height, LWALL_E1), 
+        Pnt2(ceiling_height, LWALL_S2), 
+        -foyer_dim/2,
+        1, 
+        ShapeCore(lwall_transform, Inv(lwall_transform), false, false),
+        false,
+        nothing
+    )
+    for tri in lwall
+        push!(primitives, Primitive(tri, "mat_white", nothing))
+    end
 
+    ################# Elevator
     elevator_door1_t = Translate(Pnt3(0,0,0))
     elevator_door1 = Rectangle(
         Pnt2(0.0, LWALL_E1), 
-        Pnt2(ceiling_height, LWALL_E1 + elevator_total_width/2 - elevator_door_gap / 2), 
-        -foyer_dim/2,
+        Pnt2(elevator_height, LWALL_E1 + elevator_total_width/2 - elevator_door_gap / 2), 
+        -foyer_dim/2 - elevator_depth,
         1, 
         ShapeCore(elevator_door1_t, Inv(elevator_door1_t), false, false),
         false,
@@ -508,8 +527,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     elevator_door2_t = Translate(Pnt3(0,0,0))
     elevator_door2 = Rectangle(
         Pnt2(0.0, LWALL_E1 + elevator_total_width/2 + elevator_door_gap / 2), 
-        Pnt2(ceiling_height, LWALL_S2), 
-        -foyer_dim/2,
+        Pnt2(elevator_height, LWALL_S2), 
+        -foyer_dim/2 - elevator_depth,
         1, 
         ShapeCore(elevator_door2_t, Inv(elevator_door2_t), false, false),
         false,
@@ -517,6 +536,83 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tri in elevator_door2
         push!(primitives, Primitive(tri, "mat_metal_door", nothing))
+    end
+
+    elevator_trim_left_t = Translate(Pnt3(0, 0, 0))
+    elevator_trim_left = Box(
+        Pnt3(
+            -foyer_dim / 2 - elevator_depth,
+            0.0,
+            LWALL_E1 - elevator_trim_width
+        ),
+        Pnt3(
+            -foyer_dim / 2 + elevator_trim_extrude,
+            elevator_height + elevator_trim_width,
+            LWALL_E1
+        ),
+        ShapeCore(elevator_trim_left_t, Inv(elevator_trim_left_t), false, false),
+        nothing
+    )
+    for tri in elevator_trim_left
+        push!(primitives, Primitive(tri, "mat_pink", nothing))
+    end
+
+    elevator_trim_right_t = Translate(Pnt3(0, 0, 0))
+    elevator_trim_right = Box(
+        Pnt3(
+            -foyer_dim / 2 - elevator_depth,
+            0.0,
+            LWALL_S2
+        ),
+        Pnt3(
+            -foyer_dim / 2 + elevator_trim_extrude,
+            elevator_height + elevator_trim_width,
+            LWALL_S2 + elevator_trim_width
+        ),
+        ShapeCore(elevator_trim_right_t, Inv(elevator_trim_right_t), false, false),
+        nothing
+    )
+    for tri in elevator_trim_right
+        push!(primitives, Primitive(tri, "mat_pink", nothing))
+    end
+
+    elevator_trim_top_t = Translate(Pnt3(0, 0, 0))
+    elevator_trim_top = Box(
+        Pnt3(
+            -foyer_dim / 2 - elevator_depth,
+            elevator_height,
+            LWALL_E1 - elevator_trim_width
+        ),
+        Pnt3(
+            -foyer_dim / 2 + elevator_trim_extrude,
+            elevator_height + elevator_trim_width,
+            LWALL_S2 + elevator_trim_width
+        ),
+        ShapeCore(elevator_trim_top_t, Inv(elevator_trim_top_t), false, false),
+        nothing
+    )
+    for tri in elevator_trim_top
+        push!(primitives, Primitive(tri, "mat_pink", nothing))
+    end
+
+    elevator_floor_t = Translate(Pnt3(0, 0, 0))
+    elevator_floor = Rectangle(
+        Pnt2(
+            -foyer_dim/2 - elevator_depth, 
+            LWALL_S2
+        ), 
+        Pnt2(
+            -foyer_dim/2,
+            LWALL_E1
+        ), 
+        0.0,
+        2,
+        ShapeCore(elevator_floor_t, Inv(elevator_floor_t), false, false),
+        false,
+        nothing
+    )
+    for tri in elevator_floor
+        push!(primitives, Primitive(tri, "mat_concrete", nothing))
     end
 
     ################# Pillar 1
@@ -782,34 +878,35 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     red = spectrum_from_float(1.0, 0.0, 0.0)
     pink = spectrum_from_float(1.0, 0.0, 1.0)
     green = spectrum_from_float(0.0, 1.0, 0.0)
-    pillar_area_light_spec = Tuple{Pnt2, Pnt2, Float64, Int64, Spectrum, String, Bool}[
-        (Pnt2(5,    -pillar_width_2+pillar_edge_thickness), Pnt2(55,   pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, yellow, "yellow", false),
-        (Pnt2(60,   -pillar_width_2+pillar_edge_thickness), Pnt2(110,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, white, "white", false),
-        (Pnt2(115,  -pillar_width_2+pillar_edge_thickness), Pnt2(165,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, pink, "pink", false),
-        (Pnt2(170,  -pillar_width_2+pillar_edge_thickness), Pnt2(210,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, blue, "blue", false),
-        (Pnt2(215,  -pillar_width_2+pillar_edge_thickness), Pnt2(265,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, red, "red", false),
+    # See: /Users/johnmyslinski/Documents/PBRJ/src/notebooks/scene_1_mats.ipynb
+    pillar_area_light_spec = Tuple{Pnt2, Pnt2, Float64, Int64, Spectrum, String, Bool, String}[
+        (Pnt2(5,    -pillar_width_2+pillar_edge_thickness), Pnt2(55,   pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, yellow, "yellow", false, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_1.jpg")),
+        (Pnt2(60,   -pillar_width_2+pillar_edge_thickness), Pnt2(110,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, white, "white", false, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_4.jpg")),
+        (Pnt2(115,  -pillar_width_2+pillar_edge_thickness), Pnt2(165,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, pink, "pink", false, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_2.jpg")),
+        (Pnt2(170,  -pillar_width_2+pillar_edge_thickness), Pnt2(210,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, blue, "blue", false, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_3.jpg")),
+        (Pnt2(215,  -pillar_width_2+pillar_edge_thickness), Pnt2(265,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, red, "red", false, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_2.jpg")),
 
-        (Pnt2(-pillar_width_2+pillar_edge_thickness, 5),   Pnt2(pillar_width_2-pillar_edge_thickness, 55),  pillar_width_1+.5, 3, white, "white", false),
-        (Pnt2(-pillar_width_2+pillar_edge_thickness, 60),  Pnt2(pillar_width_2-pillar_edge_thickness, 110), pillar_width_1+.5, 3, blue, "blue", false),
-        (Pnt2(-pillar_width_2+pillar_edge_thickness, 115), Pnt2(pillar_width_2-pillar_edge_thickness, 165), pillar_width_1+.5, 3, red, "red", false),
-        (Pnt2(-pillar_width_2+pillar_edge_thickness, 170), Pnt2(pillar_width_2-pillar_edge_thickness, 210), pillar_width_1+.5, 3, pink, "pink", false),
-        (Pnt2(-pillar_width_2+pillar_edge_thickness, 215), Pnt2(pillar_width_2-pillar_edge_thickness, 265), pillar_width_1+.5, 3, green, "green", false),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 5),   Pnt2(pillar_width_2-pillar_edge_thickness, 55),  pillar_width_1+.5, 3, white, "white", false, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_1.jpg")),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 60),  Pnt2(pillar_width_2-pillar_edge_thickness, 110), pillar_width_1+.5, 3, blue, "blue", false, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_2.jpg")),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 115), Pnt2(pillar_width_2-pillar_edge_thickness, 165), pillar_width_1+.5, 3, red, "red", false, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_3.jpg")),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 170), Pnt2(pillar_width_2-pillar_edge_thickness, 210), pillar_width_1+.5, 3, pink, "pink", false, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_4.jpg")),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 215), Pnt2(pillar_width_2-pillar_edge_thickness, 265), pillar_width_1+.5, 3, green, "green", false, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_1.jpg")),
 
-        (Pnt2(5,    -pillar_width_2+pillar_edge_thickness), Pnt2(55,   pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, yellow, "yellow", true),
-        (Pnt2(60,   -pillar_width_2+pillar_edge_thickness), Pnt2(110,  pillar_width_2-5pillar_edge_thickness), -pillar_width_1-.5, 1, white, "white", true),
-        (Pnt2(115,  -pillar_width_2+pillar_edge_thickness), Pnt2(165,  pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, pink, "pink", true),
-        (Pnt2(170,  -pillar_width_2+pillar_edge_thickness), Pnt2(210,  pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, blue, "blue", true),
-        (Pnt2(215,  -pillar_width_2+pillar_edge_thickness), Pnt2(265,  pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, red, "red", true),
+        (Pnt2(5,    -pillar_width_2+pillar_edge_thickness), Pnt2(55,   pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, yellow, "yellow", true, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_4.jpg")),
+        (Pnt2(60,   -pillar_width_2+pillar_edge_thickness), Pnt2(110,  pillar_width_2-5pillar_edge_thickness), -pillar_width_1-.5, 1, white, "white", true, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_3.jpg")),
+        (Pnt2(115,  -pillar_width_2+pillar_edge_thickness), Pnt2(165,  pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, pink, "pink", true, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_2.jpg")),
+        (Pnt2(170,  -pillar_width_2+pillar_edge_thickness), Pnt2(210,  pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, blue, "blue", true, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_1.jpg")),
+        (Pnt2(215,  -pillar_width_2+pillar_edge_thickness), Pnt2(265,  pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, red, "red", true, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_1.jpg")),
 
-        (Pnt2(-pillar_width_2+pillar_edge_thickness, 5),   Pnt2(pillar_width_2-pillar_edge_thickness, 55),  -pillar_width_1-.5, 3, white, "white", true),
-        (Pnt2(-pillar_width_2+pillar_edge_thickness, 60),  Pnt2(pillar_width_2-pillar_edge_thickness, 110), -pillar_width_1-.5, 3, blue, "blue", true),
-        (Pnt2(-pillar_width_2+pillar_edge_thickness, 115), Pnt2(pillar_width_2-pillar_edge_thickness, 165), -pillar_width_1-.5, 3, red, "red", true),
-        (Pnt2(-pillar_width_2+pillar_edge_thickness, 170), Pnt2(pillar_width_2-pillar_edge_thickness, 210), -pillar_width_1-.5, 3, pink, "pink", true),
-        (Pnt2(-pillar_width_2+pillar_edge_thickness, 215), Pnt2(pillar_width_2-pillar_edge_thickness, 265), -pillar_width_1-.5, 3, green, "green", true),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 5),   Pnt2(pillar_width_2-pillar_edge_thickness, 55),  -pillar_width_1-.5, 3, white, "white", true, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_2.jpg")),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 60),  Pnt2(pillar_width_2-pillar_edge_thickness, 110), -pillar_width_1-.5, 3, blue, "blue", true, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_4.jpg")),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 115), Pnt2(pillar_width_2-pillar_edge_thickness, 165), -pillar_width_1-.5, 3, red, "red", true, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_1.jpg")),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 170), Pnt2(pillar_width_2-pillar_edge_thickness, 210), -pillar_width_1-.5, 3, pink, "pink", true, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_3.jpg")),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 215), Pnt2(pillar_width_2-pillar_edge_thickness, 265), -pillar_width_1-.5, 3, green, "green", true, jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_2.jpg")),
     ]
 
     t = Translate(Pnt3(0,0,0))
-    for (i, (pmin, pmax, k, axis, brightness, mat_name, flip)) in enumerate(pillar_area_light_spec)
+    for (i, (pmin, pmax, k, axis, brightness, mat_name, flip, parchment_path)) in enumerate(pillar_area_light_spec)
         tmp_rec = Rectangle(
             pmin, 
             pmax, 
@@ -824,7 +921,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             MixMultTexture(
                 ImageTexture(
                     UVMapping2D(),
-                    jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/parchment/parchment_1.jpg"),
+                    parchment_path,
                     false
                 ),
                 ConstantTexture(brightness * MULT_albedo)
@@ -1014,9 +1111,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
-    # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
     # I = AOIntegrator(C, S, true)
-    I = SimpleIntegrator(C, S)
+    # I = SimpleIntegrator(C, S)
 
     return I, scene
 end
