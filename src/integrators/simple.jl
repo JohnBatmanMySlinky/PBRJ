@@ -8,7 +8,8 @@ function li(si::SimpleIntegrator, ray::AbstractRay, scene::Scene, depth::Int64, 
     if !check
         L = spectrum_from_float(0.0)
     else
-        L = interaction.primitive.material.Kd(interaction)
+        material = get_material(interaction.primitive.material)
+        L = material.Kd(interaction)
     end
     return L
 end

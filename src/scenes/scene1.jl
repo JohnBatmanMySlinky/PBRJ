@@ -109,6 +109,14 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_gray)
 
+    mat_pink = Matte(
+        "mat_pink",
+        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.4)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pink)
+
     mat_concrete = Substrate(
         "mat_concrete",
         ImageTexture(
@@ -541,12 +549,12 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     pillar_front_right_t = Translate(Pnt3(0,0,0))
     pillar_front_right = Box(
         Pnt3(
-            -pillar_width_2 - pillar_edge_thickness,
+            -pillar_width_2,
             0,
             pillar_width_1
         ), 
         Pnt3(
-            -pillar_width_2,  
+            -pillar_width_2 + pillar_edge_thickness,  
             ceiling_circle_height, 
             pillar_width_1 + pillar_edge_thickness
         ), 
@@ -554,19 +562,19 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_front_right
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, "mat_pink", nothing))
+        push!(primitives2, Primitive(tri, "mat_pink", nothing))
     end
 
     pillar_front_left_t = Translate(Pnt3(0,0,0))
     pillar_front_left = Box(
         Pnt3(
-            pillar_width_2,
+            pillar_width_2 - pillar_edge_thickness,
             0,
             pillar_width_1
         ), 
         Pnt3(
-            pillar_width_2 + pillar_edge_thickness,  
+            pillar_width_2,  
             ceiling_circle_height, 
             pillar_width_1 + pillar_edge_thickness
         ), 
@@ -574,9 +582,33 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_front_left
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, "mat_pink", nothing))
+        push!(primitives2, Primitive(tri, "mat_pink", nothing))
     end
+
+    pillar_front_horizonal_t = Translate(Pnt3(0, 0, 0))
+    heights = Int64[0, 55, 110, 165, 210]
+    for height in heights
+        pillar_front_horizontal = Box(
+            Pnt3(
+                -pillar_width_2 + pillar_edge_thickness,
+                height,
+                pillar_width_1
+            ),
+            Pnt3(
+                pillar_width_2 - pillar_edge_thickness,
+                height + 5,
+                pillar_width_1 + pillar_edge_thickness
+            ),
+            ShapeCore(pillar_front_horizonal_t, Inv(pillar_front_horizonal_t), false, false),
+            nothing
+        )
+        for tri in pillar_front_horizontal
+            push!(primitives, Primitive(tri, "mat_pink", nothing))
+            push!(primitives2, Primitive(tri, "mat_pink", nothing))
+        end
+    end
+
 
     ################# CEILING CYLINDAR
     outer_cyl_t = RotateX(-90.0)
@@ -623,29 +655,29 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     pink = spectrum_from_float(1.0, 0.0, 1.0)
     green = spectrum_from_float(0.0, 1.0, 0.0)
     pillar_area_light_spec = Tuple{Pnt2, Pnt2, Float64, Int64, Spectrum, String, Bool}[
-        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), pillar_width_1+.5, 1, yellow, "yellow", false),
-        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), pillar_width_1+.5, 1, white, "white", false),
-        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), pillar_width_1+.5, 1, pink, "pink", false),
-        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), pillar_width_1+.5, 1, blue, "blue", false),
-        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), pillar_width_1+.5, 1, red, "red", false),
+        (Pnt2(5,    -pillar_width_2+pillar_edge_thickness), Pnt2(55,   pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, yellow, "yellow", false),
+        (Pnt2(60,   -pillar_width_2+pillar_edge_thickness), Pnt2(110,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, white, "white", false),
+        (Pnt2(115,  -pillar_width_2+pillar_edge_thickness), Pnt2(165,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, pink, "pink", false),
+        (Pnt2(170,  -pillar_width_2+pillar_edge_thickness), Pnt2(210,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, blue, "blue", false),
+        (Pnt2(215,  -pillar_width_2+pillar_edge_thickness), Pnt2(265,  pillar_width_2-pillar_edge_thickness), pillar_width_1+.5, 1, red, "red", false),
 
-        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  pillar_width_1+.5, 3, white, "white", false),
-        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), pillar_width_1+.5, 3, blue, "blue", false),
-        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), pillar_width_1+.5, 3, red, "red", false),
-        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), pillar_width_1+.5, 3, pink, "pink", false),
-        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), pillar_width_1+.5, 3, green, "green", false),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 5),   Pnt2(pillar_width_2-pillar_edge_thickness, 55),  pillar_width_1+.5, 3, white, "white", false),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 60),  Pnt2(pillar_width_2-pillar_edge_thickness, 110), pillar_width_1+.5, 3, blue, "blue", false),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 115), Pnt2(pillar_width_2-pillar_edge_thickness, 165), pillar_width_1+.5, 3, red, "red", false),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 170), Pnt2(pillar_width_2-pillar_edge_thickness, 210), pillar_width_1+.5, 3, pink, "pink", false),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 215), Pnt2(pillar_width_2-pillar_edge_thickness, 265), pillar_width_1+.5, 3, green, "green", false),
 
-        (Pnt2(5,    -pillar_width_2+5), Pnt2(55,   pillar_width_2-5), -pillar_width_1-.5, 1, yellow, "yellow", true),
-        (Pnt2(60,   -pillar_width_2+5), Pnt2(110,  pillar_width_2-5), -pillar_width_1-.5, 1, white, "white", true),
-        (Pnt2(115,  -pillar_width_2+5), Pnt2(165,  pillar_width_2-5), -pillar_width_1-.5, 1, pink, "pink", true),
-        (Pnt2(170,  -pillar_width_2+5), Pnt2(210,  pillar_width_2-5), -pillar_width_1-.5, 1, blue, "blue", true),
-        (Pnt2(215,  -pillar_width_2+5), Pnt2(265,  pillar_width_2-5), -pillar_width_1-.5, 1, red, "red", true),
+        (Pnt2(5,    -pillar_width_2+pillar_edge_thickness), Pnt2(55,   pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, yellow, "yellow", true),
+        (Pnt2(60,   -pillar_width_2+pillar_edge_thickness), Pnt2(110,  pillar_width_2-5pillar_edge_thickness), -pillar_width_1-.5, 1, white, "white", true),
+        (Pnt2(115,  -pillar_width_2+pillar_edge_thickness), Pnt2(165,  pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, pink, "pink", true),
+        (Pnt2(170,  -pillar_width_2+pillar_edge_thickness), Pnt2(210,  pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, blue, "blue", true),
+        (Pnt2(215,  -pillar_width_2+pillar_edge_thickness), Pnt2(265,  pillar_width_2-pillar_edge_thickness), -pillar_width_1-.5, 1, red, "red", true),
 
-        (Pnt2(-pillar_width_2+5, 5),   Pnt2(pillar_width_2-5, 55),  -pillar_width_1-.5, 3, white, "white", true),
-        (Pnt2(-pillar_width_2+5, 60),  Pnt2(pillar_width_2-5, 110), -pillar_width_1-.5, 3, blue, "blue", true),
-        (Pnt2(-pillar_width_2+5, 115), Pnt2(pillar_width_2-5, 165), -pillar_width_1-.5, 3, red, "red", true),
-        (Pnt2(-pillar_width_2+5, 170), Pnt2(pillar_width_2-5, 210), -pillar_width_1-.5, 3, pink, "pink", true),
-        (Pnt2(-pillar_width_2+5, 215), Pnt2(pillar_width_2-5, 265), -pillar_width_1-.5, 3, green, "green", true),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 5),   Pnt2(pillar_width_2-pillar_edge_thickness, 55),  -pillar_width_1-.5, 3, white, "white", true),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 60),  Pnt2(pillar_width_2-pillar_edge_thickness, 110), -pillar_width_1-.5, 3, blue, "blue", true),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 115), Pnt2(pillar_width_2-pillar_edge_thickness, 165), -pillar_width_1-.5, 3, red, "red", true),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 170), Pnt2(pillar_width_2-pillar_edge_thickness, 210), -pillar_width_1-.5, 3, pink, "pink", true),
+        (Pnt2(-pillar_width_2+pillar_edge_thickness, 215), Pnt2(pillar_width_2-pillar_edge_thickness, 265), -pillar_width_1-.5, 3, green, "green", true),
     ]
 
     t = Translate(Pnt3(0,0,0))
@@ -854,8 +886,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     scene = Scene(lights2, bvh)
     
     # Instantiate an Integrator
-    # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
-    I = AOIntegrator(C, S, true)
+    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    # I = AOIntegrator(C, S, true)
+    # I = SimpleIntegrator(C, S)
 
     return I, scene
 end
