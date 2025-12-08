@@ -133,6 +133,14 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_blue)
 
+    mat_green = Matte(
+        "mat_green",
+        ConstantTexture(spectrum_from_float(0.0, 0.9, 0.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_green)
+
     # mat_concrete = Substrate(
     #     "mat_concrete",
     #     ImageTexture(
@@ -197,6 +205,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     stairs_total_width = 120.0 # ~6ft * 20
     stairs_offset = 275.0
     stairs_depth = stairs_total_width * 3
+    bannister_radius = 2.0  # blender radius
     elevator_total_width = 80.0
     elevator_offset = 100.0
     elevator_door_gap = 3.0
@@ -360,7 +369,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     ################# STAIRS
 
-    # jfc these transforms
+    # blender to get nice corners and not make me pull out my hair with transforms (especially on the cap)
     bannister_t = Translate(Pnt3(0, 0, 0))
     bannister = parse_obj(
         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/scene_1_bannister.obj"),
@@ -378,10 +387,47 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
     end
 
-    dumb = BVH(primitives3)
-    println(world_bounds(dumb))
+    # control points for knobs (from blender)
+    p1 = Pnt3(265 - bannister_radius * 3, 100, -300)
+    p2 = Pnt3(265 - bannister_radius * 3, 200, -660)
+    p3 = Pnt3(265 - bannister_radius * 3, 200, -1020)
+    p4 = Pnt3(25 - bannister_radius * 3, 200, -1020)
+    bannister_lerp_1 = 0.8
+    bannister_lerp_2 = 0.2
+    bannister_lerp_3 = 0.8
+    bannister_lerp_4 = 0.2
 
-    # a dummy light to illuminate new work
+    for p in Pnt3[
+        lerp(bannister_lerp_1, p1, p2),
+        lerp(bannister_lerp_2, p1, p2),
+        lerp(bannister_lerp_3, p3, p4),
+        lerp(bannister_lerp_4, p3, p4),
+    ]
+        bannister_knob_t = Translate(p) * RotateY(90.0)
+        bannister_knob = Cylindar(
+            bannister_knob_t,
+            bannister_radius * 2,
+            0.0,
+            bannister_radius * 8
+        )
+        push!(primitives, Primitive(bannister_knob, "mat_blue", nothing))
+        push!(primitives2, Primitive(bannister_knob, "mat_blue", nothing))
+
+        bannister_knob_cap_t = Translate(Pnt3(0, 0, bannister_radius * 8)) * Translate(p)
+        bannister_knob_cap = Disk(
+            bannister_knob_cap_t,
+            0.0,
+            bannister_radius,
+            0.0,
+            360.0,
+            false,
+            false
+        )
+        push!(primitives, Primitive(bannister_knob_cap, "mat_green", nothing))
+        push!(primitives2, Primitive(bannister_knob_cap, "mat_green", nothing))
+    end
+
+    # a temporary light to illuminate new work
     stair_light_t = Translate(Pnt3(
         (RWALL_E1 + RWALL_S2) / 2,
         ceiling_height * 2,
@@ -1140,8 +1186,10 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(150, 120, 400)
-    look_at = Pnt3(0, 100, 0)
+    # look_from = Pnt3(150, 120, 400)
+    # look_at = Pnt3(0, 100, 0)
+    look_from = Pnt3((RWALL_E1 + RWALL_S2) / 2, 120, 400)
+    look_at = Pnt3((RWALL_E1 + RWALL_S2) / 2, 100, 0)
     up = Vec3(0, 1, 0)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
