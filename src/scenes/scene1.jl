@@ -411,11 +411,11 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(bannister_knob, "mat_blue", nothing))
         push!(primitives2, Primitive(bannister_knob, "mat_blue", nothing))
 
-        bannister_knob_cap_t = Translate(Pnt3(-5, 0, bannister_radius * 5)) * Translate(p)
+        bannister_knob_cap_t = Translate(Pnt3(-5, 0, bannister_radius * 5)) * Translate(p) * RotateY(90.0)
         bannister_knob_cap = Disk(
             bannister_knob_cap_t,
             0.0,
-            bannister_radius,
+            bannister_radius * 2,
             0.0,
             360.0,
             false,
@@ -424,6 +424,35 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(bannister_knob_cap, "mat_green", nothing))
         push!(primitives2, Primitive(bannister_knob_cap, "mat_green", nothing))
     end
+
+   for p in Pnt3[
+        lerp(bannister_lerp_3, p3, p4),
+        lerp(bannister_lerp_4, p3, p4)
+    ]
+        bannister_knob_t = Translate(Pnt3(0, 0, 5)) * Translate(p)
+        bannister_knob = Cylindar(
+            bannister_knob_t,
+            bannister_radius * 2,
+            0.0,
+            bannister_radius * 5
+        )
+        push!(primitives, Primitive(bannister_knob, "mat_blue", nothing))
+        push!(primitives2, Primitive(bannister_knob, "mat_blue", nothing))
+
+        bannister_knob_cap_t = Translate(Pnt3(0, 0, bannister_radius * 5 + 5)) * Translate(p)
+        bannister_knob_cap = Disk(
+            bannister_knob_cap_t,
+            0.0,
+            bannister_radius * 2,
+            0.0,
+            360.0,
+            false,
+            false
+        )
+        push!(primitives, Primitive(bannister_knob_cap, "mat_green", nothing))
+        push!(primitives2, Primitive(bannister_knob_cap, "mat_green", nothing))
+    end
+
 
     # a temporary light to illuminate new work
     stair_light_t = Translate(Pnt3(
