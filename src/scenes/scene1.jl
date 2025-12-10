@@ -141,47 +141,67 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_green)
 
-    # mat_concrete = Substrate(
-    #     "mat_concrete",
-    #     ImageTexture(
-    #         UVMapping2D(), 
-    #         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_baseColor.jpeg"), 
-    #         false
-    #     ), # kd
-    #     ImageTexture(
-    #         UVMapping2D(), 
-    #         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_specular.jpeg"), 
-    #         false
-    #     ), # ks
-    #     # ConstantTexture(spectrum_from_float(0.15, 0.15, 0.15)),
-    #     ImageTexture(
-    #         UVMapping2D(), 
-    #         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
-    #         true
-    #     ), # roughness u
-    #     # ConstantTexture(.003),
-    #     ImageTexture(
-    #         UVMapping2D(), 
-    #         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
-    #         true
-    #     ), # roughness v
-    #     # ConstantTexture(.003),
-    #     # ImageTexture(
-    #     #     UVMapping2D(), 
-    #     #     jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_ambientOcclusion.jpeg"),
-    #     #     true
-    #     # ), # bump
-    #     nothing,
-    #     true # remap
-    # )
-    # push!(materials, mat_concrete)
-    mat_concrete = Matte(
+    mat_concrete = Substrate(
         "mat_concrete",
-        ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
-        ConstantTexture(0.0),
-        nothing
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_baseColor.jpeg"), 
+            false
+        ), # kd
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_specular.jpeg"), 
+            false
+        ), # ks
+        # ConstantTexture(spectrum_from_float(0.15, 0.15, 0.15)),
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
+            true
+        ), # roughness u
+        # ConstantTexture(.003),
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_roughness.jpeg"), 
+            true
+        ), # roughness v
+        # ConstantTexture(.003),
+        # ImageTexture(
+        #     UVMapping2D(), 
+        #     jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/Concrete material 3_ambientOcclusion.jpeg"),
+        #     true
+        # ), # bump
+        nothing,
+        true # remap
     )
     push!(materials, mat_concrete)
+    # mat_concrete = Matte(
+    #     "mat_concrete",
+    #     ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
+    #     ConstantTexture(0.0),
+    #     nothing
+    # )
+    # push!(materials, mat_concrete)
+
+    mat_plastic_black = Plastic(
+        "mat_plastic_black",
+        ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
+        ConstantTexture(spectrum_from_float(0.2, 0.2, 0.2)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        nothing,
+        true,
+    )
+    push!(materials, mat_plastic_black)
+
+    mat_metal_silver = Metal(
+        "mat_metal_silver",
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.eta.spd"))),
+        ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.k.spd"))),
+        ConstantTexture(0.001)
+    )
+    push!(materials, mat_metal_silver)
 
     mat_metal_door = Metal(
         "mat_metal_door",
@@ -381,9 +401,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives3 = Primitive[]
     for tris in bannister
         for tri in tris
-            push!(primitives, Primitive(tri, "mat_pink", nothing))
-            push!(primitives2, Primitive(tri, "mat_pink", nothing))
-            push!(primitives3, Primitive(tri, "mat_pink", nothing))
+            push!(primitives, Primitive(tri, "mat_plastic_black", nothing))
+            push!(primitives2, Primitive(tri, "mat_plastic_black", nothing))
+            push!(primitives3, Primitive(tri, "mat_plastic_black", nothing))
         end
     end
 
@@ -408,8 +428,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             0.0,
             bannister_radius * 5
         )
-        push!(primitives, Primitive(bannister_knob, "mat_blue", nothing))
-        push!(primitives2, Primitive(bannister_knob, "mat_blue", nothing))
+        push!(primitives, Primitive(bannister_knob, "mat_metal_silver", nothing))
+        push!(primitives2, Primitive(bannister_knob, "mat_metal_silver", nothing))
 
         bannister_knob_cap_t = Translate(Pnt3(-5, 0, bannister_radius * 5)) * Translate(p) * RotateY(90.0)
         bannister_knob_cap = Disk(
@@ -421,8 +441,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         )
-        push!(primitives, Primitive(bannister_knob_cap, "mat_green", nothing))
-        push!(primitives2, Primitive(bannister_knob_cap, "mat_green", nothing))
+        push!(primitives, Primitive(bannister_knob_cap, "mat_metal_silver", nothing))
+        push!(primitives2, Primitive(bannister_knob_cap, "mat_metal_silver", nothing))
     end
 
    for p in Pnt3[
@@ -436,8 +456,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             0.0,
             bannister_radius * 5
         )
-        push!(primitives, Primitive(bannister_knob, "mat_blue", nothing))
-        push!(primitives2, Primitive(bannister_knob, "mat_blue", nothing))
+        push!(primitives, Primitive(bannister_knob, "mat_metal_silver", nothing))
+        push!(primitives2, Primitive(bannister_knob, "mat_metal_silver", nothing))
 
         bannister_knob_cap_t = Translate(Pnt3(0, 0, bannister_radius * 5 + 5)) * Translate(p)
         bannister_knob_cap = Disk(
@@ -449,8 +469,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         )
-        push!(primitives, Primitive(bannister_knob_cap, "mat_green", nothing))
-        push!(primitives2, Primitive(bannister_knob_cap, "mat_green", nothing))
+        push!(primitives, Primitive(bannister_knob_cap, "mat_metal_silver", nothing))
+        push!(primitives2, Primitive(bannister_knob_cap, "mat_metal_silver", nothing))
     end
 
 
@@ -520,8 +540,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in stairs_landing
-        push!(primitives, Primitive(tri, "mat_blue", nothing))
-        push!(primitives2, Primitive(tri, "mat_blue", nothing))
+        push!(primitives, Primitive(tri, "mat_concrete", nothing))
+        push!(primitives2, Primitive(tri, "mat_concrete", nothing))
     end
 
     stairs_left_wall_t = Translate(Pnt3(0,0,0))
@@ -1186,8 +1206,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
     
     # instantiate accelerator
-    print("\nThere are " * num2str(length(primitives2)) * " objects in the scene, building BVH\n")
-    @time bvh = BVH(primitives2)
+    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+    @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
     l_2_w = Translate(Pnt3(0,0,0))
@@ -1213,10 +1233,10 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    # look_from = Pnt3(150, 120, 400)
-    # look_at = Pnt3(0, 100, 0)
-    look_from = Pnt3((RWALL_E1 + RWALL_S2) / 2, 120, 400)
-    look_at = Pnt3((RWALL_E1 + RWALL_S2) / 2, 100, 0)
+    look_from = Pnt3(150, 120, 400)
+    look_at = Pnt3(0, 100, 0)
+    # look_from = Pnt3((RWALL_E1 + RWALL_S2) / 2, 120, 400)
+    # look_at = Pnt3((RWALL_E1 + RWALL_S2) / 2, 100, 0)
     up = Vec3(0, 1, 0)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 65.0, film)
 
@@ -1225,8 +1245,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
     
     # Instantiate Scene
-    print("There are " * num2str(length(lights2)) * " lights in the scene\n")
-    scene = Scene(lights2, bvh)
+    print("There are " * num2str(length(lights)) * " lights in the scene\n")
+    scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
     I = BDPTIntegrator(C, S, parsed_args["max-depth"])
