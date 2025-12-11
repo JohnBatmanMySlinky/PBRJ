@@ -95,6 +95,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- FunctionWrappers.jl
 - SumTypes.jl
 - Refactor MaterialRegistry: https://claude.ai/chat/2009132e-080d-46ff-9330-bde0cd084006
 - use GLMakie as an image viewer to view renders as they progress
