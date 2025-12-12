@@ -95,9 +95,10 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
-- FunctionWrappers.jl
-- SumTypes.jl
-- Refactor MaterialRegistry: https://claude.ai/chat/2009132e-080d-46ff-9330-bde0cd084006
+- Revisit parameterization of abstract types. Primitive?
+- Function call counting macro - https://claude.ai/chat/df8e8429-eb0e-4058-971e-382ff6300be6
+- FunctionWrappers.jl 
+- Refactor MaterialRegistry to use MaterialPool: https://claude.ai/chat/2009132e-080d-46ff-9330-bde0cd084006
 - use GLMakie as an image viewer to view renders as they progress
 - make sure samplers are working as intended...
 - BDPT pixels and tiles... I got it working for volumetric path (v3)
