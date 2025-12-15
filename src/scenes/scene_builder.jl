@@ -1,6 +1,6 @@
 """
 scene 1: indoor office ✅
-    - add bannister to stairs
+    - tweak area light material a bit
     - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 500 500 --samples-per-pixel 64 --file-name "1-office-scene.exr"
 scene 2: caustic glass ✅
     - julia -t 4 RayTracing.jl --scene-number 2 --image-dim 525 750 --samples-per-pixel 16 --file-name "2-caustic-glass.exr"
@@ -24,8 +24,10 @@ scene 8: an anemic leafless procedural tree ✅
 scene 9: lte orb ✅
     - julia -t 4 RayTracing.jl --scene-number 9 --image-dim 500 500 --samples-per-pixel 16 --file-name "9-lte-orb.exr"
 scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅
-    - parser broken
+    - needs more samples
+    - julia -t 4 RayTracing.jl --scene-number 10 --image-dim 500 500 --samples-per-pixel 16 --file-name "10-cloud.exr"
 scene 11: dragon with fun materials ✅
+    - julia -t 4 RayTracing.jl --scene-number 11 --image-dim 500 500 --samples-per-pixel 16 --file-name "11-dragon.exr"
 scene 12: v4 smoke plume (v4 GridMedium) ✅
 scene 13: DISNEY CLOUD (v4 NanoVDBMedium) 🟨
     - re-render with screen fix

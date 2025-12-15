@@ -107,7 +107,7 @@ function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(3.69558, -3.46243, 3.25463)
     look_at = Pnt3(3.04072, -2.85176, 2.80939)
     up = Vec3(-0.317366, 0.312466, 0.895346)
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 28.8415038750464, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), nothing, 0.0, 1.0, 0.0, 1e6, 28.8415038750464, film)
 
     # Instantiate a Sampler
     S = SamplerFactory(parsed_args)
