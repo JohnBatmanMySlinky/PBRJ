@@ -54,6 +54,23 @@ const SpectrumType = Union{Reflectance, Illuminant}
 
 const ShadowEpsilon::Float64 = 0.00001
 
+######### Profiling ##############
+
+const P_ON = "--profile-output" in ARGS
+const P = P_ON ? Dict{String, Tuple{Int, Float64}}() : nothing
+macro prof(n, e)
+    P_ON ? quote
+        t = time_ns()
+        r = $(esc(e))
+        elapsed = (time_ns() - t) / 1e6
+        count, total = get($P, $n, (0, 0.0))
+        $P[$n] = (count + 1, total + elapsed)
+        r
+    end : esc(e)
+end
+
+############## Imports #################
+
 include("materials/fourier_bsdf_table.jl")
 include("utils.jl")
 include("nanovdb/julia_part.jl")
@@ -331,7 +348,19 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # set random seed
     Random.seed!(parsed_args["seed"])
 
+    # render
     @time render_scene(parsed_args)
+
+    # write profiling results
+    if P_ON
+        open(parsed_args["profile-output"], "w") do io
+            for (name, (count, total)) in sort!(collect(P), by=x->x[2][2], rev=true)
+                @printf(io, "%-30s %10d   %10.2f   %10.4f\n", 
+                        name, count, total, total/count)
+            end
+        end
+        println("Profile saved to profile.txt")
+    end
 end
 
 end

@@ -100,7 +100,7 @@ function render(
                 light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
 
                 # Trace the camera and light subpaths
-                n_camera = generate_camera_subpath!(
+                @prof "generate_camera_subpath" n_camera = generate_camera_subpath!(
                     camera_vertices,
                     scene, 
                     sampler, 

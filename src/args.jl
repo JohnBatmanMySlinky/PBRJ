@@ -60,6 +60,10 @@ function parse_commandline()::Dict
             help = "independent, stratified, sobol, zsobol"
             arg_type = String
             default = "zsobol"
+        "--profile-output"
+            help = "file output for profiling"
+            arg_type = String
+            default = "profiling.txt"
     end
 
     return parse_args(s)
