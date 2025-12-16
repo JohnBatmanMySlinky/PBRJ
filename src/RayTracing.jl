@@ -63,7 +63,7 @@ macro prof(n, e)
         t = time_ns()
         r = $(esc(e))
         elapsed = (time_ns() - t) / 1e6
-        count, total = get($P, $n, (0, 0.0))
+        count, total = Base.get($P, $n, (0, 0.0))
         $P[$n] = (count + 1, total + elapsed)
         r
     end : esc(e)
@@ -318,6 +318,67 @@ function render_scene(parsed_args::Dict)
     end
 end
 
+function write_profiling(parsed_args, time_stats=nothing)
+    if P_ON
+        open(parsed_args["profile-output"], "w") do io
+            # Headers
+            println(io, "="^70)
+            println(io, "PBRJ Performance Profile")
+            println(io, "="^70)
+            println(io)
+            
+            # Scene info
+            spp = parsed_args["samples-per-pixel"]
+            dims = parsed_args["image-dim"]
+            total_pixels = dims[1] * dims[2]
+            total_samples = total_pixels * spp
+            println(io, "Image: $(dims[1])×$(dims[2]) pixels, $spp samples/pixel")
+            println(io, "Total samples: $total_samples")
+            println(io)
+            
+            println(io, "Function                     Calls    Total(ms)   Avg(ms)  Calls/sample")
+            println(io, "-"^75)
+            
+            # Data rows
+            for (name, (count, total)) in sort!(collect(P), by=x->x[2][2], rev=true)
+                calls_per_sample = count / total_samples
+                @printf(io, "%-25s %10d  %10.2f  %8.4f    %10.4f\n", 
+                        name, count, total, total/count, calls_per_sample)
+            end
+            
+            # Footer with summary
+            println(io, "-"^75)
+            total_ms = sum(x -> x[2], values(P))
+            total_calls = sum(x -> x[1], values(P))
+            avg_calls_per_sample = total_calls / total_samples
+            @printf(io, "%-25s %10d  %10.2f              %10.4f\n", 
+                    "TOTAL", total_calls, total_ms, avg_calls_per_sample)
+            
+            # Add @time stats if available
+            if time_stats !== nothing
+                println(io)
+                println(io, "="^70)
+                println(io, "Overall Render Statistics (@time)")
+                println(io, "-"^70)
+                @printf(io, "Total time:        %.3f seconds\n", time_stats.time)
+                @printf(io, "Memory allocated:  %.2f MiB\n", time_stats.bytes / 2^20)
+                @printf(io, "GC time:           %.1f%% (%.3f seconds)\n", 
+                        time_stats.gctime/time_stats.time*100, time_stats.gctime)
+                
+                # Compare profiled vs actual time
+                profiled_time = total_ms / 1000  # Convert to seconds
+                @printf(io, "Profiled time:     %.3f seconds (%.1f%% of total)\n", 
+                        profiled_time, profiled_time/time_stats.time*100)
+                @printf(io, "Unprofiled time:   %.3f seconds (%.1f%%)\n", 
+                        time_stats.time - profiled_time, 
+                        (time_stats.time - profiled_time)/time_stats.time*100)
+            end
+        end
+        
+        println("Profile saved to $(parsed_args["profile-output"])")
+    end
+end
+
 function setup_logging(debug::Bool)
     if Sys.iswindows()
         if debug
@@ -349,18 +410,10 @@ if abspath(PROGRAM_FILE) == @__FILE__
     Random.seed!(parsed_args["seed"])
 
     # render
-    @time render_scene(parsed_args)
+    stats = @time render_scene(parsed_args)
 
     # write profiling results
-    if P_ON
-        open(parsed_args["profile-output"], "w") do io
-            for (name, (count, total)) in sort!(collect(P), by=x->x[2][2], rev=true)
-                @printf(io, "%-30s %10d   %10.2f   %10.4f\n", 
-                        name, count, total, total/count)
-            end
-        end
-        println("Profile saved to profile.txt")
-    end
+    write_profiling(parsed_args, stats)
 end
 
 end
