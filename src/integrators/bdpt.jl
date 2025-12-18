@@ -308,7 +308,7 @@ function random_walk!(
         COUNTER += 1
         # attempt to create the next subpath verte in *path*
         # @info "Ray current has a medium: $(!(ray.medium isa Nothing))"
-        check, t, isect = intersect!(scene.b, ray)
+        @prof "random_walk.intersect!" check, t, isect = intersect!(scene.b, ray)
         if check
             @info "Random walk: intersection\n\tp $(isect.core.p)\n\two $(isect.core.wo)\n\tn $(isect.core.n)\n\tshading n $(isect.shading.n)\n\t shading dpdu: $(isect.shading.dpdu)\n\t shading dpdv $(isect.shading.dpdv)"
             # @info "Isect Medium Interface: INSIDE $(!(isect.core.mi.inside isa Nothing)), OUTSIDE $(!(isect.core.mi.outside isa Nothing))";
