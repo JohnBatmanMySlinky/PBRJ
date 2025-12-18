@@ -60,6 +60,8 @@ const P_ON = "--profile-output" in ARGS
 const P = P_ON ? Dict{String, Tuple{Int, Float64}}() : nothing
 macro prof(n, e)
     P_ON ? quote
+        Threads.nthreads() > 1 && error("@prof macro cannot be used with multiple threads (currently running with $(Threads.nthreads()) threads)")
+
         t = time_ns()
         r = $(esc(e))
         elapsed = (time_ns() - t) / 1e6
@@ -291,7 +293,7 @@ const BDPT_STAGES::Vector{Tuple{Int64, Int64}} = [
 function render_scene(parsed_args::Dict)
     for bdpt_pass in BDPT_STAGES
         (bdpt_pass != (-1,-1)) && (print("working on bdpt pass s=$(bdpt_pass[1]), t=$(bdpt_pass[2])\n"))
-        I, scene = build_scene(parsed_args) # TODO get this outside the loop!
+        @prof "scene_build" I, scene = build_scene(parsed_args) # TODO get this outside the loop!
         image = render(
             I, 
             scene, 
@@ -410,7 +412,7 @@ if abspath(PROGRAM_FILE) == @__FILE__
     Random.seed!(parsed_args["seed"])
 
     # render
-    stats = @time render_scene(parsed_args)
+    stats = @timed render_scene(parsed_args)
 
     # write profiling results
     write_profiling(parsed_args, stats)
