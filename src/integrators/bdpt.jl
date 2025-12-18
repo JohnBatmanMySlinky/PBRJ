@@ -231,7 +231,7 @@ function generate_camera_subpath!(
     path[0+1] = create_camera_vertex(camera, ray, beta)
     pdf_pos, pdf_dir = pdf_we(camera, ray)
     @info "Starting camera subpath.\n\tRay $(ray)\n\tbeta $(beta)\n\t pdfPos $(pdf_pos)\n\tpdfDir $(pdf_dir) "
-    return @prof "random_walk" random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1)
+    return @prof "generate_camera_subpath!.random_walk" random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1)
 end
 
 function generate_light_subpath!(
@@ -260,7 +260,7 @@ function generate_light_subpath!(
     path[0+1] = create_light_vertex(light, ray, n_light, Le, pdf_pos * light_pdf)
     beta = Le * abs(dot(n_light, ray.direction)) / (light_pdf * pdf_pos * pdf_dir)
     @info "Starting light subpath. Ray: o $(ray.origin), d $(ray.direction) t $(ray.t) tMax: $(ray.tMax) , Le: $(Le), beta: $(beta), pdfPos: $(pdf_pos), pdfDir: $(pdf_dir)"
-    n_vertices = @prof "random_walk" random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path, 1)
+    n_vertices = @prof "generate_light_subpath!.random_walk" random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path, 1)
 
     # correct subpath sampling densities for infinite area lights
     if is_infinite_light(path[0+1])
