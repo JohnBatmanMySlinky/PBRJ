@@ -95,6 +95,8 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- IN THEORY SIMPLE VOL PATH V3 CAN HANDLE EMISSIVE MEDIUMS
+- visibility tester Tr needs to be updated
 - Revisit parameterization of abstract types. Primitive?
 - Function call counting macro - https://claude.ai/chat/df8e8429-eb0e-4058-971e-382ff6300be6
 - FunctionWrappers.jl 
