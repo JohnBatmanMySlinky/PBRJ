@@ -1,34 +1,34 @@
 """
 scene 1: indoor office ✅
     - tweak area light material a bit
-    - julia -t 4 RayTracing.jl --scene-number 1 --image-dim 500 500 --samples-per-pixel 64 --file-name "1-office-scene.exr"
+    - julia -t auto RayTracing.jl --scene-number 1 --image-dim 500 500 --samples-per-pixel 64 --file-name "1-office-scene.exr"
 scene 2: caustic glass ✅
-    - julia -t 4 RayTracing.jl --scene-number 2 --image-dim 525 750 --samples-per-pixel 16 --file-name "2-caustic-glass.exr"
+    - julia -t auto RayTracing.jl --scene-number 2 --image-dim 525 750 --samples-per-pixel 16 --file-name "2-caustic-glass.exr"
 scene 3: AOIntegrator + dragon ✅
-    - julia -t 4 RayTracing.jl --scene-number 3 --image-dim 500 500 --samples-per-pixel 16 --file-name "3-ao-dragon.exr"
+    - julia -t auto RayTracing.jl --scene-number 3 --image-dim 500 500 --samples-per-pixel 16 --file-name "3-ao-dragon.exr"
 scene 4: cornell box 🟨
     - DEBUG: top back right coner - what's good with that???
     - need to mess with medium params to make it a bit less dense
-    - julia -t 4 RayTracing.jl --scene-number 4 --image-dim 500 500 --samples-per-pixel 16 --file-name "4-cornell-box.exr"
+    - julia -t auto RayTracing.jl --scene-number 4 --image-dim 500 500 --samples-per-pixel 16 --file-name "4-cornell-box.exr"
 scene 5: soft bodies ✅
-    - julia -t 4 RayTracing.jl --scene-number 5 --image-dim 500 500 --samples-per-pixel 16 --file-name "5-soft-bodies.exr"
+    - julia -t auto RayTracing.jl --scene-number 5 --image-dim 500 500 --samples-per-pixel 16 --file-name "5-soft-bodies.exr"
 scene 6: goursat ✅
-    - julia -t 4 RayTracing.jl --scene-number 6 --image-dim 500 500 --samples-per-pixel 16 --file-name "6-goursat.exr"
+    - julia -t auto RayTracing.jl --scene-number 6 --image-dim 500 500 --samples-per-pixel 16 --file-name "6-goursat.exr"
     - better material? 
     - infinite light?
     - something fucky with the normals...
 scene 7: julia logo w/ tea pots ✅
-    - julia -t 4 RayTracing.jl --scene-number 7 --image-dim 500 500 --samples-per-pixel 16 --file-name "7-julia-logo.exr"
+    - julia -t auto RayTracing.jl --scene-number 7 --image-dim 500 500 --samples-per-pixel 16 --file-name "7-julia-logo.exr"
 scene 8: an anemic leafless procedural tree ✅
     - add leaves
 scene 9: lte orb ✅
-    - julia -t 4 RayTracing.jl --scene-number 9 --image-dim 500 500 --samples-per-pixel 16 --file-name "9-lte-orb.exr"
+    - julia -t auto RayTracing.jl --scene-number 9 --image-dim 500 500 --samples-per-pixel 16 --file-name "9-lte-orb.exr"
 scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅
-    - needs more samples
-    - julia -t 4 RayTracing.jl --scene-number 10 --image-dim 500 500 --samples-per-pixel 16 --file-name "10-cloud.exr"
+    - julia -t auto RayTracing.jl --scene-number 10 --image-dim 500 500 --samples-per-pixel 256 --file-name "10-cloud.exr"
 scene 11: dragon with fun materials ✅
-    - julia -t 4 RayTracing.jl --scene-number 11 --image-dim 500 500 --samples-per-pixel 16 --file-name "11-dragon.exr"
+    - julia -t auto RayTracing.jl --scene-number 11 --image-dim 500 500 --samples-per-pixel 16 --file-name "11-dragon.exr"
 scene 12: v4 smoke plume (v4 GridMedium) ✅
+    - julia -t auto RayTracing.jl --scene-number 12 --image-dim 500 500 --samples-per-pixel 16 --file-name "12-smoke-plume.exr"
 scene 13: DISNEY CLOUD (v4 NanoVDBMedium) 🟨
     - re-render with screen fix
     - fix reflections from disk
@@ -51,10 +51,10 @@ scene 19: bunny cloud (v4 NanoVDB) 🟨
     - hmmm gets all fucky when voxel grid is 3x3x3 - probably majorant iterator...
     - blue floor
 scene 20: explosion + SimpleVolPathIntegrator (v4 NanoVDB) 🟨
-    - caffeinate -di julia -t 4 RayTracing.jl --scene-number 20 --image-dim 1000 1000 --samples-per-pixel 16
+    - caffeinate -di julia -t auto RayTracing.jl --scene-number 20 --image-dim 1000 1000 --samples-per-pixel 16
     - hmmmmm maybe black body is off?
 scene 21: sanmiguel ✅
-    - julia -t 4 RayTracing.jl --scene-number 21 --image-dim 500 500 --crop-window 0.0 0.0 0.997245 0.745 --samples-per-pixel 16
+    - julia -t auto RayTracing.jl --scene-number 21 --image-dim 500 500 --crop-window 0.0 0.0 0.997245 0.745 --samples-per-pixel 16
     - check my bullshit mipmap hack
 scene 99: sphere-a-mid 🟨
     - add more interesting materails
