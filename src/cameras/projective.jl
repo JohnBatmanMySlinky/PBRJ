@@ -28,7 +28,7 @@ struct ProjectiveCamera <: Camera
 
         frame = film.full_resolution.x / film.full_resolution.y
         if !(screen_window_tmp isa Nothing)
-            screen_windw = screen_window_tmp
+            screen_window = screen_window_tmp
         else
             if frame > 1.0
                 screen_window = Bounds2(
