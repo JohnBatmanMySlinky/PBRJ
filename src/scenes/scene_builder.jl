@@ -32,6 +32,7 @@ scene 12: v4 smoke plume (v4 GridMedium) ✅
 scene 13: DISNEY CLOUD (v4 NanoVDBMedium) 🟨
     - re-render with screen fix
     - fix reflections from disk
+    - caffeinate -di julia -t auto RayTracing.jl --scene-number 11 --image-dim 640 360 --samples-per-pixel 16 --file-name "13-disney-cloud.exr"
 scene 14: Anemone (v4 GridMedium) 🟨
     - emmissive medium is only supported by VolPath (v4) integrator. 
     - Looks as good as it can with BDPT at the moment
