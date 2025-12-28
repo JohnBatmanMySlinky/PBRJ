@@ -100,7 +100,7 @@ function render(
                 light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
 
                 # Trace the camera and light subpaths
-                n_camera = generate_camera_subpath!(
+                @prof "generate_camera_subpath" n_camera = generate_camera_subpath!(
                     camera_vertices,
                     scene, 
                     sampler, 
@@ -113,7 +113,7 @@ function render(
                 # default is "uniform" so not a big deal 
                 # would be worse with spatial or distance
                 light_distr = lookup(light_distr_generator, p(camera_vertices[1]))
-                n_light, light_num = generate_light_subpath!(
+                @prof "generate_light_subpath" n_light, light_num = generate_light_subpath!(
                     light_vertices,
                     scene,
                     sampler,
@@ -161,7 +161,7 @@ function render(
                             end
 
                             mis_weight = 0.0
-                            L_path, mis_weight, p_film_new = connect_BDPT(
+                            @prof "connect_BDPT" L_path, mis_weight, p_film_new = connect_BDPT(
                                 scene,
                                 light_vertices,
                                 camera_vertices,
@@ -186,10 +186,10 @@ function render(
                 end
                 
                 @info "Add film sample pFilm: [ $(camera_sample.film.x), $(camera_sample.film.y) ], L: $(L), (y: $(y_spectrum(L)))"
-                add_sample!(film_tile, camera_sample.film, L, 1.0)
+                @prof "add_sample!" add_sample!(film_tile, camera_sample.film, L, 1.0)
             end
         end
-        merge_film_tile!(i.camera.core.core.film , film_tile)
+        @prof "merge_tile!" merge_film_tile!(i.camera.core.core.film , film_tile)
         Threads.atomic_add!(jj,1)
         Threads.lock(l)
         update!(prog, jj[])
@@ -231,7 +231,7 @@ function generate_camera_subpath!(
     path[0+1] = create_camera_vertex(camera, ray, beta)
     pdf_pos, pdf_dir = pdf_we(camera, ray)
     @info "Starting camera subpath.\n\tRay $(ray)\n\tbeta $(beta)\n\t pdfPos $(pdf_pos)\n\tpdfDir $(pdf_dir) "
-    return random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1)
+    return @prof "generate_camera_subpath!.random_walk" random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1)
 end
 
 function generate_light_subpath!(
@@ -260,7 +260,7 @@ function generate_light_subpath!(
     path[0+1] = create_light_vertex(light, ray, n_light, Le, pdf_pos * light_pdf)
     beta = Le * abs(dot(n_light, ray.direction)) / (light_pdf * pdf_pos * pdf_dir)
     @info "Starting light subpath. Ray: o $(ray.origin), d $(ray.direction) t $(ray.t) tMax: $(ray.tMax) , Le: $(Le), beta: $(beta), pdfPos: $(pdf_pos), pdfDir: $(pdf_dir)"
-    n_vertices = random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path, 1)
+    n_vertices = @prof "generate_light_subpath!.random_walk" random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path, 1)
 
     # correct subpath sampling densities for infinite area lights
     if is_infinite_light(path[0+1])
@@ -308,7 +308,7 @@ function random_walk!(
         COUNTER += 1
         # attempt to create the next subpath verte in *path*
         # @info "Ray current has a medium: $(!(ray.medium isa Nothing))"
-        check, t, isect = intersect!(scene.b, ray)
+        @prof "random_walk.intersect!" check, t, isect = intersect!(scene.b, ray)
         if check
             @info "Random walk: intersection\n\tp $(isect.core.p)\n\two $(isect.core.wo)\n\tn $(isect.core.n)\n\tshading n $(isect.shading.n)\n\t shading dpdu: $(isect.shading.dpdu)\n\t shading dpdv $(isect.shading.dpdv)"
             # @info "Isect Medium Interface: INSIDE $(!(isect.core.mi.inside isa Nothing)), OUTSIDE $(!(isect.core.mi.outside isa Nothing))";

@@ -72,6 +72,7 @@ scene 105: his name is doug ✅
 scene 106: fleshy dragon? ✅
     - BSSRDF + VolPathIntegratorv3
     - caffeinate -di julia -t auto RayTracing.jl --scene-number 106 --samples-per-pixel 64 --image-dim 683 512 --max-depth 3 --file-name "106-dragon_10.exr"
+scene 107: train station
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -133,6 +134,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             return make_scene105(parsed_args)
     elseif parsed_args["scene-number"] == 106
             return make_scene106(parsed_args)
+    elseif parsed_args["scene-number"] == 107
+            return make_scene107(parsed_args)
     else
         @assert false
     end

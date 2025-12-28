@@ -54,6 +54,25 @@ const SpectrumType = Union{Reflectance, Illuminant}
 
 const ShadowEpsilon::Float64 = 0.00001
 
+######### Profiling ##############
+
+const P_ON = "--profile-output" in ARGS
+const P = P_ON ? Dict{String, Tuple{Int, Float64}}() : nothing
+macro prof(n, e)
+    P_ON ? quote
+        Threads.nthreads() > 1 && error("@prof macro cannot be used with multiple threads (currently running with $(Threads.nthreads()) threads)")
+
+        t = time_ns()
+        r = $(esc(e))
+        elapsed = (time_ns() - t) / 1e6
+        count, total = Base.get($P, $n, (0, 0.0))
+        $P[$n] = (count + 1, total + elapsed)
+        r
+    end : esc(e)
+end
+
+############## Imports #################
+
 include("materials/fourier_bsdf_table.jl")
 include("utils.jl")
 include("nanovdb/julia_part.jl")
@@ -202,6 +221,7 @@ include("integrators/bdpt.jl")
 include("integrators/bdpt_utils.jl")
 include("handy_prints.jl")
 include("parsers/parse_obj.jl")
+include("parsers/parse_obj_3dsmax_2011.jl")
 include("parsers/parse_curves.jl")
 include("medium2/cloud_medium.jl")
 include("shapes/curve.jl")
@@ -234,6 +254,7 @@ include("scenes/scene103.jl")
 include("scenes/scene104.jl")
 include("scenes/scene105.jl")
 include("scenes/scene106.jl")
+include("scenes/scene107.jl")
 include("scenes/scene_builder.jl")
 include("denoising/edge_avoiding_a_trous.jl")
 include("medium2/phase_functions.jl")
@@ -274,7 +295,7 @@ const BDPT_STAGES::Vector{Tuple{Int64, Int64}} = [
 function render_scene(parsed_args::Dict)
     for bdpt_pass in BDPT_STAGES
         (bdpt_pass != (-1,-1)) && (print("working on bdpt pass s=$(bdpt_pass[1]), t=$(bdpt_pass[2])\n"))
-        I, scene = build_scene(parsed_args) # TODO get this outside the loop!
+        @prof "scene_build" I, scene = build_scene(parsed_args) # TODO get this outside the loop!
         image = render(
             I, 
             scene, 
@@ -298,6 +319,67 @@ function render_scene(parsed_args::Dict)
         else
             OpenEXR.save(replace(I.camera.core.core.film.filename, ".exr"=>"")*"_s_"*string(bdpt_pass[1])*"_t_"*string(bdpt_pass[2])*".exr", image)
         end
+    end
+end
+
+function write_profiling(parsed_args, time_stats=nothing)
+    if P_ON
+        open(parsed_args["profile-output"], "w") do io
+            # Headers
+            println(io, "="^70)
+            println(io, "PBRJ Performance Profile")
+            println(io, "="^70)
+            println(io)
+            
+            # Scene info
+            spp = parsed_args["samples-per-pixel"]
+            dims = parsed_args["image-dim"]
+            total_pixels = dims[1] * dims[2]
+            total_samples = total_pixels * spp
+            println(io, "Image: $(dims[1])×$(dims[2]) pixels, $spp samples/pixel")
+            println(io, "Total samples: $total_samples")
+            println(io)
+            
+            println(io, "Function                     Calls    Total(ms)   Avg(ms)  Calls/sample")
+            println(io, "-"^75)
+            
+            # Data rows
+            for (name, (count, total)) in sort!(collect(P), by=x->x[2][2], rev=true)
+                calls_per_sample = count / total_samples
+                @printf(io, "%-25s %10d  %10.2f  %8.4f    %10.4f\n", 
+                        name, count, total, total/count, calls_per_sample)
+            end
+            
+            # Footer with summary
+            println(io, "-"^75)
+            total_ms = sum(x -> x[2], values(P))
+            total_calls = sum(x -> x[1], values(P))
+            avg_calls_per_sample = total_calls / total_samples
+            @printf(io, "%-25s %10d  %10.2f              %10.4f\n", 
+                    "TOTAL", total_calls, total_ms, avg_calls_per_sample)
+            
+            # Add @time stats if available
+            if time_stats !== nothing
+                println(io)
+                println(io, "="^70)
+                println(io, "Overall Render Statistics (@time)")
+                println(io, "-"^70)
+                @printf(io, "Total time:        %.3f seconds\n", time_stats.time)
+                @printf(io, "Memory allocated:  %.2f MiB\n", time_stats.bytes / 2^20)
+                @printf(io, "GC time:           %.1f%% (%.3f seconds)\n", 
+                        time_stats.gctime/time_stats.time*100, time_stats.gctime)
+                
+                # Compare profiled vs actual time
+                profiled_time = total_ms / 1000  # Convert to seconds
+                @printf(io, "Profiled time:     %.3f seconds (%.1f%% of total)\n", 
+                        profiled_time, profiled_time/time_stats.time*100)
+                @printf(io, "Unprofiled time:   %.3f seconds (%.1f%%)\n", 
+                        time_stats.time - profiled_time, 
+                        (time_stats.time - profiled_time)/time_stats.time*100)
+            end
+        end
+        
+        println("Profile saved to $(parsed_args["profile-output"])")
     end
 end
 
@@ -331,7 +413,11 @@ if abspath(PROGRAM_FILE) == @__FILE__
     # set random seed
     Random.seed!(parsed_args["seed"])
 
-    @time render_scene(parsed_args)
+    # render
+    stats = @timed render_scene(parsed_args)
+
+    # write profiling results
+    write_profiling(parsed_args, stats)
 end
 
 end
