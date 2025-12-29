@@ -1,3 +1,23 @@
+"""
+             -z
+           o |
+           r |
+           r |
+           r |
+     ttt     |
+             |
+             |
+-x ----------|---------- x
+             |
+             |
+             |     c
+             |
+             |
+             z
+"""
+
+
+
 function make_scene107(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
@@ -11,21 +31,34 @@ function make_scene107(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     push!(materials, mat_gray)
+
+    mat_red = Matte(
+        "# object Text001",
+        ConstantTexture(spectrum_from_float(0.9, 0.1, 0.15)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_red)
+
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate objects
-    text_t = Translate(Pnt3(0, 0, 0))
-    text = parse_obj_3dsmax_2011(
-        jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/train_station/test.obj"),
-        text_t,
+    obj_t = Translate(Pnt3(0, 0, 0))
+    obj, group_to_idx = parse_obj_3dsmax_2011(
+        jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/train_station/train_station_2.obj"),
+        obj_t,
         false,
         false,
         nothing
     )
-    for tris in text
+    for (i, tris) in enumerate(obj)
         for tri in tris
-            push!(primitives, Primitive(tri, "mat_gray", nothing))
+            if group_to_idx[i] == "# object Text001"
+                push!(primitives, Primitive(tri, group_to_idx[i], nothing))
+            else
+                push!(primitives, Primitive(tri, "mat_gray", nothing))
+            end
         end
     end
 
@@ -34,11 +67,14 @@ function make_scene107(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
-    l_2_w = Translate(Pnt3(0,0,0))
-    light = UniformInfiniteLight(
-        world_bounds(bvh), 
-        l_2_w, 
-        Spectrum(1.0, 1.0, 1.0), 
+    l_2_w_matrix = Mat4([-0.224951, 0.0, -0.97437, 0.0, -0.97437, 0.0, 0.224951, 0.0, 0.0, 1.0, 0.0, 8.87, 0.0, 0.0, 0.0, 1.0])
+    l_2_w = Transformation(l_2_w_matrix, inv(l_2_w_matrix))
+    light = InfiniteLight(
+        world_bounds(bvh),
+        l_2_w,
+        spectrum_from_float(1.0),
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sssdragon/textures/envmap.exr"),
+        false
     )
     push!(lights, light)
 
@@ -56,13 +92,10 @@ function make_scene107(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    LA_matrix = Mat4(
-        0.59123,    0.0602817,  0.804247,   0.0,
-        0.806503,   -0.0441912, -0.589576,  0.0,
-        0.0,        0.997203,   -0.0747446, 0.0,
-        134.241,    -123.776,   14.3307,    1.0
-    )
-    C = PerspectiveCamera(Transformation(LA_matrix, inv(LA_matrix)), nothing, 0.0, 1.0, 0.0, 1e6, 28.8415038750464, film)
+    look_from = Pnt3(150.0, 20.0, 55.0)
+    look_at = Pnt3(-40.0, 30.0, -45.0)
+    up = Vec3(0, 1, 0)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 37.0, film)
 
     # Instantiate a Sampler
     S = SamplerFactory(parsed_args)

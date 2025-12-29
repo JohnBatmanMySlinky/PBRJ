@@ -19,10 +19,14 @@ function parse_obj_3dsmax_2011(
 	normals = RayTracing.Nml3[]
 	normal_indices = Int[]
 
+    idx_to_group_mapper = Dict{Int64, String}()
+    idx = 1
+    cmd2_prev = ""
+
     # JOHN TOOD
     # massive container of abstract shit
     FIN = []
-    global NFACE = -1
+    NFACE = -1
 
     sc = ShapeCore(
         object_to_world, 
@@ -34,15 +38,23 @@ function parse_obj_3dsmax_2011(
 	
 	open(file_path) do file
 		for line in eachline(file)
+            if length(line) >= 8
+                cmd2 = line[1:8]
+                if (cmd2 == "# object") && (idx == 1) && (length(vertices) == 0)
+                    cmd2_prev = line
+                end
+            else
+                cmd2 = "not set"
+            end
+
 			line = strip(line)
-			if isempty(line) || startswith(line, "#")
+			if isempty(line) || (startswith(line, "#") && cmd2 != "# object")
 				continue
 			end
 			
 			parts = split(line)
 			cmd = parts[1]
-            cmd2 = length(line) >= 8 ? line[1:8] : "not set"
-			
+		
             if cmd == "v"
                 push!(vertices, parse_vertex(line))
             elseif cmd == "vt"
@@ -50,7 +62,7 @@ function parse_obj_3dsmax_2011(
             elseif cmd == "vn"
                 push!(normals, parse_normal(line))
             elseif cmd == "f"
-                global NFACE = length(split(strip(line))[2:end])
+                NFACE = length(split(strip(line))[2:end])
                 if !((NFACE == 3) || (NFACE == 4))
                     throw(ArgumentError("Invalid face format on line: $line - NFACE: $NFACE"))
                 end
@@ -78,6 +90,7 @@ function parse_obj_3dsmax_2011(
                     #################################################
                     continue
                 else
+                    # @warn """Publishing - $line\n\t# vertices - $(length(vertices))\n\t# uvs - $(length(uvs))\n\t# normals - $(length(normals))"""
                     ######################
                     # proceed to publish
                     ######################
@@ -99,6 +112,9 @@ function parse_obj_3dsmax_2011(
                     uv_indices = Int[]
                     normal_indices = Int[]
 
+                    idx_to_group_mapper[idx] = cmd2_prev
+                    cmd2_prev = line
+                    idx += 1
                 end
             elseif cmd == "s"
                 @warn "Skipping something: $line"
@@ -112,6 +128,7 @@ function parse_obj_3dsmax_2011(
 		end
 	end
 
+    # @warn """Final Publishing\n\t# vertices - $(length(vertices))\n\t# uvs - $(length(uvs))\n\t# normals - $(length(normals))"""
     publish!(
         FIN, 
         NFACE,
@@ -125,5 +142,7 @@ function parse_obj_3dsmax_2011(
         alpha_mask
     )
 
-	return FIN
+    idx_to_group_mapper[idx] = cmd2_prev
+
+	return FIN, idx_to_group_mapper
 end
