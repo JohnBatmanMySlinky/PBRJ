@@ -14,6 +14,8 @@ using OpenEXR
 using Roots
 using IterTools
 using Printf
+using Distributions
+using Combinatorics
 
 abstract type AbstractBSDF end
 abstract type AbstractBSSRDF end
@@ -255,9 +257,11 @@ include("scenes/scene104.jl")
 include("scenes/scene105.jl")
 include("scenes/scene106.jl")
 include("scenes/scene107.jl")
+include("scenes/scene108.jl")
 include("scenes/scene_builder.jl")
 include("denoising/edge_avoiding_a_trous.jl")
 include("medium2/phase_functions.jl")
+include("shapes/sphere_packing.jl")
 include("scene_utils.jl")
 
 # do MIS_weight or nah
