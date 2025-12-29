@@ -93,7 +93,7 @@ function make_scene107(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Camera
     look_from = Pnt3(150.0, 20.0, 55.0)
-    look_at = Pnt3(-40.0, 30.0, -45.0)
+    look_at = Pnt3(-40.0, 30.0, -25.0)
     up = Vec3(0, 1, 0)
     C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 37.0, film)
 

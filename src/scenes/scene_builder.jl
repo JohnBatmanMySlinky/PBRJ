@@ -74,6 +74,7 @@ scene 106: fleshy dragon? ✅
     - caffeinate -di julia -t auto RayTracing.jl --scene-number 106 --samples-per-pixel 64 --image-dim 683 512 --max-depth 3 --file-name "106-dragon_10.exr"
 scene 107: train station
     - 3ds max 2011
+    - julia -t auto RayTracing.jl --scene-number 107 --image-dim 640 360 --samples-per-pixel 128
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
