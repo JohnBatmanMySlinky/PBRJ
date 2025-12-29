@@ -95,6 +95,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Edge-avoiding a-trous denoising
 
 # TODO's
+- Spherical Cow
 - IN THEORY SIMPLE VOL PATH V3 CAN HANDLE EMISSIVE MEDIUMS
 - visibility tester Tr needs to be updated
 - Revisit parameterization of abstract types. Primitive?
