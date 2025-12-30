@@ -75,6 +75,9 @@ scene 106: fleshy dragon? ✅
 scene 107: train station
     - 3ds max 2011
     - julia -t auto RayTracing.jl --scene-number 107 --image-dim 640 360 --samples-per-pixel 128
+scene 108: train station
+    - spherical cow / emerald / sphere
+    - julia -t auto RayTracing.jl --scene-number 108 --image-dim 500 500 --samples-per-pixel 64
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -131,15 +134,15 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     elseif parsed_args["scene-number"] == 103
         return make_scene103(parsed_args)
     elseif parsed_args["scene-number"] == 104
-            return make_scene104(parsed_args)
+        return make_scene104(parsed_args)
     elseif parsed_args["scene-number"] == 105
-            return make_scene105(parsed_args)
+        return make_scene105(parsed_args)
     elseif parsed_args["scene-number"] == 106
-            return make_scene106(parsed_args)
+        return make_scene106(parsed_args)
     elseif parsed_args["scene-number"] == 107
-            return make_scene107(parsed_args)
+        return make_scene107(parsed_args)
     elseif parsed_args["scene-number"] == 108
-            return make_scene108(parsed_args)
+        return make_scene108(parsed_args)
     else
         @assert false
     end

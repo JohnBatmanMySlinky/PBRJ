@@ -1,4 +1,6 @@
 # Taken from: https://github.com/Libbum/spherical-cow/tree/master
+# Drafted with Claude
+# I refactored to use existing structs and clean up some functions
 
 # extend SimpleSphere
 function volume(s::SimpleSphere)::Float64
@@ -200,7 +202,7 @@ end
 
 function fabric_tensor(pv::PackedVolume)
     n = length(pv.spheres)
-    F = zeros(Float64, 3, 3)
+    F = @MMatrix zeros(Float64, 3, 3)
     
     for idx in 1:n
         center = pv.spheres[idx].p
@@ -214,13 +216,15 @@ function fabric_tensor(pv::PackedVolume)
         for c in p_c
             vec_n_pc = c.p - center
             n_pc = normalize(vec_n_pc)
-            for i in 1:3, j in 1:3
+            
+            @inbounds for i in 1:3, j in 1:3
                 F[i,j] += n_pc[i] * n_pc[j] / m_p
             end
         end
     end
     
-    return F / n
+    # Return as immutable SMatrix
+    return SMatrix(F) / n
 end
 
 # Main packing algorithm
@@ -228,7 +232,7 @@ function pack_spheres(container::C, size_dist::D) where {C <: Container, D <: Di
     rng = MersenneTwister()
     
     # Initial three spheres
-    init_radii = Float64[rand(rng, size_dist), rand(rng, size_dist), rand(rng, size_dist)]
+    init_radii = SVector(rand(rng, size_dist), rand(rng, size_dist), rand(rng, size_dist))
     spheres = init_spheres(init_radii, container)
     front = copy(spheres)
     
@@ -278,7 +282,7 @@ function pack_spheres(container::C, size_dist::D) where {C <: Container, D <: Di
     return spheres
 end
 
-function init_spheres(radii::Vector{Float64}, container::C) where C <: Container
+function init_spheres(radii::SVector{3, Float64}, container::C) where C <: Container
     radius_a, radius_b, radius_c = radii
     
     # Triangle side lengths

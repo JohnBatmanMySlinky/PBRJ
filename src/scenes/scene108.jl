@@ -12,18 +12,17 @@ function make_scene108(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     println("Packing spheres...")
     triangles = RayTracing.parse_obj(
-        "/home/jmyslinski/random_stuff/spherical-cow/examples/objects/emerald.obj",
+        "/home/jmyslinski/random_stuff/spherical-cow/examples/objects/cow.obj",
         RayTracing.Translate(RayTracing.Pnt3(0, 0, 0)),
         false,
         false,
         nothing
     )
     mesh_container = TriangleMesh(triangles[1])
-    packed = PackedVolume(mesh_container, Uniform(0.2, 0.3))
+    packed = PackedVolume(mesh_container, Uniform(0.01, 0.06))
     println("Done.")
 
     for (i, sphere) in enumerate(packed.spheres)
-        color = rand()
         tmp_mat = Matte(
             "mat_$i",
             ConstantTexture(spectrum_from_float(rand(), rand(), rand())),
@@ -68,8 +67,8 @@ function make_scene108(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(20.0, 20.0, 20.0)
-    look_at = Pnt3(0.0, 0.0, 0.0)
+    look_from = Pnt3(11.0, 7.0, 11.0)
+    look_at = centroid(world_bounds(bvh))
     up = Vec3(0, 1, 0)
     C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 37.0, film)
 
