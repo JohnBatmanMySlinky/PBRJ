@@ -19,7 +19,7 @@ function make_scene108(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     mesh_container = TriangleMesh(triangles[1])
-    packed = PackedVolume(mesh_container, Uniform(0.01, 0.06))
+    packed = PackedVolume(mesh_container, Uniform(0.005, 0.055))
     println("Done.")
 
     for (i, sphere) in enumerate(packed.spheres)
