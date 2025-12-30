@@ -13,14 +13,14 @@ function make_scene109(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     sc = ShapeCore()
     triangles = RayTracing.parse_obj(
-        "/home/jmyslinski/random_stuff/spherical-cow/examples/objects/cow.obj",
+        jmfp("/home/jmyslinski/random_stuff/spherical-cow/examples/objects/cow.obj"),
         RayTracing.Translate(RayTracing.Pnt3(0, 0, 0)),
         false,
         false,
         nothing
     )
     for tris in triangles
-        voxel_bounds = voxelize_to_bounds(tris, 1.0)
+        voxel_bounds = voxelize_to_bounds(tris, 0.25)
         for voxel_bound in voxel_bounds
             voxel_tris = Box(sc, voxel_bound.pMin, voxel_bound.pMax, "mat_gray")
             for voxel_tri in voxel_tris
