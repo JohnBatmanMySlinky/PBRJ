@@ -43,6 +43,46 @@ function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_red)
 
+    mat_green = Matte(
+        "mat_green",
+        ConstantTexture(spectrum_from_float(0.0, 0.9, 0.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_green)
+
+    mat_blue = Matte(
+        "mat_blue",
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.95)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_blue)
+
+    mat_yellow = Matte(
+        "mat_yellow",
+        ConstantTexture(spectrum_from_float(0.9, 0.9, 0.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_yellow)
+
+    mat_pink = Matte(
+        "mat_pink",
+        ConstantTexture(spectrum_from_float(0.1, 0.4, 0.7)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pink)
+
+    mat_purple = Matte(
+        "mat_purple",
+        ConstantTexture(spectrum_from_float(0.5, 0.0, 0.5)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_purple)
+
     transform_dict = Dict{String, ShapeCore}()
     transform_dict["# object Ground"] = ShapeCore(Translate(Pnt3(0, -10, 0)), Inv(Translate(Pnt3(0, -10, 0))), false, false)
     transform_dict["# object Pillars"] = ShapeCore(Translate(Pnt3(0, -5, 0)), Inv(Translate(Pnt3(0, -5, 0))), false, false)
@@ -59,6 +99,22 @@ function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         for tri in tris
             if group_to_idx[i] in ["# object Lantern", "# object Lantern_Base"]
                 push!(primitives, Primitive(tri, "mat_red", nothing))
+
+            elseif group_to_idx[i] in ["# object Lantern001", "# object Lantern_Base001"]
+                push!(primitives, Primitive(tri, "mat_green", nothing))
+
+            elseif group_to_idx[i] in ["# object Lantern002", "# object Lantern_Base002"]
+                push!(primitives, Primitive(tri, "mat_blue", nothing))
+
+            elseif group_to_idx[i] in ["# object Lantern003", "# object Lantern_Base003"]
+                push!(primitives, Primitive(tri, "mat_yellow", nothing))
+
+            elseif group_to_idx[i] in ["# object Lantern004", "# object Lantern_Base004"]
+                push!(primitives, Primitive(tri, "mat_pink", nothing))
+
+            elseif group_to_idx[i] in ["# object Lantern005", "# object Lantern_Base005"]
+                push!(primitives, Primitive(tri, "mat_purple", nothing))
+
             else
                 push!(primitives, Primitive(tri, "mat_gray", nothing))
             end
