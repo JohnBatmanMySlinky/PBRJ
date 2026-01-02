@@ -1,3 +1,27 @@
+"""
+     -x
+     |
+     |
+-z ----- z
+     |
+     |
+     x
+
+    gggggggggggggggggg
+    gggggggggggggggggg
+    gggggggggggggggggg
+wwwwwwwwwwwwwwwwwwwwwwwwww
+        pppp
+        pppp
+    L
+                L
+       L
+        C
+"""
+
+
+
+
 function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
@@ -30,7 +54,7 @@ function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     for (i, tris) in enumerate(obj)
         for tri in tris
-            if group_to_idx[i] in ["# object Lantern"]
+            if group_to_idx[i] in ["# object Lantern", "# object Lantern_Base"]
                 push!(primitives, Primitive(tri, "mat_red", nothing))
             else
                 push!(primitives, Primitive(tri, "mat_gray", nothing))
@@ -72,10 +96,10 @@ function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(475.0, 80.0, 80.0)
-    look_at = Pnt3(-200.0, 55.0, 100.0)
+    look_from = Pnt3(475.0, 95.0, 90.0)
+    look_at = Pnt3(-200.0, 55.0, 90.0)
     up = Vec3(0, 1, 0)
-    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 60.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 59.0, film)
 
     # Instantiate a Sampler
     S = SamplerFactory(parsed_args)
