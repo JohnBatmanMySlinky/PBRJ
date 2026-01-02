@@ -43,13 +43,16 @@ function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_red)
 
-    obj_t = Translate(Pnt3(0, 0, 0))
+    transform_dict = Dict{String, ShapeCore}()
+    transform_dict["# object Ground"] = ShapeCore(Translate(Pnt3(0, -10, 0)), Inv(Translate(Pnt3(0, -10, 0))), false, false)
+    transform_dict["# object Pillars"] = ShapeCore(Translate(Pnt3(0, -5, 0)), Inv(Translate(Pnt3(0, -5, 0))), false, false)
+
+    alpha_mask_dict = Dict{String, Maybe{String}}()
+
     obj, group_to_idx = parse_obj_3dsmax_2011(
         jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/autobackup02_3.obj"),
-        obj_t,
-        false,
-        false,
-        nothing
+        transform_dict,
+        alpha_mask_dict
     )
 
     for (i, tris) in enumerate(obj)

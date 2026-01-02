@@ -5,10 +5,8 @@ end
 
 function parse_obj_3dsmax_2011(
     file_path::AbstractString,
-    object_to_world::RayTracing.Transformation, 
-    reverse_orientation::Bool, 
-    transform_swaps_handedness::Bool,
-    alpha_mask::RayTracing.Maybe{String},
+    sc_dict::Dict{String,RayTracing.ShapeCore}, 
+    alpha_mask_dict::Dict{String, Maybe{String}},
 )
 	vertices = RayTracing.Pnt3[]
     vertex_indices = Int[]
@@ -27,14 +25,6 @@ function parse_obj_3dsmax_2011(
     # massive container of abstract shit
     FIN = []
     NFACE = -1
-
-    sc = ShapeCore(
-        object_to_world, 
-        Inv(object_to_world),
-        reverse_orientation, 
-        transform_swaps_handedness
-    )
-
 	
 	open(file_path) do file
 		for line in eachline(file)
@@ -94,6 +84,9 @@ function parse_obj_3dsmax_2011(
                     ######################
                     # proceed to publish
                     ######################
+
+                    sc = Base.get(sc_dict, cmd2_prev, ShapeCore())
+                    alpha_mask = Base.get(alpha_mask_dict, cmd2_prev, nothing)
                     publish!(
                         FIN, 
                         NFACE,
@@ -129,6 +122,8 @@ function parse_obj_3dsmax_2011(
 	end
 
     # @warn """Final Publishing\n\t# vertices - $(length(vertices))\n\t# uvs - $(length(uvs))\n\t# normals - $(length(normals))"""
+    sc = Base.get(sc_dict, cmd2_prev, ShapeCore())
+    alpha_mask = Base.get(alpha_mask_dict, cmd2_prev, nothing)
     publish!(
         FIN, 
         NFACE,
