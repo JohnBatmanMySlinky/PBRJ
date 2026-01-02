@@ -11,20 +11,29 @@ function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_gray)
 
-    sc = ShapeCore()
-    triangles = RayTracing.parse_obj(
-        jmfp("/home/jmyslinski/random_stuff/spherical-cow/examples/objects/cow.obj"),
-        RayTracing.Translate(RayTracing.Pnt3(0, 0, 0)),
+    mat_red = Matte(
+        "mat_red",
+        ConstantTexture(spectrum_from_float(0.9, 0.1, 0.15)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_red)
+
+    obj_t = Translate(Pnt3(0, 0, 0))
+    obj, group_to_idx = parse_obj_3dsmax_2011(
+        jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/autobackup02_3.obj"),
+        obj_t,
         false,
         false,
         nothing
     )
-    for tris in triangles
-        voxel_bounds = voxelize_to_bounds(tris, 0.125)
-        for voxel_bound in voxel_bounds
-            voxel_tris = Box(sc, voxel_bound.pMin, voxel_bound.pMax, "mat_gray")
-            for voxel_tri in voxel_tris
-                push!(primitives, voxel_tri)
+
+    for (i, tris) in enumerate(obj)
+        for tri in tris
+            if group_to_idx[i] in ["# object Lantern"]
+                push!(primitives, Primitive(tri, "mat_red", nothing))
+            else
+                push!(primitives, Primitive(tri, "mat_gray", nothing))
             end
         end
     end
@@ -63,8 +72,8 @@ function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(11.0, 7.0, 11.0)
-    look_at = centroid(world_bounds(bvh))
+    look_from = Pnt3(285.0, 70.0, 80.0)
+    look_at = Pnt3(-200.0, 55.0, 100.0)
     up = Vec3(0, 1, 0)
     C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 37.0, film)
 
