@@ -93,10 +93,10 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - MIPMap
     - Logging
     - Edge-avoiding a-trous denoising
+- [A high volume fraction sphere packing](https://docs.rs/spherical-cow/latest/spherical_cow/) (scene108.jl)
+- Voxelization: voxelize ya meshes (scene109.jl)
 
 # TODO's
-- voxelization: https://claude.ai/chat/6982b53b-68d8-47eb-a9c0-54ebcac854f2
-- Spherical Cow
 - IN THEORY SIMPLE VOL PATH V3 CAN HANDLE EMISSIVE MEDIUMS
 - visibility tester Tr needs to be updated
 - Revisit parameterization of abstract types. Primitive?

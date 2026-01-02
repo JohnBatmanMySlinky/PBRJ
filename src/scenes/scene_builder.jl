@@ -75,11 +75,11 @@ scene 106: fleshy dragon? ✅
 scene 107: train station
     - 3ds max 2011
     - julia -t auto RayTracing.jl --scene-number 107 --image-dim 640 360 --samples-per-pixel 128
-scene 108: spherical cow
-    - spherical cow / emerald / sphere
+scene 108: spherical cow (sphere-packing algorithm)
+    - sphere-packing algorithm. fill up ya meshes with spheres
     - julia -t auto RayTracing.jl --scene-number 108 --image-dim 500 500 --samples-per-pixel 64
-scene 109: voxel cow
-    - voxel cow
+scene 109: voxel cow (vozelization of meshes)
+    - voxelize ya meshes. 
     - julia -t auto RayTracing.jl --scene-number 109 --image-dim 500 500 --samples-per-pixel 64
 """
 

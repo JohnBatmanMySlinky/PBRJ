@@ -20,7 +20,7 @@ function make_scene109(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tris in triangles
-        voxel_bounds = voxelize_to_bounds(tris, 0.25)
+        voxel_bounds = voxelize_to_bounds(tris, 0.125)
         for voxel_bound in voxel_bounds
             voxel_tris = Box(sc, voxel_bound.pMin, voxel_bound.pMax, "mat_gray")
             for voxel_tri in voxel_tris
