@@ -198,6 +198,7 @@ include("textures/image.jl")
 include("textures/procedural.jl")
 include("textures/mix.jl")
 include("textures/noise.jl")
+include("textures/uv.jl")
 include("textures/registry.jl")
 const ALPHA_TEXTURE_REGISTRY = Ref{AlphaTextureRegistry}()
 

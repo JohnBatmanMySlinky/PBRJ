@@ -11,20 +11,15 @@ end
 # equivalent to PBR's f()
 # "No scattering is returned from f(), since for an arbitrary pair of directions the delta function returns no scattering."
 function f(s::SpecularReflection{S, F}, ::Vec3, ::Vec3)::Spectrum where {S <: Spectrum, F <: Fresnel}
-    return spectrum_from_float(0, 0, 0)
+    return spectrum_from_float(0.0, 0.0, 0.0)
 end
 
-function sample_f(s::SpecularReflection{S, F}, wo::Vec3, wi::Vec3, sample::Pnt2)::Tuple{Vec3, Float64, Spectrum, Maybe{UInt8}} where {S <: Spectrum, F <: Fresnel}
-    wi = Vec3(-wi.x, -wi.y, wz)
-    return wi, 1.0, s.fresnel(cos_theta(wi)) * s.r / abs_cos_theta(wi), nothing
+function sample_f(s::SpecularReflection{S, F}, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}} where {S <: Spectrum, F <: Fresnel}
+    wi = Vec3(-wo.x, -wo.y, wo.z)
+    @info "MIRROR: wi = $wi, s.r $(s.r)"
+    return wi, s.fresnel(cos_theta(wi)) * s.r / abs_cos_theta(wi), 1.0, nothing
 end
 
-# 8.2.3 Specular Transmission
-# TODO
-
-
-# 8.2.4 Fresnel Specular
-function sample_f(s::SpecularReflection{S, F}, wo::Vec3, ::Pnt2,)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}} where {S <: Spectrum, F <: Fresnel}
-    wi = Vec3(-wo[1], -wo[2], wo[3])
-    return wi, s.fresnel(cos_theta(wi)) .* s.r / abs(cos_theta(wi)), 1.0, nothing
+function compute_pdf(f::SpecularReflection{S, F}, wo::Vec3, wi::Vec3)::Float64 where {S <: Spectrum, F <: Fresnel}
+    return 0.0 
 end
