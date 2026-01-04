@@ -199,7 +199,7 @@ function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_path = Matte(
         "mat_path",
         ImageTexture(
-            UVMapping2D(5.0, 1.0, 0.0, 0.0),
+            UVMapping2D(2.0, 10.0, 0.0, 0.0),
             jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/materials/path/Stone_Road_143/Diffuse.jpg"),
             false
         ),
@@ -207,6 +207,28 @@ function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     push!(materials, mat_path)
+
+    mat_lamp_post = Matte(
+        "mat_lamp_post",
+        ConstantTexture(spectrum_from_float(0.95, 0.95, 0.95)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_lamp_post)
+
+    mat_lamp_light = Matte(
+        "mat_lamp_light",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/materials/lamp/lamp_light_diffuse_JM.jpg"),
+            false    
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_lamp_light)
+
+    
 
     transform_dict = Dict{String, ShapeCore}()
     tmp = Translate(Pnt3(0, 25, 0)) * Translate(Pnt3(-973.7363, 48.6302, 113.06100000000004)) * Rotate(-5.0, Vec3(0, 0, 1)) * Translate(Pnt3(973.7363, -48.6302, -113.06100000000004))
@@ -278,21 +300,44 @@ function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
     end
 
-    # snag some things from this version
-    transform_dict = Dict{String, ShapeCore}()
-    alpha_mask_dict = Dict{String, Maybe{String}}()
-    obj, group_to_idx = parse_obj_3dsmax_2011(
-        jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/lmap_final.obj"),
-        transform_dict,
-        alpha_mask_dict
-    )
+    # LAMPS
+    for t_Z in Transformation[Translate(Pnt3(0, 0, 0)), Translate(Pnt3(0, 0, 215))]
+        for t_X in Transformation[Translate(Pnt3(0, 0, 0)), Translate(Pnt3(-200, 15, 0)), Translate(Pnt3(-400, 40, 0)), Translate(Pnt3(-600, 50, 0)), Translate(Pnt3(-800, 60, 0)), Translate(Pnt3(-1000, 75, 0)), Translate(Pnt3(-1200, 100, 0))]
+            sc = ShapeCore(
+                t_Z * t_X,
+                Inv(t_Z * t_X),
+                false,
+                false
+            )
+            transform_dict = Dict{String, ShapeCore}()
+            transform_dict["# object lamp_extraction"] = sc
+            transform_dict["# object lamp_extraction.001"] = sc
 
-    for (i, tris) in enumerate(obj)
-        for tri in tris
-            if group_to_idx[i] in ["# object lamp_extraction"]
-                push!(primitives, Primitive(tri, "mat_red", nothing))
-            elseif group_to_idx[i] in ["# object lamp_extraction.001"]
-                push!(primitives, Primitive(tri, "mat_blue", nothing))
+
+            alpha_mask_dict = Dict{String, Maybe{String}}()
+            obj, group_to_idx = parse_obj_3dsmax_2011(
+                jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/lmap_final.obj"),
+                transform_dict,
+                alpha_mask_dict
+            )
+
+            for (i, tris) in enumerate(obj)
+                for tri in tris
+                    if group_to_idx[i] in ["# object lamp_extraction"]
+                        push!(primitives, Primitive(tri, "mat_lamp_post", nothing))
+                    elseif group_to_idx[i] in ["# object lamp_extraction.001"]
+                        alight = DiffuseAreaLight(
+                            spectrum_from_float(0.0),
+                            tri,
+                            true,
+                            nothing,
+                            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/materials/lamp/lamp_light_diffuse_JM.jpg"),
+                            2.0   
+                        )
+                        push!(primitives, Primitive(tri, "mat_lamp_light", alight))
+                        push!(lights, alight)
+                    end
+                end
             end
         end
     end
@@ -345,7 +390,7 @@ function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(475.0, 70.0, 90.0)
     look_at = Pnt3(-200.0, 55.0, 90.0)
     up = Vec3(0, 1, 0)
-    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 59.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 50.0, film)
 
     # Instantiate a Sampler
     S = SamplerFactory(parsed_args)
