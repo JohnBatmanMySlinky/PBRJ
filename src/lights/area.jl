@@ -89,7 +89,17 @@ function sample_le(light::DiffuseAreaLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tup
     pdf_pos = pdf(light.shape)
 
     if light.two_sided
-        @assert false
+        # Choose a side to sample and then remap u[0] to [0,1] before
+        # applying cosine-weighted hemisphere sampling for the chosen side.
+        if (u2.x < .5) 
+            u3 = Pnt2(min(u2.x * 2, 1.0-eps()), u2.y)
+            w = cosine_sample_hemisphere(u3)
+        else
+            u3 = Pnt2(min((u2.x - .5) * 2.0, 1.0-eps()), u2.y)
+            w = cosine_sample_hemisphere(u3)
+            w = Vec3(w.x, w.y, -w.z)
+        end
+        pdf_dir = 0.5 * cosine_hemisphere_pdf(abs(w.z))
     else
         w = cosine_sample_hemisphere(u2)
         pdf_dir = cosine_hemisphere_pdf(w.z)
