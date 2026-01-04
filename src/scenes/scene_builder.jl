@@ -83,7 +83,7 @@ scene 109: voxel cow (vozelization of meshes)
     - julia -t auto RayTracing.jl --scene-number 109 --image-dim 500 500 --samples-per-pixel 64
 scene 110: floating lanterns
     - why does my bump mapping look fucked up???
-    - julia -t auto RayTracing.jl --scene-number 110 --image-dim 1280 720 --samples-per-pixel 36 --crop-window 0.2 0.32 0.85 1.0
+    - julia -t auto RayTracing.jl --scene-number 110 --image-dim 1280 720 --samples-per-pixel 36 --crop-window 0.2 0.32 0.85 1.0 --file-name "110-floating_lanterns.exr"
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
