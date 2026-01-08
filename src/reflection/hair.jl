@@ -260,31 +260,31 @@ function compute_pdf(hair::HairBSDF, wo::Vec3, wi::Vec3)::Float64
     phi_I = atan(wi.z, wi.y)
 
     # Compute $\gammat$ for refracted ray
-    eta_p = sqrt(eta * eta - sin_theta_O^2) / cos_theta_O
-    sin_gamma_T = h / etap
-    gamm_T = safe_a_sin(sin_gamma_T)
+    eta_p = sqrt(hair.eta * hair.eta - sin_theta_O^2) / cos_theta_O
+    sin_gamma_T = hair.h / eta_p
+    gamma_T = safe_a_sin(sin_gamma_T)
 
     # Compute PDF for $A_p$ terms
     ap_pdf = compute_Ap_pdf(hair, cos_theta_O)
 
     # Compute PDF sum for hair scattering events
-    phi = phiI - phiO
+    phi = phi_I - phi_O
     pdf_val = 0.0
     for p in 0:(pMax_hair-1)
         # Compute $\sin \thetao$ and $\cos \thetao$ terms accounting for scales
         if p == 0
-            sin_theta_Op = sin_theta_o * hair.cos_2_k_alpha[1+1] - cos_theta_o * hair.sin_2_k_alpha[1+1]
-            cos_theta_Op = cos_theta_o * hair.cos_2_k_alpha[1+1] + sin_theta_o * hair.sin_2_k_alpha[1+1]
+            sin_theta_Op = sin_theta_O * hair.cos_2_k_alpha[1+1] - cos_theta_O * hair.sin_2_k_alpha[1+1]
+            cos_theta_Op = cos_theta_O * hair.cos_2_k_alpha[1+1] + sin_theta_O * hair.sin_2_k_alpha[1+1]
 		# Handle remainder of $p$ values for hair scale tilt
         elseif p == 1
-            sin_theta_Op = sin_theta_o * hair.cos_2_k_alpha[0+1] + cos_theta_o * hair.sin_2_k_alpha[0+1]
-            cos_theta_Op = cos_theta_o * hair.cos_2_k_alpha[0+1] - sin_theta_o * hair.sin_2_k_alpha[0+1]
+            sin_theta_Op = sin_theta_O * hair.cos_2_k_alpha[0+1] + cos_theta_O * hair.sin_2_k_alpha[0+1]
+            cos_theta_Op = cos_theta_O * hair.cos_2_k_alpha[0+1] - sin_theta_O * hair.sin_2_k_alpha[0+1]
         elseif p == 2
-            sin_theta_Op = sin_theta_o * hair.cos_2_k_alpha[2+1] + cos_theta_o * hair.sin_2_k_alpha[2+1]
-            cos_theta_Op = cos_theta_o * hair.cos_2_k_alpha[2+1] - sin_theta_o * hair.sin_2_k_alpha[2+1]
+            sin_theta_Op = sin_theta_O * hair.cos_2_k_alpha[2+1] + cos_theta_O * hair.sin_2_k_alpha[2+1]
+            cos_theta_Op = cos_theta_O * hair.cos_2_k_alpha[2+1] - sin_theta_O * hair.sin_2_k_alpha[2+1]
         else
-            sin_theta_Op = sin_theta_o
-            cos_theta_Op = cos_theta_o
+            sin_theta_Op = sin_theta_O
+            cos_theta_Op = cos_theta_O
         end
 
         # Handle out-of-range $\cos \thetao$ from scale adjustment
@@ -301,19 +301,17 @@ function compute_pdf(hair::HairBSDF, wo::Vec3, wi::Vec3)::Float64
 			p, 
 			hair.s, 
 			hair.gamma_O, 
-			gamma_T)
+			gamma_T
+		)
 
 		pdf_val += mp * ap_pdf[p+1] * np
     end
 	mp = Mp(
-		cosThetaI, cosThetaO, sinThetaI, sinThetaO, v[pMax])
-    pdf_val += Mp(
 		cos_theta_I, 
-		cos_theta_o, 
+		cos_theta_O, 
 		sin_theta_I, 
-		sin_theta_o, 
-		hair.v[pMax_hair+1]
-	) * ap_pdf[pMax_hair+1] / (2.0 * pi)
+		sin_theta_O, hair.v[pMax_hair+1])
+    pdf_val += mp * ap_pdf[pMax_hair+1] / (2.0 * pi)
     return pdf_val
 end
 

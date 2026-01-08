@@ -28,7 +28,7 @@ struct HairMaterial{
 		beta_m::BM,
 		beta_n::BN,
 		alpha::A,
-	)::HairMaterial where {
+	) where {
 		SA <: Maybe{AbstractTexture{Spectrum}},
 		C <: Maybe{AbstractTexture{Spectrum}},
 		E <: Maybe{AbstractTexture{Float64}},
@@ -46,20 +46,20 @@ struct HairMaterial{
 			@assert (sigma_a isa Nothing) & (color isa Nothing)
 		end
 
-		if eta isa Nothing
-			eta = ConstantTexture(1.55)
-		end
-		if beta_m isa Nothing
-			beta_m = ConstantTexture(0.3)
-		end
-		if beta_n isa Nothing
-			beta_n = ConstantTexture(0.3)
-		end
-		if alpha isa Nothing
-			alpha = ConstantTexture(2.0)
-		end
+		# Handle defaults by creating new variables with the correct types
+		eta_final = eta isa Nothing ? ConstantTexture(1.55) : eta
+		beta_m_final = beta_m isa Nothing ? ConstantTexture(0.3) : beta_m
+		beta_n_final = beta_n isa Nothing ? ConstantTexture(0.3) : beta_n
+		alpha_final = alpha isa Nothing ? ConstantTexture(2.0) : alpha
 		
-		return new{SA, C, E, P, ETA, BM, BN, A}(sigma_a, color, eumelanin, pheomelanin, eta, beta_m, beta_n, alpha, name)
+		# Now create the object with the potentially updated types
+		return new{
+			SA, C, E, P,
+			typeof(eta_final),
+			typeof(beta_m_final),
+			typeof(beta_n_final),
+			typeof(alpha_final)
+		}(sigma_a, color, eumelanin, pheomelanin, eta_final, beta_m_final, beta_n_final, alpha_final, name)
 	end
 end
 
