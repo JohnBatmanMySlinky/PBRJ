@@ -173,13 +173,13 @@ function sample_f(hair::HairBSDF, wo::Vec3, u2::Pnt2, type::UInt8)::Tuple{Vec3, 
 
 	# Determine which term $p$ to sample for hair scattering
 	ap_pdf = compute_Ap_pdf(hair, cos_theta_O)
-	p = -1
-	for p_tmp in 0:(pMax_hair-1)
-		if u00 < ap_pdf[p_tmp+1]
-			p = p_tmp
+	p = 0
+	for i in 0:(pMax_hair-1)
+		if u00 < ap_pdf[i+1]
+			p = i
 			break
 		end
-		u00 -= ap_pdf[p_tmp+1]
+		u00 -= ap_pdf[i+1]
 	end
 
 	# Rotate $\sin \thetao$ and $\cos \thetao$ to account for hair scale tilt
