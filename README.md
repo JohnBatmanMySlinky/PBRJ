@@ -97,6 +97,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - Voxelization: voxelize ya meshes (scene109.jl)
 
 # TODO's
+- get rid of strings in material and abstractbxdf to make them isbits - then we can use MVector for Vector{AbstractBxDFs}
 - `VolPathIntegratorv3` specular is fucky
 - Update `parse_obj_3dsmax_2011` to take in a vector of transforms.
 - IN THEORY SIMPLE VOL PATH V3 CAN HANDLE EMISSIVE MEDIUMS
