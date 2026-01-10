@@ -136,7 +136,7 @@ function Sr(bssrdf::AbstractBSSRDF, r::Float64)::Spectrum
         rOptical = r * bssrdf.sigma_t[ch + 1]
 
         # Compute spline weights to interpolate BSSRDF on channel _ch_
-        table = get_material(bssrdf.seperable_bssrdf.material_name).table
+        table = get_material(bssrdf.seperable_bssrdf.hash).table
 
         # Compute spline weights to interpolate BSSRDF density on channel _ch_
         rho_check, rho_offset, rho_weights = catmull_rom_weights(
@@ -187,7 +187,7 @@ function pdf_sr(bssrdf::AbstractBSSRDF, ch::Int64, r::Float64)::Float64
     # Convert $r$ into unitless optical radius $r_{\roman{optical}}$
     rOptical = r * bssrdf.sigma_t[ch + 1]
 
-    table = get_material(bssrdf.seperable_bssrdf.material_name).table
+    table = get_material(bssrdf.seperable_bssrdf.hash).table
 
     # Compute spline weights to interpolate BSSRDF density on channel _ch_
     rho_check, rho_offset, rho_weights = catmull_rom_weights(
@@ -276,7 +276,7 @@ function sample_sr(bssrdf::AbstractBSSRDF, ch::Int64, u::Float64)::Float64
     if bssrdf.sigma_t[ch + 1] == 0
         return -1.0
     end
-    mat = get_material(bssrdf.seperable_bssrdf.material_name)
+    mat = get_material(bssrdf.seperable_bssrdf.hash)
     f_val, _, _ = sample_catmull_rom_2D(
         mat.table.n_rho_samples,
         mat.table.n_radius_samples,

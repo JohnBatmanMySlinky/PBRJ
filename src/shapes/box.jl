@@ -1,6 +1,6 @@
 # TODO variable materials per rectangle
 # TODO allow alpha mask
-function Box(sc::ShapeCore, p_min::Pnt3, p_max::Pnt3, material::String)::Vector{Primitive}
+function Box(sc::ShapeCore, p_min::Pnt3, p_max::Pnt3, material::UInt32)::Vector{Primitive}
     if any(p_min .>= p_max)
         error("bound erorr in ya box")
     end

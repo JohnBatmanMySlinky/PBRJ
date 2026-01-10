@@ -1,7 +1,6 @@
 function make_scene109(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
-    materials = Material[]
 
     mat_gray = Matte(
         "mat_gray",
@@ -9,7 +8,7 @@ function make_scene109(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
-    push!(materials, mat_gray)
+    register_material!(mat_gray)
 
     sc = ShapeCore()
     triangles = RayTracing.parse_obj(
@@ -22,16 +21,12 @@ function make_scene109(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for tris in triangles
         voxel_bounds = voxelize_to_bounds(tris, 0.125)
         for voxel_bound in voxel_bounds
-            voxel_tris = Box(sc, voxel_bound.pMin, voxel_bound.pMax, "mat_gray")
+            voxel_tris = Box(sc, voxel_bound.pMin, voxel_bound.pMax, mat_gray.hash)
             for voxel_tri in voxel_tris
                 push!(primitives, voxel_tri)
             end
         end
     end
-
-
-    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
-    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

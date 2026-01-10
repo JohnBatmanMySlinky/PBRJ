@@ -16,6 +16,7 @@ using IterTools
 using Printf
 using Distributions
 using Combinatorics
+using CRC32c
 
 abstract type AbstractBSDF end
 abstract type AbstractBSSRDF end
@@ -177,9 +178,6 @@ include("reflection/bxdf.jl")
 include("reflection/hair.jl")
 include("reflection/fourier.jl")
 include("reflection/bssrdf.jl")
-include("materials/registry.jl")
-const MATERIAL_REGISTRY = Ref{MaterialRegistry}()
-
 include("materials/bsdf.jl")
 include("materials/bump.jl")
 include("materials/matte.jl")
@@ -193,6 +191,9 @@ include("materials/uber.jl")
 include("materials/fourier.jl")
 include("materials/kdsubsurface.jl")
 include("materials/measured_subsurface.jl")
+include("materials/registry.jl")
+const MATERIAL_REGISTRY = Ref{MaterialRegistry}(MaterialRegistry())
+
 include("textures/constant.jl")
 include("textures/image.jl")
 include("textures/procedural.jl")

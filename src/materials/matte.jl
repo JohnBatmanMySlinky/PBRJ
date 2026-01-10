@@ -7,7 +7,7 @@ struct Matte{
     Kd::K
     sigma::S
     bump_map::B
-    name::String
+    hash::UInt32
 
     function Matte(
         name::String,
@@ -19,7 +19,7 @@ struct Matte{
         S <: AbstractTexture{Float64},
         B <: Maybe{AbstractTexture{Float64}}
     }
-        return new{K, S, B}(k, s, b, name)
+        return new{K, S, B}(k, s, b, crc32c(name))
     end
 end
 
