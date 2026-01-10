@@ -99,23 +99,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
-    push!(materials, mat_white)
-
-    mat_gray = Matte(
-        "mat_gray",
-        ConstantTexture(spectrum_from_float(1.0, 1.0, 0.0)),
-        ConstantTexture(0.0),
-        nothing
-    )
-    push!(materials, mat_gray)
-
-    mat_pink = Matte(
-        "mat_pink",
-        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.4)),
-        ConstantTexture(0.0),
-        nothing
-    )
-    push!(materials, mat_pink)
+    register_material!(mat_white)
 
     mat_gray = Matte(
         "mat_gray",
@@ -123,7 +107,15 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
-    push!(materials, mat_gray)
+    register_material!(mat_gray)
+
+    mat_pink = Matte(
+        "mat_pink",
+        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.4)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    register_material!(mat_pink)
 
     mat_blue = Matte(
         "mat_blue",
@@ -131,7 +123,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
-    push!(materials, mat_blue)
+    register_material!(mat_blue)
 
     mat_green = Matte(
         "mat_green",
@@ -139,7 +131,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(0.0),
         nothing
     )
-    push!(materials, mat_green)
+    register_material!(mat_green)
 
     mat_concrete = Substrate(
         "mat_concrete",
@@ -174,7 +166,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
         true # remap
     )
-    push!(materials, mat_concrete)
+    register_material!(mat_concrete)
     # mat_concrete = Matte(
     #     "mat_concrete",
     #     ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
@@ -193,7 +185,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
         true,
     )
-    push!(materials, mat_plastic_black)
+    register_material!(mat_plastic_black)
 
     mat_metal_silver = Metal(
         "mat_metal_silver",
@@ -201,7 +193,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.k.spd"))),
         ConstantTexture(0.001)
     )
-    push!(materials, mat_metal_silver)
+    register_material!(mat_meta_silver)
 
     mat_metal_door = Metal(
         "mat_metal_door",
@@ -213,7 +205,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
         true
     )
-    push!(materials, mat_metal_door)
+    register_material!(mat_metal_door)
 
     ###################################
     ###### GEOMETRICAL CONSTANTS ######
