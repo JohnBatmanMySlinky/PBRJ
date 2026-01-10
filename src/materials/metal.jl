@@ -13,7 +13,7 @@ struct Metal{
     v_roughness::V
     bump_map::BM
     remap_roughness::Bool
-    name::String
+    hash::UInt32
 
     function Metal(
         name::String,
@@ -37,7 +37,7 @@ struct Metal{
         else
             @assert !(u_roughness isa Nothing) & !(v_roughness isa Nothing)
         end        
-        return new{ETA, K, R, U, V, BM}(eta, k, roughness, u_roughness, v_roughness, bump_map, remap_roughness, name)
+        return new{ETA, K, R, U, V, BM}(eta, k, roughness, u_roughness, v_roughness, bump_map, remap_roughness, crc32c(name))
     end
 end
 

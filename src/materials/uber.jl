@@ -22,7 +22,7 @@ struct Uber{
     opacity::O
     bump_map::BM
     remap_roughness::Bool
-    name::String
+    hash::UInt32
 
     function Uber(
         name::String,
@@ -53,7 +53,7 @@ struct Uber{
             Kd, Ks, Kr, Kt, 
             roughness, uroughness, vroughness, 
             eta, opacity, bump_map, 
-            remap_roughness, name
+            remap_roughness, crc32c(name)
         )
     end
 end

@@ -14,7 +14,7 @@ struct Plastic{
     v_roughness::V
     bump_map::BM
     remap_roughness::Bool
-    name::String
+    hash::UInt32
 
     function Plastic(
         name::String,
@@ -39,7 +39,7 @@ struct Plastic{
             @assert !(u_roughness isa Nothing) & !(v_roughness isa Nothing)
         end
         
-        return new{KD, KS, R, U, V, BM}(Kd, Ks, roughness, u_roughness, v_roughness, bump_map, remap_roughness, name)
+        return new{KD, KS, R, U, V, BM}(Kd, Ks, roughness, u_roughness, v_roughness, bump_map, remap_roughness, crc32c(name))
     end
 end
 

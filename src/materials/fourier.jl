@@ -1,14 +1,14 @@
 struct Fourier <: Material
     bsdf_table::FourierBSDFTable
     bump_map::Maybe{AbstractTexture{Spectrum}}
-    name::String
+    hash::UInt32
 
     function Fourier(
         name::String,
         path::String, 
         bump_map::Maybe{AbstractTexture{Spectrum}}=nothing,
     )
-        return new(read_fourier_bsdf_table(path), bump_map, name)
+        return new(read_fourier_bsdf_table(path), bump_map, crc32c(name))
     end
 end
 

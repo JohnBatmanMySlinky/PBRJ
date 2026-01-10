@@ -16,7 +16,7 @@ struct HairMaterial{
 	beta_m::BM
 	beta_n::BN
 	alpha::A
-	name::String
+	hash::UInt32
 	
 	function HairMaterial(
 		name::String,
@@ -59,7 +59,7 @@ struct HairMaterial{
 			typeof(beta_m_final),
 			typeof(beta_n_final),
 			typeof(alpha_final)
-		}(sigma_a, color, eumelanin, pheomelanin, eta_final, beta_m_final, beta_n_final, alpha_final, name)
+		}(sigma_a, color, eumelanin, pheomelanin, eta_final, beta_m_final, beta_n_final, alpha_final, crc32c(name))
 	end
 end
 

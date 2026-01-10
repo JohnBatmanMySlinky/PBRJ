@@ -16,7 +16,7 @@ struct KdSubSurface{
     scale::Float64
     eta::Float64
     bump_map::BM
-    name::String
+    hash::UInt32
     table::BSSRDFTable
     remap_roughness::Bool
 
@@ -43,7 +43,7 @@ struct KdSubSurface{
         BM <: Maybe{AbstractTexture{Float64}}
     }
         table = BSSRDFTable(g, eta)
-        return new{KD, KR, KT, MFP, U, V, BM}(Kd, Kr, Kt, Mfp, u_roughness, v_roughness, scale, eta, bump_map, name, table, remap_roughness)
+        return new{KD, KR, KT, MFP, U, V, BM}(Kd, Kr, Kt, Mfp, u_roughness, v_roughness, scale, eta, bump_map, crc32c(name), table, remap_roughness)
     end
 end
 

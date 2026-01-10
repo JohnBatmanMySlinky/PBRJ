@@ -13,7 +13,7 @@ struct Glass{
     idx::I
     bump_map::BM
     remap_roughness::Bool
-    name::String
+    hash::UInt32
 
     function Glass(
         name::String,
@@ -32,7 +32,7 @@ struct Glass{
         I <: AbstractTexture{Float64},
         BM <: Maybe{AbstractTexture{Float64}}
     }
-        return new{KR, KT, U, V, I, BM}(Kr, Kt, u_roughness, v_roughness, idx, bump_map, remap_roughness, name)
+        return new{KR, KT, U, V, I, BM}(Kr, Kt, u_roughness, v_roughness, idx, bump_map, remap_roughness, crc32c(name))
     end
 end
 

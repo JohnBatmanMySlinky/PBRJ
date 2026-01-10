@@ -193,7 +193,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ConstantTexture(spectrum_from_sampled(jmfp("/home/jmyslinski/random_stuff/pbrt-v3-scenes/bathroom/spds/Ag.k.spd"))),
         ConstantTexture(0.001)
     )
-    register_material!(mat_meta_silver)
+    register_material!(mat_metal_silver)
 
     mat_metal_door = Metal(
         "mat_metal_door",
@@ -316,8 +316,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         "tex_floor_corner"
     )
     for tri in floor
-        push!(primitives, Primitive(tri, "mat_concrete", nothing))
-        push!(primitives2, Primitive(tri, "mat_concrete", nothing))
+        push!(primitives, Primitive(tri, mat_concrete.hash, nothing))
+        push!(primitives2, Primitive(tri, mat_concrete.hash, nothing))
     end
 
     ################# CEILING
@@ -335,7 +335,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in ceiling
         for tri in tris
-            push!(primitives, Primitive(tri, "mat_white", nothing))
+            push!(primitives, Primitive(tri, mat_white.hash, nothing))
         end
     end    
 
@@ -362,7 +362,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in rwall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
     end
 
     rwall_transform = Translate(Pnt3(0,0,0))
@@ -376,7 +376,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in rwall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
     end
 
     ################# STAIRS
@@ -393,9 +393,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives3 = Primitive[]
     for tris in bannister
         for tri in tris
-            push!(primitives, Primitive(tri, "mat_plastic_black", nothing))
-            push!(primitives2, Primitive(tri, "mat_plastic_black", nothing))
-            push!(primitives3, Primitive(tri, "mat_plastic_black", nothing))
+            push!(primitives, Primitive(tri, mat_plastic_black.hash, nothing))
+            push!(primitives2, Primitive(tri, mat_plastic_black.hash, nothing))
+            push!(primitives3, Primitive(tri, mat_plastic_black.hash, nothing))
         end
     end
 
@@ -420,8 +420,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             0.0,
             bannister_radius * 5
         )
-        push!(primitives, Primitive(bannister_knob, "mat_metal_silver", nothing))
-        push!(primitives2, Primitive(bannister_knob, "mat_metal_silver", nothing))
+        push!(primitives, Primitive(bannister_knob, mat_metal_silver.hash, nothing))
+        push!(primitives2, Primitive(bannister_knob, mat_metal_silver.hash, nothing))
 
         bannister_knob_cap_t = Translate(Pnt3(-5, 0, bannister_radius * 5)) * Translate(p) * RotateY(90.0)
         bannister_knob_cap = Disk(
@@ -433,8 +433,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         )
-        push!(primitives, Primitive(bannister_knob_cap, "mat_metal_silver", nothing))
-        push!(primitives2, Primitive(bannister_knob_cap, "mat_metal_silver", nothing))
+        push!(primitives, Primitive(bannister_knob_cap, mat_metal_silver.hash, nothing))
+        push!(primitives2, Primitive(bannister_knob_cap, mat_metal_silver.hash, nothing))
     end
 
    for p in Pnt3[
@@ -448,8 +448,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             0.0,
             bannister_radius * 5
         )
-        push!(primitives, Primitive(bannister_knob, "mat_metal_silver", nothing))
-        push!(primitives2, Primitive(bannister_knob, "mat_metal_silver", nothing))
+        push!(primitives, Primitive(bannister_knob, mat_metal_silver.hash, nothing))
+        push!(primitives2, Primitive(bannister_knob, mat_metal_silver.hash, nothing))
 
         bannister_knob_cap_t = Translate(Pnt3(0, 0, bannister_radius * 5 + 5)) * Translate(p)
         bannister_knob_cap = Disk(
@@ -461,8 +461,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false,
             false
         )
-        push!(primitives, Primitive(bannister_knob_cap, "mat_metal_silver", nothing))
-        push!(primitives2, Primitive(bannister_knob_cap, "mat_metal_silver", nothing))
+        push!(primitives, Primitive(bannister_knob_cap, mat_metal_silver.hash, nothing))
+        push!(primitives2, Primitive(bannister_knob_cap, mat_metal_silver.hash, nothing))
     end
 
 
@@ -488,8 +488,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(lights, stair_light_alight)
     push!(lights2, stair_light_alight)
-    push!(primitives, Primitive(stair_light, "mat_white", stair_light_alight))
-    push!(primitives2, Primitive(stair_light, "mat_white", stair_light_alight))
+    push!(primitives, Primitive(stair_light, mat_white.hash, stair_light_alight))
+    push!(primitives2, Primitive(stair_light, mat_white.hash, stair_light_alight))
 
     stairs = create_stair_rectangles(
         Pnt3(
@@ -510,8 +510,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in stairs
         for tri in tris
-            push!(primitives, Primitive(tri, "mat_concrete", nothing))
-            push!(primitives2, Primitive(tri, "mat_concrete", nothing))
+            push!(primitives, Primitive(tri, mat_concrete.hash, nothing))
+            push!(primitives2, Primitive(tri, mat_concrete.hash, nothing))
         end
     end
 
@@ -532,8 +532,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in stairs_landing
-        push!(primitives, Primitive(tri, "mat_concrete", nothing))
-        push!(primitives2, Primitive(tri, "mat_concrete", nothing))
+        push!(primitives, Primitive(tri, mat_concrete.hash, nothing))
+        push!(primitives2, Primitive(tri, mat_concrete.hash, nothing))
     end
 
     stairs_left_wall_t = Translate(Pnt3(0,0,0))
@@ -547,8 +547,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in stairs_left_wall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
+        push!(primitives2, Primitive(tri, mat_white.hash, nothing))
     end
 
     stairs_right_wall_t = Translate(Pnt3(0,0,0))
@@ -562,8 +562,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in stairs_right_wall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
+        push!(primitives2, Primitive(tri, mat_white.hash, nothing))
     end
 
     stairs_back_wall_t = Translate(Pnt3(0, 0, 0))
@@ -577,8 +577,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in stairs_back_wall
-        push!(primitives, Primitive(tri, "mat_gray", nothing))
-        push!(primitives2, Primitive(tri, "mat_gray", nothing))
+        push!(primitives, Primitive(tri, mat_gray.hash, nothing))
+        push!(primitives2, Primitive(tri, mat_gray.hash, nothing))
     end
 
     ################# LEFT WALL
@@ -605,7 +605,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in lwall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
     end
 
     # right part
@@ -620,7 +620,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in lwall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
     end
 
     # above the elevator part
@@ -635,7 +635,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in lwall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
     end
 
     ################# Elevator
@@ -650,7 +650,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in elevator_door1
-        push!(primitives, Primitive(tri, "mat_metal_door", nothing))
+        push!(primitives, Primitive(tri, mat_metal_door.hash, nothing))
     end
 
     elevator_door2_t = Translate(Pnt3(0,0,0))
@@ -664,7 +664,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in elevator_door2
-        push!(primitives, Primitive(tri, "mat_metal_door", nothing))
+        push!(primitives, Primitive(tri, mat_metal_door.hash, nothing))
     end
 
     elevator_trim_left_t = Translate(Pnt3(0, 0, 0))
@@ -683,7 +683,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in elevator_trim_left
-        push!(primitives, Primitive(tri, "mat_metal_door", nothing))
+        push!(primitives, Primitive(tri, mat_metal_door.hash, nothing))
     end
 
     elevator_trim_right_t = Translate(Pnt3(0, 0, 0))
@@ -702,7 +702,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in elevator_trim_right
-        push!(primitives, Primitive(tri, "mat_metal_door", nothing))
+        push!(primitives, Primitive(tri, mat_metal_door.hash, nothing))
     end
 
     elevator_trim_top_t = Translate(Pnt3(0, 0, 0))
@@ -721,7 +721,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in elevator_trim_top
-        push!(primitives, Primitive(tri, "mat_metal_door", nothing))
+        push!(primitives, Primitive(tri, mat_metal_door.hash, nothing))
     end
 
     elevator_floor_t = Translate(Pnt3(0, 0, 0))
@@ -741,7 +741,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in elevator_floor
-        push!(primitives, Primitive(tri, "mat_concrete", nothing))
+        push!(primitives, Primitive(tri, mat_concrete.hash, nothing))
     end
 
     ################# Pillar 1
@@ -753,8 +753,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_1
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        # push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
+        # push!(primitives2, Primitive(tri, mat_white.hash, nothing))
     end
 
     ################# Pillar 2
@@ -766,8 +766,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_2
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        # push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
+        # push!(primitives2, Primitive(tri, mat_white.hash, nothing))
     end
 
     ################# Front Pillar Edges
@@ -787,8 +787,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_front_right
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        # push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
+        # push!(primitives2, Primitive(tri, mat_white.hash, nothing))
     end
 
     pillar_front_left_t = Translate(Pnt3(0,0,0))
@@ -807,8 +807,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_front_left
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        # push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
+        # push!(primitives2, Primitive(tri, mat_white.hash, nothing))
     end
 
     pillar_front_horizonal_t = Translate(Pnt3(0, 0, 0))
@@ -829,8 +829,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in pillar_front_horizontal
-            push!(primitives, Primitive(tri, "mat_white", nothing))
-            # push!(primitives2, Primitive(tri, "mat_white", nothing))
+            push!(primitives, Primitive(tri, mat_white.hash, nothing))
+            # push!(primitives2, Primitive(tri, mat_white.hash, nothing))
         end
     end
 
@@ -851,8 +851,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_right_right
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        # push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
+        # push!(primitives2, Primitive(tri, mat_white.hash, nothing))
     end
 
     pillar_right_left_t = Translate(Pnt3(0,0,0))
@@ -871,8 +871,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_right_left
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        # push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
+        # push!(primitives2, Primitive(tri, mat_white.hash, nothing))
     end
 
     pillar_right_horizonal_t = Translate(Pnt3(0, 0, 0))
@@ -893,8 +893,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in pillar_right_horizontal
-            push!(primitives, Primitive(tri, "mat_white", nothing))
-            # push!(primitives2, Primitive(tri, "mat_white", nothing))
+            push!(primitives, Primitive(tri, mat_white.hash, nothing))
+            # push!(primitives2, Primitive(tri, mat_white.hash, nothing))
         end
     end
 
@@ -915,8 +915,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_left_right
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        # push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
+        # push!(primitives2, Primitive(tri, mat_white.hash, nothing))
     end
 
     pillar_left_left_t = Translate(Pnt3(0,0,0))
@@ -935,8 +935,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in pillar_left_left
-        push!(primitives, Primitive(tri, "mat_white", nothing))
-        # push!(primitives2, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
+        # push!(primitives2, Primitive(tri, mat_white.hash, nothing))
     end
 
     pillar_left_horizonal_t = Translate(Pnt3(0, 0, 0))
@@ -957,8 +957,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         for tri in pillar_left_horizontal
-            push!(primitives, Primitive(tri, "mat_white", nothing))
-            # push!(primitives2, Primitive(tri, "mat_white", nothing))
+            push!(primitives, Primitive(tri, mat_white.hash, nothing))
+            # push!(primitives2, Primitive(tri, mat_white.hash, nothing))
         end
     end
 
@@ -994,9 +994,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         true,
         false
     )
-    push!(primitives, Primitive(outer_cyl, "mat_white", nothing))
-    push!(primitives, Primitive(inner_cyl, "mat_white", nothing))
-    push!(primitives, Primitive(disk, "mat_white", nothing))
+    push!(primitives, Primitive(outer_cyl, mat_white.hash, nothing))
+    push!(primitives, Primitive(inner_cyl, mat_white.hash, nothing))
+    push!(primitives, Primitive(disk, mat_white.hash, nothing))
 
     ################# Pillar Area Lights
     MULT_albedo = 8.0
@@ -1058,7 +1058,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             ConstantTexture(0.0),
             nothing
         )
-        push!(materials, mat_parchment)
+        register_material!(mat_parchment)
 
         for tri in tmp_rec
             alight = DiffuseAreaLight(
@@ -1066,8 +1066,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
                 tri,
                 false
             )
-            push!(primitives, Primitive(tri, "mat_parchment_" * mat_name, nothing))
-            # push!(primitives2, Primitive(tri, "mat_parchment_" * mat_name, nothing))
+            push!(primitives, Primitive(tri, mat_parchment.hash, nothing))
+            # push!(primitives2, Primitive(tri, mat_parchment.hash, nothing))
             push!(lights, alight)
             # push!(lights2, alight)
         end
@@ -1085,7 +1085,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in lcwall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
     end
     rcwall_transform = Translate(Pnt3(hallway_corner_wall_right.x,0,hallway_corner_wall_right.y))*RotateY(45.0)
     rcwall = Rectangle(
@@ -1098,7 +1098,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in rcwall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
     end
 
 
@@ -1114,7 +1114,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in rhwall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
     end
     extra_hallway_walls_adj = sqrt((hallway_width/2+hallway_width_extra)^2/2)
     rh_extra_wall_transform = Translate(Pnt3(hallway_centroid.x+extra_hallway_walls_adj,0,hallway_centroid.y-extra_hallway_walls_adj)) * RotateY(-45.0)
@@ -1128,7 +1128,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in rh_extra_wall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
     end
     lhwall_transform = Translate(Pnt3(hallway_centroid.x-hallway_walls_adj,0,hallway_centroid.y+hallway_walls_adj)) * RotateY(-45.0)
     lhwall = Rectangle(
@@ -1141,7 +1141,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in lhwall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
     end
     cewall_transform = Translate(Pnt3(hallway_centroid.x,0,hallway_centroid.y)) * RotateY(-45.0)
     cewall = Rectangle(
@@ -1154,7 +1154,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in cewall
-        push!(primitives, Primitive(tri, "mat_white", nothing))
+        push!(primitives, Primitive(tri, mat_white.hash, nothing))
     end
     flwall_transform = Translate(Pnt3(hallway_centroid.x,0,hallway_centroid.y)) * RotateY(-45.0)
     flwall = Rectangle(
@@ -1167,7 +1167,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in flwall
-        push!(primitives, Primitive(tri, "mat_concrete", nothing))
+        push!(primitives, Primitive(tri, mat_concrete.hash, nothing))
     end
 
     # hallway floor area light
@@ -1188,11 +1188,8 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false
         )
         push!(lights, alight)
-        push!(primitives, Primitive(tri, "mat_white", alight))
+        push!(primitives, Primitive(tri, mat_white.hash, alight))
     end
-
-    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
-    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(textures))
     ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)

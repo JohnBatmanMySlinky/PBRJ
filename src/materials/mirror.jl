@@ -4,7 +4,7 @@ struct Mirror{
 } <: Material
     Kr::KR
     bump_map::BM
-    name::String
+    hash::UInt32
 
     function Mirror(
         name::String,
@@ -14,7 +14,7 @@ struct Mirror{
         KR <: AbstractTexture{Spectrum}, 
         BM <: Maybe{AbstractTexture{Float64}}
     }
-        return new{KR, BM}(Kr, bump_map, name)
+        return new{KR, BM}(Kr, bump_map, crc32c(name))
     end
 end
 

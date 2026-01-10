@@ -11,7 +11,7 @@ struct Substrate{
     v_roughness::V
     bump_map::BM
     remap_roughness::Bool
-    name::String
+    hash::UInt32
 
     function Substrate(
         name::String,
@@ -28,7 +28,7 @@ struct Substrate{
         V <: AbstractTexture{Float64},
         BM <: Maybe{AbstractTexture{Float64}}
     }        
-        return new{KD, KS, U, V, BM}(Kd, Ks, u_roughness, v_roughness, bump_map, remap_roughness, name)
+        return new{KD, KS, U, V, BM}(Kd, Ks, u_roughness, v_roughness, bump_map, remap_roughness, crc32c(name))
     end
 end
 
