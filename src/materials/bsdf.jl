@@ -14,7 +14,7 @@ mutable struct BSDF <: AbstractBSDF
     ss::Vec3
     ts::Vec3
     n_bxdfs::UInt8
-    bxdfs::Vector{B} where B <: AbstractBxDF
+    bxdfs::SizedVector{MAX_BxDF, AbstractBxDF}
 
     function BSDF(si::SurfaceInteraction, eta::Float64 = 1.0)
         ng = si.core.n
@@ -24,7 +24,7 @@ mutable struct BSDF <: AbstractBSDF
         @info "BSDF::BSDF ns = $ns, ng = $ng, ss = $ss, ts = $ts"
         new(
             eta, ng, ns, ss, ts, UInt8(0),
-            Vector{B where B <: AbstractBxDF}(undef, MAX_BxDF),
+            SizedVector{MAX_BxDF, AbstractBxDF}(undef),
         )
     end
 end
