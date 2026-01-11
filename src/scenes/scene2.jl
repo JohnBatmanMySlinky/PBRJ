@@ -17,15 +17,7 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
         true
     )
-    push!(materials, mat_floor)
-
-    mat_white = Matte(
-        "mat_white",
-        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
-        ConstantTexture(0.0),
-        nothing
-    )
-    push!(materials, mat_white)
+    register_material!(mat_floor)
 
     mat_glass = Glass(
         "mat_glass",
@@ -37,10 +29,7 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
         true
     )
-    push!(materials, mat_glass)
-
-    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
-    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
+    register_material!(mat_glass)
 
     # GEOMETRY
     # blue sphere
@@ -54,7 +43,7 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in glass
         for tri in tris
-            push!(primitives, Primitive(tri, "mat_glass", nothing))
+            push!(primitives, Primitive(tri, mat_glass.hash, nothing))
         end
     end
 
@@ -69,7 +58,7 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in floor
         for tri in tris
-            push!(primitives, Primitive(tri, "mat_floor", nothing))
+            push!(primitives, Primitive(tri, mat_floor.hash, nothing))
         end
     end
 

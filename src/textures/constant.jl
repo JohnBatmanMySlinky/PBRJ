@@ -1,12 +1,12 @@
 struct ConstantTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     value::T
-    name::Maybe{String}
+    hash::Maybe{UInt32}
 
     function ConstantTexture(
         value::T, 
         name::Maybe{String}=nothing
     )::ConstantTexture{T} where T <: Union{Float64, Spectrum}
-        return new{T}(value, name)
+        return new{T}(value, crc32c(name))
     end
 end
 

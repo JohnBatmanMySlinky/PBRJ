@@ -1,14 +1,14 @@
 struct MixAddTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}} <: AbstractTexture{T}
     a::A
     b::B
-    name::Maybe{String}
+    hash::Maybe{UInt32}
 
     function MixAddTexture(
         a::A, 
         b::B, 
         name::Maybe{String}=nothing
     ) where {T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}}
-        return new{T, A, B}(a, b, name)
+        return new{T, A, B}(a, b, crc32c(name))
     end
 end
 
@@ -28,14 +28,14 @@ end
 struct MixMinTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}} <: AbstractTexture{T}
     a::A
     b::B
-    name::Maybe{String}
+    hash::Maybe{UInt32}
 
     function MixMinTexture(
         a::A, 
         b::B, 
         name::Maybe{String}=nothing
     ) where {T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}}
-        return new{T, A, B}(a, b, name)
+        return new{T, A, B}(a, b, crc32c(name))
     end
 end
 
@@ -56,7 +56,7 @@ struct MixDirectionTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T
     a::A
     b::B
     dir::Vec3
-    name::Maybe{String}
+    hash::Maybe{UInt32}
 
     function MixDirectionTexture(
         a::A, 
@@ -64,7 +64,7 @@ struct MixDirectionTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T
         dir::Vec3, 
         name::Maybe{String}=nothing
     ) where {T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}}
-        return new{T, A, B}(a, b, normalize(dir), name)
+        return new{T, A, B}(a, b, normalize(dir), crc32c(name))
     end
 end
 
@@ -86,14 +86,14 @@ end
 struct MixMultTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}} <: AbstractTexture{T}
     a::A
     b::B
-    name::Maybe{String}
+    hash::Maybe{UInt32}
 
     function MixMultTexture(
         a::A, 
         b::B, 
         name::Maybe{String}=nothing
     ) where {T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}}
-        return new{T, A, B}(a, b, name)
+        return new{T, A, B}(a, b, crc32c(name))
     end
 end
 
@@ -114,7 +114,7 @@ struct MixBlendTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B
     a::A
     b::B
     percent_A::Float64
-    name::Maybe{String}
+    hash::Maybe{UInt32}
 
     function MixBlendTexture(
         a::A, 
@@ -122,7 +122,7 @@ struct MixBlendTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B
         percent_A::Float64,
         name::Maybe{String}=nothing
     ) where {T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}}
-        return new{T, A, B}(a, b, percent_A, name)
+        return new{T, A, B}(a, b, percent_A, crc32c(name))
     end
 end
 

@@ -5,7 +5,7 @@ function create_stair_rectangles(
     axis::Int64,  # Which axis the stairs ascend (1=x, 2=y, 3=z)
     sc::ShapeCore,
     flip_normals::Bool,
-    alpha_mask::Maybe{String}
+    alpha_mask::Maybe{UInt32}
 )::Vector{Vector{Triangle}}
     
     stairs = Vector{Vector{Triangle}}()
@@ -272,25 +272,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         0.0,
         "tex_floor_corner"
     )
-    push!(textures, tex_floor_corner)
-
-    tex_ceiling = MixAddTexture(
-        CircleProceduralTexture(
-            Pnt2(.5, .5),
-            ceiling_whole_size/foyer_dim,
-            1.0,
-            0.0,
-            nothing
-        ),
-        CornerProceduralTexture(
-            ceiling_floor_corner_alpha_mask_threshold,
-            1.0,
-            0.0,
-            nothing
-        ),
-        "tex_ceiling"
-    )
-    push!(textures, tex_ceiling)
+    register_texture!(tex_floor_corner)
     
     ##############################
     ##### Instantiating light & primitive vectors
@@ -313,7 +295,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         2, 
         ShapeCore(floor_transform, Inv(floor_transform), false, false),
         false,
-        "tex_floor_corner"
+        tex_floor_corner.hash
     )
     for tri in floor
         push!(primitives, Primitive(tri, mat_concrete.hash, nothing))
@@ -1190,9 +1172,6 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(lights, alight)
         push!(primitives, Primitive(tri, mat_white.hash, alight))
     end
-
-    name_index = Dict(mat.name => i for (i, mat) in enumerate(textures))
-    ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
     
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

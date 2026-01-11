@@ -27,3 +27,7 @@ function jmfp(fp::String)
 	end
 	return fp
 end
+
+function crc32c(::Nothing)::Nothing
+	return nothing
+end

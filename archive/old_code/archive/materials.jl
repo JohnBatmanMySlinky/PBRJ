@@ -106,10 +106,6 @@ function scatter(m::Metal, r::Ray, hit_record::HitRecord)::Scatter
     return Scatter(check, specular_ray, diffuse_ray, attenuation, pdf, is_specular, diffuse_prob)
 end
 
-function reflect(v::Vec3, n::Vec3)::Vec3
-    return v .- 2n .* dot(v,n)
-end
-
 
 ##################
 ### Dielectric ###

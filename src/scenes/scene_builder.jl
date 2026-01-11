@@ -2,6 +2,7 @@
 scene 1: indoor office ✅
     - tweak area light material a bit
     - julia -t auto RayTracing.jl --scene-number 1 --image-dim 500 500 --samples-per-pixel 64 --file-name "1-office-scene.exr"
+    - Time: 0:34:26
 scene 2: caustic glass ✅
     - julia -t auto RayTracing.jl --scene-number 2 --image-dim 525 750 --samples-per-pixel 16 --file-name "2-caustic-glass.exr"
 scene 3: AOIntegrator + dragon ✅
@@ -36,6 +37,7 @@ scene 13: DISNEY CLOUD (v4 NanoVDBMedium) 🟨
 scene 14: Anemone (v4 GridMedium) 🟨
     - emmissive medium is only supported by VolPath (v4) integrator. 
     - Looks as good as it can with BDPT at the moment
+    - julia -t auto RayTracing.jl --scene-number 14 --image-dim 500 500 --samples-per-pixel 16 --file-name "14-anemone.exr"
 scene 15: procedural clouds 🟨
     - something is fucky
 scene 16: elevator hallway 🟨

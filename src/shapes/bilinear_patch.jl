@@ -5,7 +5,7 @@ struct BilinearPatch <: Shape
     uv::Maybe{SVector{4, Vec2}}
     area::Float64
     min_spherical_sample_area::Float64
-    alpha_mask::Maybe{String}
+    alpha_mask::Maybe{UInt32}
 
     function BilinearPatch(
         core::ShapeCore,
@@ -14,7 +14,7 @@ struct BilinearPatch <: Shape
         uv::Maybe{SVector{4, Vec2}},
         area::Float64,
         min_spherical_sample_area::Float64,
-        alpha_mask::Maybe{String}
+        alpha_mask::Maybe{UInt32}
     )
     p = core.object_to_world.(p)
     if !(n isa Nothing)
@@ -37,7 +37,7 @@ function BilinearPatchGenerator(
     uv::Maybe{Vector{Pnt2}},
     uv_indices::Maybe{Vector{Int64}},
 
-    alpha_mask::Maybe{String},
+    alpha_mask::Maybe{UInt32},
 )::Vector{BilinearPatch}
 
     patches = Vector{BilinearPatch}(undef, n_patches)

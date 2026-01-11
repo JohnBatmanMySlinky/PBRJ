@@ -1,5 +1,9 @@
+# Flat --> UInt8(1)
+# Cylinder --> UInt8(2)
+# Ribbon --> UInt8(3)
+
 struct CurveCommon
-    type::String
+    type::UInt8
     cp_obj::SVector{4, Pnt3} 
     width::Pnt2
     n::Maybe{SVector{2, Nml3}}
@@ -7,7 +11,7 @@ struct CurveCommon
     inv_sin_normal_angle::Maybe{Float64}
 
     function CurveCommon(
-        type::String,
+        type::UInt8,
         cp_obj::SVector{4, Pnt3},
         width0::Maybe{Float64},
         width1::Maybe{Float64},
@@ -46,7 +50,7 @@ end
 
 function CreateCurve(
     core::ShapeCore, c::SVector{4, Pnt3}, w0::Float64, w1::Float64, 
-    type::String, n::Maybe{SVector{2, Nml3}}, split_depth::Int64
+    type::UInt8, n::Maybe{SVector{2, Nml3}}, split_depth::Int64
 )::Array{Curve}
     common = CurveCommon(type, c, w0, w1, n)
     n_segments = 1 << split_depth
@@ -157,7 +161,7 @@ function recursive_intersect(
         # Compute $u$ coordinate of curve intersection point and _hitWidth_
         u = clamp(lerp(w, u0, u1), u0, u1)
         hit_width = lerp(u, c.common.width.x, c.common.width.y)
-        if c.common.type == "ribbon"
+        if c.common.type == UInt8(3)
             # scale hitwidth based on ribbon orientation
             @assert false # only flat right now
         end
@@ -199,7 +203,7 @@ function recursive_intersect(
             # Compute $\dpdu$ and $\dpdv$ for curve intersection
             _, dpdu = evaluate_cubic_bezier_deriv(c.common.cp_obj, u)
             # @info "dpdu: $dpdu\n"
-            if c.common.type == "ribbon"
+            if c.common.type == UInt8(3)
                 @assert false
             else
                 # Compute curve $\dpdv$ for flat and cylinder curves
@@ -207,7 +211,7 @@ function recursive_intersect(
                 # @info "dpdu_plane: $dpdu_plane\n"
                 dpdv_plane = normalize(Vec3(-dpdu_plane.y, dpdu_plane.x, 0)) * hit_width
                 # @info "dpdv_plane: $dpdv_plane\n"
-                if c.common.type == "cylindar"
+                if c.common.type == UInt8(2)
                     @assert false
                 end
                 dpdv = object_from_ray(dpdv_plane)

@@ -17,8 +17,9 @@ function render(
 
     # create light sampling light_distribution
     # JOHN HACK --> hard coding uniform dist
+    lds_map = Dict("uniform" => UInt8(1), "power" => UInt8(2), "spatial" => UInt8(3))
     light_distr_generator = LightDistribution(
-        parsed_args["light-distribution-strategy"], 
+        lds_map[parsed_args["light-distribution-strategy"]], 
         scene,
         parsed_args["max-voxels"], 
     )

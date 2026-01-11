@@ -1,14 +1,14 @@
 struct UVTexture{T <: Spectrum} <: AbstractTexture{T}
     scale::T
     mapping::AbstractTextureMapping2D
-    name::Maybe{String}
+    hash::UInt32
 
     function UVTexture(
         scale::T, 
         mapping::AbstractTextureMapping2D,
         name::Maybe{String}=nothing
     )::UVTexture{T} where T <: Spectrum
-        return new{T}(scale, mapping, name)
+        return new{T}(scale, mapping, crc32c(name))
     end
 end
 

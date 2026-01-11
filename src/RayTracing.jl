@@ -16,7 +16,7 @@ using IterTools
 using Printf
 using Distributions
 using Combinatorics
-using CRC32c
+import CRC32c: crc32c
 
 abstract type AbstractBSDF end
 abstract type AbstractBSSRDF end
@@ -201,7 +201,7 @@ include("textures/mix.jl")
 include("textures/noise.jl")
 include("textures/uv.jl")
 include("textures/registry.jl")
-const ALPHA_TEXTURE_REGISTRY = Ref{AlphaTextureRegistry}()
+const ALPHA_TEXTURE_REGISTRY = Ref{AlphaTextureRegistry}(AlphaTextureRegistry())
 
 include("lights/light.jl")
 include("lights/visibility.jl")

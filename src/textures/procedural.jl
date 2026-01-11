@@ -7,7 +7,7 @@ struct CircleProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
     radius::Float64
     inside::T
     outside::T
-    name::Maybe{String}
+    hash::UInt32
     mapping::AbstractTextureMapping2D
 
     function CircleProceduralTexture(
@@ -18,7 +18,7 @@ struct CircleProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
         name::Maybe{String}=nothing,
         mapping::AbstractTextureMapping2D=UVMapping2D()
     )::CircleProceduralTexture{T} where T <: Union{Float64, Spectrum}
-        return new{T}(center, radius, inside, outside, name, mapping)
+        return new{T}(center, radius, inside, outside, crc32c(name), mapping)
     end
 end
 
@@ -41,7 +41,7 @@ struct RectangleProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractText
     p_max::Pnt2
     inside::T
     outside::T
-    name::Maybe{String}
+    hash::UInt32
     mapping::AbstractTextureMapping2D
 
     function RectangleProceduralTexture(
@@ -55,7 +55,7 @@ struct RectangleProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractText
         @assert all(0.0 .<= p_min .<= 1.0)
         @assert all(0.0 .<= p_max .<= 1.0)
         @assert all(p_min .< p_max)
-        return new{T}(p_min, p_max, inside, outside, name, mapping)
+        return new{T}(p_min, p_max, inside, outside, crc32c(name), mapping)
     end
 end
 
@@ -76,7 +76,7 @@ struct CornerProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
     threshold::Float64
     inside::T
     outside::T
-    name::Maybe{String}
+    hash::UInt32
     mapping::AbstractTextureMapping2D
 
     function CornerProceduralTexture(
@@ -86,7 +86,7 @@ struct CornerProceduralTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture
         name::Maybe{String}=nothing,
         mapping::AbstractTextureMapping2D=UVMapping2D()
     )::CornerProceduralTexture{T} where T <: Union{Float64, Spectrum}
-        return new{T}(threshold, a, b, name, mapping)
+        return new{T}(threshold, a, b, crc32c(name), mapping)
     end
 end
 
@@ -107,7 +107,7 @@ struct Checker3DTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     a::T
     b::T
     scale::Pnt3
-    name::Maybe{String}
+    hash::UInt32
 
     function Checker3DTexture(
         a::T, 
@@ -115,7 +115,7 @@ struct Checker3DTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
         scale::Pnt3=Pnt3(1,1,1), 
         name::Maybe{String}=nothing
     )::Checker3DTexture{T} where T <: Union{Float64, Spectrum}
-        return new{T}(a, b, scale, name)
+        return new{T}(a, b, scale, crc32c(name))
     end
 end
 
@@ -132,7 +132,7 @@ struct Checker2DTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     a::T
     b::T
     scale::Vec2
-    name::Maybe{String}
+    hash::UInt32
 
     function Checker2DTexture(
         a::T, 
@@ -140,7 +140,7 @@ struct Checker2DTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
         scale::Vec2=Vec2(1.0, 1.0), 
         name::Maybe{String}=nothing
     ) where T <: Union{Float64, Spectrum}
-        return new{T}(a, b, scale, name)
+        return new{T}(a, b, scale, crc32c(name))
     end
 end
 

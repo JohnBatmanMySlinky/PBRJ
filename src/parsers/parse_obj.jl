@@ -54,7 +54,7 @@ function publish!(
     normals::Vector{Nml3},
     normal_indices::Vector{Int},
     sc::ShapeCore,
-    alpha_mask::Maybe{String}
+    alpha_mask::Maybe{UInt32}
 )
     # if face only specifies a single set of indices but we get normals
     # as seen in teapot.obj
@@ -130,7 +130,7 @@ function parse_obj(
     object_to_world::RayTracing.Transformation, 
     reverse_orientation::Bool, 
     transform_swaps_handedness::Bool,
-    alpha_mask::RayTracing.Maybe{String},
+    alpha_mask::RayTracing.Maybe{UInt32},
 )
 	vertices = RayTracing.Pnt3[]
     vertex_indices = Int[]

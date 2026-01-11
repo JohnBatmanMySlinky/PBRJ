@@ -11,16 +11,20 @@
 ### all are queried via a specialized `lookup` fn
 #######################################################
 
+# Uniform --> UInt8(1)
+# Power --> UInt8(2)
+# Spatial --> UInt8(3)
+
 # this covers Uniform and Power
 struct StaticLightDistribution <: AbstractLightDistribution
     distr::Distribution1D
 
-    function StaticLightDistribution(name::String, scene::Scene)
-        if (name == "uniform") || (length(scene.lights) == 1)
+    function StaticLightDistribution(name::UInt8, scene::Scene)
+        if (name == UInt8(1)) || (length(scene.lights) == 1)
             return new(
                 Distribution1D(ones(length(scene.lights)))
             )
-        elseif name == "power"
+        elseif name == UInt8(2)
             return new(
                 Distribution1D([y_spectrum(power(l)) for l in scene.lights])
             )
@@ -112,14 +116,14 @@ end
 
 ##### The constructor
 function LightDistribution(
-    name::String, 
+    name::UInt8, 
     scene::Scene, 
     max_voxels::Int64=4^3
 )::AbstractLightDistribution
-    if (name == "uniform") || (name == "power") || (length(scene.lights) == 1)
+    if (name == UInt8(1)) || (name == UInt8(2)) || (length(scene.lights) == 1)
         return StaticLightDistribution(name, scene)
 
-    elseif name == "spatial"
+    elseif name == UInt8(3)
         return SpatialLightDistribution(scene, max_voxels)
 
     else

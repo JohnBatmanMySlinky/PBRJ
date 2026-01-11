@@ -5,18 +5,18 @@ struct NoiseTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     scale::Float64
     omega::Float64
     maxOctaves::Int
-    noise_type::String  # perlin, fbm, or turbulence
-    name::Maybe{String}
+    noise_type::UInt8  # 1) perlin, 2) fbm, or 3) turbulence
+    hash::Maybe{UInt32}
 
     function NoiseTexture(
         dummy::T,
         scale::Float64=1.0,
         omega::Float64=0.5,
         maxOctaves::Int=8,
-        noise_type::String="perlin",
+        noise_type::UInt8=UInt8(1),
         name::Maybe{String}=nothing
     ) where T <: Union{Float64, Spectrum}
-        return new{T}(dummy, scale, omega, maxOctaves, noise_type, name)
+        return new{T}(dummy, scale, omega, maxOctaves, noise_type, crc32c(name))
     end
 end
 
@@ -28,11 +28,11 @@ function (nt::NoiseTexture{Float64})(si::SurfaceInteraction)::Float64
     dpdy = si.dpdy * nt.scale
     
     # Return noise value based on type
-    if nt.noise_type == "perlin"
+    if nt.noise_type == UInt8(1)
         return noise(p)
-    elseif nt.noise_type == "fbm"
+    elseif nt.noise_type == UInt8(2)
         return fbm(p, dpdx, dpdy, nt.omega, nt.maxOctaves)
-    elseif nt.noise_type == "turbulence"
+    elseif nt.noise_type == UInt8(3)
         return turbulence(p, dpdx, dpdy, nt.omega, nt.maxOctaves)
     else
         error("Unknown noise type: $(nt.noise_type)")
@@ -46,11 +46,11 @@ function (nt::NoiseTexture{Spectrum})(si::SurfaceInteraction)::Spectrum
     dpdx = si.dpdx * nt.scale
     dpdy = si.dpdy * nt.scale
     
-    noise_val = if nt.noise_type == "perlin"
+    noise_val = if nt.noise_type == UInt8(1)
         noise(p)
-    elseif nt.noise_type == "fbm"
+    elseif nt.noise_type == UInt8(2)
         fbm(p, dpdx, dpdy, nt.omega, nt.maxOctaves)
-    elseif nt.noise_type == "turbulence"
+    elseif nt.noise_type == UInt8(3)
         turbulence(p, dpdx, dpdy, nt.omega, nt.maxOctaves)
     else
         error("Unknown noise type: $(nt.noise_type)")

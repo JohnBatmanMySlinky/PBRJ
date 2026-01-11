@@ -12,7 +12,7 @@ struct ImageTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
     mipmap::MIPMap{T}
     texinfo::TexInfo
     channel::Int  # Only used for Float64 type
-    name::Maybe{String}
+    hash::Maybe{UInt32}
 
     function ImageTexture(
         mapping::AbstractTextureMapping2D, 
@@ -59,7 +59,7 @@ struct ImageTexture{T <: Union{Float64, Spectrum}} <: AbstractTexture{T}
             mipmap,
             TexInfo(filename, do_trilinear, max_anisotropy, wrap_mode, scale, do_gamma),
             channel,
-            name
+            crc32c(name)
         )
     end
 end

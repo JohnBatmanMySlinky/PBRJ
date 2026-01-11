@@ -11,7 +11,7 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
     bounces = 0
     specular_bounce = false
     eta_scale = 1.0
-    light_distribution_generator = LightDistribution("uniform", scene)
+    light_distribution_generator = LightDistribution(UInt8(1), scene)
 
 
     while true

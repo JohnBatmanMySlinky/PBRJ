@@ -3,7 +3,7 @@ struct Triangle <: Shape
     vertices::SVector{3, Pnt3}
     normals::Maybe{SVector{3, Nml3}}
     uvs::Maybe{SVector{3, Pnt2}}
-    alpha_mask::Maybe{String}
+    alpha_mask::Maybe{UInt32}
     shading_tangent::Nothing
 
     function Triangle(
@@ -11,7 +11,7 @@ struct Triangle <: Shape
         vertices::SVector{3, Pnt3},
         normals::Maybe{SVector{3, Nml3}},
         uvs::Maybe{SVector{3, Pnt2}},
-        alpha_mask::Maybe{String}
+        alpha_mask::Maybe{UInt32}
     )
         vertices = shape_core.object_to_world.(vertices)
         if !(normals isa Nothing)
@@ -38,7 +38,7 @@ function construct_triangle_mesh(
     uvs::Maybe{Vector{Pnt2}},
     uv_indices::Maybe{Vector{Int64}},
     
-    alpha_mask::Maybe{String}
+    alpha_mask::Maybe{UInt32}
 )
     tris = Vector{Triangle}(undef, n_triangles)
     for i in 0:(n_triangles - 1)
