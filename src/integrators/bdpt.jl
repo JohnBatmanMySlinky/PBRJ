@@ -39,9 +39,7 @@ function render(
 
     println("\nUtilizing $(Threads.nthreads()) threads\n\n")
     # the multi-threaded loop
-    Threads.@threads for k in 0:(total_tiles-1)
-        buf = default_buffer()
-        
+    Threads.@threads for k in 0:(total_tiles-1)        
         # this is a bullshit ass hack
         for wtf in 1:length(scene.b.primitives)
             if !(scene.b.primitives[wtf].mi.inside isa Nothing)
@@ -98,100 +96,95 @@ function render(
 
                 L = spectrum_from_float(0.0)
 
-                @no_escape buf begin
-                    # instantiate the list of vertices
-                    camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
-                    light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
 
-                    # Trace the camera and light subpaths
-                    @prof "generate_camera_subpath" n_camera = generate_camera_subpath!(
-                        camera_vertices,
-                        scene, 
-                        sampler, 
-                        i.max_depth + 2, 
-                        i.camera,
-                        camera_sample, 
-                    )
-                    # setting up light sampling dist at the start
-                    # this isn't a good strategy
-                    # default is "uniform" so not a big deal 
-                    # would be worse with spatial or distance
-                    light_distr = lookup(light_distr_generator, p(camera_vertices[1]))
-                    @prof "generate_light_subpath" n_light, light_num = generate_light_subpath!(
-                        light_vertices,
-                        scene,
-                        sampler,
-                        i.max_depth + 1,
-                        time(camera_vertices[1]),
-                        light_distr
-                    )
+                # Trace the camera and light subpaths
+                @prof "generate_camera_subpath" n_camera = generate_camera_subpath!(
+                    camera_vertices,
+                    scene, 
+                    sampler, 
+                    i.max_depth + 2, 
+                    i.camera,
+                    camera_sample, 
+                )
+                # setting up light sampling dist at the start
+                # this isn't a good strategy
+                # default is "uniform" so not a big deal 
+                # would be worse with spatial or distance
+                light_distr = lookup(light_distr_generator, p(camera_vertices[1]))
+                @prof "generate_light_subpath" n_light, light_num = generate_light_subpath!(
+                    light_vertices,
+                    scene,
+                    sampler,
+                    i.max_depth + 1,
+                    time(camera_vertices[1]),
+                    light_distr
+                )
 
-                    # Some stuff for debugging here
-                    num_real_camera_vertices = count_not_undef(camera_vertices)
-                    num_real_light_vertices = count_not_undef(light_vertices)
-                    @info "BDPT: Number of real camera vertices: $(num_real_camera_vertices)"
-                    @info "BDPT: Number of real light vertices: $(num_real_light_vertices)"
+                # Some stuff for debugging here
+                num_real_camera_vertices = count_not_undef(camera_vertices)
+                num_real_light_vertices = count_not_undef(light_vertices)
+                @info "BDPT: Number of real camera vertices: $(num_real_camera_vertices)"
+                @info "BDPT: Number of real light vertices: $(num_real_light_vertices)"
 
-                    for iii in 1:num_real_camera_vertices
-                        @info "$(camera_vertices[iii])"
-                    end
-                    for iii in 1:num_real_light_vertices
-                        @info "$(light_vertices[iii])"
-                    end
+                for iii in 1:num_real_camera_vertices
+                    @info "$(camera_vertices[iii])"
+                end
+                for iii in 1:num_real_light_vertices
+                    @info "$(light_vertices[iii])"
+                end
 
-                    # for iii in 1:num_real_camera_vertices
-                    #     if camera_vertices[iii].ei isa Nothing
-                    #         pos = camera_vertices[iii].si.core.p
-                    #         lig = 1*(camera_vertices[iii].si.primitive.area_light isa Nothing)
-                    #     else
-                    #         pos = ""
-                    #         lig = ""
-                    #     end
-                    #     @info "BDPT: Camera Vertex $(iii): $(camera_vertices[iii].type) @ $(pos) $(lig)"
-                    # end
+                # for iii in 1:num_real_camera_vertices
+                #     if camera_vertices[iii].ei isa Nothing
+                #         pos = camera_vertices[iii].si.core.p
+                #         lig = 1*(camera_vertices[iii].si.primitive.area_light isa Nothing)
+                #     else
+                #         pos = ""
+                #         lig = ""
+                #     end
+                #     @info "BDPT: Camera Vertex $(iii): $(camera_vertices[iii].type) @ $(pos) $(lig)"
+                # end
 
-                    # for iii in 1:num_real_camera_vertices
-                    #     @info "BDPT: Camera Vertex Hacky but OK $(iii): $(camera_vertices[iii].type) $(p(camera_vertices[iii]))"
-                    # end
+                # for iii in 1:num_real_camera_vertices
+                #     @info "BDPT: Camera Vertex Hacky but OK $(iii): $(camera_vertices[iii].type) $(p(camera_vertices[iii]))"
+                # end
 
-                    # execute all BDPT connection strategies
-                    # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
-                    for t in 1:n_camera
-                        for s in 0:n_light
-                            if ((s,t) == bdpt_pass) || (bdpt_pass == (-1,-1))
-                                depth = t + s - 2
-                                if ((s==1)&&(t==1) || (depth<0) || (depth>i.max_depth))
-                                    continue
-                                end
+                # execute all BDPT connection strategies
+                # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
+                for t in 1:n_camera
+                    for s in 0:n_light
+                        if ((s,t) == bdpt_pass) || (bdpt_pass == (-1,-1))
+                            depth = t + s - 2
+                            if ((s==1)&&(t==1) || (depth<0) || (depth>i.max_depth))
+                                continue
+                            end
 
-                                mis_weight = 0.0
-                                @prof "connect_BDPT" L_path, mis_weight, p_film_new = connect_BDPT(
-                                    scene,
-                                    light_vertices,
-                                    camera_vertices,
-                                    s,
-                                    t,
-                                    light_distr,
-                                    light_num,
-                                    i.camera,
-                                    sampler,
-                                    camera_sample.film
-                                )
+                            mis_weight = 0.0
+                            @prof "connect_BDPT" L_path, mis_weight, p_film_new = connect_BDPT(
+                                scene,
+                                light_vertices,
+                                camera_vertices,
+                                s,
+                                t,
+                                light_distr,
+                                light_num,
+                                i.camera,
+                                sampler,
+                                camera_sample.film
+                            )
 
-                                @info "Connect bdpt s: $(s), t: $(t), Lpath: $(L_path), misWeight: $(mis_weight)"
+                            @info "Connect bdpt s: $(s), t: $(t), Lpath: $(L_path), misWeight: $(mis_weight)"
 
-                                if t != 1
-                                    L += L_path
-                                else
-                                    add_splat!(i.camera.core.core.film, p_film_new, L_path)
-                                end
+                            if t != 1
+                                L += L_path
+                            else
+                                add_splat!(i.camera.core.core.film, p_film_new, L_path)
                             end
                         end
                     end
-                    
-                    @info "Add film sample pFilm: [ $(camera_sample.film.x), $(camera_sample.film.y) ], L: $(L), (y: $(y_spectrum(L)))"
-                    @prof "add_sample!" add_sample!(film_tile, camera_sample.film, L, 1.0)
                 end
+                
+                @info "Add film sample pFilm: [ $(camera_sample.film.x), $(camera_sample.film.y) ], L: $(L), (y: $(y_spectrum(L)))"
+                @prof "add_sample!" add_sample!(film_tile, camera_sample.film, L, 1.0)
             end
         end
         @prof "merge_tile!" merge_film_tile!(i.camera.core.core.film , film_tile)
