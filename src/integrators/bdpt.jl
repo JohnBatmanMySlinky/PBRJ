@@ -96,6 +96,8 @@ function render(
 
                 L = spectrum_from_float(0.0)
 
+                camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
+                light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
 
                 # Trace the camera and light subpaths
                 @prof "generate_camera_subpath" n_camera = generate_camera_subpath!(
