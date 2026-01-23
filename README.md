@@ -98,6 +98,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - macro to do function call counting
 
 # TODO's
+- remove BDPT_STAGES
 - get rid of strings in material and abstractbxdf to make them isbits - then we can use MVector for Vector{AbstractBxDFs}
 - `VolPathIntegratorv3` specular is fucky
 - Update `parse_obj_3dsmax_2011` to take in a vector of transforms.
@@ -128,7 +129,6 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - add a python jmfp to python utils in src/scripts
 - Improve scene build descriptive statistics and printing
 - Fourier to use immutable struct
-- CatmullRom to use static arrays? or views?
 - Fourier BSDF convergence is hacked
 - get rid of deep copys in parser
     - use clone()?
@@ -157,6 +157,16 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - LightBVH from pbrt-v4
     - SimplePathIntegrator
     - VolPathIntegrator
+
+# Squashing Vectors
+## materials/bsdf.jl
+    - making this MVector is hard
+    - even if everything is isbits - still seems to not like it?
+## integrators/bdpt.jl
+    - Bump allocator giving dumb errors that should be fixable
+## distributions.jl
+## Fourier
+
 
 # Bugs
 - IF FILM FILTER < 0.5 I GET BLACK LINES
