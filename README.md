@@ -162,6 +162,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 ## materials/bsdf.jl
     - making this MVector is hard
     - even if everything is isbits - still seems to not like it?
+    - because isbitstype(Union{A, B}) is false even if A and B are isbitstype.
 ## integrators/bdpt.jl
     - Bump allocator giving dumb errors that should be fixable
 ## distributions.jl
