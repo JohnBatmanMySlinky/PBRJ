@@ -8,6 +8,7 @@ scene 3: AOIntegrator + dragon ✅
     - julia -t auto RayTracing.jl --scene-number 3 --image-dim 500 500 --samples-per-pixel 16 --file-name "3-ao-dragon.exr"
 scene 4: cornell box 🟨
     - DEBUG: top back right coner - what's good with that???
+    - colors look off?
     - need to mess with medium params to make it a bit less dense
     - julia -t auto RayTracing.jl --scene-number 4 --image-dim 500 500 --samples-per-pixel 16 --file-name "4-cornell-box.exr"
 scene 5: soft bodies ✅
@@ -19,8 +20,9 @@ scene 6: goursat ✅
     - something fucky with the normals...
 scene 7: julia logo w/ tea pots ✅
     - julia -t auto RayTracing.jl --scene-number 7 --image-dim 500 500 --samples-per-pixel 16 --file-name "7-julia-logo.exr"
-scene 8: an anemic leafless procedural tree ✅
+scene 8: an anemic leafless procedural tree 🟨
     - add leaves
+    - julia -t auto RayTracing.jl --scene-number 7 --image-dim 500 500 --samples-per-pixel 16 --file-name "8-anemic-tree.exr"
 scene 9: lte orb ✅
     - julia -t auto RayTracing.jl --scene-number 9 --image-dim 500 500 --samples-per-pixel 16 --file-name "9-lte-orb.exr"
 scene 10: a cloud + SimpleVolPathIntegrator (v3 GridMedium) ✅
@@ -30,36 +32,42 @@ scene 11: dragon with fun materials ✅
 scene 12: v4 smoke plume (v4 GridMedium) ✅
     - julia -t auto RayTracing.jl --scene-number 12 --image-dim 500 500 --samples-per-pixel 16 --file-name "12-smoke-plume.exr"
 scene 13: DISNEY CLOUD (v4 NanoVDBMedium) 🟨
-    - re-render with screen fix
-    - fix reflections from disk
+    - why is it black!?!?!
     - caffeinate -di julia -t auto RayTracing.jl --scene-number 11 --image-dim 640 360 --samples-per-pixel 16 --file-name "13-disney-cloud.exr"
 scene 14: Anemone (v4 GridMedium) 🟨
     - emmissive medium is only supported by VolPath (v4) integrator. 
     - Looks as good as it can with BDPT at the moment
+    - caffeinate -di julia -t auto RayTracing.jl --scene-number 14 --image-dim 640 360 --samples-per-pixel 16 --file-name "14-anemone.exr"
 scene 15: procedural clouds 🟨
     - something is fucky
 scene 16: elevator hallway 🟨
     - floor bump map isn't work as expected....
     - wall material needs some work - how to get it more specular?
+    - crop window? screen? something fucky with camera.
+    - julia -t auto RayTracing.jl --scene-number 16 --image-dim 640 360 --samples-per-pixel 16 --file-name "16-elevator-lobby.exr"
 scene 17: barcelona pavillion 🟨
     - add background trees
     - remove fourier material convergence hack
+    - caffeinate -di julia -t auto RayTracing.jl --scene-number 17 --image-dim 640 360 --samples-per-pixel 16 --file-name "17-barcelona-pavillion.exr"
 scene 18: SDFs baby! 🟨
     - lighting kinda fucked
+    - caffeinate -di julia -t auto RayTracing.jl --scene-number 18 --image-dim 640 360 --samples-per-pixel 16 --file-name "18-SDFs.exr"
 scene 19: bunny cloud (v4 NanoVDB) 🟨
     - only works single threaded? ok cool
     - hmmm gets all fucky when voxel grid is 3x3x3 - probably majorant iterator...
     - blue floor
+    - caffeinate -di julia -t 1 RayTracing.jl --scene-number 19 --image-dim 640 360 --samples-per-pixel 16 --file-name "19-bunny-cloud.exr"
 scene 20: explosion + SimpleVolPathIntegrator (v4 NanoVDB) 🟨
-    - caffeinate -di julia -t auto RayTracing.jl --scene-number 20 --image-dim 1000 1000 --samples-per-pixel 16
+    - caffeinate -di julia -t auto RayTracing.jl --scene-number 20 --image-dim 1000 1000 --samples-per-pixel 16 --file-name "20-explosion.exr"
     - hmmmmm maybe black body is off?
 scene 21: sanmiguel ✅
-    - julia -t auto RayTracing.jl --scene-number 21 --image-dim 500 500 --crop-window 0.0 0.0 0.997245 0.745 --samples-per-pixel 16
+    - julia -t auto RayTracing.jl --scene-number 21 --image-dim 500 500 --crop-window 0.0 0.0 0.997245 0.745 --samples-per-pixel 16 --file-name "21-san-miguel.exr"
     - check my bullshit mipmap hack
 scene 99: sphere-a-mid 🟨
     - add more interesting materails
-scene 100: Furry Bunny from pbrt-v4 🟨
-    - fix HairBxDF
+    - julia -t auto RayTracing.jl --scene-number 99 --image-dim 500 500 --samples-per-pixel 16 --file-name "99-sphere-a-mid.exr"
+scene 100: Furry Bunny from pbrt-v4 ✅
+    - julia -t auto RayTracing.jl --scene-number 100 --image-dim 500 500 --samples-per-pixel 16 --file-name "100-fuzzy-bunny.exr"
 scene 101: SF3D CUP 🔴 (obj parser sucks)
 scene 102: party blob ✅
     - see NB for animation 

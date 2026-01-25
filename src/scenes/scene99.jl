@@ -94,7 +94,7 @@ function make_scene99(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in floor
-        push!(primitives, Primitive(tri, mat_gray, nothing))
+        push!(primitives, Primitive(tri, "mat_gray", nothing))
     end
 
     # instantiate accelerator

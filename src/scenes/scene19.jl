@@ -14,7 +14,7 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # materials
     mat_disk = Matte(
         "mat_disk",
-        ConstantTexture(spectrum_from_float(0.1, 0.25, 0.25)),
+        ConstantTexture(spectrum_from_float(.4, .45, .35)),
         ConstantTexture(0.0),
         nothing
     )
