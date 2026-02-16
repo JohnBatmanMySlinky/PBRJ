@@ -94,6 +94,8 @@ scene 110: floating lanterns
     - julia -t auto RayTracing.jl --scene-number 110 --image-dim 1280 720 --samples-per-pixel 36 --crop-window 0.2 0.32 0.85 1.0 --file-name "110-floating_lanterns.exr"
 scene 111: RGB screen
     - mhmmm
+scene 112: ocean n boat
+    - mhmmm
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -164,6 +166,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     elseif parsed_args["scene-number"] == 110
         return make_scene110(parsed_args)
     elseif parsed_args["scene-number"] == 111
+        return make_scene111(parsed_args)
+    elseif parsed_args["scene-number"] == 112
         return make_scene111(parsed_args)
     else
         @assert false
