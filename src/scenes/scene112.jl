@@ -3,19 +3,52 @@ function make_scene112(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     lights = Light[]
     materials = Material[]
 
-    mat_gray = Matte(
-        "mat_gray",
-        ConstantTexture(spectrum_from_float(0.5)),
+    mat_red = Matte(
+        "mat_red",
+        ConstantTexture(spectrum_from_float(1.0, 0.0, 0.0)),
         ConstantTexture(0.0),
         nothing
     )
-    push!(materials, mat_gray)
+    push!(materials, mat_red)
 
+    mat_green = Matte(
+        "mat_green",
+        ConstantTexture(spectrum_from_float(0.0, 1.0, 0.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_green)
+
+    mat_blue = Matte(
+        "mat_blue",
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 1.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_blue)
+
+    transform_dict = Dict{String, ShapeCore}()
+    alpha_mask_dict = Dict{String, Maybe{String}}()
     obj, group_to_idx = parse_obj_3dsmax_2011(
-        jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/autobackup02_3.obj"),
+        jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/ocean_n_boat.obj"),
         transform_dict,
         alpha_mask_dict
     )
+
+    for (i, tris) in enumerate(obj)
+        for tri in tris
+            
+            if group_to_idx[i] in ["# object Plane001"]
+                push!(primitives, Primitive(tri, "mat_red", nothing))
+
+            elseif group_to_idx[i] in ["# object NGon001"]
+                push!(primitives, Primitive(tri, "mat_green", nothing))
+
+            elseif group_to_idx[i] in ["# object NGon002"]
+                push!(primitives, Primitive(tri, "mat_blue", nothing))
+            end
+        end
+    end
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
@@ -50,9 +83,9 @@ function make_scene112(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    look_from = Pnt3(30.0, 100.0, 400.0)
-    look_at = Pnt3(0.0, 100.0, -20.0)
-    up = Vec3(0, 1, 0)
+    look_from = Pnt3(5_000.0, -5_000.0, 2000.0)
+    look_at = Pnt3(700.0, 0.0, 111.0)
+    up = Vec3(0, 0, 1)
     C = PerspectiveCamera(LookAt(look_from, look_at, up), nothing, 0.0, 1.0, 0.0, 1e6, 37.0, film)
 
     # Instantiate a Sampler
