@@ -165,9 +165,12 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - because isbitstype(Union{A, B}) is false even if A and B are isbitstype.
 ## integrators/bdpt.jl
     - Bump allocator giving dumb errors that should be fixable
+    - Turns out they aren't dumb errors. structs need to be isbits
 ## distributions.jl
 ## Fourier
 
+# Emission volumes
+    - add some notes here on the things I have tried and why they aren't working
 
 # Bugs
 - IF FILM FILTER < 0.5 I GET BLACK LINES
