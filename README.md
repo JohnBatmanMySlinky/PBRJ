@@ -3,6 +3,12 @@ Physically Based Rendering - in Julia
 
 An implementation of [Physically Based Rendering: From Theory to Implementation](https://www.pbr-book.org/) in the Julia programming language. Based off the 3rd edition, but with some 4th edition sprinkled in.
 
+# Why? 
+Because I like ray tracing. 
+
+# Why Julia?
+Because python is too slow and c++ is too hard
+
 # Usage
 Example command line usage. See `src/args.jl` for a full specification of command line options.
 ```
@@ -169,8 +175,16 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 ## distributions.jl
 ## Fourier
 
-# Emission volumes
-    - add some notes here on the things I have tried and why they aren't working
+## DeadEnds
+
+### LightBVH
+- doesnt fit well with my API - i pass around a Distribution1D but that's workable?
+- LightBVH has two methods: Sample(ctx, u) & Sample(u) ctx has a Pnt3 member but that method is only used by direct lighting estimators. aka nothing in BDPT
+
+### Integrators
+- SimpleVolPathv4 doesnt do surface intersections - why amenome won't work
+- VolPathv4 requires v4 material APIs
+- in theory VolPath v3 should work but I can't figure out...
 
 # Bugs
 - IF FILM FILTER < 0.5 I GET BLACK LINES
@@ -184,7 +198,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - ~~General Rotation is fucked. Cloud scene bounding box with rotation dont match. AHHHHHHHH~~
     - ~~Maybe not... might have been that hidden `data2medium` transformation. recheck this.~~
 
-# Gotcha's
+# PBRT Gotcha's
 ```
 AIGHT SO YOURE FUCKING TELLING ME
 THIS
@@ -222,7 +236,7 @@ smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
 - [This implementation of PBRT in Julia](https://github.com/pxl-th/Trace.jl) repo has been an invaluable reference.
 - [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
 
-# Notes
+# Misc Notes
 ## The pain of matching PBRT *exactly*
 - Sampler: The threee options here are
     - StratifiedSampler with jitter = false. The catch is that if you have more than 1 spp, the order of which the samples is taken matters. So going with 1 spp removes one more thing to account for.
@@ -240,15 +254,6 @@ smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
 
 - Logging this too since im lazy and can never remember the logging args / params: `/Users/johnmyslinski/Documents/pbrt-v3/not_debug/pbrt ../scenes/cornell_box_not_debug.pbrt --logdir . --v 3`
 
-## DeadEnds
-
-### LightBVH
-- doesnt fit well with my API - i pass around a Distribution1D but that's workable?
-- LightBVH has two methods: Sample(ctx, u) & Sample(u) ctx has a Pnt3 member but that method is only used by direct lighting estimators. aka nothing in BDPT
-
-### Integrators
-- SimpleVolPathv4 doesnt do surface intersections - why amenome won't work
-- VolPathv4 requires v4 material APIs
 
 ## Metaball learnings
 - To start, I want to talk about **Functions**. The function $f(x,y,z) = x^2 + y^2 + z^2$ takes in 3 numbers, $x, y, z$ and returns one number. Since I am only really interested in 3D rendering, let's equate these three numbers to a single point in space. Swithing to points let's re-write $f(p) = p_x^2 + p_y^2 + p_z^2$. Now the intuition is that for any point in 3D space, this function returns a single number. For instance at the origin $(0,0,0)$ this function returns $0$ and for any other point it returns the distance from the origin.
