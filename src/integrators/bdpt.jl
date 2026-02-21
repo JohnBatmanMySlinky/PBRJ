@@ -8,8 +8,7 @@ end
 function render(
     i::BDPTIntegrator, 
     scene::Scene, 
-    parsed_args::Dict, 
-    bdpt_pass::Tuple{Int64, Int64}=(-1,-1),
+    parsed_args::Dict
 )::Array{RGB}
 
     # BDPT only works if you have lights!!
@@ -154,33 +153,31 @@ function render(
                 # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
                 for t in 1:n_camera
                     for s in 0:n_light
-                        if ((s,t) == bdpt_pass) || (bdpt_pass == (-1,-1))
-                            depth = t + s - 2
-                            if ((s==1)&&(t==1) || (depth<0) || (depth>i.max_depth))
-                                continue
-                            end
+                        depth = t + s - 2
+                        if ((s==1)&&(t==1) || (depth<0) || (depth>i.max_depth))
+                            continue
+                        end
 
-                            mis_weight = 0.0
-                            @prof "connect_BDPT" L_path, mis_weight, p_film_new = connect_BDPT(
-                                scene,
-                                light_vertices,
-                                camera_vertices,
-                                s,
-                                t,
-                                light_distr,
-                                light_num,
-                                i.camera,
-                                sampler,
-                                camera_sample.film
-                            )
+                        mis_weight = 0.0
+                        @prof "connect_BDPT" L_path, mis_weight, p_film_new = connect_BDPT(
+                            scene,
+                            light_vertices,
+                            camera_vertices,
+                            s,
+                            t,
+                            light_distr,
+                            light_num,
+                            i.camera,
+                            sampler,
+                            camera_sample.film
+                        )
 
-                            @info "Connect bdpt s: $(s), t: $(t), Lpath: $(L_path), misWeight: $(mis_weight)"
+                        @info "Connect bdpt s: $(s), t: $(t), Lpath: $(L_path), misWeight: $(mis_weight)"
 
-                            if t != 1
-                                L += L_path
-                            else
-                                add_splat!(i.camera.core.core.film, p_film_new, L_path)
-                            end
+                        if t != 1
+                            L += L_path
+                        else
+                            add_splat!(i.camera.core.core.film, p_film_new, L_path)
                         end
                     end
                 end
@@ -565,7 +562,7 @@ function connect_BDPT(
     # compute MIS weight for connection strategy
     mis_weight = is_black(L) ? 0.0 : MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr, light_num)
     # @info "MIS weight for (s,t) = ($(s),$(t)) connection $(mis_weight)"
-    (DO_MIS_WEIGHT) && (L *= mis_weight)
+    L *= mis_weight
     return L, mis_weight, pfilm
 end
 

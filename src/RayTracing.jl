@@ -271,66 +271,26 @@ include("shapes/sphere_packing.jl")
 include("shapes/voxelization.jl")
 include("scene_utils.jl")
 
-# do MIS_weight or nah
-const DO_MIS_WEIGHT::Bool = true
-
-# specify (s,t) combinations to save off intermediate stages. 
-# (-1,-1) should result in a normal full render
-const BDPT_STAGES::Vector{Tuple{Int64, Int64}} = [
-    (-1,-1),
-    # (0,2),
-
-    # (0,3),
-    # (1,2),
-    # (2,1),
-
-    # (0,4),
-    # (1,3),
-    # (2,2),
-    # (3,1),
-    
-    # (0,5),
-    # (1,4),
-    # (2,3),
-    # (3,2),
-    # (4,1),
-
-    # (0,6),
-    # (1,5),
-    # (2,4),
-    # (3,3),
-    # (4,2),
-    # (5,1)
-]
-
 function render_scene(parsed_args::Dict)
-    for bdpt_pass in BDPT_STAGES
-        (bdpt_pass != (-1,-1)) && (print("working on bdpt pass s=$(bdpt_pass[1]), t=$(bdpt_pass[2])\n"))
-        @prof "scene_build" I, scene = build_scene(parsed_args) # TODO get this outside the loop!
-        image = render(
-            I, 
-            scene, 
-            parsed_args,
-            bdpt_pass
-        )
-        if I.camera.core.core.film isa PassFilm
-            for i in 1:5
-                OpenEXR.save(replace(I.camera.core.core.film.filename, ".exr"=>"")*"_"*string(i)*".exr", image[i, :, :, :])
-            end
-            
-            image = denoise(image, 1)
+    @prof "scene_build" I, scene = build_scene(parsed_args) # TODO get this outside the loop!
+    image = render(
+        I, 
+        scene, 
+        parsed_args
+    )
+    if I.camera.core.core.film isa PassFilm
+        for i in 1:5
+            OpenEXR.save(replace(I.camera.core.core.film.filename, ".exr"=>"")*"_"*string(i)*".exr", image[i, :, :, :])
         end
         
-        if bdpt_pass == (-1,-1)
-            # gamma correct out
-            image = map(v -> gamma_correct(v), image)
-
-            # save
-            OpenEXR.save(I.camera.core.core.film.filename, image)
-        else
-            OpenEXR.save(replace(I.camera.core.core.film.filename, ".exr"=>"")*"_s_"*string(bdpt_pass[1])*"_t_"*string(bdpt_pass[2])*".exr", image)
-        end
+        image = denoise(image, 1)
     end
+    
+    # gamma correct out
+    image = map(v -> gamma_correct(v), image)
+
+    # save
+    OpenEXR.save(I.camera.core.core.film.filename, image)
 end
 
 function write_profiling(parsed_args, time_stats=nothing)

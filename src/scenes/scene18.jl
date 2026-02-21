@@ -81,6 +81,17 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ##############
     ### Part 1 ###
     ##############
+    sphere0 = SDFDisplacedSphere(
+        1.0,
+        ShapeCore(
+            Translate(Pnt3(0, 0, 0)),
+            Inv(Translate(Pnt3(0, 0, 0))),
+            false,
+            false
+        ),
+        Pnt3(7.0, 7.0, 7.0),
+        0.25
+    )
 
     sphere1 = SDFSphere(
         1.0,
@@ -161,7 +172,8 @@ function make_scene18(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ),
         ShapeCore()
     )
-    push!(primitives, Primitive(union_shape, "mat_red", nothing))
+    # push!(primitives, Primitive(union_shape, "mat_red", nothing))
+    push!(primitives, Primitive(sphere0, "mat_red", nothing))
 
     # ##############
     # ### Part 1 ###
