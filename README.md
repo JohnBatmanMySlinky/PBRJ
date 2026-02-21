@@ -237,6 +237,12 @@ smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
 - [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
 
 # Misc Notes
+## SDF Displacement
+- The realization was that if you displace with S * sin(F * p.x) * sin(F * p.y) * sin(F * p.z)
+    - S is the scale of height of displacement
+    - F is the frequency - which doesnt impact bounding sphere
+    - S * sin(x)^3 ranges from -S,S so you need to adjust bounding sphere radius by S
+
 ## The pain of matching PBRT *exactly*
 - Sampler: The threee options here are
     - StratifiedSampler with jitter = false. The catch is that if you have more than 1 spp, the order of which the samples is taken matters. So going with 1 spp removes one more thing to account for.
