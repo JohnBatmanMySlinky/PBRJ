@@ -75,6 +75,10 @@ function pdf_li(light::DiffuseAreaLight, isect::SurfaceInteraction, wi::Vec3)::F
     return pdf(light.shape, isect.core, wi)
 end
 
+function pdf_li(light::DiffuseAreaLight, isect::Interaction, wi::Vec3)::Float64
+    return pdf(light.shape, isect, wi)
+end
+
 
 ##############
 ### 16.1.2 bdpt stuff

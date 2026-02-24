@@ -53,6 +53,10 @@ function pdf_li(il::UniformInfiniteLight, isect::SurfaceInteraction, w::Vec3)::F
     return uniform_sphere_pdf()
 end
 
+function pdf_li(il::UniformInfiniteLight, isect::Interaction, w::Vec3)::Float64
+    return uniform_sphere_pdf()
+end
+
 ################
 #### 16.1.2 BDPT 
 ################
