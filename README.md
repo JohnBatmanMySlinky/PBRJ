@@ -83,6 +83,12 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - Accelerators: BVH
 - Cameras: Perspective
 - Integrators: BDPT, ambient occlusion, simple volumetric path (v4), and volumetric path (v3)
+
+| Integrator | Surfaces | Mediums | Emissive Mediums | BSSRDF |
+|---|:---:|:---:|:---:|:---:|
+| BDPT | ✅ | ✅  | ❌ | ❌ |
+| SimpleVolPath (v4) | ❌ | ✅ | ✅ | ❌ |
+| VolPath (v3) | ✅ | ✅ | ✅ | ✅ |
 - Lights: Area, distant, image infinite, uniform infinite, point, and spot
     - Uniform, Power, and Spatial (Voxel) light distributions
 - Materials: Glass, matte, metal, mirror, plastic, substrate, fourier, and subsurface materials

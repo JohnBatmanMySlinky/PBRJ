@@ -1,8 +1,7 @@
 function render(
     i::Union{AOIntegrator, SimpleIntegrator, SimpleVolPathIntegratorv4, VolPathIntegratorv3}, 
     scene::Scene, 
-    ::Dict{String, Any},
-    ::Tuple{Int64,Int64}  
+    ::Dict{String, Any}
 )
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
     sample_extent = diagonal(sample_bounds)
