@@ -49,13 +49,12 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
                         return false
                     end
 
-                    # Update throughput for the scatter event.
-                    # The null-scattering estimator weight at a real scatter is
-                    # T_maj * sigma_s / (sigma_maj * p_scatter).  For the hero
-                    # channel this equals T_maj; for other channels it provides
-                    # the spectral re-weighting.
+                    # In delta tracking the estimator weight at a real scatter is
+                    # sigma_s / (sigma_maj * p_scatter).  T_maj cancels with the
+                    # sampling pdf; only the spectral ratio remains (= 1 for
+                    # achromatic RGB, reweights correctly for varying spectra).
                     if p_scatter > 0.0
-                        beta = beta .* T_maj .* mp.sigma_s ./ (sigma_maj .* p_scatter)
+                        beta = beta .* mp.sigma_s ./ (sigma_maj .* p_scatter)
                     else
                         terminated = true
                         return false
@@ -91,11 +90,11 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
                 end
             end
 
-            # If we neither scattered nor terminated, multiply beta by the
-            # residual transmittance through the remaining medium segments.
-            if !(scattered || terminated)
-                beta = beta .* T_maj_result
-            end
+            # In delta tracking the exit weight is 1 — the fraction of paths
+            # that exit without interaction already equals T(0,L) by
+            # construction of the sampling process, so T_maj_result must NOT
+            # be folded into beta.  (cf. simple_vol_path_v4.jl which also
+            # discards the sampleT_maj! return value.)
         end
 
         if is_black(beta) || terminated
