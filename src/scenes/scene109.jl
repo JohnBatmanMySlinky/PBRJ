@@ -1,3 +1,7 @@
+"""
+requires the cow.obj from here
+https://github.com/Libbum/spherical-cow#
+"""
 function make_scene109(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
