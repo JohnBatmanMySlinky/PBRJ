@@ -88,14 +88,8 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - macro to do function call counting
 
 # TODO's
-- what if we removed shape and made it TRIANGLES ONLY?
-- get rid of strings in material and abstractbxdf to make them isbits - then we can use MVector for Vector{AbstractBxDFs}
-- `VolPathIntegratorv3` specular is fucky
-- Update `parse_obj_3dsmax_2011` to take in a vector of transforms.
-- IN THEORY SIMPLE VOL PATH V3 CAN HANDLE EMISSIVE MEDIUMS
 - visibility tester Tr needs to be updated
 - Revisit parameterization of abstract types. Primitive?
-- Function call counting macro - https://claude.ai/chat/df8e8429-eb0e-4058-971e-382ff6300be6
 - FunctionWrappers.jl 
 - Refactor MaterialRegistry to use MaterialPool: https://claude.ai/chat/2009132e-080d-46ff-9330-bde0cd084006
 - use GLMakie as an image viewer to view renders as they progress
@@ -111,11 +105,6 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - displacements!!! https://iquilezles.org/articles/distfunctions/
         - try again with quad!
 - stochastic alpha test re pbrtv4 and move to primitive???
-- Back to TriangleMesh but instead use Ref{}
-- for materials/bsdf
-    - use mvector with a union type
-    - ::MVector{MAX_BxDF, UnionType}
-    - need to define structs, then define bsdf, then define struct() for dependency hell
 - add a python jmfp to python utils in src/scripts
 - Improve scene build descriptive statistics and printing
 - Fourier to use immutable struct
@@ -124,13 +113,11 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - use clone()?
 - i see some Mat3([]) that need to re factored in bilinear patch
 - parse_obj's FIN::Vector{Any} is gong to kill performance
-- fix old scenes that now broke with parser_obj::FIN
 - Time to make my OBJ parser suck less
     - Pre-allocate arrays within parse_obj
     - Bilinear patch support for quads
 - Fix Mediums
     - Grid medium is more sensitive to SampledGrid resolution than it should be
-    - NanoVDB is fucking broken and seg-faulty and I want to cry
 - Tests
     - Analytic scenes from pbrt-v3
     - bash script to efficiently test all scenes
@@ -145,8 +132,6 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - combine `scratch/` and `src/notebooks`
 - PBRT Features
     - LightBVH from pbrt-v4
-    - SimplePathIntegrator
-    - VolPathIntegrator
 
 # Squashing Vectors
 ## materials/bsdf.jl
