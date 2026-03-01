@@ -27,49 +27,27 @@ If you want to use [NanoVDB](https://github.com/AcademySoftwareFoundation/openvd
 For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 
 # Example Renders
-1. Office scene. Interior scene. many (relative) diffuse area lights. specular floor. 
 
-    ![office_scene](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/munich-scene.png?raw=true)
-
-2. Caustic glass
-
-    ![caustic_glass](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/caustic-glass.png?raw=true)
-    
-3. Dragon on a plane with Ambient Occlusion integrator
-
-    ![dragon](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/dragon.png?raw=true)
-
-4. Cornell Box
-
-    ![cornell_box](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/cornell-box.png?raw=true)
-
-4. Metaballs
-
-    ![metaballs](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/metaballs.png?raw=true)
-
-5. Julia logo but with teapots
-
-    ![julia_logo](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/julia-logo.png?raw=true)
-
-6. Uniform Medium
-
-    ![uniform-medium](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/solid-medium.png?raw=true)
-
-7. Grid Medium 1
-
-    ![grid-medium-1](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/smoke.png?raw=true)
-
-8. Grid Medium 1
-
-    ![grid-medium-2](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/smoke-plume.png?raw=true)
-
-9. Furry Bunny
-
-    ![bunny-fur](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/bunny-fur.png?raw=true)
-
-10. Anemone
-
-    ![anemone](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/anemone.png?raw=true)
+| | | |
+|:---:|:---:|:---:|
+| **1 — Office Scene** | **2 — Caustic Glass** | **3 — AO Dragon** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/1-office-scene.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/2-caustic-glass.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/3-AO-dragon.png?raw=true) |
+| **4 — Cornell Box** | **5 — Soft Bodies** | **6 — Goursat Surface** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/4-cornell-box.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/5-soft-bodies.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/6-goursat.png?raw=true) |
+| **7 — Julia Logo** | **8 — Anemic Tree** | **9 — LTE Orb** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/7-julia-logo.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/8-anemic-tree.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/9-lte-orb.png?raw=true) |
+| **10 — Cloud** | **11 — Dragon** | **12 — Smoke Plume** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/10-cloud.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/11-dragon.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/12-smoke-plume.png?raw=true) |
+| **13 — Disney Cloud** | **14 — Anemone** | **16 — Elevator Lobby** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/13-disney-cloud.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/14-anemone.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/16-elevator-lobby.png?raw=true) |
+| **17 — Barcelona Pavilion** | **18 — SDFs** | **19 — Bunny Cloud** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/17-barcelona-pavillion.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/18-SDFs.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/19-bunny-cloud.png?raw=true) |
+| **20 — Explosion** | **21 — San Miguel** | **100 — Fuzzy Bunny** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/20-explosion.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/21-san-miguel.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/100-fuzzy-bunny.png?raw=true) |
+| **105 — Head** | **106 — Dragon** | **107 — Train Station** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/105-head.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/106-dragon_10.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/107-train-station.png?raw=true) |
+| **108 — Spherical Cow** | **109 — Voxel Cow** | **110 — Floating Lanterns** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/108-spherical-cow.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/109-voxel-cow.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/110-floating_lanterns.png?raw=true) |
 
 # A couple little janky bits (mainly so that I don't forget about 'em)
 1. src/notebooks/TEST_nanovdb_indexing.ipynb    
