@@ -33,7 +33,7 @@ function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
         @info "Surface Interaction Post Bump: $si"
     end
     
-    si.bsdf = BSDF(si)
+    
     r = m.Kd(si)
 
     @info "Spectrum Kd: $(r)"
@@ -41,9 +41,9 @@ function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     # TODO implement black body check
     sigma = clamp(m.sigma(si), 0, 90)
     if sigma == 0.0
-        add!(si.bsdf, LambertianReflection(Spectrum(r)))
+        si.bsdf = BSDF(si, 1.0, (LambertianReflection(Spectrum(r)),))
     else
-        add!(si.bsdf, OrenNayarReflection(r, sigma))
+        si.bsdf = BSDF(si, 1.0, (OrenNayarReflection(r, sigma),))
     end
 end
 

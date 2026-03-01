@@ -14,7 +14,7 @@ abstract type Texture end
 abstract type Shape end
 abstract type Light end
 abstract type Material end
-abstract type AbstractBSDF end
+abstract type BSDF end
 struct Pnt4 <: FieldVector{4, Float32}
     x::Float32
     y::Float32

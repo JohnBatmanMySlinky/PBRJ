@@ -144,9 +144,6 @@ function (ss::KdSubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, 
         @info "Surface Interaction Post Bump: $si"
     end
 
-    # Initialize _bsdf_ for smooth or rough dielectric
-    si.bsdf = BSDF(si, ss.eta)
-
     RR = ss.Kr(si)
     TT = ss.Kt(si)
     u_rough = ss.u_roughness(si)
@@ -154,36 +151,37 @@ function (ss::KdSubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, 
 
     if is_black(RR) && is_black(TT)
         #JOHN HACK Hmmmmmm is this going to flow thru OK?
+        si.bsdf = BSDF(si, ss.eta, ())
         return
     end
 
     is_specular = (u_rough == 0.0) && (v_rough == 0.0)
     if is_specular && allow_multiple_lobes
-        add!(si.bsdf, FresnelSpecular(RR, TT, 1.0, eta, mode))
+        si.bsdf = BSDF(si, ss.eta, (FresnelSpecular(RR, TT, 1.0, eta, mode),))
     else
         if ss.remap_roughness
             u_rough = roughness_to_alpha(u_rough)
             v_rough = roughness_to_alpha(v_rough)
         end
-
+        bxdfs = AbstractBxDF[]
         if !is_black(RR)
             fresnel = FresnelDielectric(1.0, ss.eta)
             if is_specular
-                add!(si.bsdf, SpecularReflection(RR, fresnel))
+                push!(bxdfs, SpecularReflection(RR, fresnel))
             else
                 distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
-                add!(si.bsdf, MicrofacetReflection(RR, distrib, fresnel))
+                push!(bxdfs, MicrofacetReflection(RR, distrib, fresnel))
             end
         end
-
         if !is_black(TT)
             if is_specular
-                add!(si.bsdf, SpecularTransmission(TT, 1.0, ss.eta, mode))
+                push!(bxdfs, SpecularTransmission(TT, 1.0, ss.eta, mode))
             else
                 distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
-                add!(si.bsdf, MicrofacetTransmission(TT, distrib, 1.0, ss.eta, mode))
+                push!(bxdfs, MicrofacetTransmission(TT, distrib, 1.0, ss.eta, mode))
             end
         end
+        si.bsdf = BSDF(si, ss.eta, tuple(bxdfs...))
     end
 
     mfree = ss.scale * ss.Mfp(si)
@@ -198,9 +196,6 @@ function (ss::SubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mo
         bump!(ss, si)
     end
 
-    # Initialize _bsdf_ for smooth or rough dielectric
-    si.bsdf = BSDF(si, ss.eta)
-
     RR = ss.Kr(si)
     TT = ss.Kt(si)
     u_rough = ss.u_roughness(si)
@@ -208,36 +203,37 @@ function (ss::SubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mo
 
     if is_black(RR) && is_black(TT)
         #JOHN HACK Hmmmmmm is this going to flow thru OK?
+        si.bsdf = BSDF(si, ss.eta, ())
         return
     end
 
     is_specular = (u_rough == 0.0) && (v_rough == 0.0)
     if is_specular && allow_multiple_lobes
-        add!(si.bsdf, FresnelSpecular(RR, TT, 1.0, ss.eta, mode))
+        si.bsdf = BSDF(si, ss.eta, (FresnelSpecular(RR, TT, 1.0, ss.eta, mode),))
     else
         if ss.remap_roughness
             u_rough = roughness_to_alpha(u_rough)
             v_rough = roughness_to_alpha(v_rough)
         end
-
+        bxdfs = AbstractBxDF[]
         if !is_black(RR)
             fresnel = FresnelDielectric(1.0, ss.eta)
             if is_specular
-                add!(si.bsdf, SpecularReflection(RR, fresnel))
+                push!(bxdfs, SpecularReflection(RR, fresnel))
             else
                 distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
-                add!(si.bsdf, MicrofacetReflection(RR, distrib, fresnel))
+                push!(bxdfs, MicrofacetReflection(RR, distrib, fresnel))
             end
         end
-
         if !is_black(TT)
             if is_specular
-                add!(si.bsdf, SpecularTransmission(TT, 1.0, ss.eta, mode))
+                push!(bxdfs, SpecularTransmission(TT, 1.0, ss.eta, mode))
             else
                 distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
-                add!(si.bsdf, MicrofacetTransmission(TT, distrib, 1.0, ss.eta, mode))
+                push!(bxdfs, MicrofacetTransmission(TT, distrib, 1.0, ss.eta, mode))
             end
         end
+        si.bsdf = BSDF(si, ss.eta, tuple(bxdfs...))
     end
 
     sig_a = ss.scale * ss.sigma_a(si)

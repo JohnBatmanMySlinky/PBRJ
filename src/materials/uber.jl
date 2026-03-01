@@ -69,48 +69,42 @@ function (u::Uber)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Typ
     e = u.eta(si)
     op = clamp.(u.opacity(si), 0.0, 1.0)
     t = clamp.(spectrum_from_float(1.0) - op, 0.0, 1.0)
+    bsdf_eta = is_black(t) ? e : 1.0
+    bxdfs = AbstractBxDF[]
+
     if !is_black(t)
-        si.bsdf = BSDF(si)
-        add!(si.bsdf, SpecularTransmission(t, 1.0, 1.0, mode))
-    else
-        si.bsdf = BSDF(si, e)
+        push!(bxdfs, SpecularTransmission(t, 1.0, 1.0, mode))
     end
 
     kd = op * clamp.(u.Kd(si), 0.0, 1.0)
     if !is_black(kd)
-        add!(si.bsdf, LambertianReflection(kd))
+        push!(bxdfs, LambertianReflection(kd))
     end
 
     ks = op * clamp.(u.Ks(si), 0.0, 1.0)
     if !is_black(ks)
         fresnel = FresnelDielectric(1.0, e)
-        if !(u.uroughness isa Nothing)
-            urough = u.uroughness(si)
-        else
-            urough = u.roughness(si)
-        end
-        if !(u.vroughness isa Nothing)
-            vrough = u.vroughness(si)
-        else
-            vrough = urough
-        end
+        urough = !(u.uroughness isa Nothing) ? u.uroughness(si) : u.roughness(si)
+        vrough = !(u.vroughness isa Nothing) ? u.vroughness(si) : urough
         if u.remap_roughness
             urough = roughness_to_alpha(urough)
             vrough = roughness_to_alpha(vrough)
         end
         distrib = TrowbridgeReitzDistribution(urough, vrough)
-        add!(si.bsdf, MicrofacetReflection(ks, distrib, fresnel))
+        push!(bxdfs, MicrofacetReflection(ks, distrib, fresnel))
     end
 
     kr = op * clamp.(u.Kr(si), 0.0, 1.0)
     if !is_black(kr)
         fresnel = FresnelDielectric(1.0, e)
-        add!(si.bsdf, SpecularReflection(kr, fresnel))
+        push!(bxdfs, SpecularReflection(kr, fresnel))
     end
 
     kt = op * clamp.(u.Kt(si), 0.0, 1.0)
     if !is_black(kt)
-        add!(si.bsdf, SpecularTransmission(kt, 1.0, e, mode))
+        push!(bxdfs, SpecularTransmission(kt, 1.0, e, mode))
     end
+
+    si.bsdf = BSDF(si, bsdf_eta, tuple(bxdfs...))
 end
 
