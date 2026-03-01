@@ -24,9 +24,8 @@ function (m::Mirror)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Trans
         bump!(m, si)
     end
 
-    si.bsdf = BSDF(si)
     r = m.Kr(si)
-    add!(si.bsdf, SpecularReflection(r, FresnelNoOp()))
+    si.bsdf = BSDF(si, 1.0, (SpecularReflection(r, FresnelNoOp()),))
 end
 
 function albedo(m::Mirror, si::SurfaceInteraction)::Spectrum

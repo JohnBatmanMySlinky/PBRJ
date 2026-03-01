@@ -2,7 +2,7 @@
 # using LinearAlgebra
 # using IterTools
 # abstract type AbstractRay end
-# abstract type AbstractBSDF end
+# abstract type BSDF end
 # abstract type Material end
 # abstract type Light end
 # abstract type Shape end
