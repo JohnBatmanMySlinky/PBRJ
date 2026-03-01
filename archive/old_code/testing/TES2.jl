@@ -4,7 +4,7 @@ using FileIO
 
 abstract type Aggregate end
 abstract type AbstractBxDF end
-abstract type AbstractBSDF end
+abstract type BSDF end
 abstract type Camera end
 abstract type Filter end
 abstract type Fresnel end

@@ -39,7 +39,6 @@ function (m::Substrate)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tr
         bump!(m, si)
     end
     
-    si.bsdf = BSDF(si)
     d = m.Kd(si)
     s = m.Ks(si)
     @info "Substrate: Kd: $d, Ks: $s"
@@ -52,7 +51,7 @@ function (m::Substrate)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tr
         roughv = roughness_to_alpha(roughv)
     end
     distrib = TrowbridgeReitzDistribution(roughu, roughv)
-    add!(si.bsdf, FresnelBlend(d, s, distrib))
+    si.bsdf = BSDF(si, 1.0, (FresnelBlend(d, s, distrib),))
 end
 
 function albedo(m::Substrate, si::SurfaceInteraction)::Spectrum

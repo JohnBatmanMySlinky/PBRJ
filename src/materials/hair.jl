@@ -69,8 +69,6 @@ function (hm::HairMaterial)(si::SurfaceInteraction, ::Bool=false, ::Type{T}=Radi
 	a = hm.alpha(si)
 	e = hm.eta(si)
 
-	si.bsdf = BSDF(si, e)
-	
 	if !(hm.sigma_a isa Nothing)
 		sig_a = clamp.(hm.sigma_a(si), 0.0, 1.0)
 	elseif !(hm.color isa Nothing)
@@ -85,10 +83,10 @@ function (hm::HairMaterial)(si::SurfaceInteraction, ::Bool=false, ::Type{T}=Radi
 			max(0.0, has_pheomelanin ? hm.pheomelanin(si) : 0.0),
 		)
 	end
-	
+
 	# offset along width
 	h = -1.0 + 2.0 * si.uv.y
-	add!(si.bsdf, HairBSDF(h, e, sig_a, bm, bn, a))
+	si.bsdf = BSDF(si, e, (HairBSDF(h, e, sig_a, bm, bn, a),))
 end
 
 function sigma_a_from_concentration(ce::Float64, cp::Float64)::Spectrum
