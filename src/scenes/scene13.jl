@@ -14,7 +14,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     mat_disk = Matte(
         "mat_disk",
-        ConstantTexture(spectrum_from_float(0.3, 0.3, 0.3)),
+        ConstantTexture(spectrum_from_float(0.2, 0.2, 0.2)),
         ConstantTexture(0.0),
         nothing
     )
@@ -24,7 +24,6 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # Bounding sphere cause we hate winding order and such
-    box_t = Translate(Pnt3(0, 0, 0))
     sphere_transform = Translate(Pnt3(-9.984, 73.008, -42.64)) * Scale(Vec3(206.544, 140.4, 254.592))
     sphere = Sphere(
         ShapeCore(
@@ -34,7 +33,6 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             false
         ),
         1.44224957031
-        # 0.54224957031
     )
 
     smoke_mi = MediumInterface(
@@ -76,9 +74,7 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = UniformInfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        # Spectrum(0.53, 0.57, 0.53), 
         Spectrum(0.03, 0.07, 0.23), 
-        # Spectrum(2.3, 2.7, 2.3), 
     )
     push!(lights, light)
 
@@ -87,7 +83,6 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     world_center, world_radius = bounding_sphere(wb)
     light = DistantLight(
         Spectrum(2.6, 2.5, 2.3),
-        # Spectrum(6.6, 6.5, 6.3),
         Vec3(0,0,0),
         Vec3(-0.5826, -0.7660, -0.2717),
         world_center,
@@ -113,8 +108,8 @@ function make_scene13(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(648.064, -82.473, -63.856)
     look_at = Pnt3(6.021, 100.043, -43.679)
     up = Vec3(0.273, 0.962, -0.009)
-    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), screen, 0.0, 1.0, 0.0, 1e6, 31.07, film)
+
+    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 31.07, film)
 
     # Instantiate a Sampler
     S = ZSobolSampler(

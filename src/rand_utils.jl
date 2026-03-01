@@ -38,7 +38,7 @@ function cosine_sample_hemisphere(u::Pnt2)::Vec3
 end
 
 function uniform_sample_cone(u1::Pnt2, cos_theta_max::Float64)::Vec3
-    cos_theta = 1.0 - u1.x + u1.x * cos_theta_max
+    cos_theta = (1.0 - u1.x) + u1.x * cos_theta_max
     sin_theta = sqrt(1.0-cos_theta^2)
     phi = u1.y * 2.0 * pi
     return Vec3(cos(phi)*sin_theta, sin(phi)*sin_theta, cos_theta)

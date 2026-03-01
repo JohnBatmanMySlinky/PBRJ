@@ -69,6 +69,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     media_t = Transformation(Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 4.705, 0, 1)) *
         Transformation(Mat4(3.18, 0, 0, 0, 0, 3.212, 0, 0, 0, 0, 3.1, 0, 0.008, -0.024, -0.064, 1))
 
+    println("Parsing Medium... hold tight")
     anemone_mi = MediumInterface(
         GridMedium(
             jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium.pbrt"),
@@ -83,6 +84,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ),
         nothing
     )
+    println("Done Parsing Medium... let loose")
 
     ground_t = Transformation(Mat4(10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 10, 0, 0, 0, 0, 1)) * 
         Transformation(Mat4(500, 0, 0, 0, 0, 0, -500, 0, 0, 1, 0, 0, 0, 0, 0, 1))
@@ -232,7 +234,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        spectrum_from_float(1.0, Illuminant), 
+        spectrum_from_float(0.05, Illuminant), 
         jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"),
         false
     )
@@ -262,7 +264,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
-    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    I = VolPathIntegratorv3(C, S, parsed_args["max-depth"])
 
     return I, scene
 end

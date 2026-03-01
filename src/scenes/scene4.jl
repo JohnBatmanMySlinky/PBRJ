@@ -144,44 +144,44 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(tri, "mat_green", nothing))
     end
 
-    ceiling_light = Rectangle(
-        Pnt2(213, 213), 
-        Pnt2(343, 343), 
-        554.0,
-        2, 
-        identity_shape_core,
-        true,
-        nothing
-    )
-    for tri in reverse(ceiling_light)
-        alight = DiffuseAreaLight(
-            spectrum_from_float(17.0, 12.0, 4.0, Illuminant),
-            tri,
-            false # NOT two sided
-        )
-        push!(lights,alight)
-        push!(primitives, Primitive(tri, "mat_white", alight))
-    end
+    # ceiling_light = Rectangle(
+    #     Pnt2(213, 213), 
+    #     Pnt2(343, 343), 
+    #     554.0,
+    #     2, 
+    #     identity_shape_core,
+    #     true,
+    #     nothing
+    # )
+    # for tri in reverse(ceiling_light)
+    #     alight = DiffuseAreaLight(
+    #         spectrum_from_float(17.0, 12.0, 4.0, Illuminant),
+    #         tri,
+    #         false # NOT two sided
+    #     )
+    #     push!(lights,alight)
+    #     push!(primitives, Primitive(tri, "mat_white", alight))
+    # end
     #######################################
     ###### FOR VALIDATION USE SPHERE ######
     #######################################
     # My triangle sample is using pbrtv4 not v3 so use a spehere to make validating against v3 easier
-    # s = Sphere(
-    #     ShapeCore(
-    #         Translate(Pnt3(0, 525, 0)),
-    #         Inv(Translate(Pnt3(0, 525, 0))),
-    #         false,
-    #         false
-    #     ),
-    #     25.0
-    # )
-    # alight = DiffuseAreaLight(
-    #     spectrum_from_float(200.0, 200.0, 200.0, Illuminant),
-    #     s,
-    #     false
-    # )
-    # push!(lights, alight)
-    # push!(primitives, Primitive(s, mat_white, alight))
+    s = Sphere(
+        ShapeCore(
+            Translate(Pnt3(0, 525, 0)),
+            Inv(Translate(Pnt3(0, 525, 0))),
+            false,
+            false
+        ),
+        25.0
+    )
+    alight = DiffuseAreaLight(
+        spectrum_from_float(200.0, 200.0, 200.0, Illuminant),
+        s,
+        false
+    )
+    push!(lights, alight)
+    push!(primitives, Primitive(s, "mat_white", alight))
 
     box_1_transform = Translate(Pnt3(265, 0, 295)) * RotateY(25.0)
     box_1 = Box(
@@ -206,34 +206,34 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     end
 
     # sphere_transform = Translate(Pnt3(278, 278, 278))
-    sphere_transform = Translate(Pnt3(130, 250, 65))
-    sphere = Sphere(
-        ShapeCore(
-            sphere_transform,
-            Inv(sphere_transform),
-            false,
-            false
-        ),
-        # 45.0
-        100.0
-    )
-    smoke_mi = MediumInterface(
-        HomogenousMedium(spectrum_from_float(0.001), spectrum_from_float(0.015)),
-        nothing
-    )
-    push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
+    # sphere_transform = Translate(Pnt3(130, 250, 65))
+    # sphere = Sphere(
+    #     ShapeCore(
+    #         sphere_transform,
+    #         Inv(sphere_transform),
+    #         false,
+    #         false
+    #     ),
+    #     # 45.0
+    #     100.0
+    # )
+    # smoke_mi = MediumInterface(
+    #     HomogenousMedium(spectrum_from_float(0.001), spectrum_from_float(0.015)),
+    #     nothing
+    # )
+    # push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
 
-    sphere_transform2 = Translate(Pnt3(330, 300, 200)) * RotateX(37.0) * RotateY(42.0) * RotateZ(100.0)
-    sphere2 = Sphere(
-        ShapeCore(
-            sphere_transform2,
-            Inv(sphere_transform2),
-            false,
-            false
-        ),
-        90.0
-    )
-    push!(primitives, Primitive(sphere2, "mat_bumpy_metal", nothing))
+    # sphere_transform2 = Translate(Pnt3(330, 300, 200)) * RotateX(37.0) * RotateY(42.0) * RotateZ(100.0)
+    # sphere2 = Sphere(
+    #     ShapeCore(
+    #         sphere_transform2,
+    #         Inv(sphere_transform2),
+    #         false,
+    #         false
+    #     ),
+    #     90.0
+    # )
+    # push!(primitives, Primitive(sphere2, "mat_bumpy_metal", nothing))
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
@@ -266,7 +266,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(278, 278, -800)
     look_at = Pnt3(278, 278, 0)
     up = Vec3(0, 1, 0)
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 40.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), nothing, 0.0, 1.0, 0.0, 1e6, 40.0, film)
 
     # Instantiate a Sampler
     S = SamplerFactory(parsed_args)

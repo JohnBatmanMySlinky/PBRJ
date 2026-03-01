@@ -25,6 +25,10 @@ function (m::Mirror)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Trans
     end
 
     si.bsdf = BSDF(si)
-    r = clamp.(m.Kr(si), 0, 1)
+    r = m.Kr(si)
     add!(si.bsdf, SpecularReflection(r, FresnelNoOp()))
+end
+
+function albedo(m::Mirror, si::SurfaceInteraction)::Spectrum
+    return m.Kr(si)
 end

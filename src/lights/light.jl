@@ -35,6 +35,11 @@ function is_area_light(light::Light)::Bool
     return (light.flags & LightArea)
 end
 
+# Generic fallback for medium interactions (lights that don't use the interaction point)
+function pdf_li(light::Light, isect::Interaction, wi::Vec3)::Float64
+    return 0.0
+end
+
 function Base.:&(a::LightFlags, b::LightFlags)::Bool
     return (UInt8(a) & UInt8(b)) == UInt8(a)
 end

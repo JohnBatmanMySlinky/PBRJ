@@ -156,6 +156,21 @@ function pdf_li(il::InfiniteLight, isect::SurfaceInteraction, w::Vec3)::Float64
     return pdf_val
 end
 
+function pdf_li(il::InfiniteLight, isect::Interaction, w::Vec3)::Float64
+    wi = il.world_to_light(w)
+    if il.do_octahedral
+        uv = equal_area_sphere_to_square(wi)
+        return pdf(il.distribution, uv) / (4 * pi)
+    else
+        theta = spherical_theta(wi)
+        phi = spherical_phi(wi)
+        sin_theta = sin(theta)
+        (sin_theta == 0.0) && return 0.0
+        uv = Pnt2(phi / 2pi, theta / pi)
+        return pdf(il.distribution, uv) / (2 * pi * pi * sin_theta)
+    end
+end
+
 ################
 #### 16.1.2 BDPT 
 ################

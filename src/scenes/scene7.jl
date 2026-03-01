@@ -261,7 +261,7 @@ function make_scene7(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(85, 35, 35)
     look_at = Pnt3(0, teapot_y_shift + sqrt(asdf^2 - (asdf/2.0)^2) / 2.0, 0)
     up = Vec3(0, 1, 0)
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 55.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), nothing, 0.0, 1.0, 0.0, 1e6, 55.0, film)
 
     # Instantiate a Sampler
     S = SamplerFactory(parsed_args)

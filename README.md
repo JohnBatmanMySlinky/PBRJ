@@ -3,6 +3,12 @@ Physically Based Rendering - in Julia
 
 An implementation of [Physically Based Rendering: From Theory to Implementation](https://www.pbr-book.org/) in the Julia programming language. Based off the 3rd edition, but with some 4th edition sprinkled in.
 
+# Why? 
+Because I like ray tracing. 
+
+# Why Julia?
+Because python is too slow and c++ is too hard
+
 # Usage
 Example command line usage. See `src/args.jl` for a full specification of command line options.
 ```
@@ -76,11 +82,17 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 # Features Implemented
 - Accelerators: BVH
 - Cameras: Perspective
-- Integrators: BDPT, ambient occlusion, and simple volumetric path (v4)
+- Integrators: BDPT, ambient occlusion, simple volumetric path (v4), and volumetric path (v3)
+
+| Integrator | Surfaces | Mediums | Emissive Mediums | BSSRDF |
+|---|:---:|:---:|:---:|:---:|
+| BDPT | ✅ | ✅  | ❌ | ❌ |
+| SimpleVolPath (v4) | ❌ | ✅ | ✅ | ❌ |
+| VolPath (v3) | ✅ | ✅ | ✅ | ✅ |
 - Lights: Area, distant, image infinite, uniform infinite, point, and spot
     - Uniform, Power, and Spatial (Voxel) light distributions
-- Materials: Glass, matte, metal, mirror, plastic, substrate, and fourier materials
-- Samplers: Stratified, z-sobol, and sobol
+- Materials: Glass, matte, metal, mirror, plastic, substrate, fourier, and subsurface materials
+- Samplers: LCG, Stratified, z-sobol, and sobol
 - Shapes: Box, cylindar, disk, rectangle, sphere, and triangle
     - Very very very very basic L-system
     - Implicit surfaces: Goursat surface & metaballs
@@ -93,41 +105,48 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - MIPMap
     - Logging
     - Edge-avoiding a-trous denoising
+- [A high volume fraction sphere packing](https://docs.rs/spherical-cow/latest/spherical_cow/) (scene108.jl)
+- Voxelization: voxelize ya meshes (scene109.jl)
+- macro to do function call counting
 
 # TODO's
-- function for platonic solids
-- function for geodesic sphere
-- SDF
-    - Torus
-	- 4 subtracted spheres at (1,0), (0, 1), (-1,0), (0, -1)
-	- 4 unioned spheres at (1,1), (1,-1), (-1,-1), (-1,1)
-- revisit SDF tree to create my tree from my presentation
-    - Union(Sphere, Substract(Box, Intersect(FrameBox, Torus)))
-- re-factor all scenes to use SamplerFactory
+- what if we removed shape and made it TRIANGLES ONLY?
+- get rid of strings in material and abstractbxdf to make them isbits - then we can use MVector for Vector{AbstractBxDFs}
+- `VolPathIntegratorv3` specular is fucky
+- Update `parse_obj_3dsmax_2011` to take in a vector of transforms.
+- IN THEORY SIMPLE VOL PATH V3 CAN HANDLE EMISSIVE MEDIUMS
+- visibility tester Tr needs to be updated
+- Revisit parameterization of abstract types. Primitive?
+- Function call counting macro - https://claude.ai/chat/df8e8429-eb0e-4058-971e-382ff6300be6
+- FunctionWrappers.jl 
+- Refactor MaterialRegistry to use MaterialPool: https://claude.ai/chat/2009132e-080d-46ff-9330-bde0cd084006
+- use GLMakie as an image viewer to view renders as they progress
+- make sure samplers are working as intended...
+- BDPT pixels and tiles... I got it working for volumetric path (v3)
+- SDF scene
+    - idea 1
+        - Torus
+        - 4 subtracted spheres at (1,0), (0, 1), (-1,0), (0, -1)
+        - 4 unioned spheres at (1,1), (1,-1), (-1,-1), (-1,1)
+    - revisit SDF tree to create my tree from my presentation
+        - Union(Sphere, Substract(Box, Intersect(FrameBox, Torus)))
+    - displacements!!! https://iquilezles.org/articles/distfunctions/
+        - try again with quad!
 - stochastic alpha test re pbrtv4 and move to primitive???
-- UVMapping2D() for all textures
-- need to go firefly hunting again......
 - Back to TriangleMesh but instead use Ref{}
 - for materials/bsdf
     - use mvector with a union type
     - ::MVector{MAX_BxDF, UnionType}
     - need to define structs, then define bsdf, then define struct() for dependency hell
 - add a python jmfp to python utils in src/scripts
-- add do block to simple_vol_path.jl + a scene
-- add vol_path.jl
 - Improve scene build descriptive statistics and printing
-- SDFs
-    - displacements!!! https://iquilezles.org/articles/distfunctions/
-        - try again with quad!
-- regression test suite with simple RMSE report
 - Fourier to use immutable struct
 - Fourier BSDF convergence is hacked
 - get rid of deep copys in parser
+    - use clone()?
 - i see some Mat3([]) that need to re factored in bilinear patch
 - parse_obj's FIN::Vector{Any} is gong to kill performance
 - fix old scenes that now broke with parser_obj::FIN
-- Fix up old scenes
-    - run them and squash bugs
 - Time to make my OBJ parser suck less
     - Pre-allocate arrays within parse_obj
     - Bilinear patch support for quads
@@ -140,75 +159,38 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - Finish adding glass tests from pxl-th and look at more pbrt-v4 tests
 - Set up CI and unit tests
     - https://www.youtube.com/watch?v=Vi4Ntd_Vf4A&t=353s
-- Performance
-    - add an array of materials. store the index instead of the material in the primitive. --> What about type stability tho?
-    - Create a simple sample scene in Trace.jl and benchmark. Because my testing is showing no performance benefit from Float32 and Parametric Typing
-        - TYPE MORE CONCRETELY, use a NB and copy pxl-th
-        - Convert to Float32
-    - What if I instantiated the samplers within the parallel loop instead of deepcopy'ing?
-    - Make sure I am sampling purely over the solid angle. PBRT has this covered in a test suite.
-    - triangle sampling is really slow? Is it sampling more than one light at a time is slow? 
-    - ~~convert arrays to tuples after scene construction and before rendering begins aka ::Tuple{Vararg{Material}}~~ NOPE because if big tuple it get slow
-    - ~~implement a Pnt3 but it's Ints not Float to avoid some conversions~~
-    - ~~sampling over the solid angle~~
-    - ~~use inplace operations where possible ie `normalize!()` vs `normalize`~~
-    - ~~Liberal use of `const` in all mutable structs~~ --> revisit once I am typing more concretely
 - New stuff
     - Tidy up implicit Surfaces
         - Add kiss surface (https://mathworld.wolfram.com/KissSurface.html) aka $ x^2 + y^2 = (1-z)x^4 $
         - Improve goursat scene
     - Add leafs to l-systems
-    - Displaced sphere looks cool [link](https://math.stackexchange.com/questions/1071662/surface-normal-to-point-on-displaced-sphere)
 - combine `scratch/` and `src/notebooks`
 - PBRT Features
     - LightBVH from pbrt-v4
     - SimplePathIntegrator
     - VolPathIntegrator
-    - Work with images better
-	    - ~~MIPMap~~
-            - OctahedralVector
-	    - ~~InfiniteAreaLight~~
-            - CompensatedDistribution
-            - If infinite area light always uses the same width in the lookup... whats the value of a mipmp?
-        - ~~ImageTexture implementation to use MIPMaps~~
-    - Add sub div surfaces
-    - Robustly parse .pbrt scene files
-    - Implement more materials
-        - Add glass material
-            - make sure all paths of Glass's compute scattering function work
-            - pass all pxl-th's tests
-        - ~~Add metal material~~
-        - ~~Add fourier material~~
-        - Add subsurface scattering
-    - Implement light BVH for more efficient sampling
-    - Implement Metroplois Light Transport Integrator
-    - ~~Implement texture sampling and use those ray differentials~~
-    - ~~Uniform infinite light~~
-    - ~~Move to EXR~~
-        - ~~for env lights~~
-        - ~~for final image~~
-    - ~~Move the pbrt-v4's sampler structure~~
-        - ~~Sobol~~
-        - ~~PaddedSobol~~
-        - ~~ZSobol~~
-        - ~~Does it matter what my hash function is?~~
-    - ~~Seperate Textures into {Type}FloatTexture & {Type}SpectrumTexture as per pbrt-v4 and update materials accordingly~~
-    - ~~Add mediums~~
-         - ~~Homogenous medium~~
-         - ~~Grid medium~~
-         - ~~OpenVDB~~
-    - ~~Add bi-linear patches~~
-# Clean up 
-    - ~~Use y(::Spectrum) and dont hack with mean~~
-    - remove duplicate world_to_X and X_to_world
-    - use more enums?
-    - create a LightCore similar to book
-    - textures to use `evaluate()`
-    - Build in rendering passes natively (don't just use 1 spp for rendering passes)
-    - Make obj_parser less anemic.
-    - Parameterize more stuff
-        - integrator
-        - ~~logging~~
+
+# Squashing Vectors
+## materials/bsdf.jl
+    - making this MVector is hard
+    - even if everything is isbits - still seems to not like it?
+    - because isbitstype(Union{A, B}) is false even if A and B are isbitstype.
+## integrators/bdpt.jl
+    - Bump allocator giving dumb errors that should be fixable
+    - Turns out they aren't dumb errors. structs need to be isbits
+## distributions.jl
+## Fourier
+
+## DeadEnds
+
+### LightBVH
+- doesnt fit well with my API - i pass around a Distribution1D but that's workable?
+- LightBVH has two methods: Sample(ctx, u) & Sample(u) ctx has a Pnt3 member but that method is only used by direct lighting estimators. aka nothing in BDPT
+
+### Integrators
+- SimpleVolPathv4 doesnt do surface intersections - why amenome won't work
+- VolPathv4 requires v4 material APIs
+- in theory VolPath v3 should work but I can't figure out...
 
 # Bugs
 - IF FILM FILTER < 0.5 I GET BLACK LINES
@@ -222,7 +204,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - ~~General Rotation is fucked. Cloud scene bounding box with rotation dont match. AHHHHHHHH~~
     - ~~Maybe not... might have been that hidden `data2medium` transformation. recheck this.~~
 
-# Gotcha's
+# PBRT Gotcha's
 ```
 AIGHT SO YOURE FUCKING TELLING ME
 THIS
@@ -260,7 +242,13 @@ smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
 - [This implementation of PBRT in Julia](https://github.com/pxl-th/Trace.jl) repo has been an invaluable reference.
 - [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
 
-# Notes
+# Misc Notes
+## SDF Displacement
+- The realization was that if you displace with S * sin(F * p.x) * sin(F * p.y) * sin(F * p.z)
+    - S is the scale of height of displacement
+    - F is the frequency - which doesnt impact bounding sphere
+    - S * sin(x)^3 ranges from -S,S so you need to adjust bounding sphere radius by S
+
 ## The pain of matching PBRT *exactly*
 - Sampler: The threee options here are
     - StratifiedSampler with jitter = false. The catch is that if you have more than 1 spp, the order of which the samples is taken matters. So going with 1 spp removes one more thing to account for.
@@ -277,6 +265,7 @@ smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
 - to expand we go to `--crop-window 0.232 0.268 0.237 0.273`
 
 - Logging this too since im lazy and can never remember the logging args / params: `/Users/johnmyslinski/Documents/pbrt-v3/not_debug/pbrt ../scenes/cornell_box_not_debug.pbrt --logdir . --v 3`
+
 
 ## Metaball learnings
 - To start, I want to talk about **Functions**. The function $f(x,y,z) = x^2 + y^2 + z^2$ takes in 3 numbers, $x, y, z$ and returns one number. Since I am only really interested in 3D rendering, let's equate these three numbers to a single point in space. Swithing to points let's re-write $f(p) = p_x^2 + p_y^2 + p_z^2$. Now the intuition is that for any point in 3D space, this function returns a single number. For instance at the origin $(0,0,0)$ this function returns $0$ and for any other point it returns the distance from the origin.

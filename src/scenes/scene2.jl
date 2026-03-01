@@ -13,7 +13,7 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,
         nothing,
         ConstantTexture(1.0),
-        onstantTexture(spectrum_from_float(1.0)),
+        ConstantTexture(spectrum_from_float(1.0)),
         nothing,
         true
     )
@@ -112,7 +112,7 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(-5.5, 7, -5.5)
     look_at = Pnt3(-4.75, 2.25, 0)
     up = Vec3(0, 1, 0)
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), 0.0, 1.0, 0.0, 1e6, 30.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), nothing, 0.0, 1.0, 0.0, 1e6, 30.0, film)
 
     # Instantiate a Sampler
     S = SamplerFactory(parsed_args)

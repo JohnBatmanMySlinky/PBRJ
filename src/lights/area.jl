@@ -6,6 +6,7 @@ struct DiffuseAreaLight <: Light
     two_sided::Bool
     medium::Maybe{Medium}
     image::Maybe{MIPMap}
+    LL::Float64
 
     function DiffuseAreaLight(
         Lemit::Spectrum, shape::Shape, two_sided::Bool, 
@@ -16,8 +17,8 @@ struct DiffuseAreaLight <: Light
         if texmap isa Nothing
             Lmap = nothing
         else
-            dat2, L, W = read_image(texmap, LL)
-            Lmap = MIPMap(Pnt2(W, L), dat2) # NOTE THE FLIP HERE
+            dat2, L, W = read_image(texmap)
+            Lmap = MIPMap(Pnt2i(W, L), dat2, false) # NOTE THE FLIP HERE
         end
         return new(
             LightArea,
@@ -27,6 +28,7 @@ struct DiffuseAreaLight <: Light
             two_sided,
             medium,
             Lmap,
+            LL
         )
     end
 end
@@ -38,15 +40,15 @@ end
 function L(dal::DiffuseAreaLight, n::Nml3, w::Vec3, uv::Pnt2)::Spectrum
     # Check for zero emitted radiance from point on area light
     if !(dal.two_sided || dot(n, w) > 0)
-        return spectrum_from_float(0.0)
+        return dal.LL * spectrum_from_float(0.0)
     end
 
     if !(dal.image isa Nothing)
         # return the DiffuseAreaLight emission using image
-        return lookup(dal.image, uv)
+        return dal.LL * lookup(dal.image, uv)
     end
 
-    return dal.Lemit
+    return dal.LL * dal.Lemit
 end
 
 function power(li::DiffuseAreaLight)::Spectrum
@@ -73,6 +75,10 @@ function pdf_li(light::DiffuseAreaLight, isect::SurfaceInteraction, wi::Vec3)::F
     return pdf(light.shape, isect.core, wi)
 end
 
+function pdf_li(light::DiffuseAreaLight, isect::Interaction, wi::Vec3)::Float64
+    return pdf(light.shape, isect, wi)
+end
+
 
 ##############
 ### 16.1.2 bdpt stuff
@@ -87,7 +93,17 @@ function sample_le(light::DiffuseAreaLight, u1::Pnt2, u2::Pnt2, t::Float64)::Tup
     pdf_pos = pdf(light.shape)
 
     if light.two_sided
-        @assert false
+        # Choose a side to sample and then remap u[0] to [0,1] before
+        # applying cosine-weighted hemisphere sampling for the chosen side.
+        if (u2.x < .5) 
+            u3 = Pnt2(min(u2.x * 2, 1.0-eps()), u2.y)
+            w = cosine_sample_hemisphere(u3)
+        else
+            u3 = Pnt2(min((u2.x - .5) * 2.0, 1.0-eps()), u2.y)
+            w = cosine_sample_hemisphere(u3)
+            w = Vec3(w.x, w.y, -w.z)
+        end
+        pdf_dir = 0.5 * cosine_hemisphere_pdf(abs(w.z))
     else
         w = cosine_sample_hemisphere(u2)
         pdf_dir = cosine_hemisphere_pdf(w.z)

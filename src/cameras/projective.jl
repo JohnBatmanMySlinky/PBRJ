@@ -17,6 +17,7 @@ struct ProjectiveCamera <: Camera
     function ProjectiveCamera(
         camera_to_world::Transformation,
         camera_to_screen::Transformation,
+        screen_window_tmp::Maybe{Bounds2},
         shutter_open::Float64,
         shutter_closed::Float64,
         lens_radius::Float64,
@@ -26,16 +27,20 @@ struct ProjectiveCamera <: Camera
         core = CameraCore(camera_to_world, shutter_open, shutter_closed, film)
 
         frame = film.full_resolution.x / film.full_resolution.y
-        if frame > 1.0
-            screen_window = Bounds2(
-                Pnt2(-frame, -1.0),
-                Pnt2(frame, 1.0)
-            )
+        if !(screen_window_tmp isa Nothing)
+            screen_window = screen_window_tmp
         else
-            screen_window = Bounds2(
-                Pnt2(-1.0, -1.0 / frame),
-                Pnt2(1.0, 1.0 / frame)
-            )
+            if frame > 1.0
+                screen_window = Bounds2(
+                    Pnt2(-frame, -1.0),
+                    Pnt2(frame, 1.0)
+                )
+            else
+                screen_window = Bounds2(
+                    Pnt2(-1.0, -1.0 / frame),
+                    Pnt2(1.0, 1.0 / frame)
+                )
+            end
         end
 
         screen_to_raster = (
@@ -82,6 +87,7 @@ struct PerspectiveCamera <: Camera
 
     function PerspectiveCamera(
         camera_to_world::Transformation,
+        screen_window::Maybe{Bounds2},
         shutter_open::Float64,
         shutter_closed::Float64,
         lens_radius::Float64,
@@ -92,6 +98,7 @@ struct PerspectiveCamera <: Camera
         projcam = ProjectiveCamera(
             camera_to_world,
             Perspective(fov, .01, 1000.0),
+            screen_window,
             shutter_open,
             shutter_closed,
             lens_radius,

@@ -85,6 +85,24 @@ struct SDFSphere <: SDFPrimitive
     end
 end
 
+struct SDFDisplacedSphere <: SDFPrimitive
+    radius::Float64
+    core::RayTracing.ShapeCore
+    bounding_sphere::RayTracing.Sphere
+    frequency::Pnt3
+    scale::Float64
+
+    function SDFDisplacedSphere(radius::Float64, core::ShapeCore, frequency::Pnt3, scale::Float64)
+        return new(
+            radius,
+            core,
+            Sphere(Pnt3(0, 0, 0), (radius + scale) * 1.01),
+            frequency,
+            scale
+        )
+    end
+end
+
 struct SDFBox <: SDFPrimitive
     half_extents::RayTracing.Pnt3  # half-width, half-height, half-depth
     core::RayTracing.ShapeCore
@@ -206,6 +224,14 @@ function evaluate(shape::SDFSphere, p::RayTracing.Pnt3)::Float64
     # Transform point to object space
     local_p = shape.core.world_to_object(p)
     return RayTracing.norm(local_p) - shape.radius
+end
+
+function evaluate(shape::SDFDisplacedSphere, p::RayTracing.Pnt3)::Float64
+    # Transform point to object space
+    local_p = shape.core.world_to_object(p)
+    d1 = RayTracing.norm(local_p) - shape.radius
+    d2 = shape.scale * sin(local_p.x * shape.frequency.x) * sin(local_p.y * shape.frequency.y) * sin(local_p.z * shape.frequency.z)
+    return d1 + d2
 end
 
 function evaluate(shape::SDFBox, p::RayTracing.Pnt3)::Float64

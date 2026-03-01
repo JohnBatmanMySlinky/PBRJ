@@ -85,3 +85,17 @@ function (g::Glass)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Ty
     end
 end
 
+function albedo(m::Glass, si::SurfaceInteraction)::Spectrum
+    KR = clamp.(m.Kr(si), 0, 1)
+    KT = clamp.(m.Kt(si), 0, 1)
+    eta = m.idx(si)
+    
+    # Fresnel reflectance at normal incidence for dielectric
+    F0 = ((eta - 1.0) / (eta + 1.0))^2
+    
+    # At normal incidence:
+    # - F0 fraction reflects (modulated by Kr)
+    # - (1 - F0) fraction transmits (modulated by Kt)
+    # For albedo (reflectance only), we only count the reflected portion
+    return KR .* F0
+end

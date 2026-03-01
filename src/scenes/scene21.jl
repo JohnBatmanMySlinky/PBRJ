@@ -5023,8 +5023,7 @@ function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(27.6255, -2.42353, 1.49616)
     look_at = Pnt3(26.6582, -2.17012, 1.48803)
     up = Vec3(-0.00786446, 0.00206023, 0.999967)
-    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), screen, 0.0, 1.0, 0.0, 1e6, 57.2209, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 57.2209, film)
 
     # Instantiate a Sampler
     S = ZSobolSampler(

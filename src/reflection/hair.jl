@@ -173,13 +173,13 @@ function sample_f(hair::HairBSDF, wo::Vec3, u2::Pnt2, type::UInt8)::Tuple{Vec3, 
 
 	# Determine which term $p$ to sample for hair scattering
 	ap_pdf = compute_Ap_pdf(hair, cos_theta_O)
-	p = -1
-	for p_tmp in 0:(pMax_hair-1)
-		if u00 < ap_pdf[p_tmp+1]
-			p = p_tmp
+	p = 0
+	for i in 0:(pMax_hair-1)
+		if u00 < ap_pdf[i+1]
+			p = i
 			break
 		end
-		u00 -= ap_pdf[p_tmp+1]
+		u00 -= ap_pdf[i+1]
 	end
 
 	# Rotate $\sin \thetao$ and $\cos \thetao$ to account for hair scale tilt
@@ -247,6 +247,74 @@ function sample_f(hair::HairBSDF, wo::Vec3, u2::Pnt2, type::UInt8)::Tuple{Vec3, 
 	pdf_val += Mp(cos_theta_I, cos_theta_O, sin_theta_I, sin_theta_O, hair.v[pMax_hair+1]) * ap_pdf[pMax_hair+1] * (1 / (2 * pi))
 	return wi, f(hair, wo, wi), pdf_val, hair.type
 end
+
+function compute_pdf(hair::HairBSDF, wo::Vec3, wi::Vec3)::Float64
+    # Compute hair coordinate system terms related to _wo_
+    sin_theta_O = wo.x
+    cos_theta_O = safe_sqrt(1.0 - sin_theta_O^2)
+    phi_O = atan(wo.z, wo.y)
+
+    # Compute hair coordinate system terms related to _wi_
+    sin_theta_I = wi.x
+    cos_theta_I = safe_sqrt(1.0 - sin_theta_I^2)
+    phi_I = atan(wi.z, wi.y)
+
+    # Compute $\gammat$ for refracted ray
+    eta_p = sqrt(hair.eta * hair.eta - sin_theta_O^2) / cos_theta_O
+    sin_gamma_T = hair.h / eta_p
+    gamma_T = safe_a_sin(sin_gamma_T)
+
+    # Compute PDF for $A_p$ terms
+    ap_pdf = compute_Ap_pdf(hair, cos_theta_O)
+
+    # Compute PDF sum for hair scattering events
+    phi = phi_I - phi_O
+    pdf_val = 0.0
+    for p in 0:(pMax_hair-1)
+        # Compute $\sin \thetao$ and $\cos \thetao$ terms accounting for scales
+        if p == 0
+            sin_theta_Op = sin_theta_O * hair.cos_2_k_alpha[1+1] - cos_theta_O * hair.sin_2_k_alpha[1+1]
+            cos_theta_Op = cos_theta_O * hair.cos_2_k_alpha[1+1] + sin_theta_O * hair.sin_2_k_alpha[1+1]
+		# Handle remainder of $p$ values for hair scale tilt
+        elseif p == 1
+            sin_theta_Op = sin_theta_O * hair.cos_2_k_alpha[0+1] + cos_theta_O * hair.sin_2_k_alpha[0+1]
+            cos_theta_Op = cos_theta_O * hair.cos_2_k_alpha[0+1] - sin_theta_O * hair.sin_2_k_alpha[0+1]
+        elseif p == 2
+            sin_theta_Op = sin_theta_O * hair.cos_2_k_alpha[2+1] + cos_theta_O * hair.sin_2_k_alpha[2+1]
+            cos_theta_Op = cos_theta_O * hair.cos_2_k_alpha[2+1] - sin_theta_O * hair.sin_2_k_alpha[2+1]
+        else
+            sin_theta_Op = sin_theta_O
+            cos_theta_Op = cos_theta_O
+        end
+
+        # Handle out-of-range $\cos \thetao$ from scale adjustment
+        cos_theta_Op = abs(cos_theta_Op)
+        mp = Mp(
+			cos_theta_I, 
+			cos_theta_Op, 
+			sin_theta_I, 
+			sin_theta_Op, 
+			hair.v[p+1]
+		) 
+		np = Np(
+			phi, 
+			p, 
+			hair.s, 
+			hair.gamma_O, 
+			gamma_T
+		)
+
+		pdf_val += mp * ap_pdf[p+1] * np
+    end
+	mp = Mp(
+		cos_theta_I, 
+		cos_theta_O, 
+		sin_theta_I, 
+		sin_theta_O, hair.v[pMax_hair+1])
+    pdf_val += mp * ap_pdf[pMax_hair+1] / (2.0 * pi)
+    return pdf_val
+end
+
 
 function compute_Ap_pdf(hair:: HairBSDF, cos_theta_O::Float64)::SVector{4, Float64}
 	# Compute array of $A_p$ values for _cosThetaO_
