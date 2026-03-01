@@ -120,7 +120,7 @@ function make_scene12(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
-    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    I = VolPathIntegratorv3(C, S, parsed_args["max-depth"])
 
     return I, scene
 end

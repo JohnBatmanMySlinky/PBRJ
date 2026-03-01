@@ -69,7 +69,7 @@ function render(
                 L = spectrum_from_float(0.0)
 
                 if w > 0
-                    L = li(i, ray, scene, 0, sampler)
+                    L = li(i, ray, scene, sampler)
                 end
 
                 if any(isnan.(L))

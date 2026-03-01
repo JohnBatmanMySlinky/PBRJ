@@ -3,7 +3,7 @@ struct SimpleIntegrator <: AbstractIntegrator
     sampler::S where S <: AbstractSampler
 end
 
-function li(si::SimpleIntegrator, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
+function li(si::SimpleIntegrator, ray::AbstractRay, scene::Scene, sampler::AbstractSampler)::Spectrum
     check, t, interaction, = intersect!(scene.b, ray)
     if !check
         L = spectrum_from_float(0.0)

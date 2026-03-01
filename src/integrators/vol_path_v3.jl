@@ -4,7 +4,7 @@ struct VolPathIntegratorv3 <: AbstractIntegrator
     max_depth::Int64
 end
 
-function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int64, sampler::AbstractSampler)::Spectrum
+function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, sampler::AbstractSampler)::Spectrum
     # declare local variables for delta tracking integration
     LL = spectrum_from_float(0.0)
     beta = spectrum_from_float(1.0)
@@ -115,23 +115,23 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, depth::Int6
             continue
         end
 
-        # Possibly add emitted light at surface intersection
-        if (bounces == 0) || specular_bounce
-            if !(si isa Nothing)
-                LL += beta * le(si, -ray.direction)
-                @info "Added Le -> L = $LL"
-            else
-                for light in scene.lights
-                    if is_infinite_light(light)
-                        LL += beta * le(light, ray)
-                    end
+        # Handle escaped rays: always accumulate infinite light contributions.
+        # Gating on specular_bounce would miss reflections from glossy surfaces
+        # (e.g. Metal with roughness=0) whose BSDF-sampled direct-lighting rays
+        # are blocked by medium-boundary spheres (no material → Li=0 there).
+        if si isa Nothing
+            for light in scene.lights
+                if is_infinite_light(light)
+                    LL += beta * le(light, ray)
                 end
             end
+            break
         end
 
-        # Terminate path if ray escaped or _maxDepth_ was reached
-        if (si isa Nothing)
-            break
+        # Possibly add emitted light at a surface intersection.
+        # Gate on specular_bounce to avoid MIS double-counting with direct lighting.
+        if (bounces == 0) || specular_bounce
+            LL += beta * le(si, -ray.direction)
         end
 
         if (bounces >= vp.max_depth)

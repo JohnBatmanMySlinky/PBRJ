@@ -234,7 +234,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = InfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        spectrum_from_float(1.0, Illuminant), 
+        spectrum_from_float(0.05, Illuminant), 
         jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"),
         false
     )
@@ -264,7 +264,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
-    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    I = VolPathIntegratorv3(C, S, parsed_args["max-depth"])
 
     return I, scene
 end
