@@ -1,3 +1,7 @@
+"""
+requires the cow.obj from here
+https://github.com/Libbum/spherical-cow#
+"""
 function make_scene108(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
     lights = Light[]
@@ -12,7 +16,7 @@ function make_scene108(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     println("Packing spheres...")
     triangles = RayTracing.parse_obj(
-        "/home/jmyslinski/random_stuff/spherical-cow/examples/objects/cow.obj",
+        jmfp("/home/jmyslinski/random_stuff/spherical-cow/examples/objects/cow.obj"),
         RayTracing.Translate(RayTracing.Pnt3(0, 0, 0)),
         false,
         false,

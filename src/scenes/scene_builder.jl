@@ -82,20 +82,20 @@ scene 106: fleshy dragon? ✅
     - caffeinate -di julia -t auto RayTracing.jl --scene-number 106 --samples-per-pixel 64 --image-dim 683 512 --max-depth 3 --file-name "106-dragon_10.exr"
 scene 107: train station
     - 3ds max 2011
-    - julia -t auto RayTracing.jl --scene-number 107 --image-dim 640 360 --samples-per-pixel 128
+    - julia -t auto RayTracing.jl --scene-number 107 --image-dim 640 360 --samples-per-pixel 128 --file-name "107-train-station.exr"
 scene 108: spherical cow (sphere-packing algorithm)
     - sphere-packing algorithm. fill up ya meshes with spheres
-    - julia -t auto RayTracing.jl --scene-number 108 --image-dim 500 500 --samples-per-pixel 64
+    - julia -t auto RayTracing.jl --scene-number 108 --image-dim 500 500 --samples-per-pixel 64 --file-name "108-spherical-cow.exr"
 scene 109: voxel cow (vozelization of meshes)
     - voxelize ya meshes. 
-    - julia -t auto RayTracing.jl --scene-number 109 --image-dim 500 500 --samples-per-pixel 64
+    - julia -t auto RayTracing.jl --scene-number 109 --image-dim 500 500 --samples-per-pixel 64 --filename "109-voxel-cow.exr"
 scene 110: floating lanterns
     - why does my bump mapping look fucked up???
     - julia -t auto RayTracing.jl --scene-number 110 --image-dim 1280 720 --samples-per-pixel 36 --crop-window 0.2 0.32 0.85 1.0 --file-name "110-floating_lanterns.exr"
 scene 111: RGB screen
     - mhmmm
 scene 112: ocean n boat
-    - mhmmm
+    - julia -t auto RayTracing.jl --scene-number 112 --image-dim 500 500 --samples-per-pixel 16 --file-name "112-ocean-n-boat.exr"
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}

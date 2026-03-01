@@ -44,13 +44,12 @@ function make_scene107(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate objects
-    obj_t = Translate(Pnt3(0, 0, 0))
+    transform_dict = Dict{String, ShapeCore}()
+    alpha_mask_dict = Dict{String, Maybe{String}}()
     obj, group_to_idx = parse_obj_3dsmax_2011(
         jmfp("/home/jmyslinski/random_stuff/PBRJ/ref/train_station/train_station_2.obj"),
-        obj_t,
-        false,
-        false,
-        nothing
+        transform_dict,
+        alpha_mask_dict
     )
     for (i, tris) in enumerate(obj)
         for tri in tris
