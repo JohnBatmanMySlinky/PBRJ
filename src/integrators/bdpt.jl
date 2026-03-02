@@ -354,7 +354,7 @@ function random_walk!(
                     # Update path state and previous path vertex after medium scattering
                     pdf_fwd = ps_pdf
                     beta *= ps_p / ps_pdf
-                    ray = spawn_ray(mi.core, ps_wi)
+                    spawn_ray!(ray, mi.core, ps_wi)
                     path[prev].pdf_rev = convert_density(path[vertex], ps_pdf, path[prev])
 
                     scattered = true
@@ -407,7 +407,7 @@ function random_walk!(
         # compute scattering functions for mode and skip over medium boundaries
         compute_scattering!(isect, ray, true, mode)
         if isect.bsdf isa Nothing
-            ray = spawn_ray(isect.core, ray.direction)
+            spawn_ray!(ray, isect.core, ray.direction)
             continue
         end
         
@@ -436,7 +436,7 @@ function random_walk!(
         end
         beta *= correct_shading_normal(isect, wo, wi, mode)
         @info "Random walk beta after shading normal correction $beta"
-        ray = spawn_ray(isect.core, wi)
+        spawn_ray!(ray, isect.core, wi)
         
         # Compute reverse area density at preceding vertex
         @info "pdf_rev - before - $(path[prev].pdf_rev)"
