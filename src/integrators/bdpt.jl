@@ -66,6 +66,8 @@ function render(
         film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
             @info "########################\nWorking on Pixel: $(pixel)\n########################\n\n\n"
+            camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
+            light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
             for sample_index in 1:sampler.samples_per_pixel
                 start_pixel_sample!(sampler, pixel, sample_index-1)
 
@@ -94,9 +96,6 @@ function render(
                 end
 
                 L = spectrum_from_float(0.0)
-
-                camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
-                light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
 
                 # Trace the camera and light subpaths
                 @prof "generate_camera_subpath" n_camera = generate_camera_subpath!(
@@ -297,12 +296,8 @@ function random_walk!(
     # JOHN HACK
     bounces += path_offset
 
-    COUNTER = 0
-
     while true
         @info "Random walk. Bounces $(bounces), beta $(beta), pdfFwd $(pdf_fwd), pdfRev $(pdf_rev)"
-
-        COUNTER += 1
         # attempt to create the next subpath verte in *path*
         # @info "Ray current has a medium: $(!(ray.medium isa Nothing))"
         @prof "random_walk.intersect!" check, t, isect = intersect!(scene.b, ray)
@@ -330,7 +325,7 @@ function random_walk!(
 
                 # Randomly sample medium event for _RandomRalk()_ ray
                 um = get_1D!(sampler)
-                callback_mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), um)
+                callback_mode = um < p_absorb ? 1 : (um < p_absorb + p_scatter ? 2 : 3)
 
                 if callback_mode == 0+1
                     # Handle absorption for _RandomWalk()_ ray
