@@ -211,6 +211,17 @@ function spawn_ray_to(interaction::Interaction, p2::Pnt3)::RayDifferential
     return RayDifferential(Ray(o, d, interaction.t, 1.0 - ShadowEpsilon, get_medium(interaction, d)))
 end
 
+function spawn_ray_to!(ray::RayDifferential, interaction::Interaction, p2::Pnt3)
+    d::Vec3 = p2 - interaction.p
+    ray.origin = interaction.p + ShadowEpsilon * d
+    ray.direction = d
+    ray.t = interaction.t
+    ray.tMax = 1.0 - ShadowEpsilon
+    ray.medium = get_medium(interaction, d)
+    ray.has_differentials = false
+    return ray
+end
+
 function spawn_ray_to(interaction::Interaction, it::Interaction)::RayDifferential
     o = interaction.p + ShadowEpsilon * (it.p - interaction.p)
     target = it.p + ShadowEpsilon * (o - it.p)

@@ -51,7 +51,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
         if isect isa Nothing
             break
         end
-        ray = spawn_ray_to(isect.core, vt.p1)
+        spawn_ray_to!(ray, isect.core, vt.p1)
     end
     return Tr / y_spectrum(inv_w)
 end

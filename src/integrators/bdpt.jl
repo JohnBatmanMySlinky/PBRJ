@@ -68,6 +68,8 @@ function render(
             @info "########################\nWorking on Pixel: $(pixel)\n########################\n\n\n"
             camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
             light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
+            sampled_ei_buf = EndpointInteraction()
+            sampled_v_buf = Vertex(VTCamera, spectrum_from_float(0.0), sampled_ei_buf, nothing, nothing)
             for sample_index in 1:sampler.samples_per_pixel
                 start_pixel_sample!(sampler, pixel, sample_index-1)
 
@@ -168,7 +170,9 @@ function render(
                             light_num,
                             i.camera,
                             sampler,
-                            camera_sample.film
+                            camera_sample.film,
+                            sampled_v_buf,
+                            sampled_ei_buf,
                         )
 
                         @info "Connect bdpt s: $(s), t: $(t), Lpath: $(L_path), misWeight: $(mis_weight)"
@@ -449,8 +453,8 @@ end
 
 # 16.3.3 Subpath Connections
 function connect_BDPT(
-    scene::Scene, 
-    light_vertices::Vector{Vertex}, 
+    scene::Scene,
+    light_vertices::Vector{Vertex},
     camera_vertices::Vector{Vertex},
     s::Int64,
     t::Int64,
@@ -459,6 +463,8 @@ function connect_BDPT(
     camera::Camera,
     sampler::AbstractSampler,
     pfilm::Pnt2,
+    sampled_v_buf::Vertex,
+    sampled_ei_buf::EndpointInteraction,
 )::Tuple{Spectrum, Float64, Pnt2}
     L = spectrum_from_float(0.0)
 
@@ -499,7 +505,18 @@ function connect_BDPT(
             sampled_wi, wi, pdf_val, vis, pfilm = sample_wi(camera, get_interaction(qs), get_2D!(sampler))
             if (pdf_val > 0) && !is_black(sampled_wi)
                 # initalize dynamically sampled vertex and L for t=1 case
-                sampled = create_camera_vertex(camera, vis.p1, sampled_wi / pdf_val)
+                sampled_ei_buf.interaction = vis.p1
+                sampled_ei_buf.camera = camera
+                sampled_ei_buf.light = nothing
+                sampled_v_buf.type = VTCamera
+                sampled_v_buf.beta = sampled_wi / pdf_val
+                sampled_v_buf.ei = sampled_ei_buf
+                sampled_v_buf.mi = nothing
+                sampled_v_buf.si = nothing
+                sampled_v_buf.delta = false
+                sampled_v_buf.pdf_fwd = 0.0
+                sampled_v_buf.pdf_rev = 0.0
+                sampled = sampled_v_buf
                 L = qs.beta * f(qs, sampled, Importance) * sampled.beta
                 if is_on_surface(qs)
                     L *= abs(dot(wi, ns(qs)))
@@ -525,8 +542,18 @@ function connect_BDPT(
             @info "sampled Li from last camera vertex: sampled_li: $(sampled_li), wi: $(wi), pdf_val: $(pdf_val), visibility tester: $(vis)"
             if pdf_val > 0.0 && !(is_black(sampled_li))
                 @info "<<<<<SAMPLED A VERTEX>>>>>"
-                ei = EndpointInteraction(vis.p1, light)
-                sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
+                sampled_ei_buf.interaction = vis.p1
+                sampled_ei_buf.camera = nothing
+                sampled_ei_buf.light = light
+                sampled_v_buf.type = VTLight
+                sampled_v_buf.beta = sampled_li/(pdf_val*light_pdf)
+                sampled_v_buf.ei = sampled_ei_buf
+                sampled_v_buf.mi = nothing
+                sampled_v_buf.si = nothing
+                sampled_v_buf.delta = false
+                sampled_v_buf.pdf_fwd = 0.0
+                sampled_v_buf.pdf_rev = 0.0
+                sampled = sampled_v_buf
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled, Radiance) * sampled.beta
                 @info "pt.beta = $(pt.beta), f = $(f(pt, sampled, Radiance)), sampled.beta = $(sampled.beta)"
