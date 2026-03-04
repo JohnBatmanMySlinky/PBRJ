@@ -37,7 +37,7 @@ scene 13: DISNEY CLOUD (v4 NanoVDBMedium) 🟨
 scene 14: Anemone (v4 GridMedium) 🟨
     - emmissive medium is only supported by VolPath (v4) integrator. 
     - Looks as good as it can with BDPT at the moment
-    - caffeinate -di julia -t auto RayTracing.jl --scene-number 14 --image-dim 640 360 --samples-per-pixel 16 --file-name --max-depth 30 "14-anemone.exr"
+    - caffeinate -di julia -t auto RayTracing.jl --scene-number 14 --image-dim 640 360 --samples-per-pixel 256 --max-depth 30 --file-name "14-anemone.exr"
 scene 15: procedural clouds 🟨
     - something is fucky
 scene 16: elevator hallway 🟨
