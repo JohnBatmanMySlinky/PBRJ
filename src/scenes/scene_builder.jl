@@ -36,7 +36,7 @@ scene 13: DISNEY CLOUD (v4 NanoVDBMedium) 🟨
     - caffeinate -di julia -t auto RayTracing.jl --scene-number 11 --image-dim 640 360 --samples-per-pixel 16 --file-name "13-disney-cloud.exr"
 scene 14: Anemone (v4 GridMedium) 🟨
     - VolPathIntegratorv3 looking OK!!!!
-    - caffeinate -di julia -t auto RayTracing.jl --scene-number 14 --image-dim 640 360 --samples-per-pixel 256 --max-depth 30 --file-name "14-anemone.exr"
+    - caffeinate -di julia -t auto RayTracing.jl --scene-number 14 --image-dim 640 360 --samples-per-pixel 1024 --max-depth 30 --file-name "14-anemone.exr"
 scene 15: procedural clouds 🟨
     - something is fucky
 scene 16: elevator hallway 🟨
