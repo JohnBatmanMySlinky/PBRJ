@@ -282,14 +282,32 @@ end
 path = RayTracing.jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium_downsampled.pbrt")
 
 println("Small n fast")
-data_v2 = parse_uniformgrid(path)
-@time data_v2 = parse_uniformgrid(path)
+small_n_fast = parse_uniformgrid(path)
+@time parse_uniformgrid(path)
 
 println("Small n slow")
-RayTracing.parse_media(path)
+nx, ny, nz, density, Lescale, nothing, p0, p1 = RayTracing.parse_media(path)
 @time RayTracing.parse_media(path)
+
+@assert nx == small_n_fast.nx
+@assert ny == small_n_fast.ny
+@assert nz == small_n_fast.nz
+@assert p0 == small_n_fast.p0
+@assert p1 == small_n_fast.p1
+@assert abs(sum(density) - sum(small_n_fast.density)) < 5.0
+@assert abs(sum(Lescale) - sum(small_n_fast.lescale)) < 5.0
 
 println("Big n fast")
 path = RayTracing.jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium.pbrt")
-data_v2 = parse_uniformgrid(path)
-@time data_v2 = parse_uniformgrid(path)
+big_n_fast = parse_uniformgrid(path)
+@time parse_uniformgrid(path)
+
+nx, ny, nz, density, Lescale, nothing, p0, p1 = RayTracing.parse_media(path)
+
+@assert nx == big_n_fast.nx
+@assert ny == big_n_fast.ny
+@assert nz == big_n_fast.nz
+@assert p0 == big_n_fast.p0
+@assert p1 == big_n_fast.p1
+@assert abs(sum(density) - sum(big_n_fast.density)) < 5.0
+@assert abs(sum(Lescale) - sum(big_n_fast.lescale)) < 5.0
