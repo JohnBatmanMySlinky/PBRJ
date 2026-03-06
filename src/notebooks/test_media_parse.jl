@@ -29,52 +29,68 @@ function parse_uniformgrid_buf(buf::Vector{UInt8})::UniformGridData
     n = length(buf)
     nx = ny = nz = 0
     p0 = p1 = SVector{3,Float32}(0f0, 0f0, 0f0)
-
-    # byte offsets of the '[' content start for the two big arrays
     lescale_offset = -1
     density_offset  = -1
 
-    # ── Pass 1: scan all lines, parse cheap fields, record offsets for grids ──
+    # ── Pass 1: scan for quoted keys anywhere in the buffer ──
     pos = 1
     while pos <= n
-        line_end = pos
-        @inbounds while line_end <= n && buf[line_end] != UInt8('\n')
-            line_end += 1
-        end
+        # find next '"' — keys can be anywhere on any line
+        @inbounds while pos <= n && buf[pos] != UInt8('"'); pos += 1; end
+        pos > n && break
 
-        key, bracket_pos = extract_key(buf, pos, line_end)
+        # find closing '"' of key
+        key_start = pos + 1
+        pos = key_start
+        @inbounds while pos <= n && buf[pos] != UInt8('"'); pos += 1; end
+        key = String(buf[key_start:pos-1])
+        pos += 1  # skip closing '"'
+
+        # find '['
+        @inbounds while pos <= n && buf[pos] != UInt8('['); pos += 1; end
+        pos += 1  # skip '['
+        bracket_pos = pos
 
         if key == "integer nx"
-            nx = parse_single_int(buf, bracket_pos, line_end)
+            nx = parse_single_int(buf, bracket_pos, bracket_pos + 20)
         elseif key == "integer ny"
-            ny = parse_single_int(buf, bracket_pos, line_end)
+            ny = parse_single_int(buf, bracket_pos, bracket_pos + 20)
         elseif key == "integer nz"
-            nz = parse_single_int(buf, bracket_pos, line_end)
+            nz = parse_single_int(buf, bracket_pos, bracket_pos + 20)
         elseif key == "point3 p0"
-            p0 = parse_point3(buf, bracket_pos, line_end)
+            p0 = parse_point3(buf, bracket_pos, bracket_pos + 60)
         elseif key == "point3 p1"
-            p1 = parse_point3(buf, bracket_pos, line_end)
+            p1 = parse_point3(buf, bracket_pos, bracket_pos + 60)
         elseif key == "float Lescale"
-            lescale_offset = bracket_pos   # just record, don't parse yet
+            lescale_offset = bracket_pos
         elseif key == "float density"
             density_offset = bracket_pos
         end
 
-        pos = line_end + 1
+        # skip to closing ']' of this field so the next '"' we find is a new key
+        # EXCEPT for the big arrays — we don't want to scan 2GB looking for their ']'
+        if key != "float Lescale" && key != "float density"
+            @inbounds while pos <= n && buf[pos] != UInt8(']'); pos += 1; end
+            pos += 1  # skip ']'
+        else
+            # just advance past the '[' we already recorded; next '"' will be after ']'
+            # but we don't scan for it — leave pos right after '[' and let the
+            # outer '"' scanner skip over the data naturally by finding the next '"'
+            # which will be beyond the ']' anyway
+            pos = bracket_pos
+        end
     end
 
-    @assert nx > 0 && ny > 0 && nz > 0 "Failed to parse grid dimensions"
-    @assert lescale_offset > 0          "float Lescale row not found"
-    @assert density_offset  > 0         "float density row not found"
+    @assert nx > 0 && ny > 0 && nz > 0   "Failed to parse grid dimensions"
+    @assert lescale_offset > 0             "float Lescale not found"
+    @assert density_offset  > 0            "float density not found"
 
     count = nx * ny * nz
 
-    # ── Pass 2: parse the two big arrays using recorded offsets ──
-    # These can themselves run concurrently if you have cores to spare
+    # ── Pass 2: parse the two big arrays from recorded offsets ──
     lescale = Vector{Float32}(undef, count)
     density  = Vector{Float32}(undef, count)
 
-    # Outer parallelism: parse both grids simultaneously
     @sync begin
         Threads.@spawn parse_float_array_threaded!(lescale, buf, lescale_offset, n, count)
         Threads.@spawn parse_float_array_threaded!(density,  buf, density_offset,  n, count)
