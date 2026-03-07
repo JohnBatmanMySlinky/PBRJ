@@ -1,18 +1,23 @@
+include("../RayTracing.jl")
+
+using Mmap
+using Base.Threads
+using StaticArrays
+
 struct UniformGridData
     nx::Int
     ny::Int
     nz::Int
-    p0::Pnt3
-    p1::Pnt3
-    le_grid::Vector{Float32}
+    p0::SVector{3, Float32}
+    p1::SVector{3, Float32}
+    lescale::Vector{Float32}
     density::Vector{Float32}
-    temperature_grid::Maybe{Vector{Float32}}
 end
 
 # ──────────────────────────────────────────────
 # Entry point
 # ──────────────────────────────────────────────
-function parse_media(filepath::String)::UniformGridData
+function parse_uniformgrid(filepath::String)::UniformGridData
     io = open(filepath, "r")
     buf = mmap(io, Vector{UInt8})
     result = parse_uniformgrid_buf(buf)
@@ -91,7 +96,7 @@ function parse_uniformgrid_buf(buf::Vector{UInt8})::UniformGridData
         Threads.@spawn parse_float_array_threaded!(density,  buf, density_offset,  n, count)
     end
 
-    UniformGridData(nx, ny, nz, Pnt3(p0), Pnt3(p1), lescale, density, nothing)
+    UniformGridData(nx, ny, nz, p0, p1, lescale, density)
 end
 
 # ──────────────────────────────────────────────
@@ -194,7 +199,7 @@ end
 # ──────────────────────────────────────────────
 function parse_float_array_threaded!(out::Vector{Float32}, buf::Vector{UInt8},
                                       from::Int, buflen::Int, count::Int)
-    nt = min(Threads.nthreads(), count)
+    nt = min(nthreads(), count)
 
     # find end of this array's data
     data_end = from
@@ -221,7 +226,7 @@ function parse_float_array_threaded!(out::Vector{Float32}, buf::Vector{UInt8},
 
     # Pass 1: count tokens per chunk
     counts = zeros(Int, nt)
-    Threads.@threads for t in 1:nt
+    @threads for t in 1:nt
         l, h = boundaries[t]
         in_tok = false
         c = 0
@@ -247,7 +252,7 @@ function parse_float_array_threaded!(out::Vector{Float32}, buf::Vector{UInt8},
     @assert offsets[end] + counts[end] == count "Token count mismatch: expected $count, got $(offsets[end] + counts[end])"
 
     # Pass 2: parse into output
-    Threads.@threads for t in 1:nt
+    @threads for t in 1:nt
         l, h   = boundaries[t]
         idx    = offsets[t]
         i      = l
@@ -273,3 +278,36 @@ function parse_float_array_threaded!(out::Vector{Float32}, buf::Vector{UInt8},
         end
     end
 end
+
+path = RayTracing.jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium_downsampled.pbrt")
+
+println("Small n fast")
+small_n_fast = parse_uniformgrid(path)
+@time parse_uniformgrid(path)
+
+println("Small n slow")
+nx, ny, nz, density, Lescale, nothing, p0, p1 = RayTracing.parse_media(path)
+@time RayTracing.parse_media(path)
+
+@assert nx == small_n_fast.nx
+@assert ny == small_n_fast.ny
+@assert nz == small_n_fast.nz
+@assert p0 == small_n_fast.p0
+@assert p1 == small_n_fast.p1
+@assert abs(sum(density) - sum(small_n_fast.density)) < 5.0
+@assert abs(sum(Lescale) - sum(small_n_fast.lescale)) < 5.0
+
+println("Big n fast")
+path = RayTracing.jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/anemone/geometry/anemone_medium.pbrt")
+big_n_fast = parse_uniformgrid(path)
+@time parse_uniformgrid(path)
+
+nx, ny, nz, density, Lescale, nothing, p0, p1 = RayTracing.parse_media(path)
+
+@assert nx == big_n_fast.nx
+@assert ny == big_n_fast.ny
+@assert nz == big_n_fast.nz
+@assert p0 == big_n_fast.p0
+@assert p1 == big_n_fast.p1
+@assert abs(sum(density) - sum(big_n_fast.density)) < 5.0
+@assert abs(sum(Lescale) - sum(big_n_fast.lescale)) < 5.0

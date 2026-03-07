@@ -78,7 +78,7 @@ function make_scene14(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             spectrum_from_float(0.2, .01, 1.0),
             1.0,
             spectrum_from_float(10.0, 0.5, 5.0),
-            1.0 / 106.857,
+            1.0, # TODO HACK BECAUSE I DONT HAVE PHOTO NORMALIZATION
             0.0,
             Pnt3i(256, 256, 256)
         ),
