@@ -51,10 +51,10 @@ struct GridMedium <: AbstractMedium
             sigma_scale,
             HenyeyGreenstein(g),
             density_grid, 
-            temperature_grid,
+            parsed_media.temperature_grid,
             le,
             le_grid,
-            (!(temperature_grid isa Nothing)) || (maximum(le) > 0.0),
+            (!(parsed_media.temperature_grid isa Nothing)) || (maximum(le) > 0.0),
             majorant_grid
         )
     end
