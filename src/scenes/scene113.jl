@@ -3,6 +3,14 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     lights = Light[]
     materials = Material[]
 
+    mat_tmp = Matte(
+        "mat_tmp",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_tmp)
+
     mat_light = Matte(
         "mat_light",
         ConstantTexture(spectrum_from_float(1.0, 0.8466667, 0.8)),
@@ -115,78 +123,14 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     end
 
 
-    bulb_contact = parse_obj(
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/bulb_contact_ascii.obj"), 
-        Translate(Pnt3(0,0,0)),
-        false,
-        false,
-        nothing
-    )
-    for tris in bulb_contact
-        for tri in tris
-            push!(primitives, Primitive(tri, "mat_aluminum", nothing))
-        end
-    end
-
-    ceramic = parse_obj(
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/ceramic_ascii.obj"), 
-        Translate(Pnt3(0,0,0)),
-        false,
-        false,
-        nothing
-    )
-    for tris in ceramic
-        for tri in tris
-            push!(primitives, Primitive(tri, "mat_ceramic", nothing))
-        end
-    end
-
-    glass_bulb = parse_obj(
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/glass_bulb_ascii.obj"), 
-        Translate(Pnt3(0,0,0)),
-        false,
-        false,
-        nothing
-    )
-    for tris in glass_bulb
-        for tri in tris
-            push!(primitives, Primitive(tri, "mat_glass", nothing))
-        end
-    end
-
-    bulb_cap = parse_obj(
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/bulb_cap_ascii.obj"), 
-        Translate(Pnt3(0,0,0)),
-        false,
-        false,
-        nothing
-    )
-    for tris in bulb_cap
-        for tri in tris
-            push!(primitives, Primitive(tri, "mat_aluminum_rough", nothing))
-        end
-    end
-
-    match = parse_obj(
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/matchstick_ascii.obj"), 
-        Translate(Pnt3(0,0,0)),
-        false,
-        false,
-        nothing
-    )
-    for tris in bulb_cap
-        for tri in tris
-            push!(primitives, Primitive(tri, "mat_matchstick_color", nothing))
-        end
-    end 
-
-    # Additional bulb+match instances (L1, R1, L2, R2, L3)
+    # bulb+match instances: center (identity) + L1, R1, L2, R2, L3
     instance_matrices = [
-        Mat4( 0.76604444, 0.0, -0.64278764, 0.0,  -0.6232521,  0.24466307, -0.7427629,  0.0,   0.1572664,  0.9696082,  0.18742278, 0.0,  -0.5,      0.2452139,  -3.943021,  1.0),  # L1
-        Mat4(-0.5,        0.0,  0.8660254,  0.0,   0.8397053,  0.24466307,  0.4848041,  0.0,  -0.21188444, 0.9696082, -0.12233154, 0.0,   0.50736,   0.2452139,  -3.636737,  1.0),  # R1
-        Mat4(-0.7858569,  0.0,  0.6184084,  0.0,   0.59961385, 0.24466307,  0.76197326, 0.0,  -0.1513017,  0.9696082, -0.19227016, 0.0,  -2.59264,   0.2452139,  -1.83674,   1.0),  # L2
-        Mat4( 0.49044752, 0.0,  0.87147075, 0.0,   0.8449851,  0.24466307, -0.47554192, 0.0,  -0.2132167,  0.9696082,  0.119994394,0.0,   1.09596,   0.2452139,   1.87731,   1.0),  # R2
-        Mat4( 0.98768836, 0.0, -0.15643446, 0.0,  -0.15168013, 0.24466307, -0.9576707,  0.0,   0.038273737,0.9696082,  0.24165086, 0.0,  -6.69,      0.2452139, -11.44302,   1.0),  # L3
+        Mat4( 1.0,         0.0,  0.0,         0.0,   0.0,        1.0,         0.0,         0.0,   0.0,         0.0,         1.0,         0.0,   0.0,       0.0,        0.0,        1.0),  # center
+        Mat4( 0.76604444,  0.0, -0.64278764,  0.0,  -0.6232521,  0.24466307, -0.7427629,   0.0,   0.1572664,   0.9696082,   0.18742278,  0.0,  -0.5,       0.2452139, -3.943021,   1.0),  # L1
+        Mat4(-0.5,         0.0,  0.8660254,   0.0,   0.8397053,  0.24466307,  0.4848041,   0.0,  -0.21188444,  0.9696082,  -0.12233154,  0.0,   0.50736,   0.2452139, -3.636737,   1.0),  # R1
+        Mat4(-0.7858569,   0.0,  0.6184084,   0.0,   0.59961385, 0.24466307,  0.76197326,  0.0,  -0.1513017,   0.9696082,  -0.19227016,  0.0,  -2.59264,   0.2452139, -1.83674,    1.0),  # L2
+        Mat4( 0.49044752,  0.0,  0.87147075,  0.0,   0.8449851,  0.24466307, -0.47554192,  0.0,  -0.2132167,   0.9696082,   0.119994394, 0.0,   1.09596,   0.2452139,  1.87731,    1.0),  # R2
+        Mat4( 0.98768836,  0.0, -0.15643446,  0.0,  -0.15168013, 0.24466307, -0.9576707,   0.0,   0.038273737, 0.9696082,   0.24165086,  0.0,  -6.69,      0.2452139, -11.44302,   1.0),  # L3
     ]
     bulb_geo = [
         (jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/bulb_contact_ascii.obj"), "mat_aluminum"),
@@ -199,7 +143,8 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         for (path, matname) in bulb_geo
             for tris in parse_obj(path, inst_t, false, false, nothing)
                 for tri in tris
-                    push!(primitives, Primitive(tri, matname, nothing))
+                    # push!(primitives, Primitive(tri, matname, nothing))
+                    push!(primitives, Primitive(tri, "mat_tmp", nothing))
                 end
             end
         end
@@ -210,19 +155,19 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
     end
 
-    ground_t = Transformation(Mat4(5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1))
-    ground = parse_obj(
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/ground_ascii.obj"), 
-        ground_t,
-        false,
-        false,
-        nothing
-    )
-    for tris in ground
-        for tri in tris
-            push!(primitives, Primitive(tri, "mat_coated_diffuse_1", nothing))
-        end
-    end 
+    # ground_t = Transformation(Mat4(5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1))
+    # ground = parse_obj(
+    #     jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/ground_ascii.obj"), 
+    #     ground_t,
+    #     false,
+    #     false,
+    #     nothing
+    # )
+    # for tris in ground
+    #     for tri in tris
+    #         push!(primitives, Primitive(tri, "mat_coated_diffuse_1", nothing))
+    #     end
+    # end 
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
