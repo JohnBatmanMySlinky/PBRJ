@@ -96,6 +96,8 @@ scene 111: RGB screen
     - mhmmm
 scene 112: ocean n boat
     - julia -t auto RayTracing.jl --scene-number 112 --image-dim 500 500 --samples-per-pixel 16 --file-name "112-ocean-n-boat.exr"
+scene 113: matchbulb
+    - caffeinate -di julia -t 4 RayTracing.jl --scene-number 113 --image-dim 640 360 --samples-per-pixel 12 --file-name "113-matchbulb.exr"
 """
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
@@ -169,6 +171,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene111(parsed_args)
     elseif parsed_args["scene-number"] == 112
         return make_scene112(parsed_args)
+    elseif parsed_args["scene-number"] == 113
+        return make_scene113(parsed_args)
     else
         @assert false
     end
