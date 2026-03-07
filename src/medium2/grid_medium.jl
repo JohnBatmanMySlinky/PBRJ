@@ -23,13 +23,13 @@ struct GridMedium <: AbstractMedium
         g::Float64=0.0,
         majorant_grid_res::Pnt3i=Pnt3i(16, 16, 16)
     )
-        nx, ny, nz, d, le_grid, temperature_grid, p0, p1 = parse_media(fpath)
-        density_grid = SampledGrid(d, nx, ny, nz)
-        if !(temperature_grid isa Nothing)
-            temperature_grid =  SampledGrid(temperature_grid, nx, ny, nz)
+        parsed_media = parse_media(fpath)
+        density_grid = SampledGrid(parsed_media.density, parsed_media.nx, parsed_media.ny, parsed_media.nz)
+        if !(parsed_media.temperature_grid isa Nothing)
+            temperature_grid =  SampledGrid(parsed_media.temperature_grid, parsed_media.nx, parsed_media.ny, parsed_media.nz)
         end
-        if !(le_grid isa Nothing)
-            le_grid = SampledGrid(le_grid * le_grid_scale, nx, ny, nz)
+        if !(parsed_media.le_grid isa Nothing)
+            le_grid = SampledGrid(parsed_media.le_grid * le_grid_scale, parsed_media.nx, parsed_media.ny, parsed_media.nz)
         end
 
         majorant_grid_d = zeros(Float64, majorant_grid_res.x * majorant_grid_res.y * majorant_grid_res.z)
@@ -41,10 +41,10 @@ struct GridMedium <: AbstractMedium
                 end
             end
         end
-        majorant_grid = MajorantGrid(Bounds3(p0,p1), majorant_grid_d, majorant_grid_res)
+        majorant_grid = MajorantGrid(Bounds3(parsed_media.p0, parsed_media.p1), majorant_grid_d, majorant_grid_res)
 
         return new(
-            Bounds3(p0,p1),
+            Bounds3(parsed_media.p0, parsed_media.p1),
             Inv(medium_to_world), 
             sigma_a * sigma_scale, 
             sigma_s * sigma_scale, 

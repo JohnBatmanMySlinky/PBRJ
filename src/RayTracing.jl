@@ -17,6 +17,7 @@ using Printf
 using Distributions
 using Combinatorics
 using Bumper
+using Mmap
 
 abstract type AbstractBSDF end
 abstract type AbstractBSSRDF end
