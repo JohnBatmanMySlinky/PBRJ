@@ -189,30 +189,103 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     for tri in tris
         push!(primitives, Primitive(tri, nothing, nothing, flame))
     end
-    """
-    AttributeBegin
-        AttributeBegin
-            MakeNamedMedium "/obj/flame/RENDER-0"
-                "rgb sigma_s" [ 2 2 2 ]
-                "string filename" [ "geometry/flame-RENDER-0.64.nvdb" ]
-                "float temperaturescale" [ 5500 ]
-                "float temperatureoffset" [ 0.01 ]
-                "rgb sigma_a" [ 0.05 0.05 0.05 ]
-                "float Lescale" [ 1.25 ]
-                "string type" [ "nanovdb" ]
 
-            Material "interface"
-            MediumInterface "/obj/flame/RENDER-0" ""
-            Shape "trianglemesh"
-                "point3 P" [ 0.52499956 1.2099994 0.46499974 -0.47000048 1.2099994 0.46499974 
-                            0.52499956 2.3099995 0.46499974 -0.47000048 2.3099995 0.46499974 
-                            -0.47000048 1.2099994 -0.5150003 0.52499956 1.2099994 -0.5150003 
-                            -0.47000048 2.3099995 -0.5150003 0.52499956 2.3099995 -0.5150003 ]
-                "integer indices" [ 0 3 1 0 2 3 4 7 5 4 6 7 6 2 7 6 3 2 5 1 4 5 0 1 5 
-                                    2 0 5 7 2 1 6 4 1 3 6 ]
-        AttributeEnd
-    AttributeEnd
-    """
+    flame_indices = Int64[0, 3, 1, 0, 2, 3, 4, 7, 5, 4, 6, 7, 6, 2, 7, 6, 3, 2, 5, 1, 4, 5, 0, 1, 5, 2, 0, 5, 7, 2, 1, 6, 4, 1, 3, 6] .+ 1
+
+    flame_L1_mi = MediumInterface(
+        NanoVDBMedium(
+            Translate(Pnt3(0, 0, 0)),
+            spectrum_from_float(0.05, 0.05, 0.05),
+            spectrum_from_float(2.0, 2.0, 2.0),
+            0.0, 1.0,
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/flame_L1-RENDER-0.64.nvdb"),
+            Pnt3i(256, 256, 256), 1.25, 0.01, 5500.0
+        ), nothing
+    )
+    for tri in construct_triangle_mesh(ShapeCore(), 12, Pnt3[
+            Pnt3(-0.99499977, 0.37999898, -4.625),   Pnt3(-2.0299997, 0.37999898, -4.625),
+            Pnt3(-0.99499977, 1.2849989,  -4.625),   Pnt3(-2.0299997, 1.2849989,  -4.625),
+            Pnt3(-2.0299997,  0.37999898, -5.615),   Pnt3(-0.99499977, 0.37999898, -5.615),
+            Pnt3(-2.0299997,  1.2849989,  -5.615),   Pnt3(-0.99499977, 1.2849989,  -5.615),
+        ], flame_indices, nothing, nothing, nothing, nothing, nothing)
+        push!(primitives, Primitive(tri, nothing, nothing, flame_L1_mi))
+    end
+
+    flame_R1_mi = MediumInterface(
+        NanoVDBMedium(
+            Translate(Pnt3(0, 0, 0)),
+            spectrum_from_float(0.05, 0.05, 0.05),
+            spectrum_from_float(2.0, 2.0, 2.0),
+            0.0, 1.0,
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/flame_R1-RENDER-0.64.nvdb"),
+            Pnt3i(256, 256, 256), 1.25, 0.01, 5500.0
+        ), nothing
+    )
+    for tri in construct_triangle_mesh(ShapeCore(), 12, Pnt3[
+            Pnt3(2.3499994,  0.37499914, -2.355),  Pnt3(1.3399994, 0.37499914, -2.355),
+            Pnt3(2.3499994,  1.2849991,  -2.355),  Pnt3(1.3399994, 1.2849991,  -2.355),
+            Pnt3(1.3399994,  0.37499914, -3.395),  Pnt3(2.3499994, 0.37499914, -3.395),
+            Pnt3(1.3399994,  1.2849991,  -3.395),  Pnt3(2.3499994, 1.2849991,  -3.395),
+        ], flame_indices, nothing, nothing, nothing, nothing, nothing)
+        push!(primitives, Primitive(tri, nothing, nothing, flame_R1_mi))
+    end
+
+    flame_L2_mi = MediumInterface(
+        NanoVDBMedium(
+            Translate(Pnt3(0, 0, 0)),
+            spectrum_from_float(0.05, 0.05, 0.05),
+            spectrum_from_float(2.0, 2.0, 2.0),
+            0.0, 1.0,
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/flame_L2-RENDER-0.64.nvdb"),
+            Pnt3i(256, 256, 256), 1.25, 0.01, 5500.0
+        ), nothing
+    )
+    for tri in construct_triangle_mesh(ShapeCore(), 12, Pnt3[
+            Pnt3(-1.1249996, 0.37999898, -0.09500042),  Pnt3(-2.1549995, 0.37999898, -0.09500042),
+            Pnt3(-1.1249996, 1.2849989,  -0.09500042),  Pnt3(-2.1549995, 1.2849989,  -0.09500042),
+            Pnt3(-2.1549995, 0.37999898, -1.1400003),   Pnt3(-1.1249996, 0.37999898, -1.1400003),
+            Pnt3(-2.1549995, 1.2849989,  -1.1400003),   Pnt3(-1.1249996, 1.2849989,  -1.1400003),
+        ], flame_indices, nothing, nothing, nothing, nothing, nothing)
+        push!(primitives, Primitive(tri, nothing, nothing, flame_L2_mi))
+    end
+
+    flame_R2_mi = MediumInterface(
+        NanoVDBMedium(
+            Translate(Pnt3(0, 0, 0)),
+            spectrum_from_float(0.05, 0.05, 0.05),
+            spectrum_from_float(2.0, 2.0, 2.0),
+            0.0, 1.0,
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/flame_R2-RENDER-0.64.nvdb"),
+            Pnt3i(256, 256, 256), 1.25, 0.01, 5500.0
+        ), nothing
+    )
+    for tri in construct_triangle_mesh(ShapeCore(), 12, Pnt3[
+            Pnt3(2.9599993, 0.37999916, 1.6199996),   Pnt3(1.9449993, 0.37999916, 1.6199996),
+            Pnt3(2.9599993, 1.2849991,  1.6199996),   Pnt3(1.9449993, 1.2849991,  1.6199996),
+            Pnt3(1.9449993, 0.37999916, 0.61999965),  Pnt3(2.9599993, 0.37999916, 0.61999965),
+            Pnt3(1.9449993, 1.2849991,  0.61999965),  Pnt3(2.9599993, 1.2849991,  0.61999965),
+        ], flame_indices, nothing, nothing, nothing, nothing, nothing)
+        push!(primitives, Primitive(tri, nothing, nothing, flame_R2_mi))
+    end
+
+    flame_L3_mi = MediumInterface(
+        NanoVDBMedium(
+            Translate(Pnt3(0, 0, 0)),
+            spectrum_from_float(0.05, 0.05, 0.05),
+            spectrum_from_float(2.0, 2.0, 2.0),
+            0.0, 1.0,
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/flame_L3-RENDER-0.64.nvdb"),
+            Pnt3i(256, 256, 256), 1.25, 0.01, 5500.0
+        ), nothing
+    )
+    for tri in construct_triangle_mesh(ShapeCore(), 12, Pnt3[
+            Pnt3(-6.445, 0.37999922, -12.445003),  Pnt3(-7.47, 0.37999922, -12.445003),
+            Pnt3(-6.445, 1.2849993,  -12.445003),  Pnt3(-7.47, 1.2849993,  -12.445003),
+            Pnt3(-7.47,  0.37999922, -13.475003),  Pnt3(-6.445, 0.37999922, -13.475003),
+            Pnt3(-7.47,  1.2849993,  -13.475003),  Pnt3(-6.445, 1.2849993,  -13.475003),
+        ], flame_indices, nothing, nothing, nothing, nothing, nothing)
+        push!(primitives, Primitive(tri, nothing, nothing, flame_L3_mi))
+    end
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
@@ -221,17 +294,6 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
-
-    # l_2_w_matrix = Mat4([-0.224951, 0.0, -0.97437, 0.0, -0.97437, 0.0, 0.224951, 0.0, 0.0, 1.0, 0.0, 8.87, 0.0, 0.0, 0.0, 1.0])
-    # l_2_w = Transformation(l_2_w_matrix, inv(l_2_w_matrix))
-    # light = InfiniteLight(
-    #     world_bounds(bvh),
-    #     l_2_w,
-    #     spectrum_from_float(1.0),
-    #     jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sssdragon/textures/envmap.exr"),
-    #     false
-    # )
-    # push!(lights, light)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.5, .5))
