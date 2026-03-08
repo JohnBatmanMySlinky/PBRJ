@@ -19,29 +19,17 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_light)
 
-    mat_coated_diffuse_1 = Uber(
+    mat_coated_diffuse_1 = Matte(
         "mat_coated_diffuse_1",
-        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
         ImageTexture(
             UVMapping2D(),
             jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/tex/plane_BaseColor.exr"),
             false
         ),
-        ConstantTexture(spectrum_from_float(0.0)),
-        ConstantTexture(spectrum_from_float(0.0)),
-        ImageTexture(
-            UVMapping2D(),
-            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/tex/plane_Roughness.exr"),
-            true
-        ),
-        nothing, nothing,
-        ConstantTexture(1.5),
-        ConstantTexture(spectrum_from_float(1.0)),
-        nothing,
-        false
+        ConstantTexture(.2),
+        nothing
     )
     push!(materials, mat_coated_diffuse_1)
-
 
     mat_aluminum_rough = Metal(
         "mat_aluminum_rough",
@@ -143,8 +131,8 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         for (path, matname) in bulb_geo
             for tris in parse_obj(path, inst_t, false, false, nothing)
                 for tri in tris
-                    # push!(primitives, Primitive(tri, matname, nothing))
-                    push!(primitives, Primitive(tri, "mat_tmp", nothing))
+                    push!(primitives, Primitive(tri, matname, nothing))
+                    # push!(primitives, Primitive(tri, "mat_tmp", nothing))
                 end
             end
         end
@@ -155,19 +143,76 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
     end
 
-    # ground_t = Transformation(Mat4(5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1))
-    # ground = parse_obj(
-    #     jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/ground_ascii.obj"), 
-    #     ground_t,
-    #     false,
-    #     false,
-    #     nothing
-    # )
-    # for tris in ground
-    #     for tri in tris
-    #         push!(primitives, Primitive(tri, "mat_coated_diffuse_1", nothing))
-    #     end
-    # end 
+    ground_t = Transformation(Mat4(5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 5, 0, 0, 0, 0, 1))
+    ground = parse_obj(
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/ground_ascii.obj"), 
+        ground_t,
+        false,
+        false,
+        nothing
+    )
+    for tris in ground
+        for tri in tris
+            push!(primitives, Primitive(tri, "mat_coated_diffuse_1", nothing))
+        end
+    end 
+
+    flame = MediumInterface(
+        NanoVDBMedium(
+            Translate(Pnt3(0, 0, 0)),
+            spectrum_from_float(0.05, 0.05, 0.05),
+            spectrum_from_float(2.0, 2.0, 2.0),
+            0.0,
+            1.0,
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/flame-RENDER-0.64.nvdb"),
+            Pnt3i(256, 256, 256),
+            1.25,
+            0.01,
+            5500.0
+        ),
+        nothing
+    )
+    tris = construct_triangle_mesh(
+        ShapeCore(), 
+        12, 
+        Pnt3[
+            Pnt3(0.52499956, 1.2099994, 0.46499974), Pnt3(-0.47000048, 1.2099994, 0.46499974),
+            Pnt3(0.52499956, 2.3099995, 0.46499974), Pnt3(-0.47000048, 2.3099995, 0.46499974), 
+            Pnt3(-0.47000048, 1.2099994, -0.5150003), Pnt3(0.52499956, 1.2099994, -0.5150003), 
+            Pnt3(-0.47000048, 2.3099995, -0.5150003), Pnt3(0.52499956, 2.3099995, -0.5150003)
+        ],
+        Int64[0, 3, 1, 0, 2, 3, 4, 7, 5, 4, 6, 7, 6, 2, 7, 6, 3, 2, 5, 1, 4, 5, 0, 1, 5, 2, 0, 5, 7, 2, 1, 6, 4, 1, 3, 6] .+ 1,
+        nothing, nothing,
+        nothing, nothing,
+        nothing
+    )
+    for tri in tris
+        push!(primitives, Primitive(tri, nothing, nothing, flame))
+    end
+    """
+    AttributeBegin
+        AttributeBegin
+            MakeNamedMedium "/obj/flame/RENDER-0"
+                "rgb sigma_s" [ 2 2 2 ]
+                "string filename" [ "geometry/flame-RENDER-0.64.nvdb" ]
+                "float temperaturescale" [ 5500 ]
+                "float temperatureoffset" [ 0.01 ]
+                "rgb sigma_a" [ 0.05 0.05 0.05 ]
+                "float Lescale" [ 1.25 ]
+                "string type" [ "nanovdb" ]
+
+            Material "interface"
+            MediumInterface "/obj/flame/RENDER-0" ""
+            Shape "trianglemesh"
+                "point3 P" [ 0.52499956 1.2099994 0.46499974 -0.47000048 1.2099994 0.46499974 
+                            0.52499956 2.3099995 0.46499974 -0.47000048 2.3099995 0.46499974 
+                            -0.47000048 1.2099994 -0.5150003 0.52499956 1.2099994 -0.5150003 
+                            -0.47000048 2.3099995 -0.5150003 0.52499956 2.3099995 -0.5150003 ]
+                "integer indices" [ 0 3 1 0 2 3 4 7 5 4 6 7 6 2 7 6 3 2 5 1 4 5 0 1 5 
+                                    2 0 5 7 2 1 6 4 1 3 6 ]
+        AttributeEnd
+    AttributeEnd
+    """
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
@@ -177,16 +222,16 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
-    l_2_w_matrix = Mat4([-0.224951, 0.0, -0.97437, 0.0, -0.97437, 0.0, 0.224951, 0.0, 0.0, 1.0, 0.0, 8.87, 0.0, 0.0, 0.0, 1.0])
-    l_2_w = Transformation(l_2_w_matrix, inv(l_2_w_matrix))
-    light = InfiniteLight(
-        world_bounds(bvh),
-        l_2_w,
-        spectrum_from_float(1.0),
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sssdragon/textures/envmap.exr"),
-        false
-    )
-    push!(lights, light)
+    # l_2_w_matrix = Mat4([-0.224951, 0.0, -0.97437, 0.0, -0.97437, 0.0, 0.224951, 0.0, 0.0, 1.0, 0.0, 8.87, 0.0, 0.0, 0.0, 1.0])
+    # l_2_w = Transformation(l_2_w_matrix, inv(l_2_w_matrix))
+    # light = InfiniteLight(
+    #     world_bounds(bvh),
+    #     l_2_w,
+    #     spectrum_from_float(1.0),
+    #     jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sssdragon/textures/envmap.exr"),
+    #     false
+    # )
+    # push!(lights, light)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.5, .5))
@@ -202,12 +247,7 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-    # camera_t = LookAt(
-    #     Pnt3(0, -1.1793004, 6.285956), 
-    #     Pnt3(0, 0, 0), 
-    #     Vec3(0, 1, 0)
-    # )
-    camera_t = Transformation(Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, -1.1793004, 6.285956, 1))
+    camera_t = Inv(Transformation(Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, -1, 0, 0, -1.1793004, 6.285956, 1)))
     screen = Bounds2(Pnt2(-1, -0.5625), Pnt2(1, 0.5625))
     C = PerspectiveCamera(camera_t, screen, 0.0, 1.0, 0.0, 1e6, 45.0, film)
 
