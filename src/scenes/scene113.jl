@@ -92,7 +92,7 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         Rotate(-19.609451, Vec3(1, 0, 0)) *  
         Scale(2.0, 4.0, 2.0)
     patches = BilinearPatchGenerator(
-        ShapeCore(key_light_t, Inv(key_light_t), false, false),
+        ShapeCore(key_light_t, Inv(key_light_t), true, false),
         1,
         Pnt3[Pnt3(-0.5, -0.5, 0), Pnt3(0.5, -0.5, 0), Pnt3(-0.5, 0.5, 0), Pnt3(0.5, 0.5, 0)],
         Int64[1, 2, 3, 4],
@@ -138,7 +138,7 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         end
         for tris in parse_obj(jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/matchbulb/geometry/matchstick_ascii.obj"), inst_t, false, false, nothing)
             for tri in tris
-                push!(primitives, Primitive(tri, "mat_matchstick_color", nothing))
+                # push!(primitives, Primitive(tri, "mat_matchstick_color", nothing))
             end
         end
     end
@@ -153,7 +153,7 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     for tris in ground
         for tri in tris
-            push!(primitives, Primitive(tri, "mat_coated_diffuse_1", nothing))
+            # push!(primitives, Primitive(tri, "mat_coated_diffuse_1", nothing))
         end
     end 
 
@@ -187,7 +187,7 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing
     )
     for tri in tris
-        push!(primitives, Primitive(tri, nothing, nothing, flame))
+        # push!(primitives, Primitive(tri, nothing, nothing, flame))
     end
 
     flame_indices = Int64[0, 3, 1, 0, 2, 3, 4, 7, 5, 4, 6, 7, 6, 2, 7, 6, 3, 2, 5, 1, 4, 5, 0, 1, 5, 2, 0, 5, 7, 2, 1, 6, 4, 1, 3, 6] .+ 1
@@ -208,7 +208,7 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt3(-2.0299997,  0.37999898, -5.615),   Pnt3(-0.99499977, 0.37999898, -5.615),
             Pnt3(-2.0299997,  1.2849989,  -5.615),   Pnt3(-0.99499977, 1.2849989,  -5.615),
         ], flame_indices, nothing, nothing, nothing, nothing, nothing)
-        push!(primitives, Primitive(tri, nothing, nothing, flame_L1_mi))
+        # push!(primitives, Primitive(tri, nothing, nothing, flame_L1_mi))
     end
 
     flame_R1_mi = MediumInterface(
@@ -227,7 +227,7 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt3(1.3399994,  0.37499914, -3.395),  Pnt3(2.3499994, 0.37499914, -3.395),
             Pnt3(1.3399994,  1.2849991,  -3.395),  Pnt3(2.3499994, 1.2849991,  -3.395),
         ], flame_indices, nothing, nothing, nothing, nothing, nothing)
-        push!(primitives, Primitive(tri, nothing, nothing, flame_R1_mi))
+        # push!(primitives, Primitive(tri, nothing, nothing, flame_R1_mi))
     end
 
     flame_L2_mi = MediumInterface(
@@ -246,7 +246,7 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt3(-2.1549995, 0.37999898, -1.1400003),   Pnt3(-1.1249996, 0.37999898, -1.1400003),
             Pnt3(-2.1549995, 1.2849989,  -1.1400003),   Pnt3(-1.1249996, 1.2849989,  -1.1400003),
         ], flame_indices, nothing, nothing, nothing, nothing, nothing)
-        push!(primitives, Primitive(tri, nothing, nothing, flame_L2_mi))
+        # push!(primitives, Primitive(tri, nothing, nothing, flame_L2_mi))
     end
 
     flame_R2_mi = MediumInterface(
@@ -265,7 +265,7 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt3(1.9449993, 0.37999916, 0.61999965),  Pnt3(2.9599993, 0.37999916, 0.61999965),
             Pnt3(1.9449993, 1.2849991,  0.61999965),  Pnt3(2.9599993, 1.2849991,  0.61999965),
         ], flame_indices, nothing, nothing, nothing, nothing, nothing)
-        push!(primitives, Primitive(tri, nothing, nothing, flame_R2_mi))
+        # push!(primitives, Primitive(tri, nothing, nothing, flame_R2_mi))
     end
 
     flame_L3_mi = MediumInterface(
@@ -284,7 +284,7 @@ function make_scene113(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             Pnt3(-7.47,  0.37999922, -13.475003),  Pnt3(-6.445, 0.37999922, -13.475003),
             Pnt3(-7.47,  1.2849993,  -13.475003),  Pnt3(-6.445, 1.2849993,  -13.475003),
         ], flame_indices, nothing, nothing, nothing, nothing, nothing)
-        push!(primitives, Primitive(tri, nothing, nothing, flame_L3_mi))
+        # push!(primitives, Primitive(tri, nothing, nothing, flame_L3_mi))
     end
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
