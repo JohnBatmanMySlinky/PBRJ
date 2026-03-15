@@ -306,6 +306,6 @@ function le(si::SurfaceInteraction, w::Vec3)::Spectrum
     if si.primitive.area_light isa Nothing
         return spectrum_from_float(0.0)
     else
-        return L(si.primitive.area_light, si.core.n, w)
+        return L(si.primitive.area_light, si.core.n, w, Pnt2(rand(), rand())) # JOHN WHAT
     end
 end
