@@ -17,7 +17,7 @@ struct InfiniteLight <: Light
             print("YOU SHOULD PROBABLY BE DOING OCTAHEDRAL=false")
         end
 
-        dat2, L, W = read_image(texmap)
+        dat2, L, W = read_image_as_spectrum(texmap)
         i = 0
         for l in 1:L
             for w in 1:W

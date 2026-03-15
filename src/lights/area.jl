@@ -17,7 +17,7 @@ struct DiffuseAreaLight <: Light
         if texmap isa Nothing
             Lmap = nothing
         else
-            dat2, L, W = read_image(texmap)
+            dat2, L, W = read_image_as_spectrum(texmap)
             Lmap = MIPMap(Pnt2i(W, L), dat2, false) # NOTE THE FLIP HERE
         end
         return new(
