@@ -245,7 +245,7 @@ function intersect!(bvh::BVH, ray::AbstractRay, shadow_ray::Bool=false)
     dir_is_neg = ray.direction |> is_dir_negative
 
     to_visit_offset, current_node_i = 1, 1
-    nodes_to_visit = zeros(Int64, 128) # JOHN HACK WHY 64 NOT WORKING???
+    nodes_to_visit = MVector{128, Int64}(undef)
 
     while true
         ln = bvh.nodes[current_node_i]
@@ -292,7 +292,7 @@ function intersect_p(bvh::BVH, ray::AbstractRay)
     dir_is_neg = ray.direction |> is_dir_negative
 
     to_visit_offset, current_node_i = 1, 1
-    nodes_to_visit = zeros(Int64, 128) # JOHN HACK WHY 64 NOT WORKING???
+    nodes_to_visit = MVector{128, Int64}(undef)
 
     while true
         ln = bvh.nodes[current_node_i]

@@ -66,6 +66,10 @@ function render(
         film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
         for pixel in tile_bounds # adding iterator method is cool
             @info "########################\nWorking on Pixel: $(pixel)\n########################\n\n\n"
+            camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
+            light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
+            sampled_ei_buf = EndpointInteraction()
+            sampled_v_buf = Vertex(VTCamera, spectrum_from_float(0.0), sampled_ei_buf, nothing, nothing)
             for sample_index in 1:sampler.samples_per_pixel
                 start_pixel_sample!(sampler, pixel, sample_index-1)
 
@@ -94,9 +98,6 @@ function render(
                 end
 
                 L = spectrum_from_float(0.0)
-
-                camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
-                light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
 
                 # Trace the camera and light subpaths
                 @prof "generate_camera_subpath" n_camera = generate_camera_subpath!(
@@ -169,7 +170,9 @@ function render(
                             light_num,
                             i.camera,
                             sampler,
-                            camera_sample.film
+                            camera_sample.film,
+                            sampled_v_buf,
+                            sampled_ei_buf,
                         )
 
                         @info "Connect bdpt s: $(s), t: $(t), Lpath: $(L_path), misWeight: $(mis_weight)"
@@ -297,12 +300,8 @@ function random_walk!(
     # JOHN HACK
     bounces += path_offset
 
-    COUNTER = 0
-
     while true
         @info "Random walk. Bounces $(bounces), beta $(beta), pdfFwd $(pdf_fwd), pdfRev $(pdf_rev)"
-
-        COUNTER += 1
         # attempt to create the next subpath verte in *path*
         # @info "Ray current has a medium: $(!(ray.medium isa Nothing))"
         @prof "random_walk.intersect!" check, t, isect = intersect!(scene.b, ray)
@@ -330,7 +329,7 @@ function random_walk!(
 
                 # Randomly sample medium event for _RandomRalk()_ ray
                 um = get_1D!(sampler)
-                callback_mode, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), um)
+                callback_mode = um < p_absorb ? 1 : (um < p_absorb + p_scatter ? 2 : 3)
 
                 if callback_mode == 0+1
                     # Handle absorption for _RandomWalk()_ ray
@@ -359,7 +358,7 @@ function random_walk!(
                     # Update path state and previous path vertex after medium scattering
                     pdf_fwd = ps_pdf
                     beta *= ps_p / ps_pdf
-                    ray = spawn_ray(mi.core, ps_wi)
+                    spawn_ray!(ray, mi.core, ps_wi)
                     path[prev].pdf_rev = convert_density(path[vertex], ps_pdf, path[prev])
 
                     scattered = true
@@ -412,7 +411,7 @@ function random_walk!(
         # compute scattering functions for mode and skip over medium boundaries
         compute_scattering!(isect, ray, true, mode)
         if isect.bsdf isa Nothing
-            ray = spawn_ray(isect.core, ray.direction)
+            spawn_ray!(ray, isect.core, ray.direction)
             continue
         end
         
@@ -441,7 +440,7 @@ function random_walk!(
         end
         beta *= correct_shading_normal(isect, wo, wi, mode)
         @info "Random walk beta after shading normal correction $beta"
-        ray = spawn_ray(isect.core, wi)
+        spawn_ray!(ray, isect.core, wi)
         
         # Compute reverse area density at preceding vertex
         @info "pdf_rev - before - $(path[prev].pdf_rev)"
@@ -454,8 +453,8 @@ end
 
 # 16.3.3 Subpath Connections
 function connect_BDPT(
-    scene::Scene, 
-    light_vertices::Vector{Vertex}, 
+    scene::Scene,
+    light_vertices::Vector{Vertex},
     camera_vertices::Vector{Vertex},
     s::Int64,
     t::Int64,
@@ -464,6 +463,8 @@ function connect_BDPT(
     camera::Camera,
     sampler::AbstractSampler,
     pfilm::Pnt2,
+    sampled_v_buf::Vertex,
+    sampled_ei_buf::EndpointInteraction,
 )::Tuple{Spectrum, Float64, Pnt2}
     L = spectrum_from_float(0.0)
 
@@ -504,7 +505,18 @@ function connect_BDPT(
             sampled_wi, wi, pdf_val, vis, pfilm = sample_wi(camera, get_interaction(qs), get_2D!(sampler))
             if (pdf_val > 0) && !is_black(sampled_wi)
                 # initalize dynamically sampled vertex and L for t=1 case
-                sampled = create_camera_vertex(camera, vis.p1, sampled_wi / pdf_val)
+                sampled_ei_buf.interaction = vis.p1
+                sampled_ei_buf.camera = camera
+                sampled_ei_buf.light = nothing
+                sampled_v_buf.type = VTCamera
+                sampled_v_buf.beta = sampled_wi / pdf_val
+                sampled_v_buf.ei = sampled_ei_buf
+                sampled_v_buf.mi = nothing
+                sampled_v_buf.si = nothing
+                sampled_v_buf.delta = false
+                sampled_v_buf.pdf_fwd = 0.0
+                sampled_v_buf.pdf_rev = 0.0
+                sampled = sampled_v_buf
                 L = qs.beta * f(qs, sampled, Importance) * sampled.beta
                 if is_on_surface(qs)
                     L *= abs(dot(wi, ns(qs)))
@@ -530,8 +542,18 @@ function connect_BDPT(
             @info "sampled Li from last camera vertex: sampled_li: $(sampled_li), wi: $(wi), pdf_val: $(pdf_val), visibility tester: $(vis)"
             if pdf_val > 0.0 && !(is_black(sampled_li))
                 @info "<<<<<SAMPLED A VERTEX>>>>>"
-                ei = EndpointInteraction(vis.p1, light)
-                sampled = create_light_vertex(ei, sampled_li/(pdf_val*light_pdf), 0.0)
+                sampled_ei_buf.interaction = vis.p1
+                sampled_ei_buf.camera = nothing
+                sampled_ei_buf.light = light
+                sampled_v_buf.type = VTLight
+                sampled_v_buf.beta = sampled_li/(pdf_val*light_pdf)
+                sampled_v_buf.ei = sampled_ei_buf
+                sampled_v_buf.mi = nothing
+                sampled_v_buf.si = nothing
+                sampled_v_buf.delta = false
+                sampled_v_buf.pdf_fwd = 0.0
+                sampled_v_buf.pdf_rev = 0.0
+                sampled = sampled_v_buf
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled, Radiance) * sampled.beta
                 @info "pt.beta = $(pt.beta), f = $(f(pt, sampled, Radiance)), sampled.beta = $(sampled.beta)"
