@@ -32,7 +32,7 @@ function render(
 
     # progress stuff
     prog = Progress(total_tiles)
-    update!(prog,0)
+    ProgressMeter.update!(prog,0)
     jj = Threads.Atomic{Int}(0)
     l = Threads.SpinLock()
 
@@ -192,12 +192,110 @@ function render(
         @prof "merge_tile!" merge_film_tile!(i.camera.core.core.film , film_tile)
         Threads.atomic_add!(jj,1)
         Threads.lock(l)
-        update!(prog, jj[])
+        ProgressMeter.update!(prog, jj[])
         Threads.unlock(l)
     end
     got_film = i.camera.core.core.film
-    @info "FILM before save: $(got_film)" 
+    @info "FILM before save: $(got_film)"
     img = save(got_film, 1.0/i.sampler.samples_per_pixel)
+    return img
+end
+
+function render_viz(i::BDPTIntegrator, scene::Scene, parsed_args::Dict)::Array{RGB}
+    @assert length(scene.lights) > 0
+
+    film = i.camera.core.core.film
+    w = film.full_resolution.x
+    h = film.full_resolution.y
+
+    light_distr_generator = LightDistribution(
+        parsed_args["light-distribution-strategy"],
+        scene,
+        parsed_args["max-voxels"],
+    )
+
+    sample_bounds = get_sample_bounds(film)
+    sample_extent = diagonal(sample_bounds)
+    tile_size = 16
+    n_tiles = Pnt2i(floor.((sample_extent .+ tile_size .- 1) ./ tile_size))
+    total_tiles = n_tiles.x * n_tiles.y
+
+    viz = setup_render_viz(w, h, total_tiles, parsed_args)
+
+    prog = Progress(total_tiles)
+    ProgressMeter.update!(prog, 0)
+    jj = Threads.Atomic{Int}(0)
+    l = Threads.SpinLock()
+
+    println("\nUtilizing $(Threads.nthreads()) threads\n")
+    Threads.@threads for k in 0:(total_tiles-1)
+        for wtf in 1:length(scene.b.primitives)
+            if !(scene.b.primitives[wtf].mi.inside isa Nothing)
+                if scene.b.primitives[wtf].mi.inside isa NanoVDBMedium
+                    NanoVDB.init(scene.b.primitives[wtf].mi.inside.nanovdb_grid)
+                end
+            end
+            if !(scene.b.primitives[wtf].mi.outside isa Nothing)
+                if scene.b.primitives[wtf].mi.outside isa NanoVDBMedium
+                    NanoVDB.init(scene.b.primitives[wtf].mi.outside.nanovdb_grid)
+                end
+            end
+        end
+
+        tile = Pnt2i(k % n_tiles.x, k ÷ n_tiles.x)
+        seed::Int64 = tile.y * n_tiles.x + tile.x
+        sampler = clone(i.sampler, seed)
+
+        x0 = sample_bounds.pMin.x + tile.x * tile_size
+        x1 = min(x0 + tile_size, sample_bounds.pMax.x)
+        y0 = sample_bounds.pMin.y + tile.y * tile_size
+        y1 = min(y0 + tile_size, sample_bounds.pMax.y)
+        tile_bounds = Bounds2i(Pnt2i(x0, y0), Pnt2i(x1, y1))
+        film_tile = FilmTile(film, tile_bounds)
+
+        for pixel in tile_bounds
+            camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
+            light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
+            sampled_ei_buf = EndpointInteraction()
+            sampled_v_buf = Vertex(VTCamera, spectrum_from_float(0.0), sampled_ei_buf, nothing, nothing)
+            for sample_index in 1:sampler.samples_per_pixel
+                start_pixel_sample!(sampler, pixel, sample_index-1)
+                camera_sample = get_camera_sample!(sampler, pixel)
+                L = spectrum_from_float(0.0)
+                n_camera = generate_camera_subpath!(camera_vertices, scene, sampler, i.max_depth + 2, i.camera, camera_sample)
+                light_distr = lookup(light_distr_generator, p(camera_vertices[1]))
+                n_light, light_num = generate_light_subpath!(light_vertices, scene, sampler, i.max_depth + 1, time(camera_vertices[1]), light_distr)
+                for t in 1:n_camera
+                    for s in 0:n_light
+                        depth = t + s - 2
+                        if ((s==1)&&(t==1) || (depth<0) || (depth>i.max_depth))
+                            continue
+                        end
+                        L_path, _, p_film_new = connect_BDPT(scene, light_vertices, camera_vertices, s, t, light_distr, light_num, i.camera, sampler, camera_sample.film, sampled_v_buf, sampled_ei_buf)
+                        if t != 1
+                            L += L_path
+                        else
+                            add_splat!(film, p_film_new, L_path)
+                        end
+                    end
+                end
+                add_sample!(film_tile, camera_sample.film, L, 1.0)
+            end
+        end
+
+        merge_film_tile!(film, film_tile)
+        update_viz_image!(viz, film, tile_bounds)
+
+        Threads.atomic_add!(jj, 1)
+        completed = jj[]
+        Threads.lock(l)
+        ProgressMeter.update!(prog, completed)
+        update_viz_stats!(viz, completed, parsed_args)
+        Threads.unlock(l)
+    end
+
+    img = save(film, 1.0/i.sampler.samples_per_pixel)
+    viz_wait(viz)
     return img
 end
 

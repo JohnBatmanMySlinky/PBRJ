@@ -41,9 +41,11 @@ function parse_uniformgrid_buf(buf::Vector{UInt8})::UniformGridData
         key = String(buf[key_start:pos-1])
         pos += 1  # skip closing '"'
 
-        # find '['
-        @inbounds while pos <= n && buf[pos] != UInt8('['); pos += 1; end
-        pos += 1  # skip '['
+        # skip whitespace between key and value
+        @inbounds while pos <= n && (buf[pos] == UInt8(' ') || buf[pos] == UInt8('\t')); pos += 1; end
+        # optionally consume '[' — some formats omit brackets
+        has_bracket = pos <= n && buf[pos] == UInt8('[')
+        if has_bracket; pos += 1; end
         bracket_pos = pos
 
         if key == "integer nx"
@@ -52,9 +54,9 @@ function parse_uniformgrid_buf(buf::Vector{UInt8})::UniformGridData
             ny = parse_single_int(buf, bracket_pos, bracket_pos + 20)
         elseif key == "integer nz"
             nz = parse_single_int(buf, bracket_pos, bracket_pos + 20)
-        elseif key == "point3 p0"
+        elseif key == "point3 p0" || key == "point p0"
             p0 = parse_point3(buf, bracket_pos, bracket_pos + 60)
-        elseif key == "point3 p1"
+        elseif key == "point3 p1" || key == "point p1"
             p1 = parse_point3(buf, bracket_pos, bracket_pos + 60)
         elseif key == "float Lescale"
             lescale_offset = bracket_pos
@@ -62,33 +64,37 @@ function parse_uniformgrid_buf(buf::Vector{UInt8})::UniformGridData
             density_offset = bracket_pos
         end
 
-        # skip to closing ']' of this field so the next '"' we find is a new key
-        # EXCEPT for the big arrays — we don't want to scan 2GB looking for their ']'
+        # advance past this field's value so the next '"' we find is a new key
         if key != "float Lescale" && key != "float density"
-            @inbounds while pos <= n && buf[pos] != UInt8(']'); pos += 1; end
-            pos += 1  # skip ']'
+            if has_bracket
+                @inbounds while pos <= n && buf[pos] != UInt8(']'); pos += 1; end
+                pos += 1  # skip ']'
+            else
+                # no brackets — skip to end of line
+                @inbounds while pos <= n && buf[pos] != UInt8('\n'); pos += 1; end
+            end
         else
-            # just advance past the '[' we already recorded; next '"' will be after ']'
-            # but we don't scan for it — leave pos right after '[' and let the
-            # outer '"' scanner skip over the data naturally by finding the next '"'
-            # which will be beyond the ']' anyway
             pos = bracket_pos
         end
     end
 
+    println("parse_media: nx=$nx ny=$ny nz=$nz  p0=$p0  p1=$p1  lescale_offset=$lescale_offset  density_offset=$density_offset")
     @assert nx > 0 && ny > 0 && nz > 0   "Failed to parse grid dimensions"
-    @assert lescale_offset > 0             "float Lescale not found"
     @assert density_offset  > 0            "float density not found"
 
     count = nx * ny * nz
 
     # ── Pass 2: parse the two big arrays from recorded offsets ──
-    lescale = Vector{Float32}(undef, count)
+    lescale = lescale_offset > 0 ? Vector{Float32}(undef, count) : ones(Float32, count)
     density  = Vector{Float32}(undef, count)
 
-    @sync begin
-        Threads.@spawn parse_float_array_threaded!(lescale, buf, lescale_offset, n, count)
-        Threads.@spawn parse_float_array_threaded!(density,  buf, density_offset,  n, count)
+    if lescale_offset > 0
+        @sync begin
+            Threads.@spawn parse_float_array_threaded!(lescale, buf, lescale_offset, n, count)
+            Threads.@spawn parse_float_array_threaded!(density,  buf, density_offset,  n, count)
+        end
+    else
+        parse_float_array_threaded!(density, buf, density_offset, n, count)
     end
 
     UniformGridData(nx, ny, nz, Pnt3(p0), Pnt3(p1), lescale, density, nothing)

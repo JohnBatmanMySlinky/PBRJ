@@ -18,6 +18,8 @@ using Distributions
 using Combinatorics
 using Bumper
 using Mmap
+using GLMakie
+using Colors
 
 abstract type AbstractBSDF end
 abstract type AbstractBSSRDF end
@@ -219,6 +221,7 @@ include("integrators/ao.jl")
 include("integrators/simple.jl")
 include("integrators/simple_vol_path_v4.jl")
 include("integrators/vol_path_v3.jl")
+include("integrators/render_viz.jl")
 include("integrators/integrator.jl")
 include("integrators/bdpt_vertex.jl")
 include("cameras/projective_sampling.jl")
@@ -275,11 +278,11 @@ include("scene_utils.jl")
 
 function render_scene(parsed_args::Dict)
     @prof "scene_build" I, scene = build_scene(parsed_args) # TODO get this outside the loop!
-    image = render(
-        I, 
-        scene, 
-        parsed_args
-    )
+    if parsed_args["render-viz"]
+        image = render_viz(I, scene, parsed_args)
+    else
+        image = render(I, scene, parsed_args)
+    end
     if I.camera.core.core.film isa PassFilm
         for i in 1:5
             OpenEXR.save(replace(I.camera.core.core.film.filename, ".exr"=>"")*"_"*string(i)*".exr", image[i, :, :, :])

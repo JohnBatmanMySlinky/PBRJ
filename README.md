@@ -19,6 +19,9 @@ julia -t 4 RayTracing.jl \
 --n-spectral-samples 10 \
 --file-name "test.png"
 ```
+## Live Preview
+Pass `--render-viz true` to watch the render fill in tile by tile via GLMakie. Window stays open when done.
+
 ## NanoVDB Bindings
 
 If you want to use [NanoVDB](https://github.com/AcademySoftwareFoundation/openvdb/tree/master/nanovdb/nanovdb), you'll need to `cd src/nanovdb && sh INSTALL.sh`. 
@@ -92,7 +95,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - Revisit parameterization of abstract types. Primitive?
 - FunctionWrappers.jl 
 - Refactor MaterialRegistry to use MaterialPool: https://claude.ai/chat/2009132e-080d-46ff-9330-bde0cd084006
-- use GLMakie as an image viewer to view renders as they progress
+- ~~use GLMakie as an image viewer to view renders as they progress~~
 - make sure samplers are working as intended...
 - BDPT pixels and tiles... I got it working for volumetric path (v3)
 - SDF scene

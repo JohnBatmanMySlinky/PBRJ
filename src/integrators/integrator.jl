@@ -1,6 +1,92 @@
+function render_viz(
+    i::Union{AOIntegrator, SimpleIntegrator, SimpleVolPathIntegratorv4, VolPathIntegratorv3},
+    scene::Scene,
+    args::Dict{String, Any}
+)
+    film = i.camera.core.core.film
+    w = film.full_resolution.x
+    h = film.full_resolution.y
+
+    sample_bounds = get_sample_bounds(film)
+    sample_extent = diagonal(sample_bounds)
+    tile_size = 16
+    n_tiles = Pnt2i(floor.((sample_extent .+ tile_size .- 1) ./ tile_size))
+    total_tiles = n_tiles.x * n_tiles.y
+    print("Rendering $total_tiles tiles with viz ($(Threads.nthreads()) threads)\n")
+
+    viz = setup_render_viz(w, h, total_tiles, args)
+
+    prog = Progress(total_tiles)
+    ProgressMeter.update!(prog, 0)
+    jj = Threads.Atomic{Int}(0)
+    l = Threads.SpinLock()
+
+    Threads.@threads for k in 0:(total_tiles - 1)
+        for wtf in 1:length(scene.b.primitives)
+            if !(scene.b.primitives[wtf].mi.inside isa Nothing)
+                if scene.b.primitives[wtf].mi.inside isa NanoVDBMedium
+                    NanoVDB.init(scene.b.primitives[wtf].mi.inside.nanovdb_grid)
+                end
+            end
+            if !(scene.b.primitives[wtf].mi.outside isa Nothing)
+                if scene.b.primitives[wtf].mi.outside isa NanoVDBMedium
+                    NanoVDB.init(scene.b.primitives[wtf].mi.outside.nanovdb_grid)
+                end
+            end
+        end
+
+        tile = Pnt2i(k % n_tiles.x, k ÷ n_tiles.x)
+        seed::Int64 = tile.y * n_tiles.x + tile.x
+        sampler = clone(i.sampler, seed)
+
+        x0 = sample_bounds.pMin.x + tile.x * tile_size
+        x1 = min(x0 + tile_size, sample_bounds.pMax.x)
+        y0 = sample_bounds.pMin.y + tile.y * tile_size
+        y1 = min(y0 + tile_size, sample_bounds.pMax.y)
+        tile_bounds = Bounds2i(Pnt2i(x0, y0), Pnt2i(x1, y1))
+        film_tile = FilmTile(film, tile_bounds)
+
+        for pixel in tile_bounds
+            @info "WORKING ON PIXEL $pixel"
+            for sample_index in 1:sampler.samples_per_pixel
+                start_pixel_sample!(sampler, pixel, sample_index - 1)
+                camera_sample = get_camera_sample!(sampler, pixel)
+                ray, wt = generate_ray_differential(i.camera, camera_sample)
+                scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
+                L = spectrum_from_float(0.0)
+                if wt > 0
+                    L = li(i, ray, scene, sampler)
+                end
+                if any(isnan.(L))
+                    L = spectrum_from_float(0.0)
+                end
+                @info "FIN: Added sample $L @ $pixel"
+                add_sample!(film_tile, camera_sample.film, L, wt)
+            end
+        end
+
+        merge_film_tile!(film, film_tile)
+
+        update_viz_image!(viz, film, tile_bounds)
+
+        Threads.atomic_add!(jj, 1)
+        completed = jj[]
+        Threads.lock(l)
+        ProgressMeter.update!(prog, completed)
+        update_viz_stats!(viz, completed, args)
+        Threads.unlock(l)
+    end
+
+    @time got_film = film
+    img = save(got_film)
+    viz_wait(viz)
+
+    return img
+end
+
 function render(
-    i::Union{AOIntegrator, SimpleIntegrator, SimpleVolPathIntegratorv4, VolPathIntegratorv3}, 
-    scene::Scene, 
+    i::Union{AOIntegrator, SimpleIntegrator, SimpleVolPathIntegratorv4, VolPathIntegratorv3},
+    scene::Scene,
     ::Dict{String, Any}
 )
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
@@ -12,7 +98,7 @@ function render(
     print("Rendering " * num2str(total_tiles) * " tiles\n")
 
     prog = Progress(total_tiles)
-    update!(prog,0)
+    ProgressMeter.update!(prog,0)
     jj = Threads.Atomic{Int}(0)
     l = Threads.SpinLock()
 
@@ -85,7 +171,7 @@ function render(
         # print("$(k)\n")
         Threads.atomic_add!(jj,1)
         Threads.lock(l)
-        update!(prog, jj[])
+        ProgressMeter.update!(prog, jj[])
         Threads.unlock(l)
     end
     @time got_film = i.camera.core.core.film
