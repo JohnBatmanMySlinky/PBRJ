@@ -7,20 +7,14 @@ function render_viz(
     w = film.full_resolution.x
     h = film.full_resolution.y
 
-    img_obs = GLMakie.Observable(zeros(RGB{Float32}, w, h))
-    fig = GLMakie.Figure(size=(w, h))
-    ax = GLMakie.Axis(fig[1, 1], aspect=GLMakie.DataAspect())
-    GLMakie.image!(ax, img_obs)
-    GLMakie.hidedecorations!(ax)
-    GLMakie.hidespines!(ax)
-    display(fig)
-
     sample_bounds = get_sample_bounds(film)
     sample_extent = diagonal(sample_bounds)
     tile_size = 16
     n_tiles = Pnt2i(floor.((sample_extent .+ tile_size .- 1) ./ tile_size))
     total_tiles = n_tiles.x * n_tiles.y
     print("Rendering $total_tiles tiles with viz ($(Threads.nthreads()) threads)\n")
+
+    viz = setup_render_viz(w, h, total_tiles, args)
 
     prog = Progress(total_tiles)
     ProgressMeter.update!(prog, 0)
@@ -73,39 +67,19 @@ function render_viz(
 
         merge_film_tile!(film, film_tile)
 
-        # update GLMakie observable for this tile
-        img = img_obs[]
-        film_width = film.cropped_pixel_bounds.pMax.x - film.cropped_pixel_bounds.pMin.x
-        for pixel in tile_bounds
-            if inside_exclusive(pixel, film.cropped_pixel_bounds)
-                offset = (pixel.x - film.cropped_pixel_bounds.pMin.x) + (pixel.y - film.cropped_pixel_bounds.pMin.y) * film_width
-                fp = film.pixels[offset + 1]
-                rgb = XYZ_to_RGB(fp.xyz)
-                if fp.filter_weight_sum != 0.0
-                    inv_w = 1.0 / fp.filter_weight_sum
-                    rgb = max.(0.0, rgb .* inv_w)
-                end
-                px = pixel.x - film.cropped_pixel_bounds.pMin.x + 1
-                py = pixel.y - film.cropped_pixel_bounds.pMin.y + 1
-                img[px, h - py + 1] = RGB{Float32}(clamp(Float32(rgb[1]), 0f0, 1f0), clamp(Float32(rgb[2]), 0f0, 1f0), clamp(Float32(rgb[3]), 0f0, 1f0))
-            end
-        end
-        GLMakie.notify(img_obs)
+        update_viz_image!(viz, film, tile_bounds)
 
         Threads.atomic_add!(jj, 1)
+        completed = jj[]
         Threads.lock(l)
-        ProgressMeter.update!(prog, jj[])
+        ProgressMeter.update!(prog, completed)
+        update_viz_stats!(viz, completed, args)
         Threads.unlock(l)
     end
 
     @time got_film = film
     img = save(got_film)
-
-    # keep window open until closed
-    println("Render complete. Close the window to exit.")
-    while isopen(fig.scene)
-        sleep(0.1)
-    end
+    viz_wait(viz)
 
     return img
 end
