@@ -33,7 +33,7 @@ scene 12: v4 smoke plume (v4 GridMedium) ✅
     - julia -t auto RayTracing.jl --scene-number 12 --image-dim 500 500 --samples-per-pixel 16 --file-name "12-smoke-plume.exr"
 scene 13: DISNEY CLOUD (v4 NanoVDBMedium) 🟨
     - why is it black!?!?!
-    - caffeinate -di julia -t auto RayTracing.jl --scene-number 11 --image-dim 640 360 --samples-per-pixel 16 --file-name "13-disney-cloud.exr"
+    - caffeinate -di julia -t auto RayTracing.jl --scene-number 13 --image-dim 640 360 --samples-per-pixel 16 --file-name "13-disney-cloud.exr"
 scene 14: Anemone (v4 GridMedium) 🟨
     - VolPathIntegratorv3 looking OK!!!!
     - caffeinate -di julia -t auto RayTracing.jl --scene-number 14 --image-dim 640 360 --samples-per-pixel 1024 --max-depth 30 --file-name "14-anemone.exr"
