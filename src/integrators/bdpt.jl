@@ -32,7 +32,7 @@ function render(
 
     # progress stuff
     prog = Progress(total_tiles)
-    update!(prog,0)
+    ProgressMeter.update!(prog,0)
     jj = Threads.Atomic{Int}(0)
     l = Threads.SpinLock()
 
@@ -192,7 +192,7 @@ function render(
         @prof "merge_tile!" merge_film_tile!(i.camera.core.core.film , film_tile)
         Threads.atomic_add!(jj,1)
         Threads.lock(l)
-        update!(prog, jj[])
+        ProgressMeter.update!(prog, jj[])
         Threads.unlock(l)
     end
     got_film = i.camera.core.core.film

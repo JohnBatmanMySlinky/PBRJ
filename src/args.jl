@@ -64,6 +64,10 @@ function parse_commandline()::Dict
             help = "file output for profiling"
             arg_type = String
             default = "profiling.txt"
+        "--render-viz"
+            help = "display live GLMakie window while rendering"
+            arg_type = Bool
+            default = false
     end
 
     return parse_args(s)

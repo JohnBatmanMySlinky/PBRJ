@@ -1,6 +1,118 @@
+function render_viz(
+    i::Union{AOIntegrator, SimpleIntegrator, SimpleVolPathIntegratorv4, VolPathIntegratorv3},
+    scene::Scene,
+    args::Dict{String, Any}
+)
+    film = i.camera.core.core.film
+    w = film.full_resolution.x
+    h = film.full_resolution.y
+
+    img_obs = GLMakie.Observable(zeros(RGB{Float32}, w, h))
+    fig = GLMakie.Figure(size=(w, h))
+    ax = GLMakie.Axis(fig[1, 1], aspect=GLMakie.DataAspect())
+    GLMakie.image!(ax, img_obs)
+    GLMakie.hidedecorations!(ax)
+    GLMakie.hidespines!(ax)
+    display(fig)
+
+    sample_bounds = get_sample_bounds(film)
+    sample_extent = diagonal(sample_bounds)
+    tile_size = 16
+    n_tiles = Pnt2i(floor.((sample_extent .+ tile_size .- 1) ./ tile_size))
+    total_tiles = n_tiles.x * n_tiles.y
+    print("Rendering $total_tiles tiles with viz ($(Threads.nthreads()) threads)\n")
+
+    prog = Progress(total_tiles)
+    ProgressMeter.update!(prog, 0)
+    jj = Threads.Atomic{Int}(0)
+    l = Threads.SpinLock()
+
+    Threads.@threads for k in 0:(total_tiles - 1)
+        for wtf in 1:length(scene.b.primitives)
+            if !(scene.b.primitives[wtf].mi.inside isa Nothing)
+                if scene.b.primitives[wtf].mi.inside isa NanoVDBMedium
+                    NanoVDB.init(scene.b.primitives[wtf].mi.inside.nanovdb_grid)
+                end
+            end
+            if !(scene.b.primitives[wtf].mi.outside isa Nothing)
+                if scene.b.primitives[wtf].mi.outside isa NanoVDBMedium
+                    NanoVDB.init(scene.b.primitives[wtf].mi.outside.nanovdb_grid)
+                end
+            end
+        end
+
+        tile = Pnt2i(k % n_tiles.x, k ÷ n_tiles.x)
+        seed::Int64 = tile.y * n_tiles.x + tile.x
+        sampler = clone(i.sampler, seed)
+
+        x0 = sample_bounds.pMin.x + tile.x * tile_size
+        x1 = min(x0 + tile_size, sample_bounds.pMax.x)
+        y0 = sample_bounds.pMin.y + tile.y * tile_size
+        y1 = min(y0 + tile_size, sample_bounds.pMax.y)
+        tile_bounds = Bounds2i(Pnt2i(x0, y0), Pnt2i(x1, y1))
+        film_tile = FilmTile(film, tile_bounds)
+
+        for pixel in tile_bounds
+            @info "WORKING ON PIXEL $pixel"
+            for sample_index in 1:sampler.samples_per_pixel
+                start_pixel_sample!(sampler, pixel, sample_index - 1)
+                camera_sample = get_camera_sample!(sampler, pixel)
+                ray, wt = generate_ray_differential(i.camera, camera_sample)
+                scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
+                L = spectrum_from_float(0.0)
+                if wt > 0
+                    L = li(i, ray, scene, sampler)
+                end
+                if any(isnan.(L))
+                    L = spectrum_from_float(0.0)
+                end
+                @info "FIN: Added sample $L @ $pixel"
+                add_sample!(film_tile, camera_sample.film, L, wt)
+            end
+        end
+
+        merge_film_tile!(film, film_tile)
+
+        # update GLMakie observable for this tile
+        img = img_obs[]
+        film_width = film.cropped_pixel_bounds.pMax.x - film.cropped_pixel_bounds.pMin.x
+        for pixel in tile_bounds
+            if inside_exclusive(pixel, film.cropped_pixel_bounds)
+                offset = (pixel.x - film.cropped_pixel_bounds.pMin.x) + (pixel.y - film.cropped_pixel_bounds.pMin.y) * film_width
+                fp = film.pixels[offset + 1]
+                rgb = XYZ_to_RGB(fp.xyz)
+                if fp.filter_weight_sum != 0.0
+                    inv_w = 1.0 / fp.filter_weight_sum
+                    rgb = max.(0.0, rgb .* inv_w)
+                end
+                px = pixel.x - film.cropped_pixel_bounds.pMin.x + 1
+                py = pixel.y - film.cropped_pixel_bounds.pMin.y + 1
+                img[px, h - py + 1] = RGB{Float32}(clamp(Float32(rgb[1]), 0f0, 1f0), clamp(Float32(rgb[2]), 0f0, 1f0), clamp(Float32(rgb[3]), 0f0, 1f0))
+            end
+        end
+        GLMakie.notify(img_obs)
+
+        Threads.atomic_add!(jj, 1)
+        Threads.lock(l)
+        ProgressMeter.update!(prog, jj[])
+        Threads.unlock(l)
+    end
+
+    @time got_film = film
+    img = save(got_film)
+
+    # keep window open until closed
+    println("Render complete. Close the window to exit.")
+    while isopen(fig.scene)
+        sleep(0.1)
+    end
+
+    return img
+end
+
 function render(
-    i::Union{AOIntegrator, SimpleIntegrator, SimpleVolPathIntegratorv4, VolPathIntegratorv3}, 
-    scene::Scene, 
+    i::Union{AOIntegrator, SimpleIntegrator, SimpleVolPathIntegratorv4, VolPathIntegratorv3},
+    scene::Scene,
     ::Dict{String, Any}
 )
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
@@ -12,7 +124,7 @@ function render(
     print("Rendering " * num2str(total_tiles) * " tiles\n")
 
     prog = Progress(total_tiles)
-    update!(prog,0)
+    ProgressMeter.update!(prog,0)
     jj = Threads.Atomic{Int}(0)
     l = Threads.SpinLock()
 
@@ -85,7 +197,7 @@ function render(
         # print("$(k)\n")
         Threads.atomic_add!(jj,1)
         Threads.lock(l)
-        update!(prog, jj[])
+        ProgressMeter.update!(prog, jj[])
         Threads.unlock(l)
     end
     @time got_film = i.camera.core.core.film
