@@ -245,19 +245,21 @@ function intersect!(bvh::BVH, ray::AbstractRay, shadow_ray::Bool=false)
     dir_is_neg = ray.direction |> is_dir_negative
 
     to_visit_offset, current_node_i = 1, 1
-    nodes_to_visit = zeros(Int64, 128) # JOHN HACK WHY 64 NOT WORKING???
+    nodes_to_visit = MVector{128, Int64}(undef)
 
     while true
-        ln = bvh.nodes[current_node_i]
+        @inbounds ln = bvh.nodes[current_node_i]
         if intersect_p(ln.bounds, ray, inv_dir, dir_is_neg)
             if ln isa LinearBVHLeaf && ln.n_primitives > 0
+                ln = ln::LinearBVHLeaf
                 # Intersect ray with primitives in node.
-                for i in 0:ln.n_primitives - 1
+                @inbounds for i in 0:ln.n_primitives - 1
                     tmp_hit, tmp_time, tmp_interaction = intersect!(
                         bvh.primitives[ln.primitives_offset + i], ray, shadow_ray
                     )
                     if tmp_hit
-                        hit = tmp_hit
+                        shadow_ray && return true, tmp_time, tmp_interaction
+                        hit = true
                         final_time = tmp_time
                         interaction = tmp_interaction
                     end
@@ -292,13 +294,14 @@ function intersect_p(bvh::BVH, ray::AbstractRay)
     dir_is_neg = ray.direction |> is_dir_negative
 
     to_visit_offset, current_node_i = 1, 1
-    nodes_to_visit = zeros(Int64, 128) # JOHN HACK WHY 64 NOT WORKING???
+    nodes_to_visit = MVector{128, Int64}(undef)
 
     while true
-        ln = bvh.nodes[current_node_i]
+        @inbounds ln = bvh.nodes[current_node_i]
         if intersect_p(ln.bounds, ray, inv_dir, dir_is_neg)
             if ln isa LinearBVHLeaf && ln.n_primitives > 0
-                for i in 0:ln.n_primitives - 1
+                ln = ln::LinearBVHLeaf
+                @inbounds for i in 0:ln.n_primitives - 1
                     intersect_p(
                         bvh.primitives[ln.primitives_offset + i], ray,
                     ) && return true

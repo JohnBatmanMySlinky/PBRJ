@@ -1,0 +1,407 @@
+"""
+     -x
+     |
+     |
+z ------ -z
+     |
+     |
+     x
+
+    gggggggggggggggggg
+    gggggggggggggggggg
+    gggggggggggggggggg
+wwwwwwwwwwwwwwwwwwwwwwwwww
+        pppp
+        pppp
+    L
+                L
+       L
+        C
+"""
+
+
+
+
+function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
+    primitives = Primitive[]
+    lights = Light[]
+    materials = Material[]
+
+    mat_gray = Matte(
+        "mat_gray",
+        ConstantTexture(spectrum_from_float(0.5, 0.5, 0.5)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_gray)
+
+    mat_red = Matte(
+        "mat_red",
+        ConstantTexture(spectrum_from_float(0.9, 0.1, 0.15)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_red)
+
+    mat_lantern = Matte(
+        "mat_lantern",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/materials/lanterns/lantern diffuse_JM.jpg"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_lantern)
+
+    mat_lantern_base = Matte(
+        "mat_lantern_base",
+        ConstantTexture(spectrum_from_float(0.59, 0.3, 0.0))
+    )
+    push!(materials, mat_lantern_base)
+
+    mat_blue = Matte(
+        "mat_blue",
+        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.95)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_blue)
+
+    mat_yellow = Matte(
+        "mat_yellow",
+        ConstantTexture(spectrum_from_float(0.9, 0.9, 0.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_yellow)
+
+    mat_pink = Matte(
+        "mat_pink",
+        ConstantTexture(spectrum_from_float(1.0, 0.4, 0.7)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pink)
+
+    mat_purple = Matte(
+        "mat_purple",
+        ConstantTexture(spectrum_from_float(0.5, 0.0, 0.5)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_purple)
+
+    mat_white = Matte(
+        "mat_white",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_white)
+
+    mat_uv = Matte(
+        "mat_uv",
+        UVTexture(spectrum_from_float(1.0), UVMapping2D()),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_uv)
+
+    mat_water = Mirror(
+        "mat_water",
+        ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
+        ImageTexture(
+            UVMapping2D(),
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/water_noise_map.jpg"),
+            true   
+        )
+    )
+    push!(materials, mat_water)
+
+    mat_water2 = Mirror(
+        "mat_water2",
+        ConstantTexture(spectrum_from_float(0.95, 0.95, 0.95)),
+        NoiseTexture(
+            1.0,
+            0.03,
+            0.5,
+            8,
+            "perlin",
+            nothing
+        ),
+    )
+    push!(materials, mat_water2)
+
+    mat_grass = Uber(
+        "mat_grass",
+        ImageTexture(
+            UVMapping2D(), 
+            jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/grass_mid_seamless.png"), 
+            false,
+            nothing,
+            0,
+            false,
+            8.0,
+            Int8(0),
+            0.3,
+            true
+        ),
+        ConstantTexture(spectrum_from_float(0.5)),
+        ConstantTexture(spectrum_from_float(0.0)),
+        ConstantTexture(spectrum_from_float(0.0)),
+        ConstantTexture(0.1),
+        nothing,
+        nothing,
+        ConstantTexture(1.0),
+        ConstantTexture(spectrum_from_float(1.0)),
+        nothing
+    )
+    push!(materials, mat_grass)
+
+    mat_pillars = Matte(
+        "mat_pillars",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/materials/dock pillars/Wood_Stripes_seamless.jpg"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_pillars)
+
+    mat_planks = Matte(
+        "mat_planks",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/materials/dock planks/wood.jpg"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_planks)
+
+    mat_wall = Matte(
+        "mat_wall",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/materials/rock wall/mossyrocksbigfix_JM.jpg"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_wall)
+
+    mat_path = Matte(
+        "mat_path",
+        ImageTexture(
+            UVMapping2D(2.0, 10.0, 0.0, 0.0),
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/materials/path/Stone_Road_143/Diffuse.jpg"),
+            false
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_path)
+
+    mat_lamp_post = Matte(
+        "mat_lamp_post",
+        ConstantTexture(spectrum_from_float(0.95, 0.95, 0.95)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_lamp_post)
+
+    mat_lamp_light = Matte(
+        "mat_lamp_light",
+        ImageTexture(
+            UVMapping2D(),
+            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/materials/lamp/lamp_light_diffuse_JM.jpg"),
+            false    
+        ),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_lamp_light)
+
+    
+
+    transform_dict = Dict{String, ShapeCore}()
+    tmp = Translate(Pnt3(0, 25, 0)) * Translate(Pnt3(-973.7363, 48.6302, 113.06100000000004)) * Rotate(-5.0, Vec3(0, 0, 1)) * Translate(Pnt3(973.7363, -48.6302, -113.06100000000004))
+    transform_dict["# object Ground"] = ShapeCore(tmp, Inv(tmp), false, false)
+    transform_dict["# object Walkpath"] = ShapeCore(tmp, Inv(tmp), false, false)
+
+    tmp = Translate(Pnt3(0, -5, 0))
+    transform_dict["# object Pillars"] = ShapeCore(tmp, Inv(tmp), false, false)
+
+    tmp = Translate(Pnt3(48.958849999999984, -55.12375, 0.2385500000000036))
+    transform_dict["# object Lantern_Base004"] = ShapeCore(tmp, Inv(tmp), false, false)
+
+    tmp = Translate(Pnt3(20, 0, -40))
+    transform_dict["# object Lantern005"] = ShapeCore(tmp, Inv(tmp), false, false)
+    transform_dict["# object Lantern_Base005"] = ShapeCore(tmp, Inv(tmp), false, false)
+
+    transform_dict["# object Water"] = ShapeCore(Translate(Pnt3(0, 0, 0)), Inv(Translate(Pnt3(0, 0, 0))), false, false)
+
+    alpha_mask_dict = Dict{String, Maybe{String}}()
+
+    obj, group_to_idx = parse_obj_3dsmax_2011(
+        jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/autobackup02_3.obj"),
+        transform_dict,
+        alpha_mask_dict
+    )
+
+    for (i, tris) in enumerate(obj)
+        for tri in tris
+            
+            if group_to_idx[i] in ["# object Lantern_Base", "# object Lantern_Base001", "# object Lantern_Base002", "# object Lantern_Base003", "# object Lantern_Base004", "# object Lantern_Base005"]
+                push!(primitives, Primitive(tri, "mat_lantern_base", nothing))
+
+            elseif group_to_idx[i] in ["# object Stone_Wall"]
+                push!(primitives, Primitive(tri, "mat_wall", nothing))
+
+            elseif group_to_idx[i] in ["# object Lantern", "# object Lantern001", "# object Lantern002","# object Lantern003", "# object Lantern004", "# object Lantern005",]
+                alight = DiffuseAreaLight(
+                    spectrum_from_float(0.0),
+                    tri,
+                    true,
+                    nothing,
+                    jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/materials/lanterns/lantern diffuse_JM.jpg"),
+                    0.5   
+                )
+                push!(primitives, Primitive(tri, "mat_lantern", alight))
+                push!(lights, alight)
+
+            elseif group_to_idx[i] in ["# object Water"]
+                push!(primitives, Primitive(tri, "mat_water2", nothing))
+
+            elseif group_to_idx[i] in ["# object Ground"]
+                push!(primitives, Primitive(tri, "mat_grass", nothing))
+
+            elseif group_to_idx[i] in ["# object Stone_Wall"]
+                push!(primitives, Primitive(tri, "mat_gray", nothing))
+
+            elseif group_to_idx[i] in ["# object Walkpath"]
+                push!(primitives, Primitive(tri, "mat_path", nothing))
+
+            elseif group_to_idx[i] in ["# object Pillars"]
+                push!(primitives, Primitive(tri, "mat_pillars", nothing))
+
+            elseif group_to_idx[i] in ["# object Box001"]
+                push!(primitives, Primitive(tri, "mat_planks", nothing))
+
+            else
+                push!(primitives, Primitive(tri, "mat_red", nothing))
+            end
+        end
+    end
+
+    # LAMPS
+    for t_Z in Transformation[Translate(Pnt3(0, 0, 0)), Translate(Pnt3(0, 0, 215))]
+        for t_X in Transformation[Translate(Pnt3(0, 0, 0)), Translate(Pnt3(-200, 15, 0)), Translate(Pnt3(-400, 40, 0)), Translate(Pnt3(-600, 50, 0)), Translate(Pnt3(-800, 60, 0)), Translate(Pnt3(-1000, 75, 0)), Translate(Pnt3(-1200, 100, 0))]
+            sc = ShapeCore(
+                t_Z * t_X,
+                Inv(t_Z * t_X),
+                false,
+                false
+            )
+            transform_dict = Dict{String, ShapeCore}()
+            transform_dict["# object lamp_extraction"] = sc
+            transform_dict["# object lamp_extraction.001"] = sc
+
+
+            alpha_mask_dict = Dict{String, Maybe{String}}()
+            obj, group_to_idx = parse_obj_3dsmax_2011(
+                jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/lmap_final.obj"),
+                transform_dict,
+                alpha_mask_dict
+            )
+
+            for (i, tris) in enumerate(obj)
+                for tri in tris
+                    if group_to_idx[i] in ["# object lamp_extraction"]
+                        push!(primitives, Primitive(tri, "mat_lamp_post", nothing))
+                    elseif group_to_idx[i] in ["# object lamp_extraction.001"]
+                        alight = DiffuseAreaLight(
+                            spectrum_from_float(0.0),
+                            tri,
+                            true,
+                            nothing,
+                            jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/floating_lanterns/materials/lamp/lamp_light_diffuse_JM.jpg"),
+                            2.0   
+                        )
+                        push!(primitives, Primitive(tri, "mat_lamp_light", alight))
+                        push!(lights, alight)
+                    end
+                end
+            end
+        end
+    end
+
+
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
+
+    # instantiate accelerator
+    print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
+    @time bvh = BVH(primitives)
+    print("Done building BVH\n")
+
+    l_2_w = Rotate(-10.0, Vec3(0, 0, 1)) * Rotate(-140.0, Vec3(0, 1, 0)) * Rotate(-90.0, Vec3(1, 0, 0))
+    light = InfiniteLight(
+        world_bounds(bvh),
+        l_2_w,
+        spectrum_from_float(1.0),
+        # jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/barcelona-pavilion/textures/night.exr"),
+        "/Users/johnmyslinski/Downloads/NightSkyHDRI016A_1K/NightSkyHDRI016A_1K_HDR.exr", #https://ambientcg.com/view?id=NightSkyHDRI016A
+        false
+    )
+    push!(lights, light)
+
+    # l_2_w_matrix = Mat4([-0.224951, 0.0, -0.97437, 0.0, -0.97437, 0.0, 0.224951, 0.0, 0.0, 1.0, 0.0, 8.87, 0.0, 0.0, 0.0, 1.0])
+    # l_2_w = Transformation(l_2_w_matrix, inv(l_2_w_matrix))
+    # light = InfiniteLight(
+    #     world_bounds(bvh),
+    #     l_2_w,
+    #     spectrum_from_float(1.0),
+    #     jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/sssdragon/textures/envmap.exr"),
+    #     false
+    # )
+    # push!(lights, light)
+
+    # Instantiate a Filter
+    filter = BoxFilter(Pnt2(.5, .5))
+
+    # Instantiate a Film
+    film = Film(
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
+        Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
+        filter,
+        1.0,
+        1.0,
+        parsed_args["file-name"]
+    )
+
+    # Instantiate a Camera
+    look_from = Pnt3(475.0, 70.0, 90.0)
+    look_at = Pnt3(-200.0, 55.0, 90.0)
+    up = Vec3(0, 1, 0)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 50.0, film)
+
+    # Instantiate a Sampler
+    S = SamplerFactory(parsed_args)
+    print("Using " * num2str(S.samples_per_pixel) * " samples per pixel\n")
+    
+    # Instantiate Scene
+    print("There are " * num2str(length(lights)) * " lights in the scene\n")
+    scene = Scene(lights, bvh)
+    
+    # Instantiate an Integrator
+    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+
+    return I, scene
+end

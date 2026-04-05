@@ -195,10 +195,44 @@ function spawn_ray(interaction::Interaction, direction::Vec3)::RayDifferential
     return RayDifferential(Ray(o, direction, interaction.t, typemax(Float64), get_medium(interaction, direction)))
 end
 
+function spawn_ray!(ray::RayDifferential, interaction::Interaction, direction::Vec3)
+    ray.origin = interaction.p + ShadowEpsilon * direction
+    ray.direction = direction
+    ray.t = interaction.t
+    ray.tMax = typemax(Float64)
+    ray.medium = get_medium(interaction, direction)
+    ray.has_differentials = false
+    return ray
+end
+
 function spawn_ray_to(interaction::Interaction, p2::Pnt3)::RayDifferential
     d::Vec3 = p2 - interaction.p
     o = interaction.p + ShadowEpsilon * d
     return RayDifferential(Ray(o, d, interaction.t, 1.0 - ShadowEpsilon, get_medium(interaction, d)))
+end
+
+function spawn_ray_to!(ray::RayDifferential, interaction::Interaction, p2::Pnt3)
+    d::Vec3 = p2 - interaction.p
+    ray.origin = interaction.p + ShadowEpsilon * d
+    ray.direction = d
+    ray.t = interaction.t
+    ray.tMax = 1.0 - ShadowEpsilon
+    ray.medium = get_medium(interaction, d)
+    ray.has_differentials = false
+    return ray
+end
+
+function spawn_ray_to!(ray::RayDifferential, interaction::Interaction, it::Interaction)
+    o = interaction.p + ShadowEpsilon * (it.p - interaction.p)
+    target = it.p + ShadowEpsilon * (o - it.p)
+    d::Vec3 = target - o
+    ray.origin = o
+    ray.direction = d
+    ray.t = interaction.t
+    ray.tMax = 1.0 - ShadowEpsilon
+    ray.medium = get_medium(interaction, d)
+    ray.has_differentials = false
+    return ray
 end
 
 function spawn_ray_to(interaction::Interaction, it::Interaction)::RayDifferential
@@ -306,6 +340,6 @@ function le(si::SurfaceInteraction, w::Vec3)::Spectrum
     if si.primitive.area_light isa Nothing
         return spectrum_from_float(0.0)
     else
-        return L(si.primitive.area_light, si.core.n, w)
+        return L(si.primitive.area_light, si.core.n, w, Pnt2(rand(), rand())) # JOHN WHAT
     end
 end

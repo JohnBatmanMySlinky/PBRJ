@@ -12,106 +12,46 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
     ray = spawn_ray_to(vt.p0, vt.p1)
     Tr = spectrum_from_float(1.0)
     inv_w = spectrum_from_float(1.0)
+
+    if length_squared(ray.direction) == 0
+        return Tr
+    end
+
     while true
         check, t, isect = intersect!(scene, ray, true)
-        # @info "VisiblityTesting: ray: $(ray), check: $(check), isect: $(isect)"
+        # Handle opaque surface along ray's path
         if check && !(isect.primitive.material isa Nothing)
             return spectrum_from_float(0.0)
         end
 
         if !(ray.medium isa Nothing)
-            t_max = 1.0
-            u = get_1D!(sampler)
             p_exit = at(ray, !(isect isa Nothing) ? isect.core.t : (1 - eps()))
             ray.direction = p_exit - ray.origin
 
-            # Update transmittance for current ray segment
-            t_max *= length_pbrt(ray.direction)
-            ray.direction = normalize(ray.direction)
+            u = get_1D!(sampler)
+            T_maj = sampleT_maj!(ray, 1.0, u, sampler) do p, mp, sigma_maj, T_maj
+                sigma_n = clamp.(sigma_maj - mp.sigma_a - mp.sigma_s, 0.0, typemax(Float64))
 
-            # Initialize _MajorantIterator_ for ray majorant sampling
-            iter = sample_ray(ray.medium, ray, t_max)
+                # ratio-tracking: only evaluate null scattering
+                pr = y_spectrum(T_maj) * y_spectrum(sigma_maj)
+                Tr *= T_maj * sigma_n / pr
+                inv_w *= T_maj * sigma_maj / pr
 
-            # Generate ray majorant samples until termination
-            T_maj = spectrum_from_float(1.0)
-
-            SEG_COUNTER = 0
-            done = false
-            if !(iter isa Nothing)
-                for seg in iter
-                    # @info "VISIBILITY: seg: $seg"
-                    SEG_COUNTER += 1
-                    # Get next majorant segment from iterator and sample it
-
-                    # Handle zero-valued majorant for current segment
-                    if (is_black(seg.sigma_maj)) 
-                        dt = seg.t_max - seg.t_min
-        
-                        T_maj *= exp.(-dt * seg.sigma_maj)
-                        continue
-                    end
-
-                    # Generate samples along current majorant segment
-                    t_min = seg.t_min
-                    # @info "VISIBILITY: t_min: $t_min"
-
-                    INNER_COUNTER = 0
-                    while true
-                        INNER_COUNTER += 1
-                        # Try to generate sample along current majorant segment
-                        t = t_min + sample_exponential(u, y_spectrum(seg.sigma_maj))
-                        u = get_1D!(sampler)
-                        # @info "VISIBILITY: u: $u, t: $t, seg: $(seg), Tr: $Tr"
-                        if t < seg.t_max
-                            # Call callback function for sample within segment
-                            T_maj *= exp.(-(t - t_min) * seg.sigma_maj)
-                            mp = sample_point(ray.medium, at(ray,t))
-
-                            ############
-                            # CALLBACK #
-                            ############
-                            sigma_n = clamp.(seg.sigma_maj - mp.sigma_a - mp.sigma_s, 0.0, typemax(Float64))
-
-                            # ratio-tracking: only evaluate null scattering
-                            pr = T_maj * y_spectrum(seg.sigma_maj)
-                            Tr *= T_maj * sigma_n ./ pr
-                            inv_w *= T_maj * seg.sigma_maj ./ pr
-
-                            if (is_black(Tr) || is_black(inv_w))
-                                callback_value = false
-                            else
-                                callback_value = true
-                            end
-                            
-                            Tr *= T_maj ./ y_spectrum(T_maj)
-                            inv_w *= T_maj ./ y_spectrum(T_maj)
-
-                            if !callback_value
-                                done = true
-                                break
-                            end
-                            t_min = t
-                        else
-                            # Handle sample past end of majorant segment
-                            dt = seg.t_max - t_min
-                            # Handle infinite _dt_ for ray majorant segment
-                            T_maj *= exp.(-dt * seg.sigma_maj)
-                            break
-                        end
-                    end
-                    # @info "VSIBILITY: INNERS: $INNER_COUNTER"
-                    if done
-                        break
-                    end
+                if (is_black(Tr) || is_black(inv_w))
+                    return false
                 end
-            end 
-            # @info "VISIBILITY: SEGS: $SEG_COUNTER"
+
+                return true
+            end
+            Tr *= T_maj / y_spectrum(T_maj)
+            inv_w *= T_maj / y_spectrum(T_maj)
         end
+
+        # Generate next ray segment or return final transmittance
         if isect isa Nothing
             break
-        else
-            ray = spawn_ray_to(isect.core, vt.p1)
         end
+        spawn_ray_to!(ray, isect.core, vt.p1)
     end
     return Tr / y_spectrum(inv_w)
 end

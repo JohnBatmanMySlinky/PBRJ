@@ -52,36 +52,38 @@ function (g::Glass)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Ty
     KR::Spectrum = g.Kr(si)
     KT::Spectrum = g.Kt(si)
 
-    # initialize _bsdf_ for smooth or rough dielectric
-    si.bsdf = BSDF(si, eta)
-
     # SKIP IS BLACK TEST
 
     is_specular = (urough == 0.0) && (vrough == 0.0)
     if is_specular && allow_multiple_lobes
-        add!(si.bsdf, FresnelSpecular(KR, KT, 1.0, eta, mode))
+        si.bsdf = BSDF(si, eta, (FresnelSpecular(KR, KT, 1.0, eta, mode),))
+    elseif is_specular
+        # skipping R/T black check
+        fresnel = FresnelDielectric(1.0, eta)
+        si.bsdf = BSDF(si, eta, (SpecularReflection(KR, fresnel), SpecularTransmission(KT, 1.0, eta, mode)))
     else
         if g.remap_roughness == true
             urough = roughness_to_alpha(urough)
             vrough = roughness_to_alpha(vrough)
         end
-
-        distrib = is_specular ? Nothing : TrowbridgeReitzDistribution(urough, vrough)
-        
-        # skipping R black check
+        distrib = TrowbridgeReitzDistribution(urough, vrough)
+        # skipping R/T black check
         fresnel = FresnelDielectric(1.0, eta)
-        if is_specular == true
-            add!(si.bsdf, SpecularReflection(KR, fresnel))
-        else
-            add!(si.bsdf, MicrofacetReflection(KR, distrib, fresnel))
-        end
-
-        # skipping T black check
-        if is_specular == true
-            add!(si.bsdf, SpecularTransmission(KT, 1.0, eta, mode))
-        else
-            add!(si.bsdf, MicrofacetTransmission(KT, distrib, 1.0, eta, mode))
-        end
+        si.bsdf = BSDF(si, eta, (MicrofacetReflection(KR, distrib, fresnel), MicrofacetTransmission(KT, distrib, 1.0, eta, mode)))
     end
 end
 
+function albedo(m::Glass, si::SurfaceInteraction)::Spectrum
+    KR = clamp.(m.Kr(si), 0, 1)
+    KT = clamp.(m.Kt(si), 0, 1)
+    eta = m.idx(si)
+    
+    # Fresnel reflectance at normal incidence for dielectric
+    F0 = ((eta - 1.0) / (eta + 1.0))^2
+    
+    # At normal incidence:
+    # - F0 fraction reflects (modulated by Kr)
+    # - (1 - F0) fraction transmits (modulated by Kt)
+    # For albedo (reflectance only), we only count the reflected portion
+    return KR .* F0
+end

@@ -109,3 +109,32 @@ end
     b_tex = t.b(si)  # Julia knows exactly which texture type this is
     return a_tex * b_tex
 end
+
+struct MixBlendTexture{T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}} <: AbstractTexture{T}
+    a::A
+    b::B
+    percent_A::Float64
+    name::Maybe{String}
+
+    function MixBlendTexture(
+        a::A, 
+        b::B, 
+        percent_A::Float64,
+        name::Maybe{String}=nothing
+    ) where {T <: Union{Float64, Spectrum}, A <: AbstractTexture{T}, B <: AbstractTexture{T}}
+        return new{T, A, B}(a, b, percent_A, name)
+    end
+end
+
+# Specialized implementations for each value type
+@inline function (t::MixBlendTexture{Float64, A, B})(si::SurfaceInteraction)::Float64 where {A, B}
+    a_tex = t.a(si)  # Julia knows exactly which texture type this is
+    b_tex = t.b(si)  # Julia knows exactly which texture type this is
+    return a_tex * t.percent_A + (1.0 - t.percent_A) * b_tex
+end
+
+@inline function (t::MixBlendTexture{Spectrum, A, B})(si::SurfaceInteraction)::Spectrum where {A, B}
+    a_tex = t.a(si)  # Julia knows exactly which texture type this is
+    b_tex = t.b(si)  # Julia knows exactly which texture type this is
+    return a_tex .* t.percent_A + (1.0 - t.percent_A) .* b_tex
+end

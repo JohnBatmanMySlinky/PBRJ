@@ -80,8 +80,6 @@ function (m::Metal)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
         bump!(m, si)
     end
 
-    si.bsdf = BSDF(si)
-
     # JOHN TODO fair amount of kludging in here
     u_rough::Float64 = (m.u_roughness isa Nothing) ? m.roughness(si) : m.u_roughness(si)
     v_rough::Float64 = (m.v_roughness isa Nothing) ? m.roughness(si) : m.v_roughness(si)
@@ -101,5 +99,18 @@ function (m::Metal)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
 
     fresnel = FresnelConductor(spectrum_from_float(1.0), m.eta(si), m.k(si))
     distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
-    add!(si.bsdf, MicrofacetReflection(spectrum_from_float(1.0), distrib, fresnel))
+    si.bsdf = BSDF(si, 1.0, (MicrofacetReflection(spectrum_from_float(1.0), distrib, fresnel),))
+end
+
+function albedo(m::Metal, si::SurfaceInteraction)::Spectrum
+    eta = m.eta(si)
+    k = m.k(si)
+    
+    # Fresnel reflectance at normal incidence
+    # R = ((eta - 1)^2 + k^2) / ((eta + 1)^2 + k^2)
+    eta_minus_1_sq = (eta - spectrum_from_float(1.0)) .^ 2
+    eta_plus_1_sq = (eta + spectrum_from_float(1.0)) .^ 2
+    k_sq = k .^ 2
+    
+    return (eta_minus_1_sq + k_sq) ./ (eta_plus_1_sq + k_sq)
 end

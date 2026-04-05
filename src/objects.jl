@@ -336,7 +336,7 @@ end
 # end
 
 function is_dir_negative(dir::Vec3)
-    return Pnt3(
+    return Pnt3i(
         dir.x < 0 ? 2 : 1,
         dir.y < 0 ? 2 : 1,
         dir.z < 0 ? 2 : 1,
@@ -346,9 +346,8 @@ end
 #############################################
 #####  dir_is_negative: 1 -- false, 2 -- true
 #############################################
-function intersect_p(b::Bounds3, ray::AbstractRay, inv_dir::Vec3, dir_is_negative::Pnt3)::Bool
-    dir_is_negative = Int.(dir_is_negative)
-    if dir_is_negative[1] == 2 
+function intersect_p(b::Bounds3, ray::AbstractRay, inv_dir::Vec3, dir_is_negative::Pnt3i)::Bool
+    if dir_is_negative[1] == 2
         tx_min = (b.pMax[1] - ray.origin.x) * inv_dir[1]
         tx_max = (b.pMin[1] - ray.origin.x) * inv_dir[1]
     else

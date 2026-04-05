@@ -19,6 +19,5 @@ function (m::Fourier)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::
         bump!(m, si)
     end
     
-    si.bsdf = BSDF(si)
-    add!(si.bsdf, FourierBSDF(m.bsdf_table, mode, BSDF_REFLECTION | BSDF_TRANSMISSION | BSDF_GLOSSY))
+    si.bsdf = BSDF(si, 1.0, (FourierBSDF(m.bsdf_table, mode, BSDF_REFLECTION | BSDF_TRANSMISSION | BSDF_GLOSSY),))
 end

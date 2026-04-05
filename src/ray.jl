@@ -74,7 +74,11 @@ function scale_differentials!(r::RayDifferential, s::Float64)
 end
 
 function set_direction!(r::AbstractRay, d::Vec3)
-    r.direction = Vec3([i ≈ 0.0 ? 0.0 : i for i in d])
+    r.direction = Vec3(
+        d.x ≈ 0.0 ? 0.0 : d.x,
+        d.y ≈ 0.0 ? 0.0 : d.y,
+        d.z ≈ 0.0 ? 0.0 : d.z,
+    )
 end
 
 check_direction!(r::AbstractRay) = set_direction!(r, r.direction)

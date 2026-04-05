@@ -191,7 +191,7 @@ function fbm(p::Pnt3, dpdx::Vec3, dpdy::Vec3, omega::Float64, maxOctaves::Int)
     return sum
 end
 
-function turbulence(p::Pnt3, dpdx::Vec3, dpdy::Vec3, omegaFloat6464, maxOctaves::Int)
+function turbulence(p::Pnt3, dpdx::Vec3, dpdy::Vec3, omega::Float64, maxOctaves::Int)
     # Compute number of octaves for antialiased FBm
     len2 = max(dot(dpdx, dpdx), dot(dpdy, dpdy))
     n = clamp(-1 - log2(len2) / 2, 0, maxOctaves)
@@ -221,11 +221,7 @@ function turbulence(p::Pnt3, dpdx::Vec3, dpdy::Vec3, omegaFloat6464, maxOctaves:
 end
 
 # Helper functions for smoothstep and interpolation
-function smoothstep(edge0::Float64, edge1::Float64, x::Float64)
+function smoothstep(x::Float64, edge0::Float64, edge1::Float64)
     t = clamp((x - edge0) / (edge1 - edge0), 0.0, 1.0)
     return t * t * (3.0 - 2.0 * t)
-end
-
-function smoothstep(x::Float64, edge0::Float64, edge1::Float64)
-    return smoothstep(edge0, edge1, x)
 end

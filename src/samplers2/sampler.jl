@@ -18,14 +18,14 @@ function SamplerFactory(args::Dict)::AbstractSampler
         elseif type == "zsobol"
             return ZSobolSampler(
                 spp,
-                Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
+                Pnt2i(args["image-dim"][1], args["image-dim"][2]),
                 Int8(2),
                 seed
             )
         elseif type == "sobol"
             return SobolSampler(
                 spp,
-                Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
+                Pnt2i(args["image-dim"][1], args["image-dim"][2]),
                 Int8(2),
             )
         elseif type == "stratified"

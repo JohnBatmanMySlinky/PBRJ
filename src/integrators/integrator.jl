@@ -1,8 +1,7 @@
 function render(
     i::Union{AOIntegrator, SimpleIntegrator, SimpleVolPathIntegratorv4, VolPathIntegratorv3}, 
     scene::Scene, 
-    ::Dict{String, Any},
-    ::Tuple{Int64,Int64}  
+    ::Dict{String, Any}
 )
     sample_bounds = get_sample_bounds(i.camera.core.core.film)
     sample_extent = diagonal(sample_bounds)
@@ -70,7 +69,7 @@ function render(
                 L = spectrum_from_float(0.0)
 
                 if w > 0
-                    L = li(i, ray, scene, 0, sampler)
+                    L = li(i, ray, scene, sampler)
                 end
 
                 if any(isnan.(L))
@@ -95,11 +94,90 @@ function render(
 end
 
 function uniform_sample_one_light(
-    isect::SurfaceInteraction, 
-    scene::Scene, 
-    sampler::AbstractSampler, 
+    mi::MediumInteraction,
+    scene::Scene,
+    sampler::AbstractSampler,
     light_distribution::Distribution1D,
-    handle_media::Bool, 
+    handle_media::Bool,
+)::Spectrum
+    light_num, light_pdf, _ = sample_discrete(light_distribution, get_1D!(sampler))
+    light = scene.lights[light_num]
+    u_light = get_2D!(sampler)
+    u_scattering = get_2D!(sampler)
+    return estimate_direct_medium(mi, u_scattering, light, u_light, scene, sampler, handle_media) / light_pdf
+end
+
+function estimate_direct_medium(
+    mi::MediumInteraction,
+    u_scattering::Pnt2,
+    light::Light,
+    u_light::Pnt2,
+    scene::Scene,
+    sampler::AbstractSampler,
+    handle_media::Bool=true,
+)::Spectrum
+    Ld = spectrum_from_float(0.0)
+
+    # Sample light source
+    Li, wi, light_pdf, vis, _, _ = sample_li(light, mi.core, u_light)
+    if (light_pdf > 0.0) && !is_black(Li)
+        p_val = mi.phase(mi.core.wo, wi)
+        f = spectrum_from_float(p_val)
+        scattering_pdf = p_val
+        if !is_black(f)
+            if handle_media
+                Li *= tr(vis, scene.b, sampler)
+            else
+                if !unoccluded(vis, scene.b)
+                    Li = spectrum_from_float(0.0)
+                end
+            end
+            if !is_black(Li)
+                if is_delta_light(light)
+                    Ld += f * Li / light_pdf
+                else
+                    weight = power_heuristic(1.0, light_pdf, 1.0, scattering_pdf)
+                    Ld += f * Li * weight / light_pdf
+                end
+            end
+        end
+    end
+
+    # Sample phase function for MIS
+    if !is_delta_light(light)
+        ps_p, ps_wi, ps_pdf = sample_p(mi.phase, mi.core.wo, u_scattering)
+        f = spectrum_from_float(ps_p)
+        scattering_pdf = ps_pdf
+        if !is_black(f) && scattering_pdf > 0.0
+            light_pdf = pdf_li(light, mi.core, ps_wi)
+            (light_pdf == 0.0) && return Ld
+            weight = power_heuristic(1.0, scattering_pdf, 1.0, light_pdf)
+
+            ray = spawn_ray(mi.core, ps_wi)
+            found_surface_interaction, _, light_isect = intersect!(scene.b, ray)
+            Li = spectrum_from_float(0.0)
+            if found_surface_interaction
+                if !(light_isect.primitive.area_light isa Nothing)
+                    Li = le(light_isect, -ps_wi)
+                end
+            else
+                Li = le(light, ray)
+            end
+            if !is_black(Li)
+                Ld += f * Li * weight / scattering_pdf
+            end
+        end
+    end
+
+    return Ld
+end
+
+function uniform_sample_one_light(
+    isect::SurfaceInteraction,
+    scene::Scene,
+    sampler::AbstractSampler,
+    light_distribution::Distribution1D,
+    handle_media::Bool,
 )::Spectrum
     # chose a single light to sample
     light_num, light_pdf, _ = sample_discrete(light_distribution, get_1D!(sampler))

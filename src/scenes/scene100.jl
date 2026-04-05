@@ -6,7 +6,7 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_gray = Matte(            
         "mat_gray",
         ConstantTexture(spectrum_from_float(0.1, 0.1, 0.1)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     push!(materials, mat_gray)
@@ -14,7 +14,7 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_curves = Matte(            
         "mat_curves",
         ConstantTexture(spectrum_from_float(0.15, 0.21, 1.0)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     push!(materials, mat_curves)
@@ -22,7 +22,7 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     mat_bunny = Matte(            
         "mat_bunny",
         ConstantTexture(spectrum_from_float(0.35, 0.31, 0.3)),
-        ConstantTexture(spectrum_from_float(0.0, 0.0, 0.0)),
+        ConstantTexture(0.0),
         nothing
     )
     push!(materials, mat_bunny)
@@ -34,8 +34,8 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         nothing,     # eumelanin
         nothing,   # pheomelanin
         nothing,           # eta
-        ConstantTextureFloat(0.5),        # beta_m
-        ConstantTextureFloat(0.5),        # beta_n
+        ConstantTexture(0.5),        # beta_m
+        ConstantTexture(0.5),        # beta_n
         nothing          # alpha
     )
     push!(materials, mat_hair)
@@ -69,18 +69,27 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         false,
         nothing
     )
-    for tri in bunny
-        push!(primitives, Primitive(tri, "mat_bunny", nothing))
+    for tris in bunny
+        for tri in tris
+            push!(primitives, Primitive(tri, "mat_bunny", nothing))
+        end
     end
 
     # ground
     ground_t = Translate(Pnt3(0, 0, -5))
     ground = BilinearPatchGenerator(
         ShapeCore(ground_t, Inv(ground_t), false, false),
-        1, 4,
-        Int64[0, 1, 2, 3],
+        1,
         Pnt3[Pnt3(-10, 0, -10), Pnt3(10, 0, -10), Pnt3(10, 0, 10), Pnt3(-10, 0, 10)],
-        nothing, nothing, nothing
+        Int64[1, 2, 3, 4],
+
+        nothing, 
+        nothing, 
+        
+        nothing,
+        nothing,
+
+        nothing
     )
     for each in ground
         push!(primitives, Primitive(each, "mat_gray", nothing))
@@ -90,10 +99,16 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     blp_t = Translate(Pnt3(0, 1, 0))
     blp = BilinearPatchGenerator(
         ShapeCore(blp_t, Inv(blp_t), false, false),
-        1, 4, 
-        Int64[0, 1, 2, 3],
+        1,
         Pnt3[Pnt3(-10, 0, -2), Pnt3(10, 0, -2), Pnt3(-10, 10, -2), Pnt3(10, 10, -2)],
-        nothing, nothing, nothing
+        Int64[1, 2, 3, 4],
+        nothing, 
+        nothing, 
+        
+        nothing,
+        nothing,
+
+        nothing
     )
     for each in blp
         push!(primitives, Primitive(each, "mat_gray", nothing))
@@ -122,7 +137,8 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         world_bounds(bvh), 
         l_2_w, 
         Spectrum(3.0, 3.0, 3.0), 
-        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr")
+        jmfp("/Users/johnmyslinski/Documents/pbrt-v3-scenes/cloud/textures/skylight-morn.exr"),
+        false
     )
     push!(lights, light)
 
@@ -131,7 +147,7 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
 
     # Instantiate a Film
     film = Film(
-        Pnt2(parsed_args["image-dim"], parsed_args["image-dim"]),
+        Pnt2i(parsed_args["image-dim"][1], parsed_args["image-dim"][2]),
         Bounds2(Pnt2(parsed_args["crop-window"][1], parsed_args["crop-window"][2]), Pnt2(parsed_args["crop-window"][3], parsed_args["crop-window"][4])),
         filter,
         1.0,
@@ -143,8 +159,7 @@ function make_scene100(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(0, 2, 5)
     look_at = Pnt3(.02, .47, 0)
     up = Vec3(0, 1, 0)
-    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 20.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), nothing, 0.0, 1.0, 0.0, 1e6, 20.0, film)
 
     # Instantiate a Sampler
     # S = ZSobolSampler(

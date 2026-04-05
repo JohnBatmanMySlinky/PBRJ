@@ -28,7 +28,7 @@ struct HairMaterial{
 		beta_m::BM,
 		beta_n::BN,
 		alpha::A,
-	)::HairMaterial where {
+	) where {
 		SA <: Maybe{AbstractTexture{Spectrum}},
 		C <: Maybe{AbstractTexture{Spectrum}},
 		E <: Maybe{AbstractTexture{Float64}},
@@ -46,20 +46,20 @@ struct HairMaterial{
 			@assert (sigma_a isa Nothing) & (color isa Nothing)
 		end
 
-		if eta isa Nothing
-			eta = ConstantTexture(1.55)
-		end
-		if beta_m isa Nothing
-			beta_m = ConstantTexture(0.3)
-		end
-		if beta_n isa Nothing
-			beta_n = ConstantTexture(0.3)
-		end
-		if alpha isa Nothing
-			alpha = ConstantTexture(2.0)
-		end
+		# Handle defaults by creating new variables with the correct types
+		eta_final = eta isa Nothing ? ConstantTexture(1.55) : eta
+		beta_m_final = beta_m isa Nothing ? ConstantTexture(0.3) : beta_m
+		beta_n_final = beta_n isa Nothing ? ConstantTexture(0.3) : beta_n
+		alpha_final = alpha isa Nothing ? ConstantTexture(2.0) : alpha
 		
-		return new{SA, C, E, P, ETA, BM, BN, A}(sigma_a, color, eumelanin, pheomelanin, eta, beta_m, beta_n, alpha, name)
+		# Now create the object with the potentially updated types
+		return new{
+			SA, C, E, P,
+			typeof(eta_final),
+			typeof(beta_m_final),
+			typeof(beta_n_final),
+			typeof(alpha_final)
+		}(sigma_a, color, eumelanin, pheomelanin, eta_final, beta_m_final, beta_n_final, alpha_final, name)
 	end
 end
 
@@ -69,8 +69,6 @@ function (hm::HairMaterial)(si::SurfaceInteraction, ::Bool=false, ::Type{T}=Radi
 	a = hm.alpha(si)
 	e = hm.eta(si)
 
-	si.bsdf = BSDF(si, e)
-	
 	if !(hm.sigma_a isa Nothing)
 		sig_a = clamp.(hm.sigma_a(si), 0.0, 1.0)
 	elseif !(hm.color isa Nothing)
@@ -85,10 +83,10 @@ function (hm::HairMaterial)(si::SurfaceInteraction, ::Bool=false, ::Type{T}=Radi
 			max(0.0, has_pheomelanin ? hm.pheomelanin(si) : 0.0),
 		)
 	end
-	
+
 	# offset along width
 	h = -1.0 + 2.0 * si.uv.y
-	add!(si.bsdf, HairBSDF(h, e, sig_a, bm, bn, a))
+	si.bsdf = BSDF(si, e, (HairBSDF(h, e, sig_a, bm, bn, a),))
 end
 
 function sigma_a_from_concentration(ce::Float64, cp::Float64)::Spectrum

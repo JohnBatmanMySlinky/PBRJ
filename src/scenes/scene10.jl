@@ -86,9 +86,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Instantiate a Camera
-
-    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(camera_transform, screen, 0.0, 1.0, 0.0, 1e6, 15.0, film)
+    C = PerspectiveCamera(camera_transform, nothing, 0.0, 1.0, 0.0, 1e6, 15.0, film)
 
     # Instantiate a Sampler
     S = StratifiedSampler(parsed_args["samples-per-pixel"], parsed_args["jitter"])
@@ -100,7 +98,7 @@ function make_scene10(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     
     # Instantiate an Integrator
     # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
-    I = SimpleVolPathIntegratorv4(C, S, parsed_args["max-depth"])
+    I = VolPathIntegratorv3(C, S, parsed_args["max-depth"])
 
     return I, scene
 end

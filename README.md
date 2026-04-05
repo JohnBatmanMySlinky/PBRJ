@@ -3,6 +3,12 @@ Physically Based Rendering - in Julia
 
 An implementation of [Physically Based Rendering: From Theory to Implementation](https://www.pbr-book.org/) in the Julia programming language. Based off the 3rd edition, but with some 4th edition sprinkled in.
 
+# Why? 
+Because I like ray tracing. 
+
+# Why Julia?
+Because python is too slow and c++ is too hard
+
 # Usage
 Example command line usage. See `src/args.jl` for a full specification of command line options.
 ```
@@ -21,49 +27,27 @@ If you want to use [NanoVDB](https://github.com/AcademySoftwareFoundation/openvd
 For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 
 # Example Renders
-1. Office scene. Interior scene. many (relative) diffuse area lights. specular floor. 
 
-    ![office_scene](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/munich-scene.png?raw=true)
-
-2. Caustic glass
-
-    ![caustic_glass](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/caustic-glass.png?raw=true)
-    
-3. Dragon on a plane with Ambient Occlusion integrator
-
-    ![dragon](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/dragon.png?raw=true)
-
-4. Cornell Box
-
-    ![cornell_box](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/cornell-box.png?raw=true)
-
-4. Metaballs
-
-    ![metaballs](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/metaballs.png?raw=true)
-
-5. Julia logo but with teapots
-
-    ![julia_logo](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/julia-logo.png?raw=true)
-
-6. Uniform Medium
-
-    ![uniform-medium](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/solid-medium.png?raw=true)
-
-7. Grid Medium 1
-
-    ![grid-medium-1](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/smoke.png?raw=true)
-
-8. Grid Medium 1
-
-    ![grid-medium-2](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/smoke-plume.png?raw=true)
-
-9. Furry Bunny
-
-    ![bunny-fur](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/bunny-fur.png?raw=true)
-
-10. Anemone
-
-    ![anemone](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/anemone.png?raw=true)
+| | | |
+|:---:|:---:|:---:|
+| **1 — Office Scene** | **2 — Caustic Glass** | **3 — AO Dragon** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/1-office-scene.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/2-caustic-glass.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/3-AO-dragon.png?raw=true) |
+| **4 — Cornell Box** | **5 — Soft Bodies** | **6 — Goursat Surface** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/4-cornell-box.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/5-soft-bodies.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/6-goursat.png?raw=true) |
+| **7 — Julia Logo** | **8 — Anemic Tree** | **9 — LTE Orb** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/7-julia-logo.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/8-anemic-tree.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/9-lte-orb.png?raw=true) |
+| **10 — Cloud** | **11 — Dragon** | **12 — Smoke Plume** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/10-cloud.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/11-dragon.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/12-smoke-plume.png?raw=true) |
+| **13 — Disney Cloud** | **14 — Anemone** | **16 — Elevator Lobby** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/13-disney-cloud.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/14-anemone.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/16-elevator-lobby.png?raw=true) |
+| **17 — Barcelona Pavilion** | **18 — SDFs** | **19 — Bunny Cloud** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/17-barcelona-pavillion.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/18-SDFs.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/19-bunny-cloud.png?raw=true) |
+| **20 — Explosion** | **21 — San Miguel** | **100 — Fuzzy Bunny** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/20-explosion.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/21-san-miguel.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/100-fuzzy-bunny.png?raw=true) |
+| **105 — Head** | **106 — Dragon** | **107 — Train Station** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/105-head.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/106-dragon_10.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/107-train-station.png?raw=true) |
+| **108 — Spherical Cow** | **109 — Voxel Cow** | **110 — Floating Lanterns** |
+| ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/108-spherical-cow.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/109-voxel-cow.png?raw=true) | ![](https://github.com/JohnBatmanMySlinky/PBRJ/blob/main/renders/110-floating_lanterns.png?raw=true) |
 
 # A couple little janky bits (mainly so that I don't forget about 'em)
 1. src/notebooks/TEST_nanovdb_indexing.ipynb    
@@ -77,6 +61,12 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - Accelerators: BVH
 - Cameras: Perspective
 - Integrators: BDPT, ambient occlusion, simple volumetric path (v4), and volumetric path (v3)
+
+| Integrator | Surfaces | Mediums | Emissive Mediums | BSSRDF |
+|---|:---:|:---:|:---:|:---:|
+| BDPT | ✅ | ✅  | ❌ | ❌ |
+| SimpleVolPath (v4) | ❌ | ✅ | ✅ | ❌ |
+| VolPath (v3) | ✅ | ✅ | ✅ | ✅ |
 - Lights: Area, distant, image infinite, uniform infinite, point, and spot
     - Uniform, Power, and Spatial (Voxel) light distributions
 - Materials: Glass, matte, metal, mirror, plastic, substrate, fourier, and subsurface materials
@@ -93,8 +83,16 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - MIPMap
     - Logging
     - Edge-avoiding a-trous denoising
+- [A high volume fraction sphere packing](https://docs.rs/spherical-cow/latest/spherical_cow/) (scene108.jl)
+- Voxelization: voxelize ya meshes (scene109.jl)
+- macro to do function call counting
 
 # TODO's
+- visibility tester Tr needs to be updated
+- Revisit parameterization of abstract types. Primitive?
+- FunctionWrappers.jl 
+- Refactor MaterialRegistry to use MaterialPool: https://claude.ai/chat/2009132e-080d-46ff-9330-bde0cd084006
+- use GLMakie as an image viewer to view renders as they progress
 - make sure samplers are working as intended...
 - BDPT pixels and tiles... I got it working for volumetric path (v3)
 - SDF scene
@@ -107,27 +105,19 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
     - displacements!!! https://iquilezles.org/articles/distfunctions/
         - try again with quad!
 - stochastic alpha test re pbrtv4 and move to primitive???
-- Back to TriangleMesh but instead use Ref{}
-- for materials/bsdf
-    - use mvector with a union type
-    - ::MVector{MAX_BxDF, UnionType}
-    - need to define structs, then define bsdf, then define struct() for dependency hell
 - add a python jmfp to python utils in src/scripts
 - Improve scene build descriptive statistics and printing
 - Fourier to use immutable struct
-- CatmullRom to use static arrays? or views?
 - Fourier BSDF convergence is hacked
 - get rid of deep copys in parser
     - use clone()?
 - i see some Mat3([]) that need to re factored in bilinear patch
 - parse_obj's FIN::Vector{Any} is gong to kill performance
-- fix old scenes that now broke with parser_obj::FIN
 - Time to make my OBJ parser suck less
     - Pre-allocate arrays within parse_obj
     - Bilinear patch support for quads
 - Fix Mediums
     - Grid medium is more sensitive to SampledGrid resolution than it should be
-    - NanoVDB is fucking broken and seg-faulty and I want to cry
 - Tests
     - Analytic scenes from pbrt-v3
     - bash script to efficiently test all scenes
@@ -142,8 +132,28 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - combine `scratch/` and `src/notebooks`
 - PBRT Features
     - LightBVH from pbrt-v4
-    - SimplePathIntegrator
-    - VolPathIntegrator
+
+# Squashing Vectors
+## materials/bsdf.jl
+    - making this MVector is hard
+    - even if everything is isbits - still seems to not like it?
+    - because isbitstype(Union{A, B}) is false even if A and B are isbitstype.
+## integrators/bdpt.jl
+    - Bump allocator giving dumb errors that should be fixable
+    - Turns out they aren't dumb errors. structs need to be isbits
+## distributions.jl
+## Fourier
+
+## DeadEnds
+
+### LightBVH
+- doesnt fit well with my API - i pass around a Distribution1D but that's workable?
+- LightBVH has two methods: Sample(ctx, u) & Sample(u) ctx has a Pnt3 member but that method is only used by direct lighting estimators. aka nothing in BDPT
+
+### Integrators
+- SimpleVolPathv4 doesnt do surface intersections - why amenome won't work
+- VolPathv4 requires v4 material APIs
+- in theory VolPath v3 should work but I can't figure out...
 
 # Bugs
 - IF FILM FILTER < 0.5 I GET BLACK LINES
@@ -157,7 +167,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - ~~General Rotation is fucked. Cloud scene bounding box with rotation dont match. AHHHHHHHH~~
     - ~~Maybe not... might have been that hidden `data2medium` transformation. recheck this.~~
 
-# Gotcha's
+# PBRT Gotcha's
 ```
 AIGHT SO YOURE FUCKING TELLING ME
 THIS
@@ -195,7 +205,13 @@ smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
 - [This implementation of PBRT in Julia](https://github.com/pxl-th/Trace.jl) repo has been an invaluable reference.
 - [3dtextures.com](https://3dtextures.me/2021/12/15/stone-floor-006/) Has some wonderful free texture maps.
 
-# Notes
+# Misc Notes
+## SDF Displacement
+- The realization was that if you displace with S * sin(F * p.x) * sin(F * p.y) * sin(F * p.z)
+    - S is the scale of height of displacement
+    - F is the frequency - which doesnt impact bounding sphere
+    - S * sin(x)^3 ranges from -S,S so you need to adjust bounding sphere radius by S
+
 ## The pain of matching PBRT *exactly*
 - Sampler: The threee options here are
     - StratifiedSampler with jitter = false. The catch is that if you have more than 1 spp, the order of which the samples is taken matters. So going with 1 spp removes one more thing to account for.
@@ -212,6 +228,7 @@ smoke_t = Translate(Pnt3(-1.0, 0.0, -1.2)) * RotateX(90.0)
 - to expand we go to `--crop-window 0.232 0.268 0.237 0.273`
 
 - Logging this too since im lazy and can never remember the logging args / params: `/Users/johnmyslinski/Documents/pbrt-v3/not_debug/pbrt ../scenes/cornell_box_not_debug.pbrt --logdir . --v 3`
+
 
 ## Metaball learnings
 - To start, I want to talk about **Functions**. The function $f(x,y,z) = x^2 + y^2 + z^2$ takes in 3 numbers, $x, y, z$ and returns one number. Since I am only really interested in 3D rendering, let's equate these three numbers to a single point in space. Swithing to points let's re-write $f(p) = p_x^2 + p_y^2 + p_z^2$. Now the intuition is that for any point in 3D space, this function returns a single number. For instance at the origin $(0,0,0)$ this function returns $0$ and for any other point it returns the distance from the origin.

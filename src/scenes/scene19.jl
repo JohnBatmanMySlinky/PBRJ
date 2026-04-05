@@ -14,7 +14,7 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # materials
     mat_disk = Matte(
         "mat_disk",
-        ConstantTexture(spectrum_from_float(0.1, 0.25, 0.25)),
+        ConstantTexture(spectrum_from_float(.4, .45, .35)),
         ConstantTexture(0.0),
         nothing
     )
@@ -97,8 +97,7 @@ function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     look_from = Pnt3(0, 120, 50)
     look_at = Pnt3(7, 0, 17)
     up = Vec3(0, 0, 1)
-    screen = Bounds2(Pnt2(-1, -1), Pnt2(1, 1))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up), screen, 0.0, 1.0, 0.0, 1e6, 25.0, film)
+    C = PerspectiveCamera(LookAt(look_from, look_at, up), nothing, 0.0, 1.0, 0.0, 1e6, 25.0, film)
 
     # Instantiate a Sampler
     S = ZSobolSampler(
