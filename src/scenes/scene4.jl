@@ -244,7 +244,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     light = UniformInfiniteLight(
         world_bounds(bvh), 
         l_2_w, 
-        Spectrum(1.0, 1.0, 1.0), 
+        spectrum_from_float(1.0, 1.0, 1.0),
     )
     push!(lights, light)
 
