@@ -1,17 +1,20 @@
 function make_scene22(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
+    @assert Threads.nthreads() == 1 "Scene 22 requires single-threaded execution (-t 1). NanoVDB is not thread-safe here."
+
     primitives = Primitive[]
     lights = Light[]
     materials = Material[]
 
+    mat_gray = Matte(
+        "mat_gray",
+        ConstantTexture(spectrum_from_float(0.75, 0.75, 0.75)),
+        ConstantTexture(0.0),
+        nothing
+    )
+    push!(materials, mat_gray)
+
     name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
     MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
-
-    # Bounding sphere enclosing the explosion mesh (~[-30,33] x [-0,89] x [-35,31])
-    sphere_t = Translate(Pnt3(1.5, 45.0, -2.0))
-    sphere = Sphere(
-        ShapeCore(sphere_t, Inv(sphere_t), false, false),
-        70.0
-    )
 
     explosion_mi = MediumInterface(
         NanoVDBMedium(
@@ -28,16 +31,35 @@ function make_scene22(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         ),
         nothing
     )
-    push!(primitives, Primitive(sphere, nothing, nothing, explosion_mi))
+    indices = Int64[0, 3, 1, 0, 2, 3, 4, 7, 5, 4, 6, 7, 6, 2, 7, 6, 3, 2, 5, 1, 4, 5, 0, 1, 5, 2, 0, 5, 7, 2, 1, 6, 4, 1, 3, 6] .+ 1
+    for tri in construct_triangle_mesh(ShapeCore(), 12, Pnt3[
+            Pnt3(33.000008, -0.074999996, 31.900047), Pnt3(-30.29999, -0.074999996, 31.900047),
+            Pnt3(33.000008, 89.475, 31.900047), Pnt3(-30.29999, 89.475, 31.900047),
+			Pnt3(-30.29999, -0.074999996, -35.599953), Pnt3(33.000008, -0.074999996, -35.599953),
+            Pnt3(-30.29999, 89.475, -35.599953), Pnt3(33.000008, 89.475, -35.599953)
+        ], indices, nothing, nothing, nothing, nothing, nothing)
+        push!(primitives, Primitive(tri, nothing, nothing, explosion_mi))
+        # push!(primitives, Primitive(tri, "mat_gray", nothing))
+    end
+
+    disk_t = Transformation(Mat4(1000, 0, 0, 0, 0, 1000, 0, 0, 0, 0, 1000, 0, 0, -0.05, 0, 1)) * 
+        Transformation(Mat4(1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1))
+
+    disk = Disk(disk_t, 0.0, 1.0, 0.0, 360.0, false, false)
+    push!(primitives, Primitive(disk, "mat_gray", nothing))
 
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
     # Infinite light — low sun env map
+    light_t = Transformation(Mat4(-0.9848077, -0.015134436, -0.17298739, 0, 0, 0.9961947, -0.087155744, 0, 0.17364818, -0.08583165, -0.98106027, 0, 0, 0, 0, 1)) *
+        Scale(1.0, 1.0, -1.0) *
+        Rotate(90.0, Vec3(0, 0, 1)) *
+        Rotate(90.0, Vec3(0, 1, 0))
     light = InfiniteLight(
         world_bounds(bvh),
-        RotateX(7.0),
+        light_t,
         spectrum_from_float(2.0, Illuminant),
         jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/ground_explosion/env/low_sun.exr"),
         true
@@ -55,11 +77,9 @@ function make_scene22(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
 
     # Camera: positioned to match pbrt's transform — above and back, looking at explosion center
-    look_from = Pnt3(1.5, -80.0, 160.0)
-    look_at   = Pnt3(1.5, 45.0, 10.0)
-    up        = Vec3(0.0, 0.0, 1.0)
+    camera_t = Inv(Transformation(Mat4(1, 0, 0, 0, 0, 0.99254614, 0.12186934, 0, 0, 0.12186934, -0.99254614, 0, 0, -35.430065, 247.52719, 1)))
     screen_window = Bounds2(Pnt2(-1, -0.75), Pnt2(1, 0.75))
-    C = PerspectiveCamera(LookAt(look_from, look_at, up) * Scale(-1.0, 1.0, 1.0), nothing, 0.0, 1.0, 0.0, 1e6, 45.0, film)
+    C = PerspectiveCamera(camera_t, screen_window, 0.0, 1.0, 0.0, 1e6, 45.0, film)
 
     S = ZSobolSampler(
         parsed_args["samples-per-pixel"],
@@ -72,7 +92,7 @@ function make_scene22(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("There are " * num2str(length(lights)) * " lights in the scene\n")
     scene = Scene(lights, bvh)
 
-    I = SimpleVolPathIntegratorv4(C, S, parsed_args["max-depth"])
+    I = VolPathIntegratorv3(C, S, parsed_args["max-depth"])
 
     return I, scene
 end
