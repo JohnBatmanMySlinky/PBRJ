@@ -1,12 +1,4 @@
 function make_scene19(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
-    # WHY DOES BUNNY CLOUD SEG FAULT IF ITS MULTI-THREADED?
-    # DISNEY CLOUD DOESNT
-    if (Threads.nthreads() > 1)
-        print("BUNNY CLOUD DOESNT LIKE MULTI-THREADING - TRY AGAIN")
-        @assert false
-    end
-    
-
     primitives = Primitive[]
     lights = Light[]
     materials = Material[]
