@@ -23,7 +23,7 @@ function make_scene22(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             5.0,                                # scale
             jmfp("/Users/johnmyslinski/Documents/pbrt-v4-volumes/scenes/ground_explosion/geometry/ground_explosion-RENDER-0.190.nvdb"),
             Pnt3i(16, 16, 16),
-            0.125,                              # Le_scale
+            1.25,                               # Le_scale
             0.0,                                # temperature_offset
             4500.0,                             # temperature_scale
         ),
