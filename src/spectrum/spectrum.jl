@@ -1,16 +1,18 @@
 function blackbody(lambda::Vector{Float64}, T::Float64)
     n = length(lambda)
     LL = zeros(Float64, n)
-    if T < 0.0
+    if T <= 0.0
         return LL
     end
-    c = 299792458.0
-    h = 6.62606957e-34
+    c  = 299792458.0
+    h  = 6.62606957e-34
     kb = 1.3806488e-23
+    # normalization: peak wavelength via Wien's law, normalize so max = 1
+    lambda_max = 2.8977721e-3 / T
+    peak = (2 * h * c^2) / (lambda_max^5 * (exp((h * c) / (lambda_max * kb * T)) - 1))
     for i in 1:n
-        # Compute emitted radiance for blackbody at wavelength _lambda[i]_
         l = lambda[i] * 1e-9
-        LL[i] = (2 * h * c^2) / (l^5 * (exp((h * c) / (l * kb *T)) - 1))
+        LL[i] = (2 * h * c^2) / (l^5 * (exp((h * c) / (l * kb * T)) - 1)) / peak
     end
     return LL
 end

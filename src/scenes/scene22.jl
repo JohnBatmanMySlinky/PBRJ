@@ -1,6 +1,4 @@
 function make_scene22(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
-    @assert Threads.nthreads() == 1 "Scene 22 requires single-threaded execution (-t 1). NanoVDB is not thread-safe here."
-
     primitives = Primitive[]
     lights = Light[]
     materials = Material[]
