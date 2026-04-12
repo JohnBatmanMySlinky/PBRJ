@@ -62,6 +62,8 @@ scene 20: explosion + SimpleVolPathIntegrator (v4 NanoVDB) 🟨
 scene 21: sanmiguel ✅
     - julia -t auto RayTracing.jl --scene-number 21 --image-dim 500 500 --crop-window 0.0 0.0 0.997245 0.745 --samples-per-pixel 16 --file-name "21-san-miguel.exr"
     - check my bullshit mipmap hack
+scene 21: ground explosion ✅
+    - julia -t auto RayTracing.jl --scene-number 22 --image-dim 500 500 --samples-per-pixel 4 --file-name "22-ground-explosion.exr"
 scene 99: sphere-a-mid 🟨
     - add more interesting materails
     - julia -t auto RayTracing.jl --scene-number 99 --image-dim 500 500 --samples-per-pixel 16 --file-name "99-sphere-a-mid.exr"
@@ -142,6 +144,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene20(parsed_args)
     elseif parsed_args["scene-number"] == 21
         return make_scene21(parsed_args)
+    elseif parsed_args["scene-number"] == 22
+        return make_scene22(parsed_args)
     elseif parsed_args["scene-number"] == 99
         return make_scene99(parsed_args)
     elseif parsed_args["scene-number"] == 100

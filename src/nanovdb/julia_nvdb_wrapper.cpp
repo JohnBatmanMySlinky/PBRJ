@@ -66,23 +66,23 @@ float lerp_why(float t, float a, float b){
 
 class NanoVDBWrapper {
     public:
-        NanoVDBWrapper(const std::string& fpath) : fpath(fpath) {}
-        
-        void init(){
+        NanoVDBWrapper(const std::string& fpath) : fpath(fpath) {
             density_handle = nanovdb::io::readGrid(jmfp(fpath));
             density_float_grid = density_handle.grid<float>();
             if (!density_float_grid) {
                 throw std::runtime_error("Failed to load density grid");
             }
-            
-            // Try to load temperature grid - it's optional
+
             try {
                 temperature_handle = nanovdb::io::readGrid(jmfp(fpath), "temperature");
                 temperature_float_grid = temperature_handle.grid<float>();
             } catch (const std::exception& e) {
-                // std::cout << "Temperature grid not available: " << e.what() << std::endl;
                 temperature_float_grid = nullptr;
             }
+        }
+
+        void init() {
+            // no-op: grid is loaded once at construction and is read-only during rendering
         }
         
         // Delete copy constructor and copy assignment

@@ -39,20 +39,6 @@ function render(
     println("\nUtilizing $(Threads.nthreads()) threads\n\n")
     # the multi-threaded loop
     Threads.@threads for k in 0:(total_tiles-1)        
-        # this is a bullshit ass hack
-        for wtf in 1:length(scene.b.primitives)
-            if !(scene.b.primitives[wtf].mi.inside isa Nothing)
-                if scene.b.primitives[wtf].mi.inside isa NanoVDBMedium
-                    NanoVDB.init(scene.b.primitives[wtf].mi.inside.nanovdb_grid)
-                end
-            end
-            if !(scene.b.primitives[wtf].mi.outside isa Nothing)
-                if scene.b.primitives[wtf].mi.outside isa NanoVDBMedium
-                    NanoVDB.init(scene.b.primitives[wtf].mi.outside.nanovdb_grid)
-                end
-            end
-        end
-
         # Render a single tile using BDPT
         tile = Pnt2i(k % n_tiles.x, k ÷ n_tiles.x)
         seed::Int64 = tile.y * n_tiles.x + tile.x
@@ -229,19 +215,6 @@ function render_viz(i::BDPTIntegrator, scene::Scene, parsed_args::Dict)::Array{R
 
     println("\nUtilizing $(Threads.nthreads()) threads\n")
     Threads.@threads for k in 0:(total_tiles-1)
-        for wtf in 1:length(scene.b.primitives)
-            if !(scene.b.primitives[wtf].mi.inside isa Nothing)
-                if scene.b.primitives[wtf].mi.inside isa NanoVDBMedium
-                    NanoVDB.init(scene.b.primitives[wtf].mi.inside.nanovdb_grid)
-                end
-            end
-            if !(scene.b.primitives[wtf].mi.outside isa Nothing)
-                if scene.b.primitives[wtf].mi.outside isa NanoVDBMedium
-                    NanoVDB.init(scene.b.primitives[wtf].mi.outside.nanovdb_grid)
-                end
-            end
-        end
-
         tile = Pnt2i(k % n_tiles.x, k ÷ n_tiles.x)
         seed::Int64 = tile.y * n_tiles.x + tile.x
         sampler = clone(i.sampler, seed)
