@@ -223,19 +223,20 @@ function sppm_photon_pass!(
     grid::SPPMGrid,
     integrator::SPPMIntegrator,
     scene::Scene,
-    iter::Int64,
-    rng::AbstractRNG
+    iter::Int64
 )
     light_distr = LightDistribution("power", scene)
+    sampler = clone(integrator.sampler, iter)
 
     for photon_idx in 1:integrator.photons_per_iter
-        # Sample a light and generate an initial photon ray
-        light_pdf::Float64 = 0.0
-        u_light_sel = Pnt2(rand(rng), rand(rng))
-        u_light     = Pnt2(rand(rng), rand(rng))
-        u_dir       = Pnt2(rand(rng), rand(rng))
+        start_pixel_sample!(sampler, Pnt2i(photon_idx - 1, iter - 1), 0)
 
-        light_idx, light_pdf, _ = sample_discrete(light_distr.distr, u_light_sel.x)
+        # Sample a light and generate an initial photon ray
+        u_light_sel = get_1D!(sampler)
+        u_light     = get_2D!(sampler)
+        u_dir       = get_2D!(sampler)
+
+        light_idx, light_pdf, _ = sample_discrete(light_distr.distr, u_light_sel)
         light_pdf == 0.0 && continue
         light = scene.lights[light_idx]
 
@@ -289,12 +290,12 @@ function sppm_photon_pass!(
             end
 
             # Continue photon path (specular or Russian roulette on diffuse)
-            wi, f, pdf_val, sampled_type = sample_f(si.bsdf, wo, Pnt2(rand(rng), rand(rng)), BSDF_ALL)
+            wi, f, pdf_val, sampled_type = sample_f(si.bsdf, wo, get_2D!(sampler), BSDF_ALL)
             (is_black(f) || pdf_val == 0.0) && break
             beta_new = beta * f * abs(dot(wi, Vec3(si.shading.n))) / pdf_val
             # Russian roulette
             q = max(0.05, 1.0 - y_spectrum(beta_new) / y_spectrum(beta))
-            rand(rng) < q && break
+            get_1D!(sampler) < q && break
             beta = beta_new / (1.0 - q)
             ray = spawn_ray(si.core, wi)
         end
@@ -327,8 +328,6 @@ function render(integrator::SPPMIntegrator, scene::Scene, parsed_args::Dict)::Ar
 
     pixels = [SPPMPixel(integrator.initial_radius) for _ in 1:n_pixels]
 
-    rng = MersenneTwister(parsed_args["seed"])
-
     for iter in 1:integrator.n_iterations
         print("SPPM iter $(iter)/$(integrator.n_iterations): camera pass... ")
         sppm_camera_pass!(pixels, integrator, scene, iter)
@@ -339,7 +338,7 @@ function render(integrator::SPPMIntegrator, scene::Scene, parsed_args::Dict)::Ar
         grid = build_grid(pixels, max_r)
 
         print("photon pass ($(integrator.photons_per_iter) photons)... ")
-        sppm_photon_pass!(pixels, grid, integrator, scene, iter, rng)
+        sppm_photon_pass!(pixels, grid, integrator, scene, iter)
 
         n_hit = count(px.M > 0 for px in pixels)
         sppm_update_pixels!(pixels)
