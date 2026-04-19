@@ -263,10 +263,8 @@ function sample_le(light::ParticleEmitter, u1::Pnt2, u2::Pnt2, t::Float64)::Tupl
         n_out = Nml3(w)
         ray = RayDifferential(Ray(pp, w, t, typemax(Float64)))
     else
-        w = Vec3(random_on_sphere(u2))
-        n_out = Nml3(w)
-        ray = RayDifferential(Ray(pp, w, t, typemax(Float64)))
-        s = spectrum_from_float(light.uniform_scale)
+        return spectrum_from_float(0.0), RayDifferential(Ray(pp, Vec3(0,0,1), t, typemax(Float64))),
+               Nml3(0,0,1), 1.0, 1.0
     end
 
     # PDF: uniform over particle length, mixture direction pdf
@@ -278,6 +276,6 @@ end
 
 function pdf_le(light::ParticleEmitter, ray::AbstractRay, n::Nml3)::Tuple{Float64, Float64}
     pdf_pos = 1.0 / max(light.particle_length, eps())
-    pdf_dir = cosine_hemisphere_pdf(dot(n, Nml3(ray.direction)))
+    pdf_dir = (1.0 + light.prob_sl) / (4.0 * pi)
     return pdf_pos, pdf_dir
 end

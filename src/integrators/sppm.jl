@@ -10,6 +10,19 @@ struct SPPMIntegrator <: AbstractIntegrator
     n_iterations::Int64
     photons_per_iter::Int64
     initial_radius::Float64
+
+    function SPPMIntegrator(
+        camera::C where C <: Camera, 
+        sampler::S where S <: AbstractSampler, 
+        film::Film,
+        max_depth::Int64,
+        n_iterations::Int64,
+        photons_per_iter::Int64,
+        initial_radius::Float64
+    )
+        photons_per_iter = photons_per_iter > 0 ? photons_per_iter : area(film.cropped_pixel_bounds)
+        return new(camera, sampler, max_depth, n_iterations, photons_per_iter, initial_radius)
+    end
 end
 
 # Per-pixel accumulation state, persists across all iterations
@@ -343,7 +356,8 @@ function render(integrator::SPPMIntegrator, scene::Scene, parsed_args::Dict)::Ar
         n_hit = count(px.M > 0 for px in pixels)
         sppm_update_pixels!(pixels)
 
-        print("$(n_hit) px hit. r=$(round(max_r, digits=4)) done.\n")
+        avg_r = n_hit > 0 ? mean(px.radius for px in pixels if px.N > 0) : max_r
+        print("$(n_hit) px hit. r_avg=$(round(avg_r, digits=4)) done.\n")
     end
 
     # ── Write final image ──────────────────────────────────────────────────

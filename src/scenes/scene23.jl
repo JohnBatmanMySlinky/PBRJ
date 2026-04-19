@@ -114,7 +114,7 @@ function make_scene23(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         pe_disk;
         velocity        = 0.8,
         range           = 50.0,
-        cherenkov_scale = 1000.0,
+        cherenkov_scale = 1_000.0,
         uniform_scale   = 50.0,
         ambient_eta     = ETA_AIR,
         n_particles     = 1,
@@ -156,7 +156,7 @@ function make_scene23(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("There are " * num2str(length(lights)) * " lights in the scene\n")
     scene = Scene(lights, bvh)
 
-    I = SPPMIntegrator(C, S, parsed_args["max-depth"], parsed_args["n-iterations"], parsed_args["photons-per-iteration"], 1.0)
+    I = SPPMIntegrator(C, S, film, parsed_args["max-depth"], parsed_args["n-iterations"], parsed_args["photons-per-iteration"], 1.0)
 
     return I, scene
 end

@@ -71,11 +71,11 @@ function parse_commandline()::Dict
         "--n-iterations"
             help = "SPPM: number of iterations"
             arg_type = Int
-            default = 50
+            default = 64
         "--photons-per-iteration"
             help = "SPPM: photons traced per iteration"
             arg_type = Int
-            default = 1000
+            default = -1
     end
 
     return parse_args(s)
