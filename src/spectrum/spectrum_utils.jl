@@ -65,12 +65,11 @@ function average_spectrum_samples(
 end
 
 function is_black(x::Spectrum)::Bool
-    return all(x .== 0.0) 
+    return all(iszero, x)
 end
 
-function Base.:*(a::Spectrum, b::Spectrum)::Spectrum
-    @assert length(a) == length(b)
-    return Spectrum([a[i]*b[i] for i in 1:length(a)])
+@inline function Base.:*(a::Spectrum, b::Spectrum)::Spectrum
+    return Spectrum(ntuple(i -> @inbounds(a[i] * b[i]), Val(nSpectralSamples)))
 end
 
 function XYZ_to_RGB(xyz::XYZPBRT)::RGBPBRT

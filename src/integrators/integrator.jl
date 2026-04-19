@@ -32,22 +32,21 @@ function render_viz(
         y1 = min(y0 + tile_size, sample_bounds.pMax.y)
         tile_bounds = Bounds2i(Pnt2i(x0, y0), Pnt2i(x1, y1))
         film_tile = FilmTile(film, tile_bounds)
+        inv_sqrt_spp = 1.0 / sqrt(sampler.samples_per_pixel)
 
         for pixel in tile_bounds
-            @info "WORKING ON PIXEL $pixel"
             for sample_index in 1:sampler.samples_per_pixel
                 start_pixel_sample!(sampler, pixel, sample_index - 1)
                 camera_sample = get_camera_sample!(sampler, pixel)
                 ray, wt = generate_ray_differential(i.camera, camera_sample)
-                scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
+                scale_differentials!(ray, inv_sqrt_spp)
                 L = spectrum_from_float(0.0)
                 if wt > 0
                     L = li(i, ray, scene, sampler)
                 end
-                if any(isnan.(L))
+                if any(isnan, L)
                     L = spectrum_from_float(0.0)
                 end
-                @info "FIN: Added sample $L @ $pixel"
                 add_sample!(film_tile, camera_sample.film, L, wt)
             end
         end
@@ -64,8 +63,7 @@ function render_viz(
         Threads.unlock(l)
     end
 
-    @time got_film = film
-    img = save(got_film)
+    img = save(film)
     viz_wait(viz)
 
     return img
@@ -106,6 +104,7 @@ function render(
     # @assert false
 
     print("Utilizing $(Threads.nthreads()) threads\n")
+    film = i.camera.core.core.film
     Threads.@threads for k in 0:(total_tiles - 1)
         tile = Pnt2i(k % n_tiles.x, k ÷ n_tiles.x)
         seed::Int64 = tile.y * n_tiles.x + tile.x
@@ -116,39 +115,36 @@ function render(
         y0 = sample_bounds.pMin.y + tile.y * tile_size
         y1 = min(y0 + tile_size, sample_bounds.pMax.y)
         tile_bounds = Bounds2i(Pnt2i(x0, y0), Pnt2i(x1, y1))
-        film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
-        for pixel in tile_bounds # adding iterator method is cool
-            @info "WORKING ON PIXEL $pixel"
+        film_tile = FilmTile(film, tile_bounds)
+        inv_sqrt_spp = 1.0 / sqrt(sampler.samples_per_pixel)
+
+        for pixel in tile_bounds
             for sample_index in 1:sampler.samples_per_pixel
                 start_pixel_sample!(sampler, pixel, sample_index-1)
                 camera_sample = get_camera_sample!(sampler, pixel)
-                # @info "camera_sample: $camera_sample"
                 ray, w = generate_ray_differential(i.camera, camera_sample)
-                scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
+                scale_differentials!(ray, inv_sqrt_spp)
                 L = spectrum_from_float(0.0)
 
                 if w > 0
                     L = li(i, ray, scene, sampler)
                 end
 
-                if any(isnan.(L))
+                if any(isnan, L)
                     L = spectrum_from_float(0.0)
                 end
-                # L = spectrum_from_float((Float64(pixel.x) * Float64(pixel.y))/(sample_bounds.pMax.x * sample_bounds.pMax.y))
-                
-                @info "FIN: Added sample $L @ $pixel"
+
                 add_sample!(film_tile, camera_sample.film, L, w)
             end
         end
-        merge_film_tile!(i.camera.core.core.film , film_tile)
+        merge_film_tile!(film, film_tile)
         # print("$(k)\n")
         Threads.atomic_add!(jj,1)
         Threads.lock(l)
         ProgressMeter.update!(prog, jj[])
         Threads.unlock(l)
     end
-    @time got_film = i.camera.core.core.film
-    img = save(got_film)
+    img = save(film)
     return img
 end
 
