@@ -46,13 +46,22 @@ end
 # ─── Spatial grid ────────────────────────────────────────────────────────────
 
 struct SPPMGrid
-    cells::Dict{Tuple{Int64,Int64,Int64}, Vector{Int32}}
-    bounds::Bounds3          # expanded bounds covering all visible point spheres
-    cell_size::Float64       # = 2 * max_radius
+    # Flat hash table: grid_heads[h] = first node index in bucket (0 = empty)
+    grid_heads::Vector{Int32}
+    # Pool-allocated singly-linked lists
+    node_pixel::Vector{Int32}   # which pixel this node refers to
+    node_next::Vector{Int32}    # next node index (0 = end of list)
+    bounds::Bounds3
+    cell_size::Float64
+    grid_size::Int64            # length of grid_heads (power of 2)
+end
+
+@inline function cell_hash(ix::Int64, iy::Int64, iz::Int64, grid_size::Int64)::Int64
+    h = (ix * 73856093) ⊻ (iy * 19349663) ⊻ (iz * 83492791)
+    return (h % grid_size + grid_size) % grid_size + 1   # 1-based
 end
 
 function build_grid(pixels::Vector{SPPMPixel}, max_radius::Float64)::SPPMGrid
-    # Compute bounds over all valid visible points
     bounds = Bounds3(Pnt3(Inf), Pnt3(-Inf))
     for px in pixels
         px.vp_valid || continue
@@ -61,35 +70,42 @@ function build_grid(pixels::Vector{SPPMPixel}, max_radius::Float64)::SPPMGrid
     end
 
     cell_size = 2.0 * max_radius
-    cells = Dict{Tuple{Int64,Int64,Int64}, Vector{Int32}}()
+
+    # Count total (pixel, cell) pairs so we can allocate exactly
+    n_nodes = 0
+    for px in pixels
+        px.vp_valid || continue
+        p_min = floor.((px.vp_p - Vec3(px.radius) - bounds.pMin) ./ cell_size)
+        p_max = floor.((px.vp_p + Vec3(px.radius) - bounds.pMin) ./ cell_size)
+        n_nodes += prod(Int64.(p_max .- p_min) .+ 1)
+    end
+
+    n_valid   = count(px.vp_valid for px in pixels)
+    grid_size = nextpow(2, max(n_valid * 2, 64))
+
+    grid_heads = zeros(Int32, grid_size)
+    node_pixel = Vector{Int32}(undef, n_nodes)
+    node_next  = Vector{Int32}(undef, n_nodes)
+    node_count = 0
 
     for (i, px) in enumerate(pixels)
         px.vp_valid || continue
-        # All cells the sphere overlaps
         p_min = Pnt3(floor.((px.vp_p - Vec3(px.radius) - bounds.pMin) ./ cell_size))
         p_max = Pnt3(floor.((px.vp_p + Vec3(px.radius) - bounds.pMin) ./ cell_size))
         for iz in Int64(p_min.z):Int64(p_max.z)
             for iy in Int64(p_min.y):Int64(p_max.y)
                 for ix in Int64(p_min.x):Int64(p_max.x)
-                    key = (ix, iy, iz)
-                    if !haskey(cells, key)
-                        cells[key] = Int32[]
-                    end
-                    push!(cells[key], Int32(i))
+                    h = cell_hash(ix, iy, iz, grid_size)
+                    node_count += 1
+                    node_pixel[node_count] = Int32(i)
+                    node_next[node_count]  = grid_heads[h]
+                    grid_heads[h]          = Int32(node_count)
                 end
             end
         end
     end
 
-    return SPPMGrid(cells, bounds, cell_size)
-end
-
-function grid_cell(grid::SPPMGrid, p::Pnt3)::Tuple{Int64,Int64,Int64}
-    rel = p - grid.bounds.pMin
-    ix = Int64(floor(rel.x / grid.cell_size))
-    iy = Int64(floor(rel.y / grid.cell_size))
-    iz = Int64(floor(rel.z / grid.cell_size))
-    return (ix, iy, iz)
+    return SPPMGrid(grid_heads, node_pixel, node_next, bounds, cell_size, grid_size)
 end
 
 # ─── Camera pass ─────────────────────────────────────────────────────────────
@@ -174,20 +190,11 @@ function sppm_camera_pass!(
                     px.Ld += beta * Ld / light_pdf
                 end
 
-                # Decide whether this is a specular bounce
-                is_specular_surf = (num_components(si.bsdf, BSDF_ALL & ~BSDF_SPECULAR) == 0)
+                is_diffuse = num_components(si.bsdf, BSDF_DIFFUSE | BSDF_REFLECTION | BSDF_TRANSMISSION) > 0
+                is_glossy  = num_components(si.bsdf, BSDF_GLOSSY  | BSDF_REFLECTION | BSDF_TRANSMISSION) > 0
 
-                if is_specular_surf
-                    # Specular: continue the path
-                    wi, f, pdf_val, sampled_type = sample_f(si.bsdf, wo, get_2D!(sampler), BSDF_ALL)
-                    if is_black(f) || pdf_val == 0.0
-                        break
-                    end
-                    specular_bounce = true
-                    beta *= f * abs(dot(wi, Vec3(si.shading.n))) / pdf_val
-                    ray = spawn_ray(si.core, wi)
-                else
-                    # Diffuse/glossy: store visible point, stop tracing
+                if is_diffuse || (is_glossy && depth == integrator.max_depth - 1)
+                    # Store visible point at diffuse surface (or glossy at max depth)
                     px.vp_p    = si.core.p
                     px.vp_wo   = wo
                     px.vp_bsdf = si.bsdf
@@ -195,6 +202,15 @@ function sppm_camera_pass!(
                     px.vp_valid = true
                     break
                 end
+
+                # Continue path: specular or glossy below max_depth
+                wi, f, pdf_val, sampled_type = sample_f(si.bsdf, wo, get_2D!(sampler), BSDF_ALL)
+                if is_black(f) || pdf_val == 0.0
+                    break
+                end
+                specular_bounce = (sampled_type & BSDF_SPECULAR != 0)
+                beta *= f * abs(dot(wi, Vec3(si.shading.n))) / pdf_val
+                ray = spawn_ray(si.core, wi)
             end
         end
     end
@@ -246,24 +262,28 @@ function sppm_photon_pass!(
 
             if !is_specular_surf
                 # Deposit photon: look up visible points in grid
-                cell = grid_cell(grid, si.core.p)
+                rel = si.core.p - grid.bounds.pMin
+                cx  = Int64(floor(rel.x / grid.cell_size))
+                cy  = Int64(floor(rel.y / grid.cell_size))
+                cz  = Int64(floor(rel.z / grid.cell_size))
                 for dz in -1:1, dy in -1:1, dx in -1:1
-                    neighbor = (cell[1]+dx, cell[2]+dy, cell[3]+dz)
-                    if haskey(grid.cells, neighbor)
-                        for px_idx in grid.cells[neighbor]
-                            px = pixels[px_idx]
-                            px.vp_valid || continue
+                    h    = cell_hash(cx+dx, cy+dy, cz+dz, grid.grid_size)
+                    node = Int64(grid.grid_heads[h])
+                    while node != 0
+                        px_idx = Int64(grid.node_pixel[node])
+                        px = pixels[px_idx]
+                        if px.vp_valid
                             dist2 = sum((si.core.p - px.vp_p).^2)
-                            dist2 > px.radius^2 && continue
-
-                            # Accumulate flux: f(vp.bsdf, vp.wo, -photon_dir) * beta
-                            wi_p = -ray.direction
-                            f = px.vp_bsdf(px.vp_wo, wi_p, BSDF_ALL)
-                            is_black(f) && continue
-
-                            px.phi += f * beta
-                            px.M   += 1
+                            if dist2 <= px.radius^2
+                                wi_p = -ray.direction
+                                f    = px.vp_bsdf(px.vp_wo, wi_p, BSDF_ALL)
+                                if !is_black(f)
+                                    px.phi += f * beta
+                                    px.M   += 1
+                                end
+                            end
                         end
+                        node = Int64(grid.node_next[node])
                     end
                 end
             end

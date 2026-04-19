@@ -156,7 +156,7 @@ function make_scene23(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     print("There are " * num2str(length(lights)) * " lights in the scene\n")
     scene = Scene(lights, bvh)
 
-    I = SPPMIntegrator(C, S, parsed_args["max-depth"], 50, 1_000, 1.0)
+    I = SPPMIntegrator(C, S, parsed_args["max-depth"], parsed_args["n-iterations"], parsed_args["photons-per-iteration"], 1.0)
 
     return I, scene
 end

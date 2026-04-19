@@ -223,30 +223,30 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     # )
     # push!(primitives, Primitive(sphere, nothing, nothing, smoke_mi))
 
-    # sphere_transform2 = Translate(Pnt3(330, 300, 200)) * RotateX(37.0) * RotateY(42.0) * RotateZ(100.0)
-    # sphere2 = Sphere(
-    #     ShapeCore(
-    #         sphere_transform2,
-    #         Inv(sphere_transform2),
-    #         false,
-    #         false
-    #     ),
-    #     90.0
-    # )
-    # push!(primitives, Primitive(sphere2, "mat_bumpy_metal", nothing))
+    sphere_transform2 = Translate(Pnt3(330, 300, 200)) * RotateX(37.0) * RotateY(42.0) * RotateZ(100.0)
+    sphere2 = Sphere(
+        ShapeCore(
+            sphere_transform2,
+            Inv(sphere_transform2),
+            false,
+            false
+        ),
+        90.0
+    )
+    push!(primitives, Primitive(sphere2, "mat_bumpy_metal", nothing))
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")
     @time bvh = BVH(primitives)
     print("Done building BVH\n")
 
-    l_2_w = Translate(Pnt3(0,0,0))
-    light = UniformInfiniteLight(
-        world_bounds(bvh), 
-        l_2_w, 
-        spectrum_from_float(1.0, 1.0, 1.0),
-    )
-    push!(lights, light)
+    # l_2_w = Translate(Pnt3(0,0,0))
+    # light = UniformInfiniteLight(
+    #     world_bounds(bvh), 
+    #     l_2_w, 
+    #     spectrum_from_float(1.0, 1.0, 1.0),
+    # )
+    # push!(lights, light)
 
 
     # Instantiate a Filter
@@ -278,7 +278,8 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     
     # Instantiate an Integrator
     # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
-    I = VolPathIntegratorv3(C, S, parsed_args["max-depth"])
+    # I = VolPathIntegratorv3(C, S, parsed_args["max-depth"])
+    I = SPPMIntegrator(C, S, parsed_args["max-depth"], parsed_args["n-iterations"], parsed_args["photons-per-iteration"], 1.0)
 
     return I, scene
 end
