@@ -101,8 +101,6 @@ struct BVH <: BVHAccel
         @assert total_nodes[] + 1 == offset[]
 
         new(ordered_primitives, max_node_primitives, flattened)
-
-        return new(ordered_primitives, max_node_primitives, flattened)
     end
 end
 
@@ -234,7 +232,7 @@ end
 #### Intersect with BVH
 #################################################
 
-function intersect!(bvh::BVH, ray::AbstractRay, shadow_ray::Bool=false)
+function intersect!(bvh::BVH, ray::R, shadow_ray::Bool=false) where {R <: AbstractRay}
     hit = false
     final_time = nothing
     interaction::Maybe{SurfaceInteraction} = nothing
@@ -250,29 +248,30 @@ function intersect!(bvh::BVH, ray::AbstractRay, shadow_ray::Bool=false)
     while true
         @inbounds ln = bvh.nodes[current_node_i]
         if intersect_p(ln.bounds, ray, inv_dir, dir_is_neg)
-            if ln isa LinearBVHLeaf && ln.n_primitives > 0
-                ln = ln::LinearBVHLeaf
-                # Intersect ray with primitives in node.
-                @inbounds for i in 0:ln.n_primitives - 1
-                    tmp_hit, tmp_time, tmp_interaction = intersect!(
-                        bvh.primitives[ln.primitives_offset + i], ray, shadow_ray
-                    )
-                    if tmp_hit
-                        shadow_ray && return true, tmp_time, tmp_interaction
-                        hit = true
-                        final_time = tmp_time
-                        interaction = tmp_interaction
+            if ln isa LinearBVHLeaf
+                if ln.n_primitives > 0
+                    @inbounds for i in 0:ln.n_primitives - 1
+                        tmp_hit, tmp_time, tmp_interaction = intersect!(
+                            bvh.primitives[ln.primitives_offset + i], ray, shadow_ray
+                        )
+                        if tmp_hit
+                            shadow_ray && return true, tmp_time, tmp_interaction
+                            hit = true
+                            final_time = tmp_time
+                            interaction = tmp_interaction
+                        end
                     end
                 end
                 to_visit_offset == 1 && break
                 to_visit_offset -= 1
-                current_node_i = nodes_to_visit[to_visit_offset]
+                @inbounds current_node_i = nodes_to_visit[to_visit_offset]
             else
+                ln = ln::LinearBVHInterior
                 if dir_is_neg[ln.split_axis] == 2
-                    nodes_to_visit[to_visit_offset] = current_node_i + 1
+                    @inbounds nodes_to_visit[to_visit_offset] = current_node_i + 1
                     current_node_i = ln.second_child_offset
                 else
-                    nodes_to_visit[to_visit_offset] = ln.second_child_offset
+                    @inbounds nodes_to_visit[to_visit_offset] = ln.second_child_offset
                     current_node_i += 1
                 end
                 to_visit_offset += 1
@@ -280,13 +279,13 @@ function intersect!(bvh::BVH, ray::AbstractRay, shadow_ray::Bool=false)
         else
             to_visit_offset == 1 && break
             to_visit_offset -= 1
-            current_node_i = nodes_to_visit[to_visit_offset]
+            @inbounds current_node_i = nodes_to_visit[to_visit_offset]
         end
     end
     hit, final_time, interaction
 end
 
-function intersect_p(bvh::BVH, ray::AbstractRay)
+function intersect_p(bvh::BVH, ray::R) where {R <: AbstractRay}
     length(bvh.nodes) == 0 && return false
 
     ray |> check_direction!
@@ -299,22 +298,24 @@ function intersect_p(bvh::BVH, ray::AbstractRay)
     while true
         @inbounds ln = bvh.nodes[current_node_i]
         if intersect_p(ln.bounds, ray, inv_dir, dir_is_neg)
-            if ln isa LinearBVHLeaf && ln.n_primitives > 0
-                ln = ln::LinearBVHLeaf
-                @inbounds for i in 0:ln.n_primitives - 1
-                    intersect_p(
-                        bvh.primitives[ln.primitives_offset + i], ray,
-                    ) && return true
+            if ln isa LinearBVHLeaf
+                if ln.n_primitives > 0
+                    @inbounds for i in 0:ln.n_primitives - 1
+                        intersect_p(
+                            bvh.primitives[ln.primitives_offset + i], ray,
+                        ) && return true
+                    end
                 end
                 to_visit_offset == 1 && break
                 to_visit_offset -= 1
-                current_node_i = nodes_to_visit[to_visit_offset]
+                @inbounds current_node_i = nodes_to_visit[to_visit_offset]
             else
+                ln = ln::LinearBVHInterior
                 if dir_is_neg[ln.split_axis] == 2
-                    nodes_to_visit[to_visit_offset] = current_node_i + 1
+                    @inbounds nodes_to_visit[to_visit_offset] = current_node_i + 1
                     current_node_i = ln.second_child_offset
                 else
-                    nodes_to_visit[to_visit_offset] = ln.second_child_offset
+                    @inbounds nodes_to_visit[to_visit_offset] = ln.second_child_offset
                     current_node_i += 1
                 end
                 to_visit_offset += 1
@@ -322,7 +323,7 @@ function intersect_p(bvh::BVH, ray::AbstractRay)
         else
             to_visit_offset == 1 && break
             to_visit_offset -= 1
-            current_node_i = nodes_to_visit[to_visit_offset]
+            @inbounds current_node_i = nodes_to_visit[to_visit_offset]
         end
     end
     false
