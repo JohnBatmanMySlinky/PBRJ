@@ -16,7 +16,6 @@ end
 
 function sample_f(s::SpecularReflection{S, F}, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}} where {S <: Spectrum, F <: Fresnel}
     wi = Vec3(-wo.x, -wo.y, wo.z)
-    @info "MIRROR: wi = $wi, s.r $(s.r)"
     return wi, s.fresnel(cos_theta(wi)) * s.r / abs_cos_theta(wi), 1.0, nothing
 end
 

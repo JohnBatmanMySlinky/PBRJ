@@ -41,7 +41,6 @@ function (m::Substrate)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tr
     
     d = m.Kd(si)
     s = m.Ks(si)
-    @info "Substrate: Kd: $d, Ks: $s"
     roughu = clamp(m.u_roughness(si), 0, 1)
     roughv = clamp(m.v_roughness(si), 0, 1)
     # TODO implement black body check

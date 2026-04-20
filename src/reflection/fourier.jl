@@ -4,13 +4,24 @@ struct FourierBSDF <: AbstractBxDF
     type::UInt8
 end
 
+const _fourier_ak_bufs = [Float64[] for _ in 1:Threads.nthreads()]
+
+function _get_ak_buf(needed::Int)
+    tid = Threads.threadid()
+    buf = _fourier_ak_bufs[tid]
+    if length(buf) < needed
+        resize!(buf, needed)
+    end
+    fill!(view(buf, 1:needed), 0.0)
+    return view(buf, 1:needed)
+end
+
 function f(f::FourierBSDF, wo::Vec3, wi::Vec3)::Spectrum
-    @info "FourierBSDF::f"
     # Find the zenith angle cosines and azimuth difference angle
     mu_I = cos_theta(-wi)
     mu_O = cos_theta(wo)
     cos_phi = cos_d_phi(-wi, wo)
-    
+
     # Compute Fourier coefficients $a_k$ for $(\mu_I, \mu_O)$
     # Determine offsets and weights for $\mu_I$ and $\mu_O$
     check_I, offset_I, weights_I = get_weights_and_offset(f.table, mu_I)
@@ -19,8 +30,7 @@ function f(f::FourierBSDF, wo::Vec3, wi::Vec3)::Spectrum
         return spectrum_from_float(0.0)
     end
 
-    # Allocate storage to accumulate _ak_ coefficients
-    ak = zeros(f.table.mMax * f.table.nChannels)
+    ak = _get_ak_buf(f.table.mMax * f.table.nChannels)
 
     # Accumulate weighted sums of nearby $a_k$ coefficients
     mMax = 0
@@ -62,20 +72,17 @@ function f(f::FourierBSDF, wo::Vec3, wi::Vec3)::Spectrum
 end
 
 function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tuple{Vec3, Spectrum, Float64, Maybe{UInt8}}
-    @info "FourierBSDF::sample_f"
-    @info "FourierBSDF::sample_f: wo = $wo"
-    @info "FourierBSDF::sample_f: u = $u"
     # Sample zenith angle component for _FourierBSDF_
     mu_O = cos_theta(wo)
     mu_I, _, pdf_mu = sample_catmull_rom_2D(
-        f.table.nMu, 
-        f.table.nMu, 
-        f.table.mu,                           
+        f.table.nMu,
+        f.table.nMu,
         f.table.mu,
-        f.table.a0, 
+        f.table.mu,
+        f.table.a0,
         f.table.cdf,
-        mu_O, 
-        u[1+1], 
+        mu_O,
+        u[1+1],
     )
 
     # Compute Fourier coefficients $a_k$ for $(\mu_I, \mu_O)$
@@ -86,11 +93,7 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
         return Vec3(0.0, 0.0, 0.0), spectrum_from_float(0.0), 0.0, type
     end
 
-    # Sample zenith angle component for _FourierBSDF_
-    # Compute Fourier coefficients $a_k$ for $(\mu_I, \mu_O)$
-
-    # Allocate storage to accumulate _ak_ coefficients
-    ak = zeros(Float64, f.table.mMax * f.table.nChannels)
+    ak = _get_ak_buf(f.table.mMax * f.table.nChannels)
 
     # Accumulate weighted sums of nearby $a_k$ coefficients
     mMax = 0
@@ -104,7 +107,6 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
                 for c in 0:(f.table.nChannels - 1)
                     for k in 0:(m - 1)
                         ak[c * f.table.mMax + k + 1] += weight * ap[c * m + k + 1]
-                        # @info "FourierBSDF::Sample_f::a_k: b: $b, a: $a, c: $c,@info "FourierBSDF::Sample_f::sample_fourier: $Y, $pdf_phi, $phi" k: $k, m: $m, ap: $(ap[c * m + k + 1])"
                     end
                 end
             end
@@ -113,7 +115,6 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
 
     # Importance sample the luminance Fourier expansion
     Y, pdf_phi, phi = sample_fourier(ak, f.table.recip, mMax, u[0+1])
-    @info "FourierBSDF::Sample_f::sample_fourier: $Y, $pdf_phi, $phi"
     pdf_val = max(0.0, pdf_phi * pdf_mu)
 
     # Compute the scattered direction for _FourierBSDF_
@@ -122,11 +123,11 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
     if isinf(norm)
         norm = 0.0
     end
-    sin_phi = sin(phi) 
+    sin_phi = sin(phi)
     cos_phi = cos(phi)
     wi = -Vec3(
         norm * (cos_phi * wo.x - sin_phi * wo.y),
-        norm * (sin_phi * wo.x + cos_phi * wo.y), 
+        norm * (sin_phi * wo.x + cos_phi * wo.y),
         mu_I
     )
 
@@ -148,20 +149,18 @@ function sample_f(f::FourierBSDF, wo::Vec3, u::Pnt2, type::UInt8=BSDF_ALL)::Tupl
         scale *= eta * eta
     end
 
-    if (f.table.nChannels == 1) 
+    if (f.table.nChannels == 1)
         return wi, spectrum_from_float(Y * scale), pdf_val, type
     end
     R = fourier_interpolation(ak, 1 * f.table.mMax, mMax, cos_phi)
     B = fourier_interpolation(ak, 2 * f.table.mMax, mMax, cos_phi)
     G = 1.39829 * Y - 0.100913 * B - 0.297375 * R
     # JOHN HACK ON CLAMP
-    @info "FourierBSDF::Sample_f::RETURN: $wi, $(clamp.(spectrum_from_float(R * scale, G * scale, B * scale), 0.0, 1.0)) $pdf_val $type"
     return wi, clamp.(spectrum_from_float(R * scale, G * scale, B * scale), 0.0, 1.0), pdf_val, type
 end
 
 
 function compute_pdf(f::FourierBSDF, wo::Vec3, wi::Vec3)::Float64
-    @info "FourierBSDF::compute_pdf"
     # Find the zenith angle cosines and azimuth difference angle
     mu_I = cos_theta(-wi)
     mu_O = cos_theta(wo)
@@ -175,8 +174,7 @@ function compute_pdf(f::FourierBSDF, wo::Vec3, wi::Vec3)::Float64
         return 0.0
     end
 
-    # Allocate storage to accumulate _ak_ coefficients
-    ak = zeros(f.table.mMax * f.table.nChannels)
+    ak = _get_ak_buf(f.table.mMax * f.table.nChannels)
 
     # Accumulate weighted sums of nearby $a_k$ coefficients
     mMax = 0
@@ -190,7 +188,6 @@ function compute_pdf(f::FourierBSDF, wo::Vec3, wi::Vec3)::Float64
                 for c in 0:(f.table.nChannels - 1)
                     for k in 0:(m - 1)
                         ak[c * f.table.mMax + k + 1] += weight * ap[c * m + k + 1]
-                        # @info "FourierBSDF::Sample_f::a_k: b: $b, a: $a, c: $c,@info "FourierBSDF::Sample_f::sample_fourier: $Y, $pdf_phi, $phi" k: $k, m: $m, ap: $(ap[c * m + k + 1])"
                     end
                 end
             end
