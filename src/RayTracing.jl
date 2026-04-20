@@ -280,6 +280,8 @@ include("shapes/sphere_packing.jl")
 include("shapes/voxelization.jl")
 include("scene_utils.jl")
 
+const NO_MEDIUM_INTERFACE = MediumInterface(nothing)
+
 function render_scene(parsed_args::Dict)
     @prof "scene_build" I, scene = build_scene(parsed_args) # TODO get this outside the loop!
     if parsed_args["render-viz"]

@@ -12,30 +12,30 @@ mutable struct Interaction
 end
 
 function Interaction()
-    return Interaction(Pnt3(0.0), 0.0, Vec3(0), Nml3(0), MediumInterface(nothing))
+    return Interaction(Pnt3(0.0), 0.0, Vec3(0), Nml3(0), NO_MEDIUM_INTERFACE)
 end
 
 function Interaction(r::AbstractRay)::Interaction
-    return Interaction(r.origin, r.t, -r.direction, Nml3(r.direction), MediumInterface(nothing))
+    return Interaction(r.origin, r.t, -r.direction, Nml3(r.direction), NO_MEDIUM_INTERFACE)
 end
 
 function Interaction(r::AbstractRay, n::Nml3)::Interaction
-    return Interaction(r.origin, r.t, -r.direction, n, MediumInterface(nothing))
+    return Interaction(r.origin, r.t, -r.direction, n, NO_MEDIUM_INTERFACE)
 end
 
 # PBRT 2.10 
 # for other types of interacion points where the notation of an outgoing direction doesnt apply
 # ie those found by randomly sampling points on a surface of a shape wo has the value Vec3(0)
 function Interaction(p::Pnt3, t::Float64, n::Nml3)::Interaction
-    return Interaction(p, t, Vec3(0.0, 0.0, 0.0), n, MediumInterface(nothing))
+    return Interaction(p, t, Vec3(0.0, 0.0, 0.0), n, NO_MEDIUM_INTERFACE)
 end
 
 function Interaction(p::Pnt3, t::Float64)::Interaction
-    return Interaction(p, t, Vec3(0.0, 0.0, 0.0), Nml3(0.0, 0.0, 0.0), MediumInterface(nothing))
+    return Interaction(p, t, Vec3(0.0, 0.0, 0.0), Nml3(0.0, 0.0, 0.0), NO_MEDIUM_INTERFACE)
 end
 
 function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3)::Interaction
-    return Interaction(p, t, wo, n, MediumInterface(nothing))
+    return Interaction(p, t, wo, n, NO_MEDIUM_INTERFACE)
 end
 
 function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3, m::Maybe{AbstractMedium})::Interaction
@@ -298,18 +298,11 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
     # @info "Computed Differentials: $dim"
 
     # Initialization for offset computation.
-    a = Mat2([
-        si.dpdu[dim[0+1]+1] si.dpdv[dim[0+1]+1]
-        si.dpdu[dim[1+1]+1] si.dpdv[dim[1+1]+1]
-    ])
-    bx = Pnt2(
-        px[dim[0+1]+1] - si.core.p[dim[0+1]+1],
-        px[dim[1+1]+1] - si.core.p[dim[1+1]+1]
-    )
-    by = Pnt2(
-        py[dim[0+1]+1] - si.core.p[dim[0+1]+1],
-        py[dim[1+1]+1] - si.core.p[dim[1+1]+1]
-    )
+    d0 = dim[0+1]+1
+    d1 = dim[1+1]+1
+    a = Mat2(si.dpdu[d0], si.dpdu[d1], si.dpdv[d0], si.dpdv[d1])
+    bx = Pnt2(px[d0] - si.core.p[d0], px[d1] - si.core.p[d1])
+    by = Pnt2(py[d0] - si.core.p[d0], py[d1] - si.core.p[d1])
     sx = a \ bx
     sy = a \ by
     # @info "Computed differentials: $a $bx $by $sx $sy"

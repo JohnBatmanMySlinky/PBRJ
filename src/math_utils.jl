@@ -433,7 +433,7 @@ function find_interval(size::Int64, predicate::Function)::Int64
 end
 
 # Fourier Interpolation Definitions
-function fourier_interpolation(a::Vector{Float64}, offset::Int64, m::Int64, cosPhi::Float64)::Float64
+function fourier_interpolation(a::AbstractVector{Float64}, offset::Int64, m::Int64, cosPhi::Float64)::Float64
     value = 0.0
     # Initialize cosine iterates
     cosKMinusOnePhi = cosPhi
@@ -448,7 +448,7 @@ function fourier_interpolation(a::Vector{Float64}, offset::Int64, m::Int64, cosP
     return value
 end   
 
-function sample_fourier(ak::Vector{Float64}, recip::Vector{Float64}, m::Int64, u::Float64)::Tuple{Float64, Float64, Float64}
+function sample_fourier(ak::AbstractVector{Float64}, recip::Vector{Float64}, m::Int64, u::Float64)::Tuple{Float64, Float64, Float64}
     # Pick a side and declare bisection variables
     flip = u >= 0.5
     if flip
@@ -632,12 +632,11 @@ function sample_catmull_rom_2D(
     return (x0 + width * t, fhat, fhat / max_val)
 end
 
-function catmull_rom_weights(size::Int64, nodes::AbstractArray{Float64}, x::Float64)::Tuple{Bool, Int64, Vector{Float64}}
-    weights = zeros(Float64, 4)
+function catmull_rom_weights(size::Int64, nodes::AbstractArray{Float64}, x::Float64)::Tuple{Bool, Int64, SVector{4,Float64}}
+    weights = MVector{4,Float64}(0.0, 0.0, 0.0, 0.0)
     # Return _false_ if _x_ is out of bounds
-    # @info "FourierBSDF::CatmullRomWeights"
     if !((x >= nodes[0+1]) && (x <= nodes[size - 1 + 1]))
-        return (false, 0, Float64[0.0])
+        return (false, 0, SVector{4,Float64}(0.0, 0.0, 0.0, 0.0))
     end
 
     # Search for the interval _idx_ containing _x_
@@ -690,7 +689,7 @@ function catmull_rom_weights(size::Int64, nodes::AbstractArray{Float64}, x::Floa
         weights[3 + 1] = 0.0
     end
     # @info "FourierBSDF::CatmullRomWeights weights $weights"
-    return (true, offset, weights)
+    return (true, offset, SVector{4,Float64}(weights))
 end
 
 function invert_catmull_rom(n::Int64, x::AbstractArray{Float64}, values::AbstractArray{Float64}, u::Float64)::Float64

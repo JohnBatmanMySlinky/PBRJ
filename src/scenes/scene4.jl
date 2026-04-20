@@ -277,9 +277,9 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     scene = Scene(lights, bvh)
     
     # Instantiate an Integrator
-    # I = BDPTIntegrator(C, S, parsed_args["max-depth"])
+    I = BDPTIntegrator(C, S, parsed_args["max-depth"])
     # I = VolPathIntegratorv3(C, S, parsed_args["max-depth"])
-    I = SPPMIntegrator(C, S, parsed_args["max-depth"], parsed_args["n-iterations"], parsed_args["photons-per-iteration"], 1.0)
+    # I = SPPMIntegrator(C, S, parsed_args["max-depth"], parsed_args["n-iterations"], parsed_args["photons-per-iteration"], 1.0)
 
     return I, scene
 end

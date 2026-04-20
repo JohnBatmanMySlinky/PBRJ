@@ -6,7 +6,7 @@ struct Primitive
 end
 
 function Primitive(s::Shape, m::Maybe{String}, al::Maybe{Light})
-    return Primitive(s, m, al, MediumInterface(nothing))
+    return Primitive(s, m, al, NO_MEDIUM_INTERFACE)
 end
 
 #####################################################
