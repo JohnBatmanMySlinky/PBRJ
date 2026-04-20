@@ -1,6 +1,6 @@
-struct FourierBSDF <: AbstractBxDF
+struct FourierBSDF{M} <: AbstractBxDF
     table::FourierBSDFTable
-    mode::Type{T} where T <: TransportMode
+    mode::Type{M}
     type::UInt8
 end
 

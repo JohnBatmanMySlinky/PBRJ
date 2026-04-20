@@ -155,16 +155,16 @@ end
 ############################################################
 ###################### Fresnel Specular ####################
 ############################################################
-struct FresnelSpecular <: AbstractBxDF
+struct FresnelSpecular{M} <: AbstractBxDF
     R::Spectrum
     TT::Spectrum
     etaA::Float64
     etaB::Float64
     fresnel::FresnelDielectric
-    mode::Type{T} where T <: TransportMode
+    mode::Type{M}
     type::UInt8
-    function FresnelSpecular(R::Spectrum, TT::Spectrum, etaA::Float64, etaB::Float64, mode::Type{T}) where T <: TransportMode
-        return new(R, TT, etaA, etaB, FresnelDielectric(etaA, etaB), mode, BSDF_REFLECTION | BSDF_TRANSMISSION | BSDF_SPECULAR)
+    function FresnelSpecular(R::Spectrum, TT::Spectrum, etaA::Float64, etaB::Float64, mode::Type{M}) where {M}
+        return new{M}(R, TT, etaA, etaB, FresnelDielectric(etaA, etaB), mode, BSDF_REFLECTION | BSDF_TRANSMISSION | BSDF_SPECULAR)
     end
 end
 

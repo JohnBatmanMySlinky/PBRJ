@@ -64,16 +64,16 @@ function compute_pdf(bxdf::MicrofacetReflection, wo::Vec3, wi::Vec3)::Float64
 end
 
 
-struct MicrofacetTransmission <: AbstractBxDF
+struct MicrofacetTransmission{M} <: AbstractBxDF
     T::Spectrum
     distribution::MicrofacetDistributionImpl
     eta_A::Float64
     eta_B::Float64
     fresnel::FresnelDielectric
-    mode::Type{T} where T <: TransportMode
+    mode::Type{M}
     type::UInt8
-    function MicrofacetTransmission(T::Spectrum, distribution::MicrofacetDistributionImpl, eta_A::Float64, eta_B::Float64, mode)
-        return new(
+    function MicrofacetTransmission(T::Spectrum, distribution::MicrofacetDistributionImpl, eta_A::Float64, eta_B::Float64, mode::Type{M}) where {M}
+        return new{M}(
             T, distribution, eta_A, eta_B, FresnelDielectric(eta_A, eta_B), mode, BSDF_TRANSMISSION | BSDF_GLOSSY
         )
     end

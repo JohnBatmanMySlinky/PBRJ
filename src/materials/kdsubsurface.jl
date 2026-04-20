@@ -97,29 +97,29 @@ struct SubSurface{
 end
 
 
-struct SeperableBSSRDF
+struct SeperableBSSRDF{M}
     po::SurfaceInteraction
     eta::Float64
     ns::Nml3
     ss::Vec3
     ts::Vec3
     material_name::String
-    mode::Type{T} where T <: TransportMode
+    mode::Type{M}
 
-    function SeperableBSSRDF(po::SurfaceInteraction, material::Material, mode::Type{T}) where T <: TransportMode
+    function SeperableBSSRDF(po::SurfaceInteraction, material::Material, mode::Type{M}) where {M}
         ns = po.shading.n
         ss = normalize(po.shading.dpdu)
         ts = cross(ns, ss)
-        return new(po, material.eta, ns, ss, ts, material.name, mode)
+        return new{M}(po, material.eta, ns, ss, ts, material.name, mode)
     end
 end
 
-struct TabulatedBSSRDF <: AbstractBSSRDF
-    seperable_bssrdf::SeperableBSSRDF
+struct TabulatedBSSRDF{M} <: AbstractBSSRDF
+    seperable_bssrdf::SeperableBSSRDF{M}
     sigma_t::Spectrum
     rho::Spectrum
 
-    function TabulatedBSSRDF(po::SurfaceInteraction, ss::Union{KdSubSurface, SubSurface}, mode::Type{T}, sig_a::Spectrum, sig_s::Spectrum) where T <: TransportMode
+    function TabulatedBSSRDF(po::SurfaceInteraction, ss::Union{KdSubSurface, SubSurface}, mode::Type{M}, sig_a::Spectrum, sig_s::Spectrum) where {M}
         sigma_t = sig_a + sig_s
         @info "TabulatedBSSRDF::sigma_a = $sig_a, sigma_s = $sig_s, sigma_t = $sigma_t"
         rho = zeros(Float64, nSpectralSamples)
@@ -127,7 +127,7 @@ struct TabulatedBSSRDF <: AbstractBSSRDF
             rho[c + 1] = sigma_t[c + 1] != 0.0 ? (sig_s[c + 1] / sigma_t[c + 1]) : 0.0
         end
         @info "TabulatedBSSRDF::rho_raw = $rho, rho_spectrum = $(Spectrum(rho))"
-        return new(
+        return new{M}(
             SeperableBSSRDF(po, ss, mode),
             sigma_t,
             Spectrum(rho)
