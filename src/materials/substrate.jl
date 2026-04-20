@@ -49,7 +49,7 @@ function (m::Substrate)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tr
         roughu = roughness_to_alpha(roughu)
         roughv = roughness_to_alpha(roughv)
     end
-    distrib = TrowbridgeReitzDistribution(roughu, roughv)
+    distrib = MicrofacetDistributionImpl(roughu, roughv)
     si.bsdf = BSDF(si, 1.0, (FresnelBlend(d, s, distrib),))
 end
 

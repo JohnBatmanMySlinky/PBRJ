@@ -63,7 +63,7 @@ function (g::Glass)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Ty
             urough = roughness_to_alpha(urough)
             vrough = roughness_to_alpha(vrough)
         end
-        distrib = TrowbridgeReitzDistribution(urough, vrough)
+        distrib = MicrofacetDistributionImpl(urough, vrough)
         # skipping R/T black check
         fresnel = FresnelDielectric(1.0, eta)
         si.bsdf = BSDF(si, eta, (MicrofacetReflection(KR, distrib, fresnel), MicrofacetTransmission(KT, distrib, 1.0, eta, mode)))

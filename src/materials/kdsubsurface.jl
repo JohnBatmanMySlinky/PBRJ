@@ -169,7 +169,7 @@ function (ss::KdSubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, 
             if is_specular
                 push!(bxdfs, SpecularReflection(RR, fresnel))
             else
-                distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
+                distrib = MicrofacetDistributionImpl(u_rough, v_rough)
                 push!(bxdfs, MicrofacetReflection(RR, distrib, fresnel))
             end
         end
@@ -177,7 +177,7 @@ function (ss::KdSubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, 
             if is_specular
                 push!(bxdfs, SpecularTransmission(TT, 1.0, ss.eta, mode))
             else
-                distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
+                distrib = MicrofacetDistributionImpl(u_rough, v_rough)
                 push!(bxdfs, MicrofacetTransmission(TT, distrib, 1.0, ss.eta, mode))
             end
         end
@@ -221,7 +221,7 @@ function (ss::SubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mo
             if is_specular
                 push!(bxdfs, SpecularReflection(RR, fresnel))
             else
-                distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
+                distrib = MicrofacetDistributionImpl(u_rough, v_rough)
                 push!(bxdfs, MicrofacetReflection(RR, distrib, fresnel))
             end
         end
@@ -229,7 +229,7 @@ function (ss::SubSurface)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mo
             if is_specular
                 push!(bxdfs, SpecularTransmission(TT, 1.0, ss.eta, mode))
             else
-                distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
+                distrib = MicrofacetDistributionImpl(u_rough, v_rough)
                 push!(bxdfs, MicrofacetTransmission(TT, distrib, 1.0, ss.eta, mode))
             end
         end

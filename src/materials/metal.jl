@@ -90,7 +90,7 @@ function (m::Metal)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     end
 
     fresnel = FresnelConductor(spectrum_from_float(1.0), m.eta(si), m.k(si))
-    distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
+    distrib = MicrofacetDistributionImpl(u_rough, v_rough)
     si.bsdf = BSDF(si, 1.0, (MicrofacetReflection(spectrum_from_float(1.0), distrib, fresnel),))
 end
 

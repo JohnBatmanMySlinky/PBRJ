@@ -1,21 +1,15 @@
-# PBR 8.4.1 Oren Nayer Reflection
-struct OrenNayarReflection{S <: Spectrum} <: AbstractBxDF
-    r::S
+# PBR 8.4.1 Oren Nayar Reflection
+struct OrenNayarReflection <: AbstractBxDF
+    r::Spectrum
     sigma::Float64
     A::Float64
     B::Float64
     type::UInt8
 
-    function OrenNayarReflection(r::S, sigma::Float64) where S <: Spectrum
-        A = 1.0 - (sigma^2/(2*(sigma^2 + .33)))
-        B = .45 * sigma^2 / (sigma^2 + .09)
-        new{S}(
-            r, 
-            sigma,
-            A,
-            B,
-            BSDF_DIFFUSE | BSDF_REFLECTION
-        )
+    function OrenNayarReflection(r::Spectrum, sigma::Float64)
+        A = 1.0 - (sigma^2 / (2 * (sigma^2 + 0.33)))
+        B = 0.45 * sigma^2 / (sigma^2 + 0.09)
+        new(r, sigma, A, B, BSDF_DIFFUSE | BSDF_REFLECTION)
     end
 end
 

@@ -4,13 +4,13 @@
 ###################### Fresnel Conductors ##################
 ############################################################
 
-struct FresnelConductor{S <: Spectrum} <: Fresnel
-    eta_i::S
-    eta_t::S
-    k::S
+struct FresnelConductor <: Fresnel
+    eta_i::Spectrum
+    eta_t::Spectrum
+    k::Spectrum
 end
 
-function(f::FresnelConductor)(cos_theta_i::Float64) 
+function (f::FresnelConductor)(cos_theta_i::Float64)
     return fresnel_conductor(cos_theta_i, f.eta_i, f.eta_t, f.k)
 end
 
@@ -94,9 +94,9 @@ end
 struct FresnelBlend <: AbstractBxDF
     Rd::Spectrum
     Rs::Spectrum
-    distrib::MicrofacetDistribution
+    distrib::MicrofacetDistributionImpl
     type::UInt8
-    function FresnelBlend(Rd::Spectrum, Rs::Spectrum, distrib::MicrofacetDistribution)
+    function FresnelBlend(Rd::Spectrum, Rs::Spectrum, distrib::MicrofacetDistributionImpl)
         return new(
             Rd, Rs, distrib, BSDF_REFLECTION | BSDF_GLOSSY    
         )
