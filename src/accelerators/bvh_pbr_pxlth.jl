@@ -65,14 +65,14 @@ end
 ### The final data structure is a Tree with 'pointers' & an array of primitives
 ### https://aws1.discourse-cdn.com/business5/uploads/julialang/original/2X/a/aa75df26de1d2a062204ae74a7d91dfe7b0c4aa3.png
 #######################################################################################
-struct BVH <: BVHAccel
-    primitives::Vector{<:BVHAble}
+struct BVH{T<:BVHAble} <: BVHAccel
+    primitives::Vector{T}
     max_node_primitives::Int64
     nodes::Vector{LinearBVH}
 
-    function BVH(primitives::Vector{<:BVHAble}, max_node_primitives::Int64=1)
+    function BVH(primitives::Vector{T}, max_node_primitives::Int64=1) where {T<:BVHAble}
         max_node_primitives = min(255, max_node_primitives) # why 255?
-        length(primitives) == 0 && return new(primitives, max_node_primitives) # doesn't this cause an infinite loop?
+        length(primitives) == 0 && return new{T}(primitives, max_node_primitives) # doesn't this cause an infinite loop?
 
         # get primitives info for each primitive
         primitives_info = BVHPrimitiveInfo[
@@ -81,7 +81,7 @@ struct BVH <: BVHAccel
 
         # instantiate array component of data structure
         total_nodes = Ref(0)
-        ordered_primitives = Vector{BVHAble}(undef, 0)
+        ordered_primitives = Vector{T}(undef, 0)
 
         # build tree
         root = _build_tree(
@@ -100,7 +100,7 @@ struct BVH <: BVHAccel
         _traverse(flattened, root, offset)
         @assert total_nodes[] + 1 == offset[]
 
-        new(ordered_primitives, max_node_primitives, flattened)
+        new{T}(ordered_primitives, max_node_primitives, flattened)
     end
 end
 
