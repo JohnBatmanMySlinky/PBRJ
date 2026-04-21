@@ -54,7 +54,7 @@ struct BVHNode
     end
 end
 
-mutable struct BucketInfo
+struct BucketInfo
     count::Int64
     bounds::Bounds3
 end
@@ -82,6 +82,7 @@ struct BVH{T<:BVHAble} <: BVHAccel
         # instantiate array component of data structure
         total_nodes = Ref(0)
         ordered_primitives = Vector{T}(undef, 0)
+        sizehint!(ordered_primitives, length(primitives))
 
         # build tree
         root = _build_tree(
@@ -143,16 +144,15 @@ function _build_tree(
         )
     else
         n_buckets = 12
-        buckets = BucketInfo[BucketInfo(0,Bounds3(Pnt3(0,0,0))) for _ in 1:n_buckets]
+        buckets = MVector{12, BucketInfo}(undef)
 
         for i in from:to
             b = Int64(floor(n_buckets * offset(centroid_bounds, primitives_info[i].centroid)[dim])) + 1
             (b == n_buckets + 1) && (b -= 1)
-            buckets[b].count += 1
-            buckets[b].bounds = world_bounds(buckets[b].bounds,primitives_info[i].bounds)
+            buckets[b] = BucketInfo(buckets[b].count + 1, world_bounds(buckets[b].bounds, primitives_info[i].bounds))
         end
 
-        costs = Vector{Float64}(undef, n_buckets - 1)
+        costs = MVector{11, Float64}(undef)
         for i in 1:(n_buckets - 1)
             it1, it2 = 1:i, (i + 1):(n_buckets - 1)
             s1, s2 = 0, 0
