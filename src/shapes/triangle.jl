@@ -242,12 +242,12 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     interaction = InstantiateSurfaceInteraction(phit, ray.t, -ray.direction, uvhit, dpdu, dpdv, Nml3(0,0,0), Nml3(0,0,0), tri)
 
     # Override surface normal in _isect_ for triangle
-    interaction.core.n = interaction.shading.n = Nml3(normalize(cross(dp02, dp12)))
-    # @info "Original normal: $(interaction.core.n)"
+    tri_n = Nml3(normalize(cross(dp02, dp12)))
     if tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
-        # @info "FLIPPED NORMAL"
-        interaction.core.n = interaction.shading.n = -interaction.core.n    
+        tri_n = -tri_n
     end
+    interaction.core = Interaction(interaction.core.p, interaction.core.t, interaction.core.wo, tri_n, interaction.core.mi)
+    interaction.shading = ShadingInteraction(tri_n, interaction.shading.dpdu, interaction.shading.dpdv, interaction.shading.dndu, interaction.shading.dndv)
 
     # TODO making shading tangents real
     if !(tri.normals isa Nothing) || !(tri.shading_tangent isa Nothing)

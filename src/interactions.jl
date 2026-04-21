@@ -1,4 +1,4 @@
-mutable struct Interaction
+struct Interaction
     # world coordinates
     p::Pnt3
     # time of intersection
@@ -54,7 +54,7 @@ function is_surface_interaction(isect::Interaction)::Bool
     return isect.n != Nml3(0, 0, 0)
 end
 
-mutable struct ShadingInteraction
+struct ShadingInteraction
     n::Nml3
     dpdu::Vec3
     dpdv::Vec3
@@ -111,8 +111,8 @@ function InstantiateSurfaceInteraction(
 
     if !(shape isa Nothing)
         if shape.core.reverse_orientation ⊻ shape.core.transform_swaps_handedness
-            core.n = core.n * -1
-            shading.n = shading.n * -1
+            core = Interaction(core.p, core.t, core.wo, core.n * -1, core.mi)
+            shading = ShadingInteraction(shading.n * -1, shading.dpdu, shading.dpdv, shading.dndu, shading.dndv)
         end
     end
 
@@ -312,18 +312,13 @@ function compute_differentials!(si::SurfaceInteraction, ray::RayDifferential)
 end
 
 function set_shading_geomerty!(si::SurfaceInteraction, dpdus::Vec3, dpdvs::Vec3, dndus::Nml3, dndvs::Nml3, orientation_is_authoritative::Bool)
-    si.shading.n = normalize(cross(dpdus, dpdvs))
-
+    new_n = Nml3(normalize(cross(dpdus, dpdvs)))
     if orientation_is_authoritative
-        si.core.n = face_forward(si.core.n, si.shading.n)
+        si.core = Interaction(si.core.p, si.core.t, si.core.wo, face_forward(si.core.n, new_n), si.core.mi)
     else
-        si.shading.n = face_forward(si.shading.n, si.core.n)
+        new_n = face_forward(new_n, si.core.n)
     end
-
-    si.shading.dpdu = dpdus
-    si.shading.dpdv = dpdvs
-    si.shading.dndu = dndus
-    si.shading.dndv = dndvs
+    si.shading = ShadingInteraction(new_n, dpdus, dpdvs, dndus, dndvs)
 end
 
 #########################################

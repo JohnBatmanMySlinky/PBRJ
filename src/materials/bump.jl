@@ -1,17 +1,15 @@
 # PBR 9.3 Bump Mapping
 function bump!(m::Material, si::SurfaceInteraction)
     original_uv = si.uv
-    original_core_p = si.core.p
-    original_core_n = si.core.n
+    original_core = si.core
 
     # evaluate u displace
     du = .5 * (abs(si.dudx) + abs(si.dudy))
     if du == 0
         du = .0005
     end
-    si.core.p = original_core_p + du * si.shading.dpdu
+    si.core = Interaction(original_core.p + du * si.shading.dpdu, original_core.t, original_core.wo, normalize(cross(si.shading.dpdu, si.shading.dpdv) + du * si.dndu), original_core.mi)
     si.uv = original_uv + Vec2(du, 0.0)
-    si.core.n = normalize(cross(si.shading.dpdu, si.shading.dpdv) + du * si.dndu)
     u_displace = m.bump_map(si)
 
     # evaluate v displace
@@ -19,15 +17,13 @@ function bump!(m::Material, si::SurfaceInteraction)
     if dv == 0
         dv = .0005
     end
-    si.core.p = original_core_p + dv * si.shading.dpdv
+    si.core = Interaction(original_core.p + dv * si.shading.dpdv, original_core.t, original_core.wo, normalize(cross(si.shading.dpdu, si.shading.dpdv) + dv * si.dndv), original_core.mi)
     si.uv = original_uv + Vec2(0.0, dv)
-    si.core.n = normalize(cross(si.shading.dpdu, si.shading.dpdv) + dv * si.dndv)
     v_displace = m.bump_map(si)
 
     # Reset to original state before evaluating original displacement
     si.uv = original_uv
-    si.core.p = original_core_p
-    si.core.n = original_core_n
+    si.core = original_core
 
     # NOW evaluate original displace
     displace = m.bump_map(si)
