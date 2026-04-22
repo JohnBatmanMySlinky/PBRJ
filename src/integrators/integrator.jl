@@ -21,6 +21,8 @@ function render_viz(
     jj = Threads.Atomic{Int}(0)
     l = Threads.SpinLock()
 
+    light_distribution_generator = LightDistribution("uniform", scene)
+
     Threads.@threads for k in 0:(total_tiles - 1)
         tile = Pnt2i(k % n_tiles.x, k ÷ n_tiles.x)
         seed::Int64 = tile.y * n_tiles.x + tile.x
@@ -42,7 +44,7 @@ function render_viz(
                 scale_differentials!(ray, inv_sqrt_spp)
                 L = spectrum_from_float(0.0)
                 if wt > 0
-                    L = li(i, ray, scene, sampler)
+                    L = li(i, ray, scene, sampler, light_distribution_generator)
                 end
                 if any(isnan, L)
                     L = spectrum_from_float(0.0)
@@ -87,21 +89,7 @@ function render(
     jj = Threads.Atomic{Int}(0)
     l = Threads.SpinLock()
 
-    
-    # for UGLY in 0:(n_tile.x * n_tile.y - 1)
-    #     tile = Pnt2i(UGLY % n_tile.x, UGLY ÷ n_tile.y)
-    #     @info "RENDERING: $tile"
-    #     x0 = sample_bounds.pMin.x + tile.x * tile_size
-    #     x1 = min(x0 + tile_size, sample_bounds.pMax.x)
-    #     y0 = sample_bounds.pMin.y + tile.y * tile_size
-    #     y1 = min(y0 + tile_size, sample_bounds.pMax.y)
-    #     tile_bounds = Bounds2i(Pnt2i(x0, y0), Pnt2i(x1, y1))
-    #     @info "RENDERING: Starting image tile $tile_bounds"
-    #     for pixel in tile_bounds
-    #         @info "RENDERING: $pixel" 
-    #     end
-    # end
-    # @assert false
+    light_distribution_generator = LightDistribution("uniform", scene)
 
     print("Utilizing $(Threads.nthreads()) threads\n")
     film = i.camera.core.core.film
@@ -127,7 +115,7 @@ function render(
                 L = spectrum_from_float(0.0)
 
                 if w > 0
-                    L = li(i, ray, scene, sampler)
+                    L = li(i, ray, scene, sampler, light_distribution_generator)
                 end
 
                 if any(isnan, L)

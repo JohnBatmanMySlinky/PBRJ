@@ -84,7 +84,8 @@ function render(
                 L = spectrum_from_float(0.0)
 
                 # Trace the camera and light subpaths
-                @prof "generate_camera_subpath" n_camera = generate_camera_subpath!(
+                # @prof "generate_camera_subpath" n_camera = generate_camera_subpath!(
+                n_camera = generate_camera_subpath!(
                     camera_vertices,
                     scene,
                     sampler,
@@ -97,7 +98,8 @@ function render(
                 # default is "uniform" so not a big deal
                 # would be worse with spatial or distance
                 light_distr = lookup(light_distr_generator, p(camera_vertices[1]))
-                @prof "generate_light_subpath" n_light, light_num = generate_light_subpath!(
+                # @prof "generate_light_subpath" n_light, light_num = generate_light_subpath!(
+                n_light, light_num = generate_light_subpath!(
                     light_vertices,
                     scene,
                     sampler,
@@ -116,7 +118,8 @@ function render(
                         end
 
                         mis_weight = 0.0
-                        @prof "connect_BDPT" L_path, mis_weight, p_film_new = connect_BDPT(
+                        # @prof "connect_BDPT" L_path, mis_weight, p_film_new = connect_BDPT(
+                        L_path, mis_weight, p_film_new = connect_BDPT(
                             scene,
                             light_vertices,
                             camera_vertices,
