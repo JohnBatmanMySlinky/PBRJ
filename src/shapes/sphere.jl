@@ -60,7 +60,7 @@ function ObjectBounds(s::Sphere)::Bounds3
 end
 
 # PBR 3.2.2
-function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64, SurfaceInteraction}
+function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # transform ray to object space 
     r = s.core.world_to_object(r)
 
@@ -71,15 +71,15 @@ function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64
     # solve quadratic
     exists, t0, t1 = solve_quadratic(a, b, c)
     if !exists
-        return false, 0.0, empty_surface_interation(s)
+        return false, nothing, nothing
     elseif t0 > r.tMax || t1 <= 0
-        return false, 0.0, empty_surface_interation(s)
+        return false, nothing, nothing
     else
         t_shape_hit = t0
         if t_shape_hit <= 0
             t_shape_hit = t1
             if t_shape_hit > r.tMax
-                return false, 0.0, empty_surface_interation(s)
+                return false, nothing, nothing
             end
         end
     end
@@ -93,8 +93,6 @@ function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64
         p = Pnt3(1e-5 * s.radius, p.y, p.z)
     end
 
-    @info "Sphere Intersection: final p = $p"
-
     # compute phi
     phi = atan(p.y, p.x)
     if phi < 0 
@@ -104,10 +102,10 @@ function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64
     # test clipping
     if (s.zMin > -s.radius && p.z < s.zMin) || (s.zMax < s.radius && p.z > s.zMax) || phi > s.phiMax
         if t_shape_hit == t1
-            return false, 0.0, empty_surface_interation(s)
+            return false, nothing, nothing
         end
         if t1 > r.tMax
-            return false, 0.0, empty_surface_interation(s)
+            return false, nothing, nothing
         end
         t_shape_hit = t1
         p = at(r, t_shape_hit)
@@ -125,7 +123,7 @@ function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64
         end
 
         if (s.zMin > -s.radius && p.z < s.zMin) || (s.zMax < radius && p.z > s.zMax) || phi > s.phiMax
-            return false, 0.0, empty_surface_interation(s)
+            return false, nothing, nothing
         end
     end
 
@@ -134,8 +132,6 @@ function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64
     theta = acos(clamp(p.z/s.radius, -1, 1))
     v = (theta - s.thetaMin) / (s.thetaMax - s.thetaMin)  
     
-    @info "Sphere Intersection: final (u,v) = ($u, $v), phiMax = $(s.phiMax), thetaMin = $(s.thetaMin), thetaMax = $(s.thetaMax), theta = $theta"
-
     # compute partials
     z_radius = sqrt(p.x * p.x + p.y * p.y)
     inv_z_radius = 1.0 / z_radius
@@ -174,8 +170,6 @@ function intersect(s::Sphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64
 
     # transform back to world coordinates
     interaction = s.core.object_to_world(interaction)
-
-    @info "Sphere Intersection: dudx: $(interaction.dudx), dudy: $(interaction.dudy), dvdx: $(interaction.dvdx), dvdy: $(interaction.dvdy)"
 
     return true, t_shape_hit, interaction
 end

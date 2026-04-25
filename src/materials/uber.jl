@@ -90,7 +90,7 @@ function (u::Uber)(si::SurfaceInteraction, allow_multiple_lobes::Bool, mode::Typ
             urough = roughness_to_alpha(urough)
             vrough = roughness_to_alpha(vrough)
         end
-        distrib = TrowbridgeReitzDistribution(urough, vrough)
+        distrib = MicrofacetDistributionImpl(urough, vrough)
         push!(bxdfs, MicrofacetReflection(ks, distrib, fresnel))
     end
 

@@ -87,13 +87,13 @@ function make_scene2(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(lights, spot_light)
 
-    l_2_w = Translate(Pnt3(0,0,0))
-    light = UniformInfiniteLight(
-        world_bounds(bvh), 
-        l_2_w, 
-        Spectrum(0.1, 0.1, 0.1), 
-    )
-    push!(lights, light)
+    # l_2_w = Translate(Pnt3(0,0,0))
+    # light = UniformInfiniteLight(
+    #     world_bounds(bvh), 
+    #     l_2_w, 
+    #     Spectrum(0.1, 0.1, 0.1), 
+    # )
+    # push!(lights, light)
 
     # Instantiate a Filter
     filter = BoxFilter(Pnt2(.5, .5))

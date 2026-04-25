@@ -4,104 +4,106 @@ struct VolPathIntegratorv3 <: AbstractIntegrator
     max_depth::Int64
 end
 
-function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, sampler::AbstractSampler)::Spectrum
-    # declare local variables for delta tracking integration
+function li(
+    vp::VolPathIntegratorv3,
+    ray::AbstractRay,
+    scene::Scene,
+    sampler::AbstractSampler,
+    light_distribution_generator,
+)::Spectrum
     LL = spectrum_from_float(0.0)
     beta = spectrum_from_float(1.0)
     bounces = 0
     specular_bounce = false
     eta_scale = 1.0
     rr_threshold = 1.0
-    light_distribution_generator = LightDistribution("uniform", scene)
 
     while true
-        # Intersect _ray_ with scene and store intersection in _isect_
         check, t, si = intersect!(scene.b, ray)
 
-        # Sample the participating medium, if present
         scattered = false
         terminated = false
 
         if !(ray.medium isa Nothing)
             t_max = (si isa Nothing) ? typemax(Float64) : t
             u = get_1D!(sampler)
-            u_mode = get_1D!(sampler)
 
-            T_maj_result = sampleT_maj!(ray, t_max, u, sampler) do p, mp, sigma_maj, T_maj
-                # Compute event probabilities via hero wavelength (luminance channel)
+            LL_ref              = Ref(LL)
+            beta_ref            = Ref(beta)
+            scattered_ref       = Ref(false)
+            terminated_ref      = Ref(false)
+            specular_bounce_ref = Ref(specular_bounce)
+            u_mode_ref          = Ref(get_1D!(sampler))
+
+            sampleT_maj!(ray, t_max, u, sampler) do p, mp, sigma_maj, T_maj
                 sigma_maj_hero = y_spectrum(sigma_maj)
                 p_absorb  = y_spectrum(mp.sigma_a) / sigma_maj_hero
                 p_scatter = y_spectrum(mp.sigma_s) / sigma_maj_hero
-                p_null    = max(0.0, 1.0 - p_absorb - p_scatter)
 
-                event, _, _ = sample_discrete(Distribution1D([p_absorb, p_scatter, p_null]), u_mode)
+                um = u_mode_ref[]
+                event = if um < p_absorb
+                    1
+                elseif um < p_absorb + p_scatter
+                    2
+                else
+                    3
+                end
 
                 if event == 1
-                    # Absorption — accumulate emission and terminate
-                    LL += beta * mp.Le
-                    terminated = true
+                    LL_ref[] += beta_ref[] * mp.Le
+                    terminated_ref[] = true
                     return false
 
                 elseif event == 2
-                    # Scattering — direct lighting + sample new direction
                     if bounces >= vp.max_depth
-                        terminated = true
+                        terminated_ref[] = true
                         return false
                     end
 
-                    # In delta tracking the estimator weight at a real scatter is
-                    # sigma_s / (sigma_maj * p_scatter).  T_maj cancels with the
-                    # sampling pdf; only the spectral ratio remains (= 1 for
-                    # achromatic RGB, reweights correctly for varying spectra).
                     if p_scatter > 0.0
-                        beta = beta .* mp.sigma_s ./ (sigma_maj .* p_scatter)
+                        beta_ref[] = beta_ref[] .* mp.sigma_s ./ (sigma_maj .* p_scatter)
                     else
-                        terminated = true
+                        terminated_ref[] = true
                         return false
                     end
 
-                    # Build medium interaction and estimate direct lighting
                     mi = MediumInteraction(p, ray.t, -ray.direction, ray.medium, mp.phase)
                     light_distribution = lookup(light_distribution_generator, p)
-                    LL += beta * uniform_sample_one_light(mi, scene, sampler, light_distribution, true)
+                    LL_ref[] += beta_ref[] * uniform_sample_one_light(mi, scene, sampler, light_distribution, true)
 
-                    # Sample phase function for the new path direction
                     ps_p, ps_wi, ps_pdf = sample_p(mp.phase, -ray.direction, get_2D!(sampler))
                     if ps_pdf == 0.0
-                        terminated = true
+                        terminated_ref[] = true
                         return false
                     end
-                    beta = beta * spectrum_from_float(ps_p / ps_pdf)
-                    specular_bounce = false
+                    beta_ref[] = beta_ref[] * spectrum_from_float(ps_p / ps_pdf)
+                    specular_bounce_ref[] = false
 
-                    # Update ray in-place so the outer loop sees the new direction
                     ray.origin    = p + ShadowEpsilon * ps_wi
                     ray.direction = ps_wi
                     ray.tMax      = typemax(Float64)
                     ray.has_differentials = false
 
-                    scattered = true
+                    scattered_ref[] = true
                     return false
 
                 else
-                    # Null scattering — weight is 1 for the hero channel; just continue
-                    u_mode = get_1D!(sampler)
+                    u_mode_ref[] = get_1D!(sampler)
                     return true
                 end
             end
 
-            # In delta tracking the exit weight is 1 — the fraction of paths
-            # that exit without interaction already equals T(0,L) by
-            # construction of the sampling process, so T_maj_result must NOT
-            # be folded into beta.  (cf. simple_vol_path_v4.jl which also
-            # discards the sampleT_maj! return value.)
+            LL              = LL_ref[]
+            beta            = beta_ref[]
+            scattered       = scattered_ref[]
+            terminated      = terminated_ref[]
+            specular_bounce = specular_bounce_ref[]
         end
 
         if is_black(beta) || terminated
             break
         end
 
-        # Handle medium scatter: apply Russian roulette, then restart the loop
         if scattered
             rr_beta = beta * eta_scale
             if (maximum(rr_beta) < rr_threshold) && (bounces > 3)
@@ -115,10 +117,6 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, sampler::Ab
             continue
         end
 
-        # Handle escaped rays: always accumulate infinite light contributions.
-        # Gating on specular_bounce would miss reflections from glossy surfaces
-        # (e.g. Metal with roughness=0) whose BSDF-sampled direct-lighting rays
-        # are blocked by medium-boundary spheres (no material → Li=0 there).
         if si isa Nothing
             for light in scene.lights
                 if is_infinite_light(light)
@@ -128,8 +126,6 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, sampler::Ab
             break
         end
 
-        # Possibly add emitted light at a surface intersection.
-        # Gate on specular_bounce to avoid MIS double-counting with direct lighting.
         if (bounces == 0) || specular_bounce
             LL += beta * le(si, -ray.direction)
         end
@@ -141,15 +137,12 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, sampler::Ab
         compute_scattering!(si, ray, true, Radiance)
         if si.bsdf isa Nothing
             ray = spawn_ray(si.core, ray.direction)
-            # don't increment bounces for medium boundary crossings
             continue
         end
 
-        # Sample illumination from lights to find attenuated path contribution
         light_distribution = lookup(light_distribution_generator, si.core.p)
-        LL += beta * uniform_sample_one_light(si, scene, sampler, light_distribution, true)
+        LL += beta * uniform_sample_one_light(si, si.bsdf, scene, sampler, light_distribution, true)
 
-        # Sample BSDF to get new path direction
         wo = -ray.direction
         wi, f, pdf_val, sampled_type = sample_f(si.bsdf, wo, get_2D!(sampler), BSDF_ALL)
         if (pdf_val == 0.0) || is_black(f)
@@ -164,7 +157,6 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, sampler::Ab
         ray = spawn_ray(si.core, wi)
 
         if !(si.bssrdf isa Nothing) && ((sampled_type & BSDF_TRANSMISSION) != 0)
-            # Importance sample the BSSRDF
             why = get_1D!(sampler)
             god = get_2D!(sampler)
             S, pisect, pdf_val = sample_s(si.bssrdf, scene, why, god)
@@ -173,29 +165,24 @@ function li(vp::VolPathIntegratorv3, ray::AbstractRay, scene::Scene, sampler::Ab
             end
             beta *= S / pdf_val
 
-            # Account for the attenuated direct subsurface scattering component
             LL += beta * uniform_sample_one_light(
                 pisect,
+                pisect.bsdf,
                 scene,
                 sampler,
                 lookup(light_distribution_generator, pisect.core.p),
                 true
             )
 
-            # Account for the indirect subsurface scattering component
             wi, f, pdf_val, sampled_type = sample_f(pisect.bsdf, pisect.core.wo, get_2D!(sampler), BSDF_ALL)
-            @info "Sampled BSDF, f = $f, pdf = $pdf_val"
             if (is_black(f) || pdf_val == 0)
                 break
             end
             beta *= f * abs(dot(wi, pisect.shading.n)) / pdf_val
-            @info "Updated beta = $beta"
             specular_bounce = (sampled_type & BSDF_SPECULAR) != 0
             ray = spawn_ray(pisect.core, wi)
         end
 
-        # Possibly terminate the path with Russian roulette.
-        # Factor out radiance scaling due to refraction in rrBeta.
         rr_beta = beta * eta_scale
         if (maximum(rr_beta) < rr_threshold) && (bounces > 3)
             q = max(0.05, 1.0 - maximum(rr_beta))

@@ -58,7 +58,7 @@ function (p::Plastic)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tran
     if p.remap_roughness
         rough = roughness_to_alpha(rough)
     end
-    distrib = TrowbridgeReitzDistribution(rough, rough)
+    distrib = MicrofacetDistributionImpl(rough, rough)
     si.bsdf = BSDF(si, 1.0, (LambertianReflection(kd), MicrofacetReflection(ks, distrib, fresnel)))
 end
 

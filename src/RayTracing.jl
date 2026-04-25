@@ -39,7 +39,6 @@ abstract type Fresnel end
 abstract type Light end
 abstract type Material end
 abstract type Medium end
-abstract type MicrofacetDistribution end
 abstract type Randomizer end
 abstract type Shape end
 
@@ -171,11 +170,11 @@ include("samplers2/sampling.jl")
 include("samplers2/sampler.jl")
 include("reflection/flags.jl")
 include("reflection/math.jl")
+include("reflection/microfacet_distributions.jl")
 include("reflection/fresnel.jl")
 include("reflection/specular.jl")
 include("reflection/lambertian.jl")
 include("reflection/oren_nayar.jl")
-include("reflection/microfacet_distributions.jl")
 include("reflection/microfacet.jl")
 include("reflection/bxdf.jl")
 include("reflection/hair.jl")
@@ -214,6 +213,7 @@ include("lights/image_infinite.jl")
 include("lights/uniform_infinite.jl")
 include("lights/distant.jl")
 include("lights/spot.jl")
+include("lights/particle_emitter.jl")
 include("scene.jl")
 include("reflection/bssrdf2.jl")
 include("light_distributions.jl")
@@ -221,6 +221,7 @@ include("integrators/ao.jl")
 include("integrators/simple.jl")
 include("integrators/simple_vol_path_v4.jl")
 include("integrators/vol_path_v3.jl")
+include("integrators/sppm.jl")
 include("integrators/render_viz.jl")
 include("integrators/integrator.jl")
 include("integrators/bdpt_vertex.jl")
@@ -255,6 +256,7 @@ include("scenes/scene19.jl")
 include("scenes/scene20.jl")
 include("scenes/scene21.jl")
 include("scenes/scene22.jl")
+include("scenes/scene23.jl")
 include("scenes/scene99.jl")
 include("scenes/scene100.jl")
 include("scenes/scene101.jl")
@@ -276,6 +278,8 @@ include("medium2/phase_functions.jl")
 include("shapes/sphere_packing.jl")
 include("shapes/voxelization.jl")
 include("scene_utils.jl")
+
+const NO_MEDIUM_INTERFACE = MediumInterface(nothing)
 
 function render_scene(parsed_args::Dict)
     @prof "scene_build" I, scene = build_scene(parsed_args) # TODO get this outside the loop!

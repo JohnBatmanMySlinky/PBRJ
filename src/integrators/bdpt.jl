@@ -6,8 +6,8 @@ struct BDPTIntegrator <: AbstractIntegrator
 end
 
 function render(
-    i::BDPTIntegrator, 
-    scene::Scene, 
+    i::BDPTIntegrator,
+    scene::Scene,
     parsed_args::Dict
 )::Array{RGB}
 
@@ -17,14 +17,14 @@ function render(
     # create light sampling light_distribution
     # JOHN HACK --> hard coding uniform dist
     light_distr_generator = LightDistribution(
-        parsed_args["light-distribution-strategy"], 
+        parsed_args["light-distribution-strategy"],
         scene,
-        parsed_args["max-voxels"], 
+        parsed_args["max-voxels"],
     )
 
     # partition the image into tiles
-    sample_bounds = get_sample_bounds(i.camera.core.core.film)
-    @info "Sample Bounds $(sample_bounds)"
+    film = i.camera.core.core.film
+    sample_bounds = get_sample_bounds(film)
     sample_extent = diagonal(sample_bounds)
     tile_size = 16
     n_tiles = Pnt2i(floor.((sample_extent .+ tile_size .- 1) ./ tile_size))
@@ -38,8 +38,7 @@ function render(
 
     println("\nUtilizing $(Threads.nthreads()) threads\n\n")
     # the multi-threaded loop
-    Threads.@threads for k in 0:(total_tiles-1)        
-        # Render a single tile using BDPT
+    Threads.@threads for k in 0:(total_tiles-1)
         tile = Pnt2i(k % n_tiles.x, k ÷ n_tiles.x)
         seed::Int64 = tile.y * n_tiles.x + tile.x
         sampler = clone(i.sampler, seed)
@@ -49,13 +48,12 @@ function render(
         y0 = sample_bounds.pMin.y + tile.y * tile_size
         y1 = min(y0 + tile_size, sample_bounds.pMax.y)
         tile_bounds = Bounds2i(Pnt2i(x0, y0), Pnt2i(x1, y1))
-        film_tile = FilmTile(i.camera.core.core.film, tile_bounds)
-        for pixel in tile_bounds # adding iterator method is cool
-            @info "########################\nWorking on Pixel: $(pixel)\n########################\n\n\n"
-            camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
-            light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
-            sampled_ei_buf = EndpointInteraction()
-            sampled_v_buf = Vertex(VTCamera, spectrum_from_float(0.0), sampled_ei_buf, nothing, nothing)
+        film_tile = FilmTile(film, tile_bounds)
+        camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
+        light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
+        sampled_ei_buf = EndpointInteraction()
+        sampled_v_buf = Vertex(VTCamera, spectrum_from_float(0.0), sampled_ei_buf, nothing, nothing)
+        for pixel in tile_bounds
             for sample_index in 1:sampler.samples_per_pixel
                 start_pixel_sample!(sampler, pixel, sample_index-1)
 
@@ -64,21 +62,21 @@ function render(
 
                 # JOHN TODO Render pass hacking
                 if sample_index == 1
-                    if i.camera.core.core.film isa PassFilm
+                    if film isa PassFilm
                         ray, _ = generate_ray_differential(i.camera, camera_sample)
                         scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
                         check, t, interaction, = intersect!(scene.b, ray)
                         if !check
                             L = to_XYZ(spectrum_from_float(0.0))
-                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].albedo = L
-                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].depth = L
-                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].normal = L
-                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].position = L
+                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].albedo = L
+                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].depth = L
+                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].normal = L
+                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].position = L
                         else
-                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].albedo = to_XYZ(interaction.primitive.material.Kd(interaction))
-                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].depth = to_XYZ(spectrum_from_float(t))
-                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].normal = to_XYZ(spectrum_from_float(interaction.shading.n...))
-                            i.camera.core.core.film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].position = to_XYZ(spectrum_from_float(interaction.core.p...))
+                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].albedo = to_XYZ(interaction.primitive.material.Kd(interaction))
+                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].depth = to_XYZ(spectrum_from_float(t))
+                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].normal = to_XYZ(spectrum_from_float(interaction.shading.n...))
+                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].position = to_XYZ(spectrum_from_float(interaction.core.p...))
                         end
                     end
                 end
@@ -86,20 +84,22 @@ function render(
                 L = spectrum_from_float(0.0)
 
                 # Trace the camera and light subpaths
-                @prof "generate_camera_subpath" n_camera = generate_camera_subpath!(
+                # @prof "generate_camera_subpath" n_camera = generate_camera_subpath!(
+                n_camera = generate_camera_subpath!(
                     camera_vertices,
-                    scene, 
-                    sampler, 
-                    i.max_depth + 2, 
+                    scene,
+                    sampler,
+                    i.max_depth + 2,
                     i.camera,
-                    camera_sample, 
+                    camera_sample,
                 )
                 # setting up light sampling dist at the start
                 # this isn't a good strategy
-                # default is "uniform" so not a big deal 
+                # default is "uniform" so not a big deal
                 # would be worse with spatial or distance
                 light_distr = lookup(light_distr_generator, p(camera_vertices[1]))
-                @prof "generate_light_subpath" n_light, light_num = generate_light_subpath!(
+                # @prof "generate_light_subpath" n_light, light_num = generate_light_subpath!(
+                n_light, light_num = generate_light_subpath!(
                     light_vertices,
                     scene,
                     sampler,
@@ -107,34 +107,6 @@ function render(
                     time(camera_vertices[1]),
                     light_distr
                 )
-
-                # Some stuff for debugging here
-                num_real_camera_vertices = count_not_undef(camera_vertices)
-                num_real_light_vertices = count_not_undef(light_vertices)
-                @info "BDPT: Number of real camera vertices: $(num_real_camera_vertices)"
-                @info "BDPT: Number of real light vertices: $(num_real_light_vertices)"
-
-                for iii in 1:num_real_camera_vertices
-                    @info "$(camera_vertices[iii])"
-                end
-                for iii in 1:num_real_light_vertices
-                    @info "$(light_vertices[iii])"
-                end
-
-                # for iii in 1:num_real_camera_vertices
-                #     if camera_vertices[iii].ei isa Nothing
-                #         pos = camera_vertices[iii].si.core.p
-                #         lig = 1*(camera_vertices[iii].si.primitive.area_light isa Nothing)
-                #     else
-                #         pos = ""
-                #         lig = ""
-                #     end
-                #     @info "BDPT: Camera Vertex $(iii): $(camera_vertices[iii].type) @ $(pos) $(lig)"
-                # end
-
-                # for iii in 1:num_real_camera_vertices
-                #     @info "BDPT: Camera Vertex Hacky but OK $(iii): $(camera_vertices[iii].type) $(p(camera_vertices[iii]))"
-                # end
 
                 # execute all BDPT connection strategies
                 # JOHN: sticking with indexing to match the book, adjusting for not 0 indexed arrays at array lookup
@@ -146,7 +118,8 @@ function render(
                         end
 
                         mis_weight = 0.0
-                        @prof "connect_BDPT" L_path, mis_weight, p_film_new = connect_BDPT(
+                        # @prof "connect_BDPT" L_path, mis_weight, p_film_new = connect_BDPT(
+                        L_path, mis_weight, p_film_new = connect_BDPT(
                             scene,
                             light_vertices,
                             camera_vertices,
@@ -161,28 +134,24 @@ function render(
                             sampled_ei_buf,
                         )
 
-                        @info "Connect bdpt s: $(s), t: $(t), Lpath: $(L_path), misWeight: $(mis_weight)"
-
                         if t != 1
                             L += L_path
                         else
-                            add_splat!(i.camera.core.core.film, p_film_new, L_path)
+                            add_splat!(film, p_film_new, L_path)
                         end
                     end
                 end
-                
-                @info "Add film sample pFilm: [ $(camera_sample.film.x), $(camera_sample.film.y) ], L: $(L), (y: $(y_spectrum(L)))"
+
                 @prof "add_sample!" add_sample!(film_tile, camera_sample.film, L, 1.0)
             end
         end
-        @prof "merge_tile!" merge_film_tile!(i.camera.core.core.film , film_tile)
+        @prof "merge_tile!" merge_film_tile!(film , film_tile)
         Threads.atomic_add!(jj,1)
         Threads.lock(l)
         ProgressMeter.update!(prog, jj[])
         Threads.unlock(l)
     end
-    got_film = i.camera.core.core.film
-    @info "FILM before save: $(got_film)"
+    got_film = film
     img = save(got_film, 1.0/i.sampler.samples_per_pixel)
     return img
 end
@@ -190,7 +159,7 @@ end
 function render_viz(i::BDPTIntegrator, scene::Scene, parsed_args::Dict)::Array{RGB}
     @assert length(scene.lights) > 0
 
-    film = i.camera.core.core.film
+    film = film
     w = film.full_resolution.x
     h = film.full_resolution.y
 
@@ -225,12 +194,12 @@ function render_viz(i::BDPTIntegrator, scene::Scene, parsed_args::Dict)::Array{R
         y1 = min(y0 + tile_size, sample_bounds.pMax.y)
         tile_bounds = Bounds2i(Pnt2i(x0, y0), Pnt2i(x1, y1))
         film_tile = FilmTile(film, tile_bounds)
+        camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
+        light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
+        sampled_ei_buf = EndpointInteraction()
+        sampled_v_buf = Vertex(VTCamera, spectrum_from_float(0.0), sampled_ei_buf, nothing, nothing)
 
         for pixel in tile_bounds
-            camera_vertices = Vector{Vertex}(undef, i.max_depth + 2)
-            light_vertices = Vector{Vertex}(undef, i.max_depth + 1)
-            sampled_ei_buf = EndpointInteraction()
-            sampled_v_buf = Vertex(VTCamera, spectrum_from_float(0.0), sampled_ei_buf, nothing, nothing)
             for sample_index in 1:sampler.samples_per_pixel
                 start_pixel_sample!(sampler, pixel, sample_index-1)
                 camera_sample = get_camera_sample!(sampler, pixel)
@@ -276,22 +245,22 @@ end
 """
 A symmetric pair of functions, generate_camera_subpath() and generate_light_subpath()
 generate the two corresponding types of subpaths. both do some initial work to get the path started
-then call out to a second function RandomWalk() which takes care of sampling the following vertices and 
+then call out to a second function RandomWalk() which takes care of sampling the following vertices and
 initializing the path array. Both functions return the number of vertices in the path
 """
 function generate_camera_subpath!(
-    path::Vector{Vertex}, 
-    scene::Scene, 
-    sampler::AbstractSampler, 
-    max_depth::Int64, 
-    camera::Camera, 
+    path::Vector{Vertex},
+    scene::Scene,
+    sampler::AbstractSampler,
+    max_depth::Int64,
+    camera::Camera,
     camera_sample::CameraSample
 )::Int64
     (max_depth == 0) && return 0
 
     # sample initial ray for camera subpath
     """
-    a camera path starts with a camera ray from generate_ray_differential(). 
+    a camera path starts with a camera ray from generate_ray_differential().
     as in sample integrator, differentials are scaled so they reflect the actual pixel sampling density
     """
     ray, beta = generate_ray_differential(camera, camera_sample)
@@ -301,28 +270,25 @@ function generate_camera_subpath!(
     # generate first vertex on camera subpath and start random walk
     path[0+1] = create_camera_vertex(camera, ray, beta)
     pdf_pos, pdf_dir = pdf_we(camera, ray)
-    @info "Starting camera subpath.\n\tRay $(ray)\n\tbeta $(beta)\n\t pdfPos $(pdf_pos)\n\tpdfDir $(pdf_dir) "
     return @prof "generate_camera_subpath!.random_walk" random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Radiance, path, 1)
 end
 
 function generate_light_subpath!(
-    path::Vector{Vertex}, 
-    scene::Scene, 
-    sampler::AbstractSampler, 
-    max_depth::Int64, 
-    t::Float64, 
+    path::Vector{Vertex},
+    scene::Scene,
+    sampler::AbstractSampler,
+    max_depth::Int64,
+    t::Float64,
     light_distr::Distribution1D
 )::Tuple{Int64,Int64}
     (max_depth == 0) && return 0, 0
-    
+
     # sample initial ray for light subpath
     light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
-    @info "Light subpath light #$(light_num) aka $(light_num-1) in c++"
     light = scene.lights[light_num]
     why = get_2D!(sampler)
     god = get_2D!(sampler)
     Le, ray, n_light, pdf_pos, pdf_dir = sample_le(light, why, god, t)
-    @info "Sample_le: $Le, $n_light, $ray, $pdf_pos, $pdf_dir"
     if (pdf_pos == 0.0) || (pdf_dir == 0.0) || is_black(Le)
         return 0, 0
     end
@@ -330,7 +296,6 @@ function generate_light_subpath!(
     # generate first vertex on light subpath and start random walk
     path[0+1] = create_light_vertex(light, ray, n_light, Le, pdf_pos * light_pdf)
     beta = Le * abs(dot(n_light, ray.direction)) / (light_pdf * pdf_pos * pdf_dir)
-    @info "Starting light subpath. Ray: o $(ray.origin), d $(ray.direction) t $(ray.t) tMax: $(ray.tMax) , Le: $(Le), beta: $(beta), pdfPos: $(pdf_pos), pdfDir: $(pdf_dir)"
     n_vertices = @prof "generate_light_subpath!.random_walk" random_walk!(scene, ray, sampler, beta, pdf_dir, max_depth-1, Importance, path, 1)
 
     # correct subpath sampling densities for infinite area lights
@@ -348,17 +313,16 @@ function generate_light_subpath!(
 end
 
 function random_walk!(
-    scene::Scene, 
-    ray::RayDifferential, 
-    sampler::AbstractSampler, 
-    beta::Spectrum, 
-    pdf::Float64, 
-    max_depth::Int64, 
-    mode::Type{T}, 
+    scene::Scene,
+    ray::RayDifferential,
+    sampler::AbstractSampler,
+    beta::Spectrum,
+    pdf::Float64,
+    max_depth::Int64,
+    mode::Type{T},
     path::Vector{Vertex},
     path_offset::Int64
 )::Int64 where T <: TransportMode
-    @info "Random Walk: We have entered"
     if max_depth == 0
         return 0
     end
@@ -372,14 +336,8 @@ function random_walk!(
     bounces += path_offset
 
     while true
-        @info "Random walk. Bounces $(bounces), beta $(beta), pdfFwd $(pdf_fwd), pdfRev $(pdf_rev)"
-        # attempt to create the next subpath verte in *path*
-        # @info "Ray current has a medium: $(!(ray.medium isa Nothing))"
+        # attempt to create the next subpath vertex in *path*
         @prof "random_walk.intersect!" check, t, isect = intersect!(scene.b, ray)
-        if check
-            @info "Random walk: intersection\n\tp $(isect.core.p)\n\two $(isect.core.wo)\n\tn $(isect.core.n)\n\tshading n $(isect.shading.n)\n\t shading dpdu: $(isect.shading.dpdu)\n\t shading dpdv $(isect.shading.dpdv)"
-            # @info "Isect Medium Interface: INSIDE $(!(isect.core.mi.inside isa Nothing)), OUTSIDE $(!(isect.core.mi.outside isa Nothing))";
-        end
 
         # JOHN HACK --> using indexes
         vertex = bounces+1
@@ -389,7 +347,6 @@ function random_walk!(
         terminated = false
 
         if !(ray.medium isa Nothing)
-            # @info "MEDIUM BEEN HIT"
             u = get_1D!(sampler)
             t_max = (t isa Nothing) ? typemax(Float64) : t
 
@@ -454,7 +411,6 @@ function random_walk!(
         end
 
         if is_black(beta)
-            @info "Random walk: exited due to Black"
             break
         end
 
@@ -470,12 +426,9 @@ function random_walk!(
         if !check
             # capture escaped rays when tracing from camera
             if mode == Radiance
-                @info "Random walk: Capture escaped rays when tracing from the camera - RADIANCE"
                 path[vertex] = create_light_vertex(EndpointInteraction(ray), beta, pdf_fwd)
-                # @info "HAHA: $(p(path[vertex])) $ray"
                 bounces += 1
             end
-            @info "Random walk: exited due to escaped rays"
             break
         end
 
@@ -485,7 +438,7 @@ function random_walk!(
             spawn_ray!(ray, isect.core, ray.direction)
             continue
         end
-        
+
         # initialize vertex with surface scattering information
         path[vertex] = create_surface_vertex(isect, beta, pdf_fwd, path[prev])
         bounces += 1
@@ -496,27 +449,21 @@ function random_walk!(
         # sample BSDF at current vertex and compute reverse probability
         wo = isect.core.wo
         wi, f, pdf_fwd, sampled_type = sample_f(isect.bsdf, wo, get_2D!(sampler), BSDF_ALL)
-        @info "Random walk sampled dir $wi f: $f, pdfFwd: $pdf_fwd, sampled_type: $sampled_type"
         if (pdf_fwd == 0.0) || is_black(f)
             break
         end
         beta *= f * abs(dot(wi, isect.shading.n)) / pdf_fwd
-        @info "Random walk beta now $beta"
         pdf_rev = compute_pdf(isect.bsdf, wi, wo, BSDF_ALL)
-        @info "random walk pdf_rev = $pdf_rev"
         if (sampled_type & BSDF_SPECULAR) > 0
             path[vertex].delta = true
             pdf_rev = 0.0
             pdf_fwd = 0.0
         end
         beta *= correct_shading_normal(isect, wo, wi, mode)
-        @info "Random walk beta after shading normal correction $beta"
         spawn_ray!(ray, isect.core, wi)
-        
+
         # Compute reverse area density at preceding vertex
-        @info "pdf_rev - before - $(path[prev].pdf_rev)"
         path[prev].pdf_rev = convert_density(path[vertex], pdf_rev, path[prev])
-        @info "pdf_rev - after - $(path[prev].pdf_rev)"
     end
     return bounces
 end
@@ -539,8 +486,6 @@ function connect_BDPT(
 )::Tuple{Spectrum, Float64, Pnt2}
     L = spectrum_from_float(0.0)
 
-    @info "connect bdpt for s $(s), t $(t)"
-
     # ignore invalid connections related to infinite light
     if (t > 1) && (s != 0) && (camera_vertices[t-1+1].type == VTLight)
         return spectrum_from_float(0.0), 1.0, pfilm
@@ -551,25 +496,24 @@ function connect_BDPT(
     if s == 0
         # interpret the camera subpath as a complete path
         """
-        The first case s==0 applies when no vertices on the light subpath are used 
-        and can only succeed when the camera subpath p0,p1,...,pt-1  is already a complete path—that is, 
-        when vertex pt-1 can be interpreted as a light source. 
-        In this case, L is set to the product of the path throughput weight and the emission at 
+        The first case s==0 applies when no vertices on the light subpath are used
+        and can only succeed when the camera subpath p0,p1,...,pt-1  is already a complete path—that is,
+        when vertex pt-1 can be interpreted as a light source.
+        In this case, L is set to the product of the path throughput weight and the emission at
         """
         pt = camera_vertices[t-1+1]
         if is_light(pt)
-            # @info "Vignette De Bugging: We Here"
             L = le(pt, scene, camera_vertices[t-2+1]) * pt.beta
         end
     elseif t == 1
         # sample a point on the camera and connect it to the light subpath
         """
-        The second case applies when t==1 that is,  when a prefix of the light subpath is directly connected to the camera. 
-        To permit optimized importance sampling strategies analogous to direct illumination routines for light sources, 
+        The second case applies when t==1 that is,  when a prefix of the light subpath is directly connected to the camera.
+        To permit optimized importance sampling strategies analogous to direct illumination routines for light sources,
         we will ignore the actual camera vertex p0 and sample a new one using Camera::Sample_Wi()—
-        this optimization corresponds to the second bullet listed at the beginning of Section 16.3. 
-        This type of connection can only succeed if the light subpath vertex qs-1 supports sampled connections; 
-        otherwise the BSDF at qs-1 will certainly return 0 and there’s no reason to attempt a connection.
+        this optimization corresponds to the second bullet listed at the beginning of Section 16.3.
+        This type of connection can only succeed if the light subpath vertex qs-1 supports sampled connections;
+        otherwise the BSDF at qs-1 will certainly return 0 and there's no reason to attempt a connection.
         """
         qs = light_vertices[s-1+1]
         if is_connectible(qs)
@@ -600,19 +544,16 @@ function connect_BDPT(
     elseif s == 1
         # sample a point on the light and connect it to the camera subpath
         """
-        We omit the next case, s==1 , here. It corresponds to performing a direct lighting calculation at the last vertex of the camera subpath. 
-        Its implementation is similar to the t==1 case—the main differences are that roles of lights and cameras are exchanged 
+        We omit the next case, s==1 , here. It corresponds to performing a direct lighting calculation at the last vertex of the camera subpath.
+        Its implementation is similar to the t==1 case—the main differences are that roles of lights and cameras are exchanged
         and that a light source must be chosen using lightDistr before a light sample can be generated.
         """
         pt = camera_vertices[t-1+1]
         if is_connectible(pt)
-            # @info "is connectable"
             light_num, light_pdf, _ = sample_discrete(light_distr, get_1D!(sampler))
             light = scene.lights[light_num]
             sampled_li, wi, pdf_val, vis, _, _ = sample_li(light, get_interaction(pt).core, get_2D!(sampler))
-            @info "sampled Li from last camera vertex: sampled_li: $(sampled_li), wi: $(wi), pdf_val: $(pdf_val), visibility tester: $(vis)"
             if pdf_val > 0.0 && !(is_black(sampled_li))
-                @info "<<<<<SAMPLED A VERTEX>>>>>"
                 sampled_ei_buf.interaction = vis.p1
                 sampled_ei_buf.camera = nothing
                 sampled_ei_buf.light = light
@@ -627,17 +568,13 @@ function connect_BDPT(
                 sampled = sampled_v_buf
                 sampled.pdf_fwd = pdf_light_origin(sampled, scene, pt, light_distr, light_num)
                 L = pt.beta * f(pt, sampled, Radiance) * sampled.beta
-                @info "pt.beta = $(pt.beta), f = $(f(pt, sampled, Radiance)), sampled.beta = $(sampled.beta)"
-                @info "L: $(L)"
                 if is_on_surface(pt)
                     L *= abs(dot(wi, ns(pt)))
                 end
-                @info "L: $(L)"
                 if !is_black(L)
                     TR = tr(vis, scene.b, sampler)
                     L *= TR
                 end
-                @info "L: $(L)"
             end
         end
     else
@@ -654,14 +591,13 @@ function connect_BDPT(
 
     # compute MIS weight for connection strategy
     mis_weight = is_black(L) ? 0.0 : MIS_weight(scene, light_vertices, camera_vertices, sampled, s, t, light_distr, light_num)
-    # @info "MIS weight for (s,t) = ($(s),$(t)) connection $(mis_weight)"
     L *= mis_weight
     return L, mis_weight, pfilm
 end
 
 function MIS_weight(
-    scene::Scene, 
-    light_vertices::Vector{Vertex}, 
+    scene::Scene,
+    light_vertices::Vector{Vertex},
     camera_vertices::Vector{Vertex},
     sampled::Maybe{Vertex},
     s::Int64,
@@ -672,15 +608,6 @@ function MIS_weight(
     (s + t == 2) && (return 1.0)
     sum_ri = 0.0
 
-    # for i in 0:(t-1)
-    #     @info "MISWEIGHT LOOP CAMERA BEFORE: $(i)"
-    #     @info "\t\tRev $(camera_vertices[i+1].pdf_rev), Fwd $(camera_vertices[i+1].pdf_fwd)"
-    # end
-    # for i in 0:(s)
-    #     @info "MISWEIGHT LOOP LIGHT BEFORE: $(i)"
-    #     @info "\t\tRev $(light_vertices[i+1].pdf_rev), Fwd $(light_vertices[i+1].pdf_fwd)"
-    # end
-
     # Temporarily update vertex properties for current strategy
 
     # Look up connection vertices and their predecessors
@@ -690,58 +617,26 @@ function MIS_weight(
     qs_minus = (s > 1) ? s-2+1 : 0 # --> LIGHT
     pt_minus = (t > 1) ? t-2+1 : 0 # --> CAMERA
 
-    # @info """Inventory
-    # qs, $qs
-    # pt, $pt - $(camera_vertices[pt])
-    # qsMinus, $qs_minus
-    # ptMinus, $pt_minus
-    # """
-
-    # # LOG INITIAL STATE
-    # logg = Dict{Tuple{Int64,Int64}, VertexLog}()
-    # # logging qs and qs_minus
-    # (qs>0) && (logg[(qs,1)] = VertexLog(
-    #     light_vertices[qs].delta, 
-    #     light_vertices[qs].pdf_fwd, 
-    #     light_vertices[qs].pdf_rev
-    # ))
-    # (qs_minus>0) && (logg[(qs_minus,1)] = VertexLog(
-    #     light_vertices[qs_minus].delta, 
-    #     light_vertices[qs_minus].pdf_fwd, 
-    #     light_vertices[qs_minus].pdf_rev
-    # ))
-    # # logging pt and pt_minus
-    # (pt>0) && (logg[(pt,2)] = VertexLog(
-    #     camera_vertices[pt].delta, 
-    #     camera_vertices[pt].pdf_fwd, 
-    #     camera_vertices[pt].pdf_rev
-    # ))
-    # (pt_minus>0) && (logg[(pt_minus,2)] = VertexLog(
-    #     camera_vertices[pt_minus].delta, 
-    #     camera_vertices[pt_minus].pdf_fwd, 
-    #     camera_vertices[pt_minus].pdf_rev
-    # ))
-
     logg = MVector{4, VertexLog}(undef)
 
     (qs>0) && (logg[1] = VertexLog(
-        light_vertices[qs].delta, 
-        light_vertices[qs].pdf_fwd, 
+        light_vertices[qs].delta,
+        light_vertices[qs].pdf_fwd,
         light_vertices[qs].pdf_rev
     ))
     (qs_minus>0) && (logg[2] = VertexLog(
-        light_vertices[qs_minus].delta, 
-        light_vertices[qs_minus].pdf_fwd, 
+        light_vertices[qs_minus].delta,
+        light_vertices[qs_minus].pdf_fwd,
         light_vertices[qs_minus].pdf_rev
     ))
     (pt>0) && (logg[3] = VertexLog(
-        camera_vertices[pt].delta, 
-        camera_vertices[pt].pdf_fwd, 
+        camera_vertices[pt].delta,
+        camera_vertices[pt].pdf_fwd,
         camera_vertices[pt].pdf_rev
     ))
     (pt_minus>0) && (logg[4] = VertexLog(
-        camera_vertices[pt_minus].delta, 
-        camera_vertices[pt_minus].pdf_fwd, 
+        camera_vertices[pt_minus].delta,
+        camera_vertices[pt_minus].pdf_fwd,
         camera_vertices[pt_minus].pdf_rev
     ))
 
@@ -760,54 +655,33 @@ function MIS_weight(
         end
     end
 
-    if s==1 && t==2
-        # @info "MISWEIGHT: <<a1>> $(camera_vertices[1+1].pdf_rev)"
-    end
-
     # Mark connection vertices as non-degenerate
     # a2 & a3
     (pt > 0) && (camera_vertices[pt].delta = false)
     (qs > 0) && (light_vertices[qs].delta = false)
 
-    if s==1 && t==2
-        # @info "MISWEIGHT: <<a2,a3>> $(camera_vertices[1+1].pdf_rev)"
-    end
-
     # Update reverse density of vertex $\pt{}_{t-1}$
     # a4
-    if pt > 0 
+    if pt > 0
         if s > 0
             if qs_minus == 0
-                # @info "A"
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, nothing, camera_vertices[pt])
             else
-                # @info "B"
                 camera_vertices[pt].pdf_rev = pdf(light_vertices[qs], scene, light_vertices[qs_minus], camera_vertices[pt])
             end
         else
-            # @info "C"
             camera_vertices[pt].pdf_rev = pdf_light_origin(camera_vertices[pt], scene, camera_vertices[pt_minus], light_distr, light_num)
         end
-    end
-
-    # @info "pt, $pt - $(camera_vertices[pt])"
-
-    if s==1 && t==2
-        # @info "MISWEIGHT: <<a4>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Update reverse density of vertex $\pt{}_{t-2}$
     # a5
     if pt_minus > 0
-        if s > 0 
+        if s > 0
             camera_vertices[pt_minus].pdf_rev = pdf(camera_vertices[pt], scene, light_vertices[qs], camera_vertices[pt_minus])
         else
             camera_vertices[pt_minus].pdf_rev = pdf_light(camera_vertices[pt], scene, camera_vertices[pt_minus])
         end
-    end
-
-    if s==1 && t==2
-        # @info "MISWEIGHT: <<a5>> $(camera_vertices[1+1].pdf_rev)"
     end
 
     # Update reverse density of vertices $\pq{}_{s-1}$ and $\pq{}_{s-2}$
@@ -823,29 +697,21 @@ function MIS_weight(
         light_vertices[qs_minus].pdf_rev = pdf(light_vertices[qs], scene, camera_vertices[pt], light_vertices[qs_minus])
     end
 
-    if s==1 && t==2
-        # @info "MISWEIGHT: <<a6,a7>> $(camera_vertices[1+1].pdf_rev)"
-    end
-
     # Consider hypothetical connection strategies along the camera subpath
     ri = 1.0
     for i in reverse(1:(t-1))
-        # @info "MISWEIGHT LOOP: $(i)"
         ri *= remap0(camera_vertices[i+1].pdf_rev) / remap0(camera_vertices[i+1].pdf_fwd)
         if !camera_vertices[i+1].delta && !camera_vertices[i-1+1].delta
             sum_ri += ri
-            # @info "MISWEIGHT: Camera Subpath: sumRi: $(sum_ri) ri: $(ri) aka $(remap0(camera_vertices[i+1].pdf_rev)) / $(remap0(camera_vertices[i+1].pdf_fwd))"
         end
     end
 
     # Consider hypothetical connection strategies along the light subpath
     ri = 1.0
     for i in reverse(0:(s-1))
-        # @info "MISWEIGHT LOOP: $(i)"
         ri *= remap0(light_vertices[i+1].pdf_rev) / remap0(light_vertices[i+1].pdf_fwd)
         delta_light_vertex = i > 0 ? light_vertices[i-1+1].delta : is_delta_light(light_vertices[0+1].ei.light)
         if !light_vertices[i+1].delta && !delta_light_vertex
-            # @info "MISWEIGHT: Light Subpath: sumRi: $(sum_ri) ri: $(ri)"
             sum_ri += ri
         end
     end
@@ -866,7 +732,7 @@ function MIS_weight(
     (qs > 0) && (light_vertices[qs].delta = logg[1].delta)
 
     # UNROLL a4 & a5
-    if pt > 0 
+    if pt > 0
         camera_vertices[pt].pdf_rev = logg[3].pdf_rev
     end
     if pt_minus > 0

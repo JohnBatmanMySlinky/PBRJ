@@ -4,7 +4,7 @@ struct SimpleVolPathIntegratorv4 <: AbstractIntegrator
     max_depth::Int64
 end
 
-function li(svp::SimpleVolPathIntegratorv4, ray::AbstractRay, scene::Scene, sampler::AbstractSampler)::Spectrum
+function li(svp::SimpleVolPathIntegratorv4, ray::AbstractRay, scene::Scene, sampler::AbstractSampler, _light_dist)::Spectrum
     # declare local variables for delta tracking integration
     LL = spectrum_from_float(0.0)
     beta = 1.0

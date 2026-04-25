@@ -41,7 +41,6 @@ function (m::Substrate)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tr
     
     d = m.Kd(si)
     s = m.Ks(si)
-    @info "Substrate: Kd: $d, Ks: $s"
     roughu = clamp(m.u_roughness(si), 0, 1)
     roughv = clamp(m.v_roughness(si), 0, 1)
     # TODO implement black body check
@@ -50,7 +49,7 @@ function (m::Substrate)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Tr
         roughu = roughness_to_alpha(roughu)
         roughv = roughness_to_alpha(roughv)
     end
-    distrib = TrowbridgeReitzDistribution(roughu, roughv)
+    distrib = MicrofacetDistributionImpl(roughu, roughv)
     si.bsdf = BSDF(si, 1.0, (FresnelBlend(d, s, distrib),))
 end
 

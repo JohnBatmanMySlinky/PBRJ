@@ -19,19 +19,17 @@ struct BSDF{T <: Tuple} <: AbstractBSDF
         ns = si.shading.n
         ss = normalize(si.shading.dpdu)
         ts = cross(ns,ss)
-        @info "BSDF::AbstractBSDF ns = $ns, ng = $ng, ss = $ss, ts = $ts"
         new{T}(
             eta, ng, ns, ss, ts, bxdfs
         )
     end
 end
 
-function world_to_local(b::AbstractBSDF, v::Vec3)::Vec3
-    # @info "World To Local:: ss=$(b.ss), ts=$(b.ts), ns=$(b.ns)"
+@inline function world_to_local(b::AbstractBSDF, v::Vec3)::Vec3
     return Vec3(dot(v, b.ss), dot(v, b.ts), dot(v, b.ns))
 end
 
-function local_to_world(b::AbstractBSDF, v::Vec3)::Vec3
+@inline function local_to_world(b::AbstractBSDF, v::Vec3)::Vec3
     return Vec3(
         b.ss.x * v.x + b.ts.x * v.y + b.ns.x * v.z,
         b.ss.y * v.x + b.ts.y * v.y + b.ns.y * v.z,
@@ -72,23 +70,15 @@ function sample_f(b::AbstractBSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{
     # @info "Chose comp: $(component) / matching: $(matching_components)"
 
     # Get BxDF for chosen component by index.
-    bxdf = nothing
     bxdf_idx = -1
     count = component
     for i in 1:length(b.bxdfs)
-        # @info "i: $i - count: $count"
         if (b.bxdfs[i] & type) && (count == 0)
-            count -= 1
-            # @info "hehehe - $count"
-            bxdf = b.bxdfs[i]
             bxdf_idx = i
             break
         end
         count -= 1
     end
-
-    @info "BSDF::Sample_f chose comp = $component / matching = $matching_components, bxdf: $bxdf"
-
 
     # Remap BxDF sample u to [0, 1)^2.
     u_remapped = Pnt2(
@@ -98,13 +88,11 @@ function sample_f(b::AbstractBSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{
 
     # Sample chosen BxDF.
     wo = world_to_local(b, wo_world)
-    @info "wo_world: $wo_world, wo: $wo"
     wo.z == 0 && return (Vec3(0), spectrum_from_float(0.0), 0, BSDF_NONE)
 
     # TODO when to update sampled type
-    sampled_type = bxdf.type
-    wi, f_val, pdf_val, sampled_type_tmp = sample_f(bxdf, wo, u_remapped, sampled_type)
-    @info "For wo = $wo, sampled f = $f_val, pdf = $pdf_val, ratio = $(pdf_val > 0 ? (f_val / pdf_val) : spectrum_from_float(0.0)), wi = $wi, sampled_type_tmp: $sampled_type_tmp"
+    sampled_type = b.bxdfs[bxdf_idx].type
+    wi, f_val, pdf_val, sampled_type_tmp = sample_f(b.bxdfs[bxdf_idx], wo, u_remapped, sampled_type)
     if !(sampled_type_tmp isa Nothing)
         sampled_type = sampled_type_tmp
     end
@@ -113,7 +101,7 @@ function sample_f(b::AbstractBSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{
 
     wi_world = local_to_world(b, wi)
     # Compute overall PDF with all matching BxDFs.
-    if !(bxdf.type & BSDF_SPECULAR != 0) && matching_components > 1
+    if !(b.bxdfs[bxdf_idx].type & BSDF_SPECULAR != 0) && matching_components > 1
         for i in 1:length(b.bxdfs)
             # @info "i - $i"
             if i != bxdf_idx && (b.bxdfs[i] & type)
@@ -125,7 +113,7 @@ function sample_f(b::AbstractBSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{
     # @info "dont be changing: $wo, $wi"
     matching_components > 1 && (pdf_val /= matching_components)
     # Compute value of BSDF for sampled direction.
-    if !(bxdf.type & BSDF_SPECULAR != 0)
+    if !(b.bxdfs[bxdf_idx].type & BSDF_SPECULAR != 0)
         reflect = (dot(wi_world, b.ng) * dot(wo_world, b.ng)) > 0
         f_val::Spectrum = spectrum_from_float(0.0, 0.0, 0.0)
         for bxdf_i in b.bxdfs
@@ -136,7 +124,6 @@ function sample_f(b::AbstractBSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{
             end
         end
     end
-    @info "Overall f = $f_val, pdf = $pdf_val, ratio = $(pdf_val > 0 ? (f_val / pdf_val) : spectrum_from_float(0.0))"
     return wi_world, f_val, pdf_val, sampled_type
 end
 

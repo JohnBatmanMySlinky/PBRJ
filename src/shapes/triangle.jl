@@ -154,11 +154,11 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
 
     ## perform edge & det tests
     if (e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0)
-        return false, 0.0, empty_surface_interation(tri)
+        return false, nothing, nothing
     end
     det = e0 + e1 + e2
     if det == 0
-        return false, 0.0, empty_surface_interation(tri)
+        return false, nothing, nothing
     end
 
     ## compute scaled sitance to triangle and test against rayt
@@ -167,10 +167,10 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     p2t = Vec3(p2t.x, p2t.y, p2t.z * Sz)
     t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z
     if (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax * det))
-        return false, 0.0, empty_surface_interation(tri)
+        return false, nothing, nothing
     end
     if (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax * det))
-        return false, 0.0, empty_surface_interation(tri)
+        return false, nothing, nothing
     end
 
     ## compute barycentric coords and t for intesection
@@ -181,11 +181,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     t = t_scaled * inv_det
 
     # Compute triangle partial derivatives
-    if !(tri.uvs isa Nothing)
-        uv = tri.uvs
-    else
-        uv = (Pnt2(0, 0), Pnt2(1, 0), Pnt2(1, 1))
-    end
+    uv::SVector{3, Pnt2} = (tri.uvs isa Nothing) ? SVector(Pnt2(0, 0), Pnt2(1, 0), Pnt2(1, 1)) : tri.uvs
     # @info "Triangle: p=$p0, $p1, $p2"
     # @info "Triangle: UVS=$uv"
     duv02 = uv[0+1] - uv[2+1]
@@ -207,7 +203,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
         # Handle zero determinant for triangle partial derivative matrix
         ng = cross(p2 - p0, p1 - p0)
         if norm(ng)^2 == 0
-            return false, 0.0, empty_surface_interation(tri)
+            return false, nothing, nothing
         end
         _, dpu, dpv = orthonormal_basis(Vec3(ng))
         dpdu = Vec3(dpu)
@@ -246,12 +242,12 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     interaction = InstantiateSurfaceInteraction(phit, ray.t, -ray.direction, uvhit, dpdu, dpdv, Nml3(0,0,0), Nml3(0,0,0), tri)
 
     # Override surface normal in _isect_ for triangle
-    interaction.core.n = interaction.shading.n = Nml3(normalize(cross(dp02, dp12)))
-    # @info "Original normal: $(interaction.core.n)"
+    tri_n = Nml3(normalize(cross(dp02, dp12)))
     if tri.core.reverse_orientation ⊻ tri.core.transform_swaps_handedness
-        # @info "FLIPPED NORMAL"
-        interaction.core.n = interaction.shading.n = -interaction.core.n    
+        tri_n = -tri_n
     end
+    interaction.core = Interaction(interaction.core.p, interaction.core.t, interaction.core.wo, tri_n, interaction.core.mi)
+    interaction.shading = ShadingInteraction(tri_n, interaction.shading.dpdu, interaction.shading.dpdv, interaction.shading.dndu, interaction.shading.dndv)
 
     # TODO making shading tangents real
     if !(tri.normals isa Nothing) || !(tri.shading_tangent isa Nothing)

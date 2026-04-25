@@ -34,19 +34,19 @@ function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInterac
     # compute plane intersection for disk
     t_shape_hit = (d.height - r.origin.z) / r.direction.z
     if t_shape_hit <= 0 || t_shape_hit >= r.tMax
-        return false, 0.0, empty_surface_interation(d)
+        return false, nothing, nothing
     end
 
     # reject disk intersections for rays parallel to disk's plane
     if r.direction.z == 0
-        return false, 0.0, empty_surface_interation(d)
+        return false, nothing, nothing
     end
 
     # see if hit is inside disk radii and phi max
     p_hit = at(r, t_shape_hit)
     dist2 = p_hit.x^2 + p_hit.y^2
     if (dist2 > d.radius^2) || (dist2 < d.inner_radius^2)
-        return false, 0.0, empty_surface_interation(d)
+        return false, nothing, nothing
     end
 
     # test against phimax
@@ -55,7 +55,7 @@ function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInterac
         phi += 2pi
     end
     if phi > d.phi_max
-        return false, 0.0, empty_surface_interation(d)
+        return false, nothing, nothing
     end
 
     # now that we know we have a hit....

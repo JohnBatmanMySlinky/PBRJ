@@ -146,6 +146,8 @@ function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         return make_scene21(parsed_args)
     elseif parsed_args["scene-number"] == 22
         return make_scene22(parsed_args)
+    elseif parsed_args["scene-number"] == 23
+        return make_scene23(parsed_args)
     elseif parsed_args["scene-number"] == 99
         return make_scene99(parsed_args)
     elseif parsed_args["scene-number"] == 100

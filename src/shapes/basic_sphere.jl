@@ -32,15 +32,15 @@ function intersect(s::BasicSphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Fl
     # solve quadratic
     exists, t0, t1 = solve_quadratic(a, b, c)
     if !exists
-        return false, 0.0, empty_surface_interation(s)
+        return false, nothing, nothing
     elseif t0 > r.tMax || t1 <= 0
-        return false, 0.0, empty_surface_interation(s)
+        return false, nothing, nothing
     else
         t_shape_hit = t0
         if t_shape_hit <= 0
             t_shape_hit = t1
             if t_shape_hit > r.tMax
-                return false, 0.0, empty_surface_interation(s)
+                return false, nothing, nothing
             end
         end
     end

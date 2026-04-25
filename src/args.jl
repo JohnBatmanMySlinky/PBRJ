@@ -68,6 +68,14 @@ function parse_commandline()::Dict
             help = "display live GLMakie window while rendering"
             arg_type = Bool
             default = false
+        "--n-iterations"
+            help = "SPPM: number of iterations"
+            arg_type = Int
+            default = 64
+        "--photons-per-iteration"
+            help = "SPPM: photons traced per iteration"
+            arg_type = Int
+            default = -1
     end
 
     return parse_args(s)
