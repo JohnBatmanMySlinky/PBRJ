@@ -64,7 +64,7 @@ function average_spectrum_samples(
     return tot / (lambda_end-lambda_start)
 end
 
-function is_black(x::Spectrum)::Bool
+@inline function is_black(x::Spectrum)::Bool
     return all(iszero, x)
 end
 

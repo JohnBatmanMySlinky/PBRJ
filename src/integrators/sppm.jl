@@ -199,7 +199,7 @@ function sppm_camera_pass!(
                     light_distr_local = lookup(light_distr, si.core.p)
                     light_idx, light_pdf, _ = sample_discrete(light_distr_local, get_1D!(sampler))
                     light = scene.lights[light_idx]
-                    Ld = estimate_direct(si, get_2D!(sampler), light, get_2D!(sampler), scene, sampler, false, false)
+                    Ld = estimate_direct(si, si.bsdf, get_2D!(sampler), light, get_2D!(sampler), scene, sampler, false, false)
                     px.Ld += beta * Ld / light_pdf
                 end
 

@@ -141,7 +141,7 @@ function li(
         end
 
         light_distribution = lookup(light_distribution_generator, si.core.p)
-        LL += beta * uniform_sample_one_light(si, scene, sampler, light_distribution, true)
+        LL += beta * uniform_sample_one_light(si, si.bsdf, scene, sampler, light_distribution, true)
 
         wo = -ray.direction
         wi, f, pdf_val, sampled_type = sample_f(si.bsdf, wo, get_2D!(sampler), BSDF_ALL)
@@ -167,6 +167,7 @@ function li(
 
             LL += beta * uniform_sample_one_light(
                 pisect,
+                pisect.bsdf,
                 scene,
                 sampler,
                 lookup(light_distribution_generator, pisect.core.p),

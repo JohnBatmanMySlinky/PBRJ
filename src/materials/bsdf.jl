@@ -25,12 +25,11 @@ struct BSDF{T <: Tuple} <: AbstractBSDF
     end
 end
 
-function world_to_local(b::AbstractBSDF, v::Vec3)::Vec3
-    # @info "World To Local:: ss=$(b.ss), ts=$(b.ts), ns=$(b.ns)"
+@inline function world_to_local(b::AbstractBSDF, v::Vec3)::Vec3
     return Vec3(dot(v, b.ss), dot(v, b.ts), dot(v, b.ns))
 end
 
-function local_to_world(b::AbstractBSDF, v::Vec3)::Vec3
+@inline function local_to_world(b::AbstractBSDF, v::Vec3)::Vec3
     return Vec3(
         b.ss.x * v.x + b.ts.x * v.y + b.ns.x * v.z,
         b.ss.y * v.x + b.ts.y * v.y + b.ns.y * v.z,
