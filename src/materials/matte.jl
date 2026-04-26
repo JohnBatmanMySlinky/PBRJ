@@ -27,16 +27,10 @@ end
 function (m::Matte)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: TransportMode
     # if bump map, update si
     if !(m.bump_map isa Nothing)
-        @info "BUMP BUMP BUMP"
-        @info "Surface Interaction Pre Bump: $si"
         bump!(m, si)
-        @info "Surface Interaction Post Bump: $si"
     end
-    
-    
-    r = m.Kd(si)
 
-    @info "Spectrum Kd: $(r)"
+    r = m.Kd(si)
 
     # TODO implement black body check
     sigma = clamp(m.sigma(si), 0, 90)

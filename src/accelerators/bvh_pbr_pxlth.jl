@@ -54,7 +54,7 @@ struct BVHNode
     end
 end
 
-mutable struct BucketInfo
+struct BucketInfo
     count::Int64
     bounds::Bounds3
 end
@@ -65,14 +65,14 @@ end
 ### The final data structure is a Tree with 'pointers' & an array of primitives
 ### https://aws1.discourse-cdn.com/business5/uploads/julialang/original/2X/a/aa75df26de1d2a062204ae74a7d91dfe7b0c4aa3.png
 #######################################################################################
-struct BVH <: BVHAccel
-    primitives::Vector{<:BVHAble}
+struct BVH{T<:BVHAble} <: BVHAccel
+    primitives::Vector{T}
     max_node_primitives::Int64
     nodes::Vector{LinearBVH}
 
-    function BVH(primitives::Vector{<:BVHAble}, max_node_primitives::Int64=1)
+    function BVH(primitives::Vector{T}, max_node_primitives::Int64=1) where {T<:BVHAble}
         max_node_primitives = min(255, max_node_primitives) # why 255?
-        length(primitives) == 0 && return new(primitives, max_node_primitives) # doesn't this cause an infinite loop?
+        length(primitives) == 0 && return new{T}(primitives, max_node_primitives) # doesn't this cause an infinite loop?
 
         # get primitives info for each primitive
         primitives_info = BVHPrimitiveInfo[
@@ -81,7 +81,8 @@ struct BVH <: BVHAccel
 
         # instantiate array component of data structure
         total_nodes = Ref(0)
-        ordered_primitives = Vector{BVHAble}(undef, 0)
+        ordered_primitives = Vector{T}(undef, 0)
+        sizehint!(ordered_primitives, length(primitives))
 
         # build tree
         root = _build_tree(
@@ -100,9 +101,7 @@ struct BVH <: BVHAccel
         _traverse(flattened, root, offset)
         @assert total_nodes[] + 1 == offset[]
 
-        new(ordered_primitives, max_node_primitives, flattened)
-
-        return new(ordered_primitives, max_node_primitives, flattened)
+        new{T}(ordered_primitives, max_node_primitives, flattened)
     end
 end
 
@@ -145,16 +144,15 @@ function _build_tree(
         )
     else
         n_buckets = 12
-        buckets = BucketInfo[BucketInfo(0,Bounds3(Pnt3(0,0,0))) for _ in 1:n_buckets]
+        buckets = MVector{12, BucketInfo}(undef)
 
         for i in from:to
             b = Int64(floor(n_buckets * offset(centroid_bounds, primitives_info[i].centroid)[dim])) + 1
             (b == n_buckets + 1) && (b -= 1)
-            buckets[b].count += 1
-            buckets[b].bounds = world_bounds(buckets[b].bounds,primitives_info[i].bounds)
+            buckets[b] = BucketInfo(buckets[b].count + 1, world_bounds(buckets[b].bounds, primitives_info[i].bounds))
         end
 
-        costs = Vector{Float64}(undef, n_buckets - 1)
+        costs = MVector{11, Float64}(undef)
         for i in 1:(n_buckets - 1)
             it1, it2 = 1:i, (i + 1):(n_buckets - 1)
             s1, s2 = 0, 0
@@ -234,7 +232,7 @@ end
 #### Intersect with BVH
 #################################################
 
-function intersect!(bvh::BVH, ray::AbstractRay, shadow_ray::Bool=false)
+function intersect!(bvh::BVH, ray::R, shadow_ray::Bool=false) where {R <: AbstractRay}
     hit = false
     final_time = nothing
     interaction::Maybe{SurfaceInteraction} = nothing
@@ -250,29 +248,30 @@ function intersect!(bvh::BVH, ray::AbstractRay, shadow_ray::Bool=false)
     while true
         @inbounds ln = bvh.nodes[current_node_i]
         if intersect_p(ln.bounds, ray, inv_dir, dir_is_neg)
-            if ln isa LinearBVHLeaf && ln.n_primitives > 0
-                ln = ln::LinearBVHLeaf
-                # Intersect ray with primitives in node.
-                @inbounds for i in 0:ln.n_primitives - 1
-                    tmp_hit, tmp_time, tmp_interaction = intersect!(
-                        bvh.primitives[ln.primitives_offset + i], ray, shadow_ray
-                    )
-                    if tmp_hit
-                        shadow_ray && return true, tmp_time, tmp_interaction
-                        hit = true
-                        final_time = tmp_time
-                        interaction = tmp_interaction
+            if ln isa LinearBVHLeaf
+                if ln.n_primitives > 0
+                    @inbounds for i in 0:ln.n_primitives - 1
+                        tmp_hit, tmp_time, tmp_interaction = intersect!(
+                            bvh.primitives[ln.primitives_offset + i], ray, shadow_ray
+                        )
+                        if tmp_hit
+                            shadow_ray && return true, tmp_time, tmp_interaction
+                            hit = true
+                            final_time = tmp_time
+                            interaction = tmp_interaction
+                        end
                     end
                 end
                 to_visit_offset == 1 && break
                 to_visit_offset -= 1
-                current_node_i = nodes_to_visit[to_visit_offset]
+                @inbounds current_node_i = nodes_to_visit[to_visit_offset]
             else
+                ln = ln::LinearBVHInterior
                 if dir_is_neg[ln.split_axis] == 2
-                    nodes_to_visit[to_visit_offset] = current_node_i + 1
+                    @inbounds nodes_to_visit[to_visit_offset] = current_node_i + 1
                     current_node_i = ln.second_child_offset
                 else
-                    nodes_to_visit[to_visit_offset] = ln.second_child_offset
+                    @inbounds nodes_to_visit[to_visit_offset] = ln.second_child_offset
                     current_node_i += 1
                 end
                 to_visit_offset += 1
@@ -280,13 +279,13 @@ function intersect!(bvh::BVH, ray::AbstractRay, shadow_ray::Bool=false)
         else
             to_visit_offset == 1 && break
             to_visit_offset -= 1
-            current_node_i = nodes_to_visit[to_visit_offset]
+            @inbounds current_node_i = nodes_to_visit[to_visit_offset]
         end
     end
     hit, final_time, interaction
 end
 
-function intersect_p(bvh::BVH, ray::AbstractRay)
+function intersect_p(bvh::BVH, ray::R) where {R <: AbstractRay}
     length(bvh.nodes) == 0 && return false
 
     ray |> check_direction!
@@ -299,22 +298,24 @@ function intersect_p(bvh::BVH, ray::AbstractRay)
     while true
         @inbounds ln = bvh.nodes[current_node_i]
         if intersect_p(ln.bounds, ray, inv_dir, dir_is_neg)
-            if ln isa LinearBVHLeaf && ln.n_primitives > 0
-                ln = ln::LinearBVHLeaf
-                @inbounds for i in 0:ln.n_primitives - 1
-                    intersect_p(
-                        bvh.primitives[ln.primitives_offset + i], ray,
-                    ) && return true
+            if ln isa LinearBVHLeaf
+                if ln.n_primitives > 0
+                    @inbounds for i in 0:ln.n_primitives - 1
+                        intersect_p(
+                            bvh.primitives[ln.primitives_offset + i], ray,
+                        ) && return true
+                    end
                 end
                 to_visit_offset == 1 && break
                 to_visit_offset -= 1
-                current_node_i = nodes_to_visit[to_visit_offset]
+                @inbounds current_node_i = nodes_to_visit[to_visit_offset]
             else
+                ln = ln::LinearBVHInterior
                 if dir_is_neg[ln.split_axis] == 2
-                    nodes_to_visit[to_visit_offset] = current_node_i + 1
+                    @inbounds nodes_to_visit[to_visit_offset] = current_node_i + 1
                     current_node_i = ln.second_child_offset
                 else
-                    nodes_to_visit[to_visit_offset] = ln.second_child_offset
+                    @inbounds nodes_to_visit[to_visit_offset] = ln.second_child_offset
                     current_node_i += 1
                 end
                 to_visit_offset += 1
@@ -322,7 +323,7 @@ function intersect_p(bvh::BVH, ray::AbstractRay)
         else
             to_visit_offset == 1 && break
             to_visit_offset -= 1
-            current_node_i = nodes_to_visit[to_visit_offset]
+            @inbounds current_node_i = nodes_to_visit[to_visit_offset]
         end
     end
     false

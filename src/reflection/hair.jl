@@ -334,7 +334,7 @@ function compute_Ap_pdf(hair:: HairBSDF, cos_theta_O::Float64)::SVector{4, Float
     ap = Ap(cos_theta_O, hair.eta, hair.h, T)
 
     # Compute $A_p$ PDF from individual $A_p$ terms
-    sum_y = sum([y_spectrum(x) for x in ap])
+    sum_y = sum(y_spectrum, ap)
     return SVector(
 		y_spectrum(ap[1]) / sum_y,
 		y_spectrum(ap[2]) / sum_y,

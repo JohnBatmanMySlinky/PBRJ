@@ -84,21 +84,13 @@ function (m::Metal)(si::SurfaceInteraction, ::Bool, ::Type{T}) where T <: Transp
     u_rough::Float64 = (m.u_roughness isa Nothing) ? m.roughness(si) : m.u_roughness(si)
     v_rough::Float64 = (m.v_roughness isa Nothing) ? m.roughness(si) : m.v_roughness(si)
 
-    @info "uRough PRE: $u_rough"
-    @info "vRough PRE: $v_rough"
-
     if m.remap_roughness
         u_rough = roughness_to_alpha(u_rough)
         v_rough = roughness_to_alpha(v_rough)
     end
 
-    @info "uRough POST: $u_rough"
-    @info "vRough POST: $v_rough"
-    @info "eta: $(m.eta(si))"
-    @info "k: $(m.k(si))"
-
     fresnel = FresnelConductor(spectrum_from_float(1.0), m.eta(si), m.k(si))
-    distrib = TrowbridgeReitzDistribution(u_rough, v_rough)
+    distrib = MicrofacetDistributionImpl(u_rough, v_rough)
     si.bsdf = BSDF(si, 1.0, (MicrofacetReflection(spectrum_from_float(1.0), distrib, fresnel),))
 end
 

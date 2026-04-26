@@ -1,10 +1,10 @@
 struct MetaBallsBVH <: ImplicitSurface
     core::ShapeCore
-    bvh::BVH
+    bvh::BVH{BasicSphere}
     magic::Float64
     function MetaBallsBVH(
         core::ShapeCore,
-        bvh::BVH
+        bvh::BVH{BasicSphere}
     )
         return new(
             core,

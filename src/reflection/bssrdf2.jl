@@ -30,7 +30,7 @@ function sample_s(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2)::
     if !is_black(Sp)
         # Initialize material model at sampled surface interaction
         si.bsdf = BSDF(si, 1.0, (SeperableBSSRDFAdapter(bssrdf),))
-        si.core.wo = Vec3(si.shading.n)
+        si.core = Interaction(si.core.p, si.core.t, Vec3(si.shading.n), si.core.n, si.core.mi)
     end
     return Sp, si, pdf_val
 end

@@ -7,7 +7,7 @@ println("SET UP")
 parsed_args = RayTracing.parse_commandline()
 parsed_args["scene-number"] = 4
 parsed_args["image-dim"] = Int[100, 100]
-parsed_args["samples-per-pixel"] = 4
+parsed_args["samples-per-pixel"] = 16
     
 logger = RayTracing.setup_logging(parsed_args["debug"])
 RayTracing.global_logger(logger)

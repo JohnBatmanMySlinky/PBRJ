@@ -39,7 +39,6 @@ abstract type Fresnel end
 abstract type Light end
 abstract type Material end
 abstract type Medium end
-abstract type MicrofacetDistribution end
 abstract type Randomizer end
 abstract type Shape end
 
@@ -171,11 +170,11 @@ include("samplers2/sampling.jl")
 include("samplers2/sampler.jl")
 include("reflection/flags.jl")
 include("reflection/math.jl")
+include("reflection/microfacet_distributions.jl")
 include("reflection/fresnel.jl")
 include("reflection/specular.jl")
 include("reflection/lambertian.jl")
 include("reflection/oren_nayar.jl")
-include("reflection/microfacet_distributions.jl")
 include("reflection/microfacet.jl")
 include("reflection/bxdf.jl")
 include("reflection/hair.jl")
@@ -279,6 +278,8 @@ include("medium2/phase_functions.jl")
 include("shapes/sphere_packing.jl")
 include("shapes/voxelization.jl")
 include("scene_utils.jl")
+
+const NO_MEDIUM_INTERFACE = MediumInterface(nothing)
 
 function render_scene(parsed_args::Dict)
     @prof "scene_build" I, scene = build_scene(parsed_args) # TODO get this outside the loop!
