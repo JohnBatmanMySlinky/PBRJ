@@ -76,6 +76,10 @@ function parse_commandline()::Dict
             help = "SPPM: photons traced per iteration"
             arg_type = Int
             default = -1
+        "--integrator"
+            help = "override scene integrator: default, volpath, bdpt, sppm, simple, ao"
+            arg_type = String
+            default = "default"
     end
 
     return parse_args(s)
