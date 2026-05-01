@@ -274,31 +274,32 @@ function sppm_photon_pass!(
             wo::Vec3 = si.core.wo
             is_specular_surf = (num_components(si.bsdf, BSDF_ALL & ~BSDF_SPECULAR) == 0)
 
-            if !is_specular_surf
-                # Deposit photon: look up visible points in grid
+            if !is_specular_surf && depth > 0
+                # Deposit photon: look up the single cell the photon lands in.
+                # VPs are already registered in ALL cells their radius sphere overlaps
+                # (see build_grid), so checking one cell is sufficient — checking
+                # neighbors would cause each photon to match the same VP multiple times.
                 rel = si.core.p - grid.bounds.pMin
                 cx  = Int64(floor(rel.x / grid.cell_size))
                 cy  = Int64(floor(rel.y / grid.cell_size))
                 cz  = Int64(floor(rel.z / grid.cell_size))
-                for dz in -1:1, dy in -1:1, dx in -1:1
-                    h    = cell_hash(cx+dx, cy+dy, cz+dz, grid.grid_size)
-                    node = Int64(grid.grid_heads[h])
-                    while node != 0
-                        px_idx = Int64(grid.node_pixel[node])
-                        px = pixels[px_idx]
-                        if px.vp_valid
-                            dist2 = sum((si.core.p - px.vp_p).^2)
-                            if dist2 <= px.radius^2
-                                wi_p = -ray.direction
-                                f    = px.vp_bsdf(px.vp_wo, wi_p, BSDF_ALL)
-                                if !is_black(f)
-                                    px.phi += f * beta
-                                    px.M   += 1
-                                end
+                h    = cell_hash(cx, cy, cz, grid.grid_size)
+                node = Int64(grid.grid_heads[h])
+                while node != 0
+                    px_idx = Int64(grid.node_pixel[node])
+                    px = pixels[px_idx]
+                    if px.vp_valid
+                        dist2 = sum((si.core.p - px.vp_p).^2)
+                        if dist2 <= px.radius^2
+                            wi_p = -ray.direction
+                            f    = px.vp_bsdf(px.vp_wo, wi_p, BSDF_ALL)
+                            if !is_black(f)
+                                px.phi += f * beta
+                                px.M   += 1
                             end
                         end
-                        node = Int64(grid.node_next[node])
                     end
+                    node = Int64(grid.node_next[node])
                 end
             end
 
@@ -323,7 +324,7 @@ function sppm_update_pixels!(pixels::Vector{SPPMPixel}, gamma::Float64 = 2.0/3.0
         N_new  = px.N + gamma * Float64(px.M)
         r_new  = px.radius * sqrt(N_new / (px.N + Float64(px.M)))
         scale  = (r_new / px.radius)^2
-        px.tau    = (px.tau + px.phi) * scale
+        px.tau    = (px.tau + px.vp_beta * px.phi) * scale
         px.N      = N_new
         px.radius = r_new
         # reset per-iteration accumulators
@@ -362,9 +363,10 @@ function render(integrator::SPPMIntegrator, scene::Scene, parsed_args::Dict)::Ar
 
     # ── Write final image ──────────────────────────────────────────────────
     # Direct illumination: average over all iterations (Ld was summed)
-    # Indirect (photon):   tau / (N * pi * r^2 * photons_per_iter)
+    # Indirect (photon):   tau / (total_photon_paths * pi * r^2)
     n_iter = Float64(integrator.n_iterations)
     n_phot = Float64(integrator.photons_per_iter)
+    total_photon_paths = n_iter * n_phot
 
     sample_extent = diagonal(sample_bounds)
     w_pixels = Int64(sample_extent.x)
@@ -378,7 +380,7 @@ function render(integrator::SPPMIntegrator, scene::Scene, parsed_args::Dict)::Ar
 
         L = px.Ld / n_iter
         if px.N > 0.0
-            L += px.tau / (px.N * pi * px.radius^2 * n_phot)
+            L += px.tau / (total_photon_paths * pi * px.radius^2)
         end
 
         add_splat!(film, p, L)
