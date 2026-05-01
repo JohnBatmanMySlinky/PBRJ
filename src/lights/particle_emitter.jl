@@ -1,4 +1,5 @@
 # Particle Emitter light - port of eg2020-pbrt-v3 particle_emitter.{cpp,h}
+# https://gitlab.arm.com/wasp/eg2020-pbrt-v3
 # Emits Cherenkov radiation from charged particles traveling through the scene.
 # Particles are spawned from a shape surface (typically a disk) and traced through
 # the scene. In intervals where the particle is superluminal (v > c/n), it emits
@@ -262,14 +263,25 @@ function sample_le(light::ParticleEmitter, u1::Pnt2, u2::Pnt2, t::Float64)::Tupl
         w = cherenkov_direction(particle.direction, u2, light.velocity, n_local)
         n_out = Nml3(w)
         ray = RayDifferential(Ray(pp, w, t, typemax(Float64)))
+        # Cherenkov: fixed polar angle theta_c, uniform azimuth phi.
+        # PDF on the unit sphere for a ring at theta_c is 1/(2π·sin(θ_c)).
+        theta_c = acos(clamp(1.0 / (light.velocity * n_local), -1.0, 1.0))
+        pdf_dir = 1.0 / (2.0 * pi * sin(theta_c))
     else
-        return spectrum_from_float(0.0), RayDifferential(Ray(pp, Vec3(0,0,1), t, typemax(Float64))),
-               Nml3(0,0,1), 1.0, 1.0
+        # Sub-threshold segment: no emission (uniform_scale is an optional debug hack)
+        if light.uniform_scale > 0.0
+            w = random_on_sphere(u2)
+            n_out = Nml3(w)
+            ray = RayDifferential(Ray(pp, Vec3(w), t, typemax(Float64)))
+            s = spectrum_from_float(light.uniform_scale)
+            pdf_dir = 1.0 / (4.0 * pi)
+        else
+            return spectrum_from_float(0.0), RayDifferential(Ray(pp, Vec3(0,1,0), t, 0.0)),
+                   Nml3(0,1,0), 1.0, 1.0
+        end
     end
 
-    # PDF: uniform over particle length, mixture direction pdf
     pdf_pos = 1.0 / max(light.particle_length, eps())
-    pdf_dir = (1.0 + light.prob_sl) / (4.0 * pi)
 
     return s, ray, n_out, pdf_pos, pdf_dir
 end

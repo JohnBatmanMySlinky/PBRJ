@@ -27,7 +27,7 @@ function ObjectBounds(d::Disk)::Bounds3
     )
 end
 
-function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
+function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # transform the ray to object space
     r = d.core.world_to_object(r)
 
