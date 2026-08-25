@@ -231,9 +231,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
             nothing,
             nothing
         )
-        alpha_mask = get_texture(tri.alpha_mask)
-        
-        if alpha_mask(si) == spectrum_from_float(0.0, 0.0, 0.0)
+        if evaluate_alpha_mask(tri.alpha_mask, si) == spectrum_from_float(0.0, 0.0, 0.0)
             return false, 0.0, si
         end
     end

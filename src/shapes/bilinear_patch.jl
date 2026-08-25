@@ -390,9 +390,7 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
             nothing,
             nothing
         )
-        alpha_mask = get_texture(blp.alpha_mask)
-        
-        if alpha_mask(si) == 0.0
+        if evaluate_alpha_mask(blp.alpha_mask, si) == 0.0
             return false, nothing, nothing
         end
     end

@@ -104,6 +104,9 @@ julia -t 4 RayTracing.jl --scene-number 4 --image-dim 250 250 --samples-per-pixe
 - Medium was a clear giant win. Ray stuff maybe OK? 
 - my materials are so parameterized... do I roll that back? 
 - shapes looks like it dropped BVH allocations by a bajillion....
+- BSDF needs more thinking. some improvements made?
+- bssdrf. nothing to do ?
+- textures? did some stuff
 
 # TODO's
 - visibility tester Tr needs to be updated
