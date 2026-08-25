@@ -1,10 +1,10 @@
-struct SeperableBSSRDFAdapter <: AbstractBxDF
+struct SeperableBSSRDFAdapter{B} <: AbstractBxDF
 	type::UInt8
-	bssrdf::AbstractBSSRDF
+	bssrdf::B
 
-    function SeperableBSSRDFAdapter(bssrdf::AbstractBSSRDF)
+    function SeperableBSSRDFAdapter(bssrdf::B) where {B <: AbstractBSSRDF}
 		bxdf = BSDF_GLOSSY | BSDF_REFLECTION | BSDF_TRANSMISSION
-        return new(BSDF_REFLECTION | BSDF_DIFFUSE, bssrdf)
+        return new{B}(BSDF_REFLECTION | BSDF_DIFFUSE, bssrdf)
     end
 end
 
