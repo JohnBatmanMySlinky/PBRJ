@@ -24,6 +24,14 @@ to_light_handle(l::Light) = push!(LIGHT_REGISTRY[], l)
 
 get_light(h::Handle{:Light}) = dispatch(identity, LIGHT_REGISTRY[], h)
 
+# Dedicated flags-only accessor: DiffuseAreaLight/ParticleEmitter aren't
+# isbits (they carry heap fields like Vector/MIPMap), so the 7-way
+# Union{<light types>} that get_light(h) returns can't be stored inline and
+# boxes on every call. LightFlags is a single concrete isbits type across
+# every branch, so reading just .flags through `dispatch` avoids that box -
+# useful in hot spots (BDPT vertex bookkeeping) that only need the flags.
+light_flags(h::Handle{:Light}) = dispatch(l -> l.flags, LIGHT_REGISTRY[], h)
+
 power(h::Handle{:Light}) = dispatch(power, LIGHT_REGISTRY[], h)
 le(h::Handle{:Light}, ray::AbstractRay) = dispatch(le, LIGHT_REGISTRY[], h, ray)
 L(h::Handle{:Light}, n::Nml3, w::Vec3, uv::Pnt2) = dispatch(L, LIGHT_REGISTRY[], h, n, w, uv)

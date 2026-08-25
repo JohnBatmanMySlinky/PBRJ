@@ -166,7 +166,7 @@ function is_infinite_light(v::Vertex)::Bool
             return true
         else
             # if we have a VTLight and a light in ei, check type of light
-            flags = get_light(v.ei.light).flags
+            flags = light_flags(v.ei.light)
             return (flags & LightInfinite) || (flags & LightDeltaDirection)
         end
     end
@@ -234,7 +234,7 @@ function is_connectible(v::Vertex)::Bool
     if v.type == VTMedium
         return true
     elseif v.type == VTLight
-        return get_light(v.ei.light).flags & LightDeltaDirection # JOHN why is there a ==0???
+        return light_flags(v.ei.light) & LightDeltaDirection # JOHN why is there a ==0???
     elseif v.type == VTCamera
         return true
     elseif v.type == VTSurface
