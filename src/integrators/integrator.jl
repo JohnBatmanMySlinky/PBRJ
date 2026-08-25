@@ -153,7 +153,7 @@ end
 function estimate_direct_medium(
     mi::MediumInteraction,
     u_scattering::Pnt2,
-    light::Light,
+    light::Handle{:Light},
     u_light::Pnt2,
     scene::Scene,
     sampler::AbstractSampler,
@@ -234,7 +234,7 @@ function estimate_direct(
     isect::SurfaceInteraction,
     bsdf::B,
     u_scattering::Pnt2,
-    light::Light,
+    light::Handle{:Light},
     u_light::Pnt2,
     scene::Scene,
     sampler::AbstractSampler,
