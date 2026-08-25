@@ -82,7 +82,7 @@ function intersect!(s::BasicSphere, ray::AbstractRay, shadow_ray::Bool=false)::T
         return false, nothing, nothing
     end
     ray.tMax[] = t
-    interaction.shape = s
+    interaction.shape = to_shape_handle(s)
     return true, t, interaction
 end
 

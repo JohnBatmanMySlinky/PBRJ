@@ -1,7 +1,7 @@
 struct DiffuseAreaLight <: Light
     flags::LightFlags
     Lemit::Spectrum
-    shape::Shape
+    shape::Handle{:Shape}
     area::Float64
     two_sided::Bool
     medium::Maybe{Medium}
@@ -9,9 +9,9 @@ struct DiffuseAreaLight <: Light
     LL::Float64
 
     function DiffuseAreaLight(
-        Lemit::Spectrum, shape::Shape, two_sided::Bool, 
-        medium::Maybe{Medium}=nothing, 
-        texmap::Maybe{String}=nothing, 
+        Lemit::Spectrum, shape::Shape, two_sided::Bool,
+        medium::Maybe{Medium}=nothing,
+        texmap::Maybe{String}=nothing,
         LL::Float64=1.0
     )
         if texmap isa Nothing
@@ -23,7 +23,7 @@ struct DiffuseAreaLight <: Light
         return new(
             LightArea,
             Lemit,
-            shape,
+            to_shape_handle(shape),
             area(shape),
             two_sided,
             medium,

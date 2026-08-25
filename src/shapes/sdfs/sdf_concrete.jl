@@ -37,13 +37,13 @@ end
 # Define specific operation types
 struct SDFUnion <: SDFOperation
     k::Float64  # Smoothing parameter
-    left::ImplicitSurface
-    right::ImplicitSurface
+    left::Handle{:Shape}
+    right::Handle{:Shape}
     bounding_sphere::RayTracing.Sphere
     core::ShapeCore
 
     function SDFUnion(k::Float64, left::ImplicitSurface, right::ImplicitSurface, core::ShapeCore)
-        return new(k, left, right, union_bounding_spheres(left.bounding_sphere, right.bounding_sphere), core)
+        return new(k, to_shape_handle(left), to_shape_handle(right), union_bounding_spheres(left.bounding_sphere, right.bounding_sphere), core)
     end
 end
 
@@ -355,7 +355,7 @@ end
 
 # Operation evaluations
 function evaluate(op::SDFUnion, p::RayTracing.Pnt3)::Float64
-    a = evaluate(op.left, p) 
+    a = evaluate(op.left, p)
     b = evaluate(op.right, p)
     
     # Smooth union formula

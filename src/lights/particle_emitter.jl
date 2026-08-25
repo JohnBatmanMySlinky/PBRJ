@@ -18,7 +18,7 @@ const SLInterval = Tuple{Float64, Float64, Float64}
 
 mutable struct ParticleEmitter <: Light
     flags::LightFlags
-    shape::Shape
+    shape::Handle{:Shape}
     velocity::Float64        # v/c
     range::Float64
     cherenkov_scale::Float64
@@ -47,7 +47,7 @@ mutable struct ParticleEmitter <: Light
     )
         new(
             LightArea,
-            shape,
+            to_shape_handle(shape),
             velocity, range, cherenkov_scale, uniform_scale, ambient_eta,
             n_particles, seed,
             ParticleEmitterParticle[], Vector{SLInterval}[], Vector{Spectrum}[],

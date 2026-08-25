@@ -98,6 +98,13 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 ## Experimenting
 julia -t 4 RayTracing.jl --scene-number 4 --image-dim 250 250 --samples-per-pixel 6 --file-name "yeehaw.exr" --integrator volpath
 
+# JOHNS WORK LOG
+- set up a profiling sweet to measure if branch `profiling` fuckin does anything
+- compare results against `profiling`
+- Medium was a clear giant win. Ray stuff maybe OK? 
+- my materials are so parameterized... do I roll that back? 
+- shapes looks like it dropped BVH allocations by a bajillion....
+
 # TODO's
 - visibility tester Tr needs to be updated
 - Revisit parameterization of abstract types. Primitive?

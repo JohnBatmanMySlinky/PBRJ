@@ -72,7 +72,7 @@ mutable struct SurfaceInteraction
     dndu::Nml3
     dndv::Nml3
 
-    shape::Maybe{Shape}
+    shape::Maybe{Handle{:Shape}}
     primitive::Maybe{Primitive}
     bsdf::Maybe{AbstractBSDF}
     bssrdf::Maybe{AbstractBSSRDF}
@@ -116,15 +116,22 @@ function InstantiateSurfaceInteraction(
         end
     end
 
+    # NOTE: this does NOT register `shape` in SHAPE_REGISTRY - it's called on
+    # every ray/shape intersection (the hottest path in the renderer), and
+    # pushing here would grow the registry unboundedly and race under
+    # multithreaded rendering. The owning Primitive already holds a
+    # Handle{:Shape} for this exact shape, so it patches `si.shape` in after
+    # intersect() returns (see primitive.jl); direct (non-Primitive) callers
+    # that need `si.shape` populated do the same (see basic_sphere.jl).
     return SurfaceInteraction(
-        core, 
+        core,
         shading,
         uv,
         dpdu,
         dpdv,
         dndu,
         dndv,
-        shape,
+        nothing,
         primitive,
         bsdf,
         bssrdf,

@@ -107,7 +107,8 @@ function intersect(s::MetaBallsBVH, rr::AbstractRay)::Tuple{Bool, Float64, Surfa
     t_set = Set(Float64[])
     ugh = 0
     while true & (ugh < 30)
-        push!(sphere_set, SimpleSphere(intersect.shape.core.object_to_world(Pnt3(0,0,0)), intersect.shape.radius))  
+        hit_shape = get_shape(intersect.shape)
+        push!(sphere_set, SimpleSphere(hit_shape.core.object_to_world(Pnt3(0,0,0)), hit_shape.radius))
         idx = argmax(abs.(rr_direction))
         push!(t_set, (intersect.core.p[idx] - rr_origin[idx]) / rr_direction[idx])
 
@@ -180,7 +181,8 @@ function intersect_p(s::MetaBallsBVH, rr::AbstractRay)::Bool
     t_set = Set(Float64[])
     ugh = 0
     while true & (ugh < 30)
-        push!(sphere_set, SimpleSphere(intersect.shape.core.object_to_world(Pnt3(0,0,0)), intersect.shape.radius))  
+        hit_shape = get_shape(intersect.shape)
+        push!(sphere_set, SimpleSphere(hit_shape.core.object_to_world(Pnt3(0,0,0)), hit_shape.radius))
         idx = argmax(abs.(rr_direction))
         push!(t_set, (intersect.core.p[idx] - rr_origin[idx]) / rr_direction[idx])
 
