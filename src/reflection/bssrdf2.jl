@@ -106,7 +106,7 @@ function sample_sp(bssrdf::AbstractBSSRDF, scene::Scene, u1::Float64, u2::Pnt2, 
         # @info "beep boop integrating::booping around $base"
         
         # Only store admissible intersections
-        if si_tmp.primitive.material === bssrdf.seperable_bssrdf.material_name
+        if si_tmp.primitive.material === to_material_handle(bssrdf.seperable_bssrdf.material_name)
             # @info "PUSHHHHHH"
             push!(intersections, si_tmp)
         end

@@ -129,7 +129,7 @@ function preprocess!(light::ParticleEmitter, bvh::BVHAccel)
             # update IoR by reading eta directly from the material (avoids compute_scattering!)
             mat_eta = nothing
             if !(si.primitive isa Nothing) && !(si.primitive.material isa Nothing)
-                mat = MATERIAL_REGISTRY[].materials[MATERIAL_REGISTRY[].name_to_index[si.primitive.material]]
+                mat = get_material(si.primitive.material)
                 if mat isa Glass
                     mat_eta = mat.idx(si)
                 end

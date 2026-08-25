@@ -182,7 +182,9 @@ include("reflection/hair.jl")
 include("reflection/fourier.jl")
 include("reflection/bssrdf.jl")
 include("materials/registry.jl")
-const MATERIAL_REGISTRY = Ref{MaterialRegistry}()
+# Untyped: each scene's MaterialRegistry{T} has a different T (the tuple of
+# concrete material types that scene actually uses) - see materials/registry.jl.
+const MATERIAL_REGISTRY = Ref{Any}()
 
 include("materials/bsdf.jl")
 include("materials/bump.jl")

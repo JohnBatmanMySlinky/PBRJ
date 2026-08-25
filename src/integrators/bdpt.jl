@@ -73,7 +73,7 @@ function render(
                             film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].normal = L
                             film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].position = L
                         else
-                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].albedo = to_XYZ(interaction.primitive.material.Kd(interaction))
+                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].albedo = to_XYZ(albedo(get_material(interaction.primitive.material), interaction))
                             film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].depth = to_XYZ(spectrum_from_float(t))
                             film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].normal = to_XYZ(spectrum_from_float(interaction.shading.n...))
                             film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].position = to_XYZ(spectrum_from_float(interaction.core.p...))

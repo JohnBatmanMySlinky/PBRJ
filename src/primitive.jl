@@ -1,12 +1,19 @@
 struct Primitive
     shape::Shape
-    material::Maybe{String}
+    material::Maybe{Handle{:Material}}
     area_light::Maybe{Light}
     mi::MediumInterface
 end
 
-function Primitive(s::Shape, m::Maybe{String}, al::Maybe{Light})
-    return Primitive(s, m, al, NO_MEDIUM_INTERFACE)
+# Accept a raw material name (resolved against MATERIAL_REGISTRY on first use,
+# same convenience pattern as MediumInterface's constructors in medium2/common1.jl)
+# or an already-resolved Handle{:Material}.
+function Primitive(s::Shape, m::Maybe{Union{String, Handle{:Material}}}, al::Maybe{Light})
+    return Primitive(s, to_material_handle(m), al, NO_MEDIUM_INTERFACE)
+end
+
+function Primitive(s::Shape, m::Maybe{Union{String, Handle{:Material}}}, al::Maybe{Light}, mi::MediumInterface)
+    return Primitive(s, to_material_handle(m), al, mi)
 end
 
 #####################################################

@@ -218,9 +218,7 @@ end
 
 function compute_scattering!(p::Primitive, si::SurfaceInteraction, allow_multiple_lobes::Bool, ::Type{T}) where T <: TransportMode
     if !(p.material isa Nothing)
-        # evaluate the bsdf
-        material = get_material(p.material)
-        material(si, allow_multiple_lobes, T)
+        compute_scattering!(p.material, si, allow_multiple_lobes, T)
     end
     # @assert (dot(si.core.n, si.shading.n)) >= 0
 end
