@@ -33,13 +33,13 @@ function intersect(s::BasicSphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Fl
     exists, t0, t1 = solve_quadratic(a, b, c)
     if !exists
         return false, nothing, nothing
-    elseif t0 > r.tMax || t1 <= 0
+    elseif t0 > r.tMax[] || t1 <= 0
         return false, nothing, nothing
     else
         t_shape_hit = t0
         if t_shape_hit <= 0
             t_shape_hit = t1
-            if t_shape_hit > r.tMax
+            if t_shape_hit > r.tMax[]
                 return false, nothing, nothing
             end
         end
@@ -81,7 +81,7 @@ function intersect!(s::BasicSphere, ray::AbstractRay, shadow_ray::Bool=false)::T
     if !check
         return false, nothing, nothing
     end
-    ray.tMax = t
+    ray.tMax[] = t
     interaction.shape = s
     return true, t, interaction
 end
@@ -98,13 +98,13 @@ function intersect_p(s::BasicSphere, r::AbstractRay)::Bool
     exists, t0, t1 = solve_quadratic(a, b, c)
     if !exists
         return false
-    elseif t0 > r.tMax || t1 <= 0
+    elseif t0 > r.tMax[] || t1 <= 0
         return false
     else
         t_shape_hit = t0
         if t_shape_hit <= 0
             t_shape_hit = t1
-            if t_shape_hit > r.tMax
+            if t_shape_hit > r.tMax[]
                 return false
             end
         end

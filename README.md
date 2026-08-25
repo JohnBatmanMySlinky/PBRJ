@@ -90,6 +90,14 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - Voxelization: voxelize ya meshes (scene109.jl)
 - macro to do function call counting
 
+# Handy Profiling Notes
+## Allocations
+- `julia --track-allocation=user -t 1 RayTracing.jl --scene-number 1 --image-dim 20 20 --samples-per-pixel 4 --filename "yeehaw.exr" --integrator volpath"`
+- `find . -name "*.mem" -delete`
+
+## Experimenting
+julia -t 4 RayTracing.jl --scene-number 4 --image-dim 250 250 --samples-per-pixel 6 --file-name "yeehaw.exr" --integrator volpath
+
 # TODO's
 - visibility tester Tr needs to be updated
 - Revisit parameterization of abstract types. Primitive?

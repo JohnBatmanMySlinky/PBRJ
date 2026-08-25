@@ -1,9 +1,9 @@
-function get_medium(inter::Interaction, w::Vec3)::Maybe{AbstractMedium}
+function get_medium(inter::Interaction, w::Vec3)::Maybe{Handle{:Medium}}
     # @info "\t\t Get Medium: $(w), $(inter.n)"
     return dot(w, inter.n) > 0.0 ? inter.mi.outside : inter.mi.inside
 end
 
-function get_medium(inter::Interaction)::Maybe{AbstractMedium}
+function get_medium(inter::Interaction)::Maybe{Handle{:Medium}}
     @assert inter.mi.inside == inter.mi.outside
     return inter.mi.inside
 end

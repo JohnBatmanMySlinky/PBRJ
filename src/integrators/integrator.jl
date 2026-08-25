@@ -41,7 +41,7 @@ function render_viz(
                 start_pixel_sample!(sampler, pixel, sample_index - 1)
                 camera_sample = get_camera_sample!(sampler, pixel)
                 ray, wt = generate_ray_differential(i.camera, camera_sample)
-                scale_differentials!(ray, inv_sqrt_spp)
+                ray = scale_differentials(ray, inv_sqrt_spp)
                 L = spectrum_from_float(0.0)
                 if wt > 0
                     L = li(i, ray, scene, sampler, light_distribution_generator)
@@ -111,7 +111,7 @@ function render(
                 start_pixel_sample!(sampler, pixel, sample_index-1)
                 camera_sample = get_camera_sample!(sampler, pixel)
                 ray, w = generate_ray_differential(i.camera, camera_sample)
-                scale_differentials!(ray, inv_sqrt_spp)
+                ray = scale_differentials(ray, inv_sqrt_spp)
                 L = spectrum_from_float(0.0)
 
                 if w > 0

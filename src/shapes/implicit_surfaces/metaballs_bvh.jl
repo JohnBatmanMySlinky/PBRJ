@@ -111,16 +111,13 @@ function intersect(s::MetaBallsBVH, rr::AbstractRay)::Tuple{Bool, Float64, Surfa
         idx = argmax(abs.(rr_direction))
         push!(t_set, (intersect.core.p[idx] - rr_origin[idx]) / rr_direction[idx])
 
-        rr.t = 0.0
-        rr.tMax = typemax(Float64)
-        rr.origin = intersect.core.p + rr_direction * .00001
-                
+        rr = with_origin_t_tmax(rr, intersect.core.p + rr_direction * .00001, 0.0, typemax(Float64))
 
         check, t, intersect = intersect!(s.bvh, rr)
         (!check) && break
         ugh += 1
     end
-    rr.origin = rr_origin
+    rr = with_origin(rr, rr_origin)
 
     @info "MetaBallsBVHIntersectionTest: ray: $(r), active_spheres: $(sphere_set), bounds: 0.0 - $(maximum(t_set) * 1.1)"
 
@@ -139,7 +136,7 @@ function intersect(s::MetaBallsBVH, rr::AbstractRay)::Tuple{Bool, Float64, Surfa
     # find intersection time
     t = minimum(solutions)
 
-    if t > r.tMax
+    if t > r.tMax[]
         return false, 0.0, empty_surface_interation()
     end
 
@@ -187,16 +184,13 @@ function intersect_p(s::MetaBallsBVH, rr::AbstractRay)::Bool
         idx = argmax(abs.(rr_direction))
         push!(t_set, (intersect.core.p[idx] - rr_origin[idx]) / rr_direction[idx])
 
-        rr.t = 0.0
-        rr.tMax = typemax(Float64)
-        rr.origin = intersect.core.p + rr_direction * .00001
-                
+        rr = with_origin_t_tmax(rr, intersect.core.p + rr_direction * .00001, 0.0, typemax(Float64))
 
         check, t, intersect = intersect!(s.bvh, rr)
         (!check) && break
         ugh += 1
     end
-    rr.origin = rr_origin
+    rr = with_origin(rr, rr_origin)
 
     @info "MetaBallsBVHIntersectionTest: ray: $(r), active_spheres: $(sphere_set), bounds: 0.0 - $(maximum(t_set) * 1.1)"
 
@@ -215,7 +209,7 @@ function intersect_p(s::MetaBallsBVH, rr::AbstractRay)::Bool
     # find intersection time
     t = minimum(solutions)
 
-    if t > r.tMax
+    if t > r.tMax[]
         return false
     end
 

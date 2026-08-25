@@ -29,7 +29,7 @@ function intersect!(gp::Primitive, ray::AbstractRay, shadow_ray::Bool=false)::Tu
         if !check
             return false, nothing, nothing
         end
-        ray.tMax = t
+        ray.tMax[] = t
         interaction.primitive = gp
         new_mi = is_transition_medium(gp.mi) ? gp.mi : MediumInterface(ray.medium)
         interaction.core = Interaction(interaction.core.p, interaction.core.t, interaction.core.wo, interaction.core.n, new_mi)

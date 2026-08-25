@@ -322,7 +322,7 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
         maximum(abs.(p11)))
 
     # Compute $v$ and $t$ for the first $u$ intersection
-    t = ray.tMax
+    t = ray.tMax[]
     u, v = 0.0, 0.0
     if ((0.0 <= u1) && (u1 <= 1.0))
         #  Precompute common terms for $v$ and $t$ computation
@@ -399,7 +399,7 @@ function intersect_bilinear_patch(blp::BilinearPatch, ray::AbstractRay, ::Bool=f
 
     # TODO: reject hits with sufficiently small t that we're not sure.
     # Check intersection $t$ against _tMax_ and possibly return intersection
-    if (t >= ray.tMax)
+    if (t >= ray.tMax[])
         return false, nothing, nothing
     end
     return true, Pnt2(u,v), t

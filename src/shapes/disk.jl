@@ -33,7 +33,7 @@ function intersect(d::Disk, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{S
 
     # compute plane intersection for disk
     t_shape_hit = (d.height - r.origin.z) / r.direction.z
-    if t_shape_hit <= 0 || t_shape_hit >= r.tMax
+    if t_shape_hit <= 0 || t_shape_hit >= r.tMax[]
         return false, nothing, nothing
     end
 
@@ -95,7 +95,7 @@ function intersect_p(d::Disk, r::AbstractRay)::Bool
 
     # compute plane intersection for disk
     t_shape_hit = (d.height - r.origin.z) / r.direction.z
-    if t_shape_hit <= 0 || t_shape_hit >= r.tMax
+    if t_shape_hit <= 0 || t_shape_hit >= r.tMax[]
         return false
     end
 

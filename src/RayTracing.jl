@@ -78,6 +78,7 @@ end
 
 ############## Imports #################
 
+include("handle.jl")
 include("materials/fourier_bsdf_table.jl")
 include("utils.jl")
 include("nanovdb/julia_part.jl")
@@ -233,6 +234,7 @@ include("parsers/parse_obj.jl")
 include("parsers/parse_obj_3dsmax_2011.jl")
 include("parsers/parse_curves.jl")
 include("medium2/cloud_medium.jl")
+include("medium2/registry.jl")
 include("shapes/curve.jl")
 include("scenes/scene1.jl")
 include("scenes/scene2.jl")

@@ -320,7 +320,7 @@ end
 # should only be using the intersect_p below!!!
 # function intersect_p(b::Bounds3, r::AbstractRay)::Bool
 #     tmin = 0
-#     tmax = r.tMax
+#     tmax = r.tMax[]
 #     for i = 1:3
 #         x = (b.pMin[i] - r.origin[i]) / r.direction[i]
 #         y = (b.pMax[i] - r.origin[i]) / r.direction[i]
@@ -378,12 +378,12 @@ function intersect_p(b::Bounds3, ray::AbstractRay, inv_dir::Vec3, dir_is_negativ
 
     (tz_min > tx_min) && (tx_min = tz_min;)
     (tz_max < tx_max) && (tx_max = tz_max;)
-    tx_min < ray.tMax && tx_max > 0
+    tx_min < ray.tMax[] && tx_max > 0
 end
 
 function intersect_p(b::Bounds3, ray::AbstractRay)::Tuple{Bool, Float64, Float64}
     t0 = 0.0
-    t1 = ray.tMax
+    t1 = ray.tMax[]
     for i in 1:3
         # update interval for _i_th bounding box slab
         inv_ray_dir = 1.0 / ray.direction[i]

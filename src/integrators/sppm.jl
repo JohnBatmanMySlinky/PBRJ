@@ -161,7 +161,7 @@ function sppm_camera_pass!(
             camera_sample = get_camera_sample!(sampler, pixel)
             ray, wt = generate_ray_differential(integrator.camera, camera_sample)
             wt == 0.0 && continue
-            scale_differentials!(ray, 1.0 / sqrt(Float64(integrator.sampler.samples_per_pixel)))
+            ray = scale_differentials(ray, 1.0 / sqrt(Float64(integrator.sampler.samples_per_pixel)))
 
             beta::Spectrum = spectrum_from_float(wt)
             specular_bounce::Bool = false

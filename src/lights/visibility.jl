@@ -26,7 +26,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
 
         if !(ray.medium isa Nothing)
             p_exit = at(ray, !(isect isa Nothing) ? isect.core.t : (1 - eps()))
-            ray.direction = p_exit - ray.origin
+            ray = set_direction(ray, Vec3(p_exit - ray.origin))
 
             u = get_1D!(sampler)
             T_maj = sampleT_maj!(ray, 1.0, u, sampler) do p, mp, sigma_maj, T_maj
@@ -51,7 +51,7 @@ function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Sp
         if isect isa Nothing
             break
         end
-        spawn_ray_to!(ray, isect.core, vt.p1)
+        ray = spawn_ray_to(isect.core, vt.p1)
     end
     return Tr / y_spectrum(inv_w)
 end

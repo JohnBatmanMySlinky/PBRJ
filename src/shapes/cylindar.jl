@@ -37,13 +37,13 @@ function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInt
     exists, t0, t1 = solve_quadratic(a, b, C)
     if !exists
         return false, nothing, nothing
-    elseif t0 > r.tMax || t1 <= 0
+    elseif t0 > r.tMax[] || t1 <= 0
         return false, nothing, nothing
     else
         t_shape_hit = t0
         if t_shape_hit <= 0
             t_shape_hit = t1
-            if t_shape_hit > r.tMax
+            if t_shape_hit > r.tMax[]
                 return false, nothing, nothing
             end
         end
@@ -63,7 +63,7 @@ function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInt
             return false, nothing, nothing
         end
         t_shape_hit = t1
-        if t1 > r.tMax
+        if t1 > r.tMax[]
             return false, nothing, nothing
         end
         p_hit = at(r, t_shape_hit)
@@ -132,13 +132,13 @@ function intersect_p(c::Cylindar, r::AbstractRay)::Bool
     exists, t0, t1 = solve_quadratic(a, b, C)
     if !exists
         return false
-    elseif t0 > r.tMax || t1 <= 0
+    elseif t0 > r.tMax[] || t1 <= 0
         return false
     else
         t_shape_hit = t0
         if t_shape_hit <= 0
             t_shape_hit = t1
-            if t_shape_hit > r.tMax
+            if t_shape_hit > r.tMax[]
                 return false
             end
         end
@@ -158,7 +158,7 @@ function intersect_p(c::Cylindar, r::AbstractRay)::Bool
             return false
         end
         t_shape_hit = t1
-        if t1 > r.tMax
+        if t1 > r.tMax[]
             return false
         end
         p_hit = at(r, t_shape_hit)

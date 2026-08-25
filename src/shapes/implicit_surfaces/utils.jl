@@ -57,7 +57,7 @@ function intersect_t(s::ImplicitSurface, r::AbstractRay)::Float64
     _, idx = findmin(abs.(solutions))
     t = solutions[idx]
 
-    if t > r.tMax
+    if t > r.tMax[]
         return -1.0
     end
 

@@ -79,10 +79,12 @@ function li(
                     beta_ref[] = beta_ref[] * spectrum_from_float(ps_p / ps_pdf)
                     specular_bounce_ref[] = false
 
-                    ray.origin    = p + ShadowEpsilon * ps_wi
-                    ray.direction = ps_wi
-                    ray.tMax      = typemax(Float64)
-                    ray.has_differentials = false
+                    new_origin = p + ShadowEpsilon * ps_wi
+                    ray = if ray isa RayDifferential
+                        RayDifferential(new_origin, ps_wi, ray.t, typemax(Float64), false, ray.rx_origin, ray.ry_origin, ray.rx_direction, ray.ry_direction, ray.medium)
+                    else
+                        Ray(new_origin, ps_wi, ray.t, typemax(Float64), ray.medium)
+                    end
 
                     scattered_ref[] = true
                     return false

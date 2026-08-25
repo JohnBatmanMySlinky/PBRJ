@@ -27,7 +27,7 @@ function li(svp::SimpleVolPathIntegratorv4, ray::AbstractRay, scene::Scene, samp
             # stepping inside SampleT_maj
             # Normalize ray direction and update _tMax_ accordingly
             t_max *= length_pbrt(ray.direction)
-            ray.direction = normalize(ray.direction)
+            ray = set_direction(ray, normalize(ray.direction))
 
             # Use sampleT_maj! with do block
             T_maj = sampleT_maj!(ray, t_max, u, sampler) do p, mp, sigma_maj, T_maj
@@ -55,7 +55,7 @@ function li(svp::SimpleVolPathIntegratorv4, ray::AbstractRay, scene::Scene, samp
 
                     # sample phase function for medium scattering event
                     u = get_2D!(sampler)
-                    ps_p, ps_wi, ps_pdf = sample_p(ray.medium.phase, -ray.direction, u)
+                    ps_p, ps_wi, ps_pdf = sample_p(mp.phase, -ray.direction, u)
                     if ps_p isa Nothing
                         terminated = true
                         return false
@@ -63,8 +63,11 @@ function li(svp::SimpleVolPathIntegratorv4, ray::AbstractRay, scene::Scene, samp
 
                     # update state for recursive evaluation of L_i
                     beta *= ps_p / ps_pdf
-                    ray.origin = p
-                    ray.direction = ps_wi
+                    ray = if ray isa RayDifferential
+                        RayDifferential(p, ps_wi, ray.t, ray.tMax, ray.has_differentials, ray.rx_origin, ray.ry_origin, ray.rx_direction, ray.ry_direction, ray.medium)
+                    else
+                        Ray(p, ps_wi, ray.t, ray.tMax, ray.medium)
+                    end
                     scattered = true
                     return false
                 elseif callback_mode == 2+1

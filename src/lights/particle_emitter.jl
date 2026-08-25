@@ -147,8 +147,8 @@ function preprocess!(light::ParticleEmitter, bvh::BVHAccel)
             p_prev = si.core.p
             # spawn continuation ray from hit point
             ray = spawn_ray(si.core, particle.direction)
-            ray.tMax = particle.range - t_prev
-            if ray.tMax <= 0.0
+            ray.tMax[] = particle.range - t_prev
+            if ray.tMax[] <= 0.0
                 break
             end
         end

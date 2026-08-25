@@ -254,7 +254,7 @@ function (t::Transformation)(r::Ray)::Ray
         t(r.origin),
         t(r.direction),
         r.t,
-        r.tMax
+        r.tMax[]
     )
 end
 
@@ -263,7 +263,7 @@ function (t::Transformation)(r::RayDifferential)::RayDifferential
         t(r.origin),
         t(r.direction),
         r.t,
-        r.tMax,
+        r.tMax[],
         r.has_differentials,
         t(r.rx_origin),
         t(r.ry_origin),

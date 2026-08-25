@@ -101,7 +101,7 @@ function recursive_intersect(
             curve_bounds = expand(curve_bounds, 0.5 * max_width)
             ray_bounds = Bounds3(
                 Pnt3(0.0),
-                Pnt3(0, 0, ray_length * ray.tMax)
+                Pnt3(0, 0, ray_length * ray.tMax[])
             )
             # @info "recursive A: curveBounds: $curve_bounds\n"
             # @info "recursive A: rayBounds: $ray_bounds\n"
@@ -172,7 +172,7 @@ function recursive_intersect(
             # @info "boop failed curve dist 2\n"
             return false, nothing, nothing
         end
-        if (pc.z < 0) || (pc.z > ray_length * ray.tMax)
+        if (pc.z < 0) || (pc.z > ray_length * ray.tMax[])
             # @info "boop failed curve dist 2 other\n"
             return false, nothing, nothing
         end
@@ -261,7 +261,7 @@ function intersect_ray(c::Curve, r::AbstractRay, DO_SI::Bool)::Tuple{Bool, Maybe
     curve_bounds = expand(world_bounds(Bounds3(cp[0+1], cp[1+1]), Bounds3(cp[2+1], cp[3+1])), 0.5 * max_width)
     ray_bounds = Bounds3(
         Pnt3(0, 0, 0),
-        Pnt3(0, 0, length_pbrt(ray.direction) * ray.tMax)
+        Pnt3(0, 0, length_pbrt(ray.direction) * ray.tMax[])
     )
     if !overlaps(ray_bounds, curve_bounds)
         # @info "r: $r\n"
