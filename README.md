@@ -107,6 +107,9 @@ julia -t 4 RayTracing.jl --scene-number 4 --image-dim 250 250 --samples-per-pixe
 - BSDF needs more thinking. some improvements made?
 - bssdrf. nothing to do ?
 - textures? did some stuff
+- #####
+- label all abstract classes, abstract. 
+- find thr abstract containers and HANDLE them
 
 # TODO's
 - visibility tester Tr needs to be updated
