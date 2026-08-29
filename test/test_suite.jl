@@ -45,7 +45,36 @@ const DEFAULT_SUITE = [
     SceneBenchmark(4, "cornell_box"; extra_args=Dict(
         "integrator" => "bdpt", 
         "image-dim" => [500, 500], 
-        "samples-per-pixel" => 32
+        "samples-per-pixel" => 16
+    )),
+    SceneBenchmark(4, "cornell_box"; extra_args=Dict(
+        "integrator" => "sppm", 
+        "image-dim" => [500, 500]
+    )),
+    SceneBenchmark(10, "plume"; extra_args=Dict(
+        "integrator" => "volpath", 
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 8
+    )),
+    SceneBenchmark(12, "smoke_plume"; extra_args=Dict(
+        "integrator" => "volpath", 
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 2
+    )),
+    SceneBenchmark(13, "disney_cloud"; extra_args=Dict(
+        "integrator" => "volpath", 
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 2
+    )),
+    SceneBenchmark(17, "barcelona_pavillion"; extra_args=Dict(
+        "integrator" => "volpath", 
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 8
+    )),
+    SceneBenchmark(105, "doug"; extra_args=Dict(
+        "integrator" => "volpath", 
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 2
     )),
 ]
 
