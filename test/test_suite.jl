@@ -49,7 +49,9 @@ const DEFAULT_SUITE = [
     )),
     SceneBenchmark(4, "cornell_box"; extra_args=Dict(
         "integrator" => "sppm", 
-        "image-dim" => [500, 500]
+        "image-dim" => [500, 500],
+        "n-iterations" => 20,
+        "photons-per-iteration" => 10_000
     )),
     SceneBenchmark(10, "plume"; extra_args=Dict(
         "integrator" => "volpath", 
