@@ -21,7 +21,7 @@ function ObjectBounds(s::BasicSphere)::Bounds3
 end
 
 # PBR 3.2.2
-function intersect(s::BasicSphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Float64, SurfaceInteraction}
+function intersect(s::BasicSphere, r::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # transform ray to object space 
     r = s.core.world_to_object(r)
 

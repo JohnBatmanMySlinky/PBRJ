@@ -24,7 +24,7 @@ function ObjectBounds(c::Cylindar)::Bounds3
     )
 end
 
-function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
+function intersect(c::Cylindar, r::AbstractRay)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     # transform the ray to object space
     r = c.core.world_to_object(r)
 
