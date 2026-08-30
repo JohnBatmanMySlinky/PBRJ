@@ -278,7 +278,7 @@ function make_scene4(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     
     # Instantiate an Integrator (default: SPPM)
     integrator_arg = parsed_args["integrator"]
-    if integrator_arg == "default"
+    if (integrator_arg == "default") || (integrator_arg == "sppm")
         I = SPPMIntegrator(C, S, film, parsed_args["max-depth"], parsed_args["n-iterations"], parsed_args["photons-per-iteration"], 1.0)
     elseif integrator_arg == "bdpt"
         I = BDPTIntegrator(C, S, parsed_args["max-depth"])
