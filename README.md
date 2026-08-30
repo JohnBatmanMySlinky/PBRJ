@@ -89,6 +89,7 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - [A high volume fraction sphere packing](https://docs.rs/spherical-cow/latest/spherical_cow/) (scene108.jl)
 - Voxelization: voxelize ya meshes (scene109.jl)
 - macro to do function call counting
+- Handle/MultiSet pattern (`src/handle.jl`): replaces abstract-type dispatch (boxing + dynamic dispatch on hot struct fields) with a small isbits `Handle{Category}` + per-type `MultiSet` storage, resolved via `dispatch`. Registered for Shape, Light, Material, Medium, and AlphaTexture.
 
 # Handy Profiling Notes
 ## Allocations
