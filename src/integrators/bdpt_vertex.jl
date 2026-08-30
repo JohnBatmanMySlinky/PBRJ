@@ -19,7 +19,7 @@ mutable struct EndpointInteraction
     interaction::Interaction
     # John hack, maybe{} instead of unions
     camera::Maybe{Camera}
-    light::Maybe{Light}
+    light::Maybe{Handle{:Light}}
 end
 
 mutable struct Vertex
@@ -70,10 +70,10 @@ end
 function EndpointInteraction(it::Interaction, camera::Camera)::EndpointInteraction
     return EndpointInteraction(it, camera, nothing)
 end
-function EndpointInteraction(light::Light, ray::AbstractRay, nml::Nml3)::EndpointInteraction
+function EndpointInteraction(light::Handle{:Light}, ray::AbstractRay, nml::Nml3)::EndpointInteraction
     return EndpointInteraction(Interaction(ray, nml), nothing, light)
 end
-function EndpointInteraction(it::Interaction, light::Light)::EndpointInteraction
+function EndpointInteraction(it::Interaction, light::Handle{:Light})::EndpointInteraction
     return EndpointInteraction(it, nothing, light)
 end
 
@@ -100,7 +100,7 @@ function create_camera_vertex(camera::Camera, it::Interaction, beta::Spectrum)::
     )
 end
 # bdpt.h line 458
-function create_light_vertex(light::Light, ray::AbstractRay, n::Nml3, le::Spectrum, pdf::Float64)::Vertex
+function create_light_vertex(light::Handle{:Light}, ray::AbstractRay, n::Nml3, le::Spectrum, pdf::Float64)::Vertex
     v = Vertex(
         VTLight,
         le,
@@ -166,7 +166,8 @@ function is_infinite_light(v::Vertex)::Bool
             return true
         else
             # if we have a VTLight and a light in ei, check type of light
-            return (v.ei.light.flags & LightInfinite) || (v.ei.light.flags & LightDeltaDirection)
+            flags = light_flags(v.ei.light)
+            return (flags & LightInfinite) || (flags & LightDeltaDirection)
         end
     end
 end
@@ -233,7 +234,7 @@ function is_connectible(v::Vertex)::Bool
     if v.type == VTMedium
         return true
     elseif v.type == VTLight
-        return v.ei.light.flags & LightDeltaDirection # JOHN why is there a ==0???
+        return light_flags(v.ei.light) & LightDeltaDirection # JOHN why is there a ==0???
     elseif v.type == VTCamera
         return true
     elseif v.type == VTSurface

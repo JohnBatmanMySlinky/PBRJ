@@ -128,21 +128,23 @@ function generate_ray(camera::PerspectiveCamera, sample::CameraSample)::Tuple{Ra
     p_film = Pnt3(sample.film.x, sample.film.y, 0)
     p_camera = camera.core.raster_to_camera(p_film)
 
-    ray = Ray(Pnt3(0.0), normalize(Vec3(p_camera)), 0, typemax(Float64))
-    @info "p_film: $(p_film), p_camera: $(p_camera), ray: $(ray)"
+    origin = Pnt3(0.0)
+    direction = normalize(Vec3(p_camera))
+
     if camera.core.lens_radius > 0
         p_lens = camera.core.lens_radius .* random_in_concentric_disk(sample.lens)
-        t = camera.core.focal_distance / ray.direction.z
-        p_focus = at(ray, t)
-        ray.origin = Pnt3(p_lens.x, p_lens.y, 0)
-        ray.direciton = normalize(Vec3(p_focus - ray.origin))
-    end    
+        t = camera.core.focal_distance / direction.z
+        p_focus = origin + t * direction
+        origin = Pnt3(p_lens.x, p_lens.y, 0)
+        direction = normalize(Vec3(p_focus - origin))
+    end
 
-    ray.t = lerp(
+    time = lerp(
         sample.t,
         camera.core.core.shutter_open,
         camera.core.core.shutter_closed,
     )
+    ray = Ray(origin, direction, time, typemax(Float64))
     ray = camera.core.core.camera_to_world(ray)
     return ray, 1.0
 end
@@ -150,41 +152,39 @@ end
 function generate_ray_differential(camera::PerspectiveCamera, sample::CameraSample)::Tuple{RayDifferential, Float64}
     p_film = Pnt3(sample.film.x, sample.film.y, 0)
     p_camera = camera.core.raster_to_camera(p_film)
-    ray = RayDifferential(Ray(Pnt3(0.0), normalize(Vec3(p_camera)), 0.0, typemax(Float64)))
-    @info "p_film: $(p_film), p_camera: $(p_camera), ray: $(ray)"
+    origin = Pnt3(0.0)
+    direction = normalize(Vec3(p_camera))
 
     if camera.core.lens_radius > 0
         p_lens = camera.core.lens_radius .* random_in_concentric_disk(sample.lens)
-        t = camera.core.focal_distance / ray.direction.z
-        p_focus = at(ray, t)
-        ray.origin = Pnt3(p_lens.x, p_lens.y, 0)
-        ray.direciton = normalize(Vec3(p_focus - ray.origin))
+        t = camera.core.focal_distance / direction.z
+        p_focus = origin + t * direction
+        origin = Pnt3(p_lens.x, p_lens.y, 0)
+        direction = normalize(Vec3(p_focus - origin))
 
         dx = normalize(Vec3(p_camera + camera.dx_camera))
         pfocus = Pnt3(0.0) + (t * dx)
-        ray.rx_origin = Pnt3(p_lens.x, p_lens.y, 0)
-        ray.rx_direction = normalize(pfocus - ray.rx_origin)
+        rx_origin = Pnt3(p_lens.x, p_lens.y, 0)
+        rx_direction = normalize(pfocus - rx_origin)
 
         dy = normalize(Vec3(p_camera + camera.dy_camera))
         pfocus = Pnt3(0.0) + (t * dy)
-        ray.ry_origin = Pnt3(p_lens.x, p_lens.y, 0)
-        ray.ry_direction = normalize(pfocus - ray.ry_origin)
+        ry_origin = Pnt3(p_lens.x, p_lens.y, 0)
+        ry_direction = normalize(pfocus - ry_origin)
     else
-        ray.rx_origin = ray.origin
-        ray.ry_origin = ray.origin
-        ray.rx_direction = normalize(Vec3(p_camera) + camera.dx_camera)
-        ray.ry_direction = normalize(Vec3(p_camera) + camera.dy_camera)
+        rx_origin = origin
+        ry_origin = origin
+        rx_direction = normalize(Vec3(p_camera) + camera.dx_camera)
+        ry_direction = normalize(Vec3(p_camera) + camera.dy_camera)
     end
 
-    ray.t = lerp(
+    time = lerp(
         sample.t,
         camera.core.core.shutter_open,
         camera.core.core.shutter_closed,
     )
+    ray = RayDifferential(origin, direction, time, typemax(Float64), true, rx_origin, ry_origin, rx_direction, ry_direction)
     ray = camera.core.core.camera_to_world(ray)
-    # @info "Camera to world: $(camera.core.core.camera_to_world)"
-    ray.has_differentials = true
-    # @info "p_film: $(p_film), p_camera: $(p_camera), ray: $(ray)"Camera to world: 
     return ray, 1.0
 end
 

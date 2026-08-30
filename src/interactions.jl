@@ -38,7 +38,7 @@ function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3)::Interaction
     return Interaction(p, t, wo, n, NO_MEDIUM_INTERFACE)
 end
 
-function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3, m::Maybe{AbstractMedium})::Interaction
+function Interaction(p::Pnt3, t::Float64, wo::Vec3, n::Nml3, m::Maybe{Union{Handle{:Medium}, AbstractMedium}})::Interaction
     return Interaction(p, t, wo, n, MediumInterface(m))
 end
 
@@ -46,7 +46,7 @@ function Interaction(p::Pnt3, t::Float64, wo::Vec3, mi::MediumInterface)::Intera
     return Interaction(p, t, wo, Nml3(0.0, 0.0, 0.0), mi)
 end
 
-function Interaction(p::Pnt3, t::Float64, wo::Vec3, m::AbstractMedium)::Interaction
+function Interaction(p::Pnt3, t::Float64, wo::Vec3, m::Union{Handle{:Medium}, AbstractMedium})::Interaction
     return Interaction(p, t, wo, Nml3(0.0, 0.0, 0.0), MediumInterface(m))
 end
 
@@ -72,7 +72,7 @@ mutable struct SurfaceInteraction
     dndu::Nml3
     dndv::Nml3
 
-    shape::Maybe{Shape}
+    shape::Maybe{Handle{:Shape}}
     primitive::Maybe{Primitive}
     bsdf::Maybe{AbstractBSDF}
     bssrdf::Maybe{AbstractBSSRDF}
@@ -116,15 +116,22 @@ function InstantiateSurfaceInteraction(
         end
     end
 
+    # NOTE: this does NOT register `shape` in SHAPE_REGISTRY - it's called on
+    # every ray/shape intersection (the hottest path in the renderer), and
+    # pushing here would grow the registry unboundedly and race under
+    # multithreaded rendering. The owning Primitive already holds a
+    # Handle{:Shape} for this exact shape, so it patches `si.shape` in after
+    # intersect() returns (see primitive.jl); direct (non-Primitive) callers
+    # that need `si.shape` populated do the same (see basic_sphere.jl).
     return SurfaceInteraction(
-        core, 
+        core,
         shading,
         uv,
         dpdu,
         dpdv,
         dndu,
         dndv,
-        shape,
+        nothing,
         primitive,
         bsdf,
         bssrdf,
@@ -177,7 +184,7 @@ struct MediumInteraction
     core::Interaction
     phase::Maybe{AbstractPhaseFunction}
 
-    function MediumInteraction(p::Pnt3, t::Float64, wo::Vec3, m::AbstractMedium, phase::Maybe{AbstractPhaseFunction})
+    function MediumInteraction(p::Pnt3, t::Float64, wo::Vec3, m::Union{Handle{:Medium}, AbstractMedium}, phase::Maybe{AbstractPhaseFunction})
         return new(Interaction(p, t, wo, MediumInterface(m)), phase)
     end
 end
@@ -195,44 +202,10 @@ function spawn_ray(interaction::Interaction, direction::Vec3)::RayDifferential
     return RayDifferential(Ray(o, direction, interaction.t, typemax(Float64), get_medium(interaction, direction)))
 end
 
-function spawn_ray!(ray::RayDifferential, interaction::Interaction, direction::Vec3)
-    ray.origin = interaction.p + ShadowEpsilon * direction
-    ray.direction = direction
-    ray.t = interaction.t
-    ray.tMax = typemax(Float64)
-    ray.medium = get_medium(interaction, direction)
-    ray.has_differentials = false
-    return ray
-end
-
 function spawn_ray_to(interaction::Interaction, p2::Pnt3)::RayDifferential
     d::Vec3 = p2 - interaction.p
     o = interaction.p + ShadowEpsilon * d
     return RayDifferential(Ray(o, d, interaction.t, 1.0 - ShadowEpsilon, get_medium(interaction, d)))
-end
-
-function spawn_ray_to!(ray::RayDifferential, interaction::Interaction, p2::Pnt3)
-    d::Vec3 = p2 - interaction.p
-    ray.origin = interaction.p + ShadowEpsilon * d
-    ray.direction = d
-    ray.t = interaction.t
-    ray.tMax = 1.0 - ShadowEpsilon
-    ray.medium = get_medium(interaction, d)
-    ray.has_differentials = false
-    return ray
-end
-
-function spawn_ray_to!(ray::RayDifferential, interaction::Interaction, it::Interaction)
-    o = interaction.p + ShadowEpsilon * (it.p - interaction.p)
-    target = it.p + ShadowEpsilon * (o - it.p)
-    d::Vec3 = target - o
-    ray.origin = o
-    ray.direction = d
-    ray.t = interaction.t
-    ray.tMax = 1.0 - ShadowEpsilon
-    ray.medium = get_medium(interaction, d)
-    ray.has_differentials = false
-    return ray
 end
 
 function spawn_ray_to(interaction::Interaction, it::Interaction)::RayDifferential
@@ -252,9 +225,7 @@ end
 
 function compute_scattering!(p::Primitive, si::SurfaceInteraction, allow_multiple_lobes::Bool, ::Type{T}) where T <: TransportMode
     if !(p.material isa Nothing)
-        # evaluate the bsdf
-        material = get_material(p.material)
-        material(si, allow_multiple_lobes, T)
+        compute_scattering!(p.material, si, allow_multiple_lobes, T)
     end
     # @assert (dot(si.core.n, si.shading.n)) >= 0
 end

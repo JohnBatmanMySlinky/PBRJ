@@ -12,7 +12,7 @@ function convert_density(curr::Vertex, pdf::Float64, nxt::Vertex)::Float64
     end
 end
 
-function infinite_light_density(lights::Vector{Light}, light_distr::Distribution1D, w::Vec3)::Float64
+function infinite_light_density(lights::Vector{Handle{:Light}}, light_distr::Distribution1D, w::Vec3)::Float64
     pdf = 0.0
     @assert length(lights) == length(light_distr.func)
     for i in 1:length(lights)

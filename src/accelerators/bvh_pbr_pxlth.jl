@@ -238,7 +238,7 @@ function intersect!(bvh::BVH, ray::R, shadow_ray::Bool=false) where {R <: Abstra
     interaction::Maybe{SurfaceInteraction} = nothing
     length(bvh.nodes) == 0 && return hit, nothing, interaction
 
-    ray |> check_direction!
+    ray = ray |> check_direction
     inv_dir = 1.0 ./ ray.direction
     dir_is_neg = ray.direction |> is_dir_negative
 
@@ -288,7 +288,7 @@ end
 function intersect_p(bvh::BVH, ray::R) where {R <: AbstractRay}
     length(bvh.nodes) == 0 && return false
 
-    ray |> check_direction!
+    ray = ray |> check_direction
     inv_dir = 1.0 ./ ray.direction
     dir_is_neg = ray.direction |> is_dir_negative
 

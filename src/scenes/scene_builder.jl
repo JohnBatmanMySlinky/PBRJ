@@ -99,86 +99,30 @@ scene 112: ocean n boat
     - julia -t auto RayTracing.jl --scene-number 112 --image-dim 500 500 --samples-per-pixel 16 --file-name "112-ocean-n-boat.exr"
 scene 113: matchbulb
     - caffeinate -di julia -t 4 RayTracing.jl --scene-number 113 --image-dim 640 360 --samples-per-pixel 12 --file-name "113-matchbulb.exr"
+scene 114: procedural city
+    - caffeinate -di julia -t 4 RayTracing.jl --scene-number 114 --image-dim 640 360 --samples-per-pixel 12 --file-name "114-procedural_city.exr"
 """
 
+const SCENE_BUILDERS = Dict{Int, Function}(
+    1 => make_scene1,     2 => make_scene2,     3 => make_scene3,
+    4 => make_scene4,     5 => make_scene5,     6 => make_scene6,
+    7 => make_scene7,     8 => make_scene8,     9 => make_scene9,
+    10 => make_scene10,   11 => make_scene11,   12 => make_scene12,
+    13 => make_scene13,   14 => make_scene14,   15 => make_scene15,
+    16 => make_scene16,   17 => make_scene17,   18 => make_scene18,
+    19 => make_scene19,   20 => make_scene20,   21 => make_scene21,
+    22 => make_scene22,   23 => make_scene23,
+    99 => make_scene99,   100 => make_scene100,  101 => make_scene101,
+    102 => make_scene102, 103 => make_scene103,  104 => make_scene104,
+    105 => make_scene105, 106 => make_scene106,  107 => make_scene107,
+    108 => make_scene108, 109 => make_scene109,  110 => make_scene110,
+    111 => make_scene111, 112 => make_scene112,  113 => make_scene113,
+    114 => make_scene114,
+)
+
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
-    if parsed_args["scene-number"] == 1
-        return make_scene1(parsed_args)
-    elseif parsed_args["scene-number"] == 2
-        return make_scene2(parsed_args)
-    elseif parsed_args["scene-number"] == 3
-        return make_scene3(parsed_args)
-    elseif parsed_args["scene-number"] == 4
-        return make_scene4(parsed_args)
-    elseif parsed_args["scene-number"] == 5
-        return make_scene5(parsed_args)
-    elseif parsed_args["scene-number"] == 6
-        return make_scene6(parsed_args)
-    elseif parsed_args["scene-number"] == 7
-        return make_scene7(parsed_args)
-    elseif parsed_args["scene-number"] == 8
-        return make_scene8(parsed_args)
-    elseif parsed_args["scene-number"] == 9
-        return make_scene9(parsed_args)
-    elseif parsed_args["scene-number"] == 10
-        return make_scene10(parsed_args)
-    elseif parsed_args["scene-number"] == 11
-        return make_scene11(parsed_args)
-    elseif parsed_args["scene-number"] == 12
-        return make_scene12(parsed_args)
-    elseif parsed_args["scene-number"] == 13
-        return make_scene13(parsed_args)
-    elseif parsed_args["scene-number"] == 14
-        return make_scene14(parsed_args)
-    elseif parsed_args["scene-number"] == 15
-        return make_scene15(parsed_args)
-    elseif parsed_args["scene-number"] == 16
-        return make_scene16(parsed_args)
-    elseif parsed_args["scene-number"] == 17
-        return make_scene17(parsed_args)
-    elseif parsed_args["scene-number"] == 18
-        return make_scene18(parsed_args)
-    elseif parsed_args["scene-number"] == 19
-        return make_scene19(parsed_args)
-    elseif parsed_args["scene-number"] == 20
-        return make_scene20(parsed_args)
-    elseif parsed_args["scene-number"] == 21
-        return make_scene21(parsed_args)
-    elseif parsed_args["scene-number"] == 22
-        return make_scene22(parsed_args)
-    elseif parsed_args["scene-number"] == 23
-        return make_scene23(parsed_args)
-    elseif parsed_args["scene-number"] == 99
-        return make_scene99(parsed_args)
-    elseif parsed_args["scene-number"] == 100
-        return make_scene100(parsed_args)
-    elseif parsed_args["scene-number"] == 101
-        return make_scene101(parsed_args)
-    elseif parsed_args["scene-number"] == 102
-        return make_scene102(parsed_args)
-    elseif parsed_args["scene-number"] == 103
-        return make_scene103(parsed_args)
-    elseif parsed_args["scene-number"] == 104
-        return make_scene104(parsed_args)
-    elseif parsed_args["scene-number"] == 105
-        return make_scene105(parsed_args)
-    elseif parsed_args["scene-number"] == 106
-        return make_scene106(parsed_args)
-    elseif parsed_args["scene-number"] == 107
-        return make_scene107(parsed_args)
-    elseif parsed_args["scene-number"] == 108
-        return make_scene108(parsed_args)
-    elseif parsed_args["scene-number"] == 109
-        return make_scene109(parsed_args)
-    elseif parsed_args["scene-number"] == 110
-        return make_scene110(parsed_args)
-    elseif parsed_args["scene-number"] == 111
-        return make_scene111(parsed_args)
-    elseif parsed_args["scene-number"] == 112
-        return make_scene112(parsed_args)
-    elseif parsed_args["scene-number"] == 113
-        return make_scene113(parsed_args)
-    else
-        @assert false
-    end
+    scene_number = parsed_args["scene-number"]
+    builder = Base.get(SCENE_BUILDERS, scene_number, nothing)
+    isnothing(builder) && error("no scene builder registered for scene-number $scene_number")
+    return builder(parsed_args)
 end

@@ -1,14 +1,14 @@
-struct Fourier <: Material
+struct Fourier{BM <: Maybe{AbstractTexture{Float64}}} <: Material
     bsdf_table::FourierBSDFTable
-    bump_map::Maybe{AbstractTexture{Spectrum}}
+    bump_map::BM
     name::String
 
     function Fourier(
         name::String,
-        path::String, 
-        bump_map::Maybe{AbstractTexture{Spectrum}}=nothing,
-    )
-        return new(read_fourier_bsdf_table(path), bump_map, name)
+        path::String,
+        bump_map::BM=nothing,
+    ) where BM <: Maybe{AbstractTexture{Float64}}
+        return new{BM}(read_fourier_bsdf_table(path), bump_map, name)
     end
 end
 

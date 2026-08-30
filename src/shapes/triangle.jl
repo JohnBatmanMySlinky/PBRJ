@@ -166,10 +166,10 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
     p1t = Vec3(p1t.x, p1t.y, p1t.z * Sz)
     p2t = Vec3(p2t.x, p2t.y, p2t.z * Sz)
     t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z
-    if (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax * det))
+    if (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax[] * det))
         return false, nothing, nothing
     end
-    if (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax * det))
+    if (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax[] * det))
         return false, nothing, nothing
     end
 
@@ -231,9 +231,7 @@ function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, M
             nothing,
             nothing
         )
-        alpha_mask = get_texture(tri.alpha_mask)
-        
-        if alpha_mask(si) == spectrum_from_float(0.0, 0.0, 0.0)
+        if evaluate_alpha_mask(tri.alpha_mask, si) == spectrum_from_float(0.0, 0.0, 0.0)
             return false, 0.0, si
         end
     end
@@ -392,10 +390,10 @@ function intersect_p(tri::Triangle, ray::AbstractRay, ::Bool=false)::Bool
     p1t = Vec3(p1t.x, p1t.y, p1t.z * Sz)
     p2t = Vec3(p2t.x, p2t.y, p2t.z * Sz)
     t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z
-    if (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax * det))
+    if (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax[] * det))
         return false
     end
-    if (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax * det))
+    if (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax[] * det))
         return false
     end
 

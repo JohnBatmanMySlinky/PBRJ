@@ -1,12 +1,19 @@
 struct Primitive
-    shape::Shape
-    material::Maybe{String}
-    area_light::Maybe{Light}
+    shape::Handle{:Shape}
+    material::Maybe{Handle{:Material}}
+    area_light::Maybe{Handle{:Light}}
     mi::MediumInterface
 end
 
-function Primitive(s::Shape, m::Maybe{String}, al::Maybe{Light})
-    return Primitive(s, m, al, NO_MEDIUM_INTERFACE)
+# Accept a raw material name (resolved against MATERIAL_REGISTRY on first use,
+# same convenience pattern as MediumInterface's constructors in medium2/common1.jl)
+# or an already-resolved Handle{:Material}.
+function Primitive(s::Shape, m::Maybe{Union{String, Handle{:Material}}}, al::Maybe{Light})
+    return Primitive(to_shape_handle(s), to_material_handle(m), to_light_handle(al), NO_MEDIUM_INTERFACE)
+end
+
+function Primitive(s::Shape, m::Maybe{Union{String, Handle{:Material}}}, al::Maybe{Light}, mi::MediumInterface)
+    return Primitive(to_shape_handle(s), to_material_handle(m), to_light_handle(al), mi)
 end
 
 #####################################################
@@ -29,7 +36,8 @@ function intersect!(gp::Primitive, ray::AbstractRay, shadow_ray::Bool=false)::Tu
         if !check
             return false, nothing, nothing
         end
-        ray.tMax = t
+        ray.tMax[] = t
+        interaction.shape = gp.shape
         interaction.primitive = gp
         new_mi = is_transition_medium(gp.mi) ? gp.mi : MediumInterface(ray.medium)
         interaction.core = Interaction(interaction.core.p, interaction.core.t, interaction.core.wo, interaction.core.n, new_mi)

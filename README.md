@@ -89,6 +89,29 @@ For an overview of scene's I have built, check out: `src/scene_builder.jl`.
 - [A high volume fraction sphere packing](https://docs.rs/spherical-cow/latest/spherical_cow/) (scene108.jl)
 - Voxelization: voxelize ya meshes (scene109.jl)
 - macro to do function call counting
+- Handle/MultiSet pattern (`src/handle.jl`): replaces abstract-type dispatch (boxing + dynamic dispatch on hot struct fields) with a small isbits `Handle{Category}` + per-type `MultiSet` storage, resolved via `dispatch`. Registered for Shape, Light, Material, Medium, and AlphaTexture.
+
+# Handy Profiling Notes
+## Allocations
+- `julia --track-allocation=user -t 1 RayTracing.jl --scene-number 1 --image-dim 20 20 --samples-per-pixel 4 --filename "yeehaw.exr" --integrator volpath"`
+- `find . -name "*.mem" -delete`
+- `julia scripts/PROFILE.md`
+
+## Experimenting
+julia -t 4 RayTracing.jl --scene-number 4 --image-dim 250 250 --samples-per-pixel 6 --file-name "yeehaw.exr" --integrator volpath
+
+# JOHNS WORK LOG
+- set up a profiling sweet to measure if branch `profiling` fuckin does anything
+- compare results against `profiling`
+- Medium was a clear giant win. Ray stuff maybe OK? 
+- my materials are so parameterized... do I roll that back? 
+- shapes looks like it dropped BVH allocations by a bajillion....
+- BSDF needs more thinking. some improvements made?
+- bssdrf. nothing to do ?
+- textures? did some stuff
+- #####
+- label all abstract classes, abstract. 
+- find thr abstract containers and HANDLE them
 
 # TODO's
 - visibility tester Tr needs to be updated

@@ -64,7 +64,7 @@ function render(
                 if sample_index == 1
                     if film isa PassFilm
                         ray, _ = generate_ray_differential(i.camera, camera_sample)
-                        scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
+                        ray = scale_differentials(ray, 1.0 / sqrt(sampler.samples_per_pixel))
                         check, t, interaction, = intersect!(scene.b, ray)
                         if !check
                             L = to_XYZ(spectrum_from_float(0.0))
@@ -73,7 +73,7 @@ function render(
                             film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].normal = L
                             film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].position = L
                         else
-                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].albedo = to_XYZ(interaction.primitive.material.Kd(interaction))
+                            film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].albedo = to_XYZ(albedo(get_material(interaction.primitive.material), interaction))
                             film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].depth = to_XYZ(spectrum_from_float(t))
                             film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].normal = to_XYZ(spectrum_from_float(interaction.shading.n...))
                             film.pixels[Int(pixel.y)+1, Int(pixel.x)+1].position = to_XYZ(spectrum_from_float(interaction.core.p...))
@@ -265,7 +265,7 @@ function generate_camera_subpath!(
     """
     ray, beta = generate_ray_differential(camera, camera_sample)
     beta = spectrum_from_float(beta) # john hack; casting to spectrum
-    scale_differentials!(ray, 1.0 / sqrt(sampler.samples_per_pixel))
+    ray = scale_differentials(ray, 1.0 / sqrt(sampler.samples_per_pixel))
 
     # generate first vertex on camera subpath and start random walk
     path[0+1] = create_camera_vertex(camera, ray, beta)
@@ -377,7 +377,7 @@ function random_walk!(
                     end
 
                     # Sample direction and compute reverse density at preceding vertex
-                    ps_p, ps_wi, ps_pdf = sample_p(ray.medium.phase, -ray.direction, get_2D!(sampler))
+                    ps_p, ps_wi, ps_pdf = sample_p(mp.phase, -ray.direction, get_2D!(sampler))
                     if ((ps_p isa Nothing) || ps_pdf == 0.0) # JOHN HACK WHEN COULD ps be a Nothing?
                         terminated = true
                         return false
@@ -386,7 +386,7 @@ function random_walk!(
                     # Update path state and previous path vertex after medium scattering
                     pdf_fwd = ps_pdf
                     beta *= ps_p / ps_pdf
-                    spawn_ray!(ray, mi.core, ps_wi)
+                    ray = spawn_ray(mi.core, ps_wi)
                     path[prev].pdf_rev = convert_density(path[vertex], ps_pdf, path[prev])
 
                     scattered = true
@@ -435,7 +435,7 @@ function random_walk!(
         # compute scattering functions for mode and skip over medium boundaries
         compute_scattering!(isect, ray, true, mode)
         if isect.bsdf isa Nothing
-            spawn_ray!(ray, isect.core, ray.direction)
+            ray = spawn_ray(isect.core, ray.direction)
             continue
         end
 
@@ -460,7 +460,7 @@ function random_walk!(
             pdf_fwd = 0.0
         end
         beta *= correct_shading_normal(isect, wo, wi, mode)
-        spawn_ray!(ray, isect.core, wi)
+        ray = spawn_ray(isect.core, wi)
 
         # Compute reverse area density at preceding vertex
         path[prev].pdf_rev = convert_density(path[vertex], pdf_rev, path[prev])

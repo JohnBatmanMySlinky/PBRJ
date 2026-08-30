@@ -3,7 +3,7 @@ function sampleT_maj!(
     u::Float64, sampler::AbstractSampler
 )::Spectrum
     t_max *= length_pbrt(ray.direction)
-    ray.direction = normalize(ray.direction)
+    ray = set_direction(ray, normalize(ray.direction))
 
     iter = sample_ray(ray.medium, ray, t_max)
 

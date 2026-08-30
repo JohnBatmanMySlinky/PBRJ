@@ -1,4 +1,5 @@
 # Particle Emitter light - port of eg2020-pbrt-v3 particle_emitter.{cpp,h}
+# https://gitlab.arm.com/wasp/eg2020-pbrt-v3
 # Emits Cherenkov radiation from charged particles traveling through the scene.
 # Particles are spawned from a shape surface (typically a disk) and traced through
 # the scene. In intervals where the particle is superluminal (v > c/n), it emits
@@ -17,7 +18,7 @@ const SLInterval = Tuple{Float64, Float64, Float64}
 
 mutable struct ParticleEmitter <: Light
     flags::LightFlags
-    shape::Shape
+    shape::Handle{:Shape}
     velocity::Float64        # v/c
     range::Float64
     cherenkov_scale::Float64
@@ -46,7 +47,7 @@ mutable struct ParticleEmitter <: Light
     )
         new(
             LightArea,
-            shape,
+            to_shape_handle(shape),
             velocity, range, cherenkov_scale, uniform_scale, ambient_eta,
             n_particles, seed,
             ParticleEmitterParticle[], Vector{SLInterval}[], Vector{Spectrum}[],
@@ -128,7 +129,7 @@ function preprocess!(light::ParticleEmitter, bvh::BVHAccel)
             # update IoR by reading eta directly from the material (avoids compute_scattering!)
             mat_eta = nothing
             if !(si.primitive isa Nothing) && !(si.primitive.material isa Nothing)
-                mat = MATERIAL_REGISTRY[].materials[MATERIAL_REGISTRY[].name_to_index[si.primitive.material]]
+                mat = get_material(si.primitive.material)
                 if mat isa Glass
                     mat_eta = mat.idx(si)
                 end
@@ -146,8 +147,8 @@ function preprocess!(light::ParticleEmitter, bvh::BVHAccel)
             p_prev = si.core.p
             # spawn continuation ray from hit point
             ray = spawn_ray(si.core, particle.direction)
-            ray.tMax = particle.range - t_prev
-            if ray.tMax <= 0.0
+            ray.tMax[] = particle.range - t_prev
+            if ray.tMax[] <= 0.0
                 break
             end
         end
@@ -263,11 +264,18 @@ function sample_le(light::ParticleEmitter, u1::Pnt2, u2::Pnt2, t::Float64)::Tupl
         n_out = Nml3(w)
         ray = RayDifferential(Ray(pp, w, t, typemax(Float64)))
     else
-        return spectrum_from_float(0.0), RayDifferential(Ray(pp, Vec3(0,0,1), t, typemax(Float64))),
-               Nml3(0,0,1), 1.0, 1.0
+        if light.uniform_scale > 0.0
+            w = random_on_sphere(u2)
+            n_out = Nml3(w)
+            ray = RayDifferential(Ray(pp, Vec3(w), t, typemax(Float64)))
+            s = spectrum_from_float(light.uniform_scale)
+        else
+            return spectrum_from_float(0.0), RayDifferential(Ray(pp, Vec3(0,1,0), t, 0.0)),
+                   Nml3(0,1,0), 1.0, 1.0
+        end
     end
 
-    # PDF: uniform over particle length, mixture direction pdf
+    # PDF: mixture model matching the reference (1 + Prob_sl) / (4*pi)
     pdf_pos = 1.0 / max(light.particle_length, eps())
     pdf_dir = (1.0 + light.prob_sl) / (4.0 * pi)
 

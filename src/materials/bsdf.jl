@@ -59,68 +59,73 @@ end
 # add rho's
 
 function sample_f(b::AbstractBSDF, wo_world::Vec3, u::Pnt2, type::UInt8)::Tuple{Vec3, Spectrum, Float64, UInt8}
-    # @info "BSDF FIXIN TIME"
-    # @info "wo_world: $wo_world"
-    # @info "u: $u"
-    # @info "type: $type"
     # Choose which BxDF to sample.
     matching_components = num_components(b, type)
     matching_components == 0 && return (Vec3(0), spectrum_from_float(0.0), 0.0, BSDF_NONE)
     component = min(floor(Int, u[1] * matching_components), matching_components - 1)
-    # @info "Chose comp: $(component) / matching: $(matching_components)"
 
-    # Get BxDF for chosen component by index.
-    bxdf_idx = -1
+    # Locate the position (within b.bxdfs) of the chosen matching component.
+    # We walk the tuple by position rather than indexing it with a runtime
+    # value (b.bxdfs[i]) - a runtime index into a heterogeneous Tuple type
+    # returns Union{<all element types>}, which boxes on every call. Walking
+    # with `for x in b.bxdfs` instead lets the compiler unroll per-element
+    # and keep each bxdf reference concretely typed.
+    chosen_pos = -1
     count = component
-    for i in 1:length(b.bxdfs)
-        if (b.bxdfs[i] & type) && (count == 0)
-            bxdf_idx = i
-            break
+    for (i, bxdf) in enumerate(b.bxdfs)
+        if (bxdf & type)
+            if count == 0
+                chosen_pos = i
+                break
+            end
+            count -= 1
         end
-        count -= 1
     end
 
     # Remap BxDF sample u to [0, 1)^2.
     u_remapped = Pnt2(
         min(u.x * matching_components - component, 1.0-eps()), u.y,
     )
-    # @info "u_remapped: $u_remapped"
 
     # Sample chosen BxDF.
     wo = world_to_local(b, wo_world)
     wo.z == 0 && return (Vec3(0), spectrum_from_float(0.0), 0, BSDF_NONE)
 
-    # TODO when to update sampled type
-    sampled_type = b.bxdfs[bxdf_idx].type
-    wi, f_val, pdf_val, sampled_type_tmp = sample_f(b.bxdfs[bxdf_idx], wo, u_remapped, sampled_type)
-    if !(sampled_type_tmp isa Nothing)
-        sampled_type = sampled_type_tmp
+    sampled_type = BSDF_NONE
+    is_specular = false
+    wi = Vec3(0)
+    f_val = spectrum_from_float(0.0)
+    pdf_val = 0.0
+    for (i, bxdf) in enumerate(b.bxdfs)
+        if i == chosen_pos
+            sampled_type = bxdf.type
+            wi, f_val, pdf_val, sampled_type_tmp = sample_f(bxdf, wo, u_remapped, sampled_type)
+            if !(sampled_type_tmp isa Nothing)
+                sampled_type = sampled_type_tmp
+            end
+            is_specular = (bxdf.type & BSDF_SPECULAR) != 0
+        end
     end
 
     pdf_val == 0 && return (Vec3(0), spectrum_from_float(0.0), 0, BSDF_NONE)
 
     wi_world = local_to_world(b, wi)
     # Compute overall PDF with all matching BxDFs.
-    if !(b.bxdfs[bxdf_idx].type & BSDF_SPECULAR != 0) && matching_components > 1
-        for i in 1:length(b.bxdfs)
-            # @info "i - $i"
-            if i != bxdf_idx && (b.bxdfs[i] & type)
-                pdf_val += compute_pdf(b.bxdfs[i], wo, wi)
-                # @info "pdf_val - $pdf_val, $wo, $wi"
+    if !is_specular && matching_components > 1
+        for (i, bxdf) in enumerate(b.bxdfs)
+            if i != chosen_pos && (bxdf & type)
+                pdf_val += compute_pdf(bxdf, wo, wi)
             end
         end
     end
-    # @info "dont be changing: $wo, $wi"
     matching_components > 1 && (pdf_val /= matching_components)
     # Compute value of BSDF for sampled direction.
-    if !(b.bxdfs[bxdf_idx].type & BSDF_SPECULAR != 0)
+    if !is_specular
         reflect = (dot(wi_world, b.ng) * dot(wo_world, b.ng)) > 0
-        f_val::Spectrum = spectrum_from_float(0.0, 0.0, 0.0)
+        f_val = spectrum_from_float(0.0, 0.0, 0.0)
         for bxdf_i in b.bxdfs
-            # @info "bxdf_i - $bxdf_i"
             if ((bxdf_i & type) && ((reflect && (bxdf_i.type & BSDF_REFLECTION != 0)) || (!reflect && (bxdf_i.type & BSDF_TRANSMISSION != 0))))
-                f_val::Spectrum += f(bxdf_i, wo, wi)
-                # @info "f_val - $f_val, $wo, $wi"
+                f_val += f(bxdf_i, wo, wi)
             end
         end
     end
