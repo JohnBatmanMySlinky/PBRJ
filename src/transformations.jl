@@ -290,28 +290,25 @@ end
 # end
 
 # apply transformations to a SurfaceInteraction
+#
+# SurfaceInteraction is `mutable` (i.e. already heap-allocated) and every
+# caller of this functor immediately discards the object-space `si` and
+# rebinds the result to the same name (`interaction = core.object_to_world(interaction)`
+# in each shape's intersect()) - so there's no reason to allocate a second
+# SurfaceInteraction here. Mutate the fields that change and return the
+# same object.
 function (t::Transformation)(si::SurfaceInteraction)::SurfaceInteraction
-    core = t(si.core)
-    shading = t(si.shading)
-    return SurfaceInteraction(
-        core,
-        shading,
-        si.uv,
-        t(si.dpdu),
-        t(si.dpdv),
-        t(si.dndu),
-        t(si.dndv),
-        si.shape,
-        si.primitive,
-        nothing,
-        nothing,
-        si.dudx,
-        si.dudy,
-        si.dvdx,
-        si.dvdy,
-        t(si.dpdx),
-        t(si.dpdy),
-    )
+    si.core = t(si.core)
+    si.shading = t(si.shading)
+    si.dpdu = t(si.dpdu)
+    si.dpdv = t(si.dpdv)
+    si.dndu = t(si.dndu)
+    si.dndv = t(si.dndv)
+    si.bsdf = nothing
+    si.bssrdf = nothing
+    si.dpdx = t(si.dpdx)
+    si.dpdy = t(si.dpdy)
+    return si
 end
 
 # apply transformations to an Interaction
