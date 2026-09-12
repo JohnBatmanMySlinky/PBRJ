@@ -4,7 +4,7 @@
 ###################### Fresnel Conductors ##################
 ############################################################
 
-struct FresnelConductor <: Fresnel
+struct FresnelConductor <: AbstractFresnel
     eta_i::Spectrum
     eta_t::Spectrum
     k::Spectrum
@@ -41,7 +41,7 @@ end
 ###################### Fresnel Dielectrics #################
 ############################################################
 
-struct FresnelDielectric <: Fresnel
+struct FresnelDielectric <: AbstractFresnel
     eta_i::Float64
     eta_t::Float64
 end
@@ -80,7 +80,7 @@ end
 ###################### Fresnel No Op #################
 ############################################################
 
-struct FresnelNoOp <: Fresnel
+struct FresnelNoOp <: AbstractFresnel
 end
 
 function (f::FresnelNoOp)(::Float64)

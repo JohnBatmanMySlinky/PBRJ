@@ -1,4 +1,4 @@
-struct Disk <: Shape
+struct Disk <: AbstractShape
     core::ShapeCore
     height::Float64
     radius::Float64

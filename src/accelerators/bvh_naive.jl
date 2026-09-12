@@ -1,4 +1,4 @@
-struct BVHNodeNaive <: BVHAccel
+struct BVHNodeNaive <: AbstractBVHAccel
     bounds::Bounds3
     left::Union{Primitive, BVHNodeNaive}
     right::Union{Primitive, BVHNodeNaive}
@@ -48,7 +48,7 @@ end
 ### Interact with the BVH ######
 ################################
 
-function intersect!(b::Union{BVHNodeNaive, Shape}, r::AbstractRay)
+function intersect!(b::Union{BVHNodeNaive, AbstractShape}, r::AbstractRay)
     if intersect_p(b.bounds, r)
         l_check, l_time, l_interaction = intersect!(b.left, r)
         r_check, r_time, r_interaction = intersect!(b.right, r)
@@ -73,7 +73,7 @@ function intersect!(b::Union{BVHNodeNaive, Shape}, r::AbstractRay)
     end
 end
 
-function intersect_p(b::Union{BVHNodeNaive, Shape}, r::AbstractRay)::Bool
+function intersect_p(b::Union{BVHNodeNaive, AbstractShape}, r::AbstractRay)::Bool
     if intersect_p(b.bounds, r)
         l_check = intersect_p(b.left, r)
         r_check = intersect_p(b.right, r)

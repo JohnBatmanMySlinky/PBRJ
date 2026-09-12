@@ -1,7 +1,7 @@
 struct Mirror{
     KR <: AbstractTexture{Spectrum},
     BM <: Maybe{AbstractTexture{Float64}}
-} <: Material
+} <: AbstractMaterial
     Kr::KR
     bump_map::BM
     name::String

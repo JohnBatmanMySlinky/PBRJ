@@ -1,4 +1,4 @@
-struct Fourier{BM <: Maybe{AbstractTexture{Float64}}} <: Material
+struct Fourier{BM <: Maybe{AbstractTexture{Float64}}} <: AbstractMaterial
     bsdf_table::FourierBSDFTable
     bump_map::BM
     name::String

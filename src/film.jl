@@ -17,7 +17,7 @@ struct Film
     full_resolution::Pnt2i
     cropped_pixel_bounds::Bounds2i
     diagonal::Float64
-    filter::F where F <: Filter
+    filter::F where F <: AbstractFilter
     filename::String
     pixels::Vector{Pixel}
     filter_table_width::Int64
@@ -31,7 +31,7 @@ struct Film
         diagonal::Float64,
         scale::Float64,
         filename::String
-    ) where F <: Filter
+    ) where F <: AbstractFilter
         filter_table_width = 16
         filter_table = zeros(Float64, filter_table_width * filter_table_width)
 

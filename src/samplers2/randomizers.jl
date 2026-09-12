@@ -1,11 +1,11 @@
-struct NoRandomizer <: Randomizer
+struct NoRandomizer <: AbstractRandomizer
 end
 
 function (r::NoRandomizer)(a::UInt32)::UInt32
     return a
 end
 
-struct FastOwenRandomizer <: Randomizer
+struct FastOwenRandomizer <: AbstractRandomizer
     seed::UInt32
 end
 

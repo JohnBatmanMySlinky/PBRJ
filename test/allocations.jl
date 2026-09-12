@@ -4,20 +4,20 @@ abstract type AbstractBxDF end
 abstract type BSDF end
 abstract type AbstractLightDistribution end
 abstract type AbstractRay end
-abstract type BVHAccel end
-abstract type Camera end
-abstract type Filter end
-abstract type Fresnel end
+abstract type AbstractBVHAccel end
+abstract type AbstractCamera end
+abstract type AbstractFilter end
+abstract type AbstractFresnel end
 abstract type AbstractIntegrator end
-abstract type Light end
-abstract type Material end
+abstract type AbstractLight end
+abstract type AbstractMaterial end
 abstract type Medium end
 abstract type AbstractSampler end
-abstract type Shape end
-abstract type ImplicitSurface <: Shape end
+abstract type AbstractShape end
+abstract type AbstractImplicitSurface <: AbstractShape end
 abstract type Texture end
 abstract type MicrofacetDistribution end
-abstract type Randomizer end
+abstract type AbstractRandomizer end
 abstract type AbstractMedium end
 abstract type AbstractPhaseFunction end
 abstract type AbstractTextureMapping2D end

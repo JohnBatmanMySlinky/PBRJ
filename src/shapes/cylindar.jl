@@ -1,4 +1,4 @@
-struct Cylindar <: Shape
+struct Cylindar <: AbstractShape
     core::ShapeCore
     radius::Float64
     z_min::Float64

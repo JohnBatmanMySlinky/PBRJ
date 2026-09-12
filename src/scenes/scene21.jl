@@ -38,7 +38,7 @@ end
 
 function init_materials!()
     path_header = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/"
-    materials = Material[]
+    materials = AbstractMaterial[]
 
     mat_vidrio = Glass(
         "mat_vidrio",
@@ -2643,7 +2643,7 @@ end
 
 function make_scene21(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
-    lights = Light[]
+    lights = AbstractLight[]
 
     path_header = "/Users/johnmyslinski/Documents/pbrt-v3-scenes/sanmiguel/"
 

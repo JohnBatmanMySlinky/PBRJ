@@ -1,4 +1,4 @@
-struct Sphere <: Shape
+struct Sphere <: AbstractShape
     core::ShapeCore
     radius::Float64
     # z ranges from [-r,r]

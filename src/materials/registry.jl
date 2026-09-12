@@ -20,7 +20,7 @@ struct MaterialRegistry{T <: Tuple}
     name_to_handle::Dict{String, Handle{:Material}}
 end
 
-function MaterialRegistry(materials::Vector{Material}, name_to_index::Dict{String, Int64})
+function MaterialRegistry(materials::Vector{AbstractMaterial}, name_to_index::Dict{String, Int64})
     types = unique(typeof(m) for m in materials)
     multiset = make_multiset(Val(:Material), types...)
     handles = [push!(multiset, m) for m in materials]

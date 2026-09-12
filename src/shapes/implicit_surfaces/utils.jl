@@ -1,5 +1,5 @@
 # # an approximation. 
-function normal(meta_balls::ImplicitSurface, p::Pnt3)::Vec3
+function normal(meta_balls::AbstractImplicitSurface, p::Pnt3)::Vec3
     e = .00000001
     return normalize(
         Vec3(1, -1, -1) * f(meta_balls, p + Vec3(e, -e, -e)) +
@@ -20,7 +20,7 @@ end
 
 # Due to the fact we are solving for t first, then proceeding, we can basically re-ruse all of intersect_p
 # intersect_p just needs to return a bool instead of a float...
-function intersect_t(s::ImplicitSurface, r::AbstractRay)::Float64
+function intersect_t(s::AbstractImplicitSurface, r::AbstractRay)::Float64
     # set up anonymous function for solver
     tmp_solve = (x -> f(s, x, r))
 
@@ -64,7 +64,7 @@ function intersect_t(s::ImplicitSurface, r::AbstractRay)::Float64
     return t
 end
 
-function intersect(s::ImplicitSurface, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
+function intersect(s::AbstractImplicitSurface, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
     # transform ray to local space
     rr = s.core.world_to_object(r)
 
@@ -101,7 +101,7 @@ function intersect(s::ImplicitSurface, r::AbstractRay)::Tuple{Bool, Float64, Sur
     return true, t, s.core.object_to_world(interaction)
 end
 
-function intersect_p(s::ImplicitSurface, r::AbstractRay)::Bool
+function intersect_p(s::AbstractImplicitSurface, r::AbstractRay)::Bool
     # transform ray to local space
     rr = s.core.world_to_object(r)
     return intersect_t(s, rr) == -1.0 ? false : true

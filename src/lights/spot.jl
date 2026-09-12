@@ -1,4 +1,4 @@
-struct SpotLight <: Light
+struct SpotLight <: AbstractLight
     flags::LightFlags
     light_to_world::Transformation
     world_to_light::Transformation
@@ -6,7 +6,7 @@ struct SpotLight <: Light
     p_light::Pnt3
     cos_total_width::Float64
     cos_falloff_start::Float64
-    medium::Maybe{Medium}
+    medium::Maybe{AbstractMedium}
 
     function SpotLight(light_to_world::Transformation, I::Spectrum, cone_angle::Float64, cone_delta_angle::Float64)
         new(

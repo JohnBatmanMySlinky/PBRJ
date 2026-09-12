@@ -1,9 +1,9 @@
 struct Scene
     lights::Vector{Handle{:Light}}
-    b::BVHAccel
+    b::AbstractBVHAccel
     bounds::Bounds3
 
-    function Scene(lights::Vector{Light}, b::BVHAccel)
+    function Scene(lights::Vector{AbstractLight}, b::AbstractBVHAccel)
         new(to_light_handle.(lights), b, world_bounds(b))
     end
 end

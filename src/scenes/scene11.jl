@@ -1,7 +1,7 @@
 function make_scene11(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
-    lights = Light[]
-    materials = Material[]
+    lights = AbstractLight[]
+    materials = AbstractMaterial[]
 
     # MATERIALS
     mat_ground = Matte(

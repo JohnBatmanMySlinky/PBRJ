@@ -7,13 +7,13 @@ const BVHAble = Union{Primitive, BasicSphere}
 # 1) Leaf Nodes
 # 2) Interior Nodes
 #################################################
-abstract type LinearBVHNode end
-struct LinearBVHLeaf <: LinearBVHNode
+abstract type AbstractLinearBVHNode end
+struct LinearBVHLeaf <: AbstractLinearBVHNode
     bounds::Bounds3
     primitives_offset::Int64
     n_primitives::Int64
 end
-struct LinearBVHInterior <: LinearBVHNode
+struct LinearBVHInterior <: AbstractLinearBVHNode
     bounds::Bounds3
     second_child_offset::Int64
     split_axis::Int64
@@ -65,7 +65,7 @@ end
 ### The final data structure is a Tree with 'pointers' & an array of primitives
 ### https://aws1.discourse-cdn.com/business5/uploads/julialang/original/2X/a/aa75df26de1d2a062204ae74a7d91dfe7b0c4aa3.png
 #######################################################################################
-struct BVH{T<:BVHAble} <: BVHAccel
+struct BVH{T<:BVHAble} <: AbstractBVHAccel
     primitives::Vector{T}
     max_node_primitives::Int64
     nodes::Vector{LinearBVH}
@@ -232,11 +232,13 @@ end
 #### Intersect with BVH
 #################################################
 
+# Two-phase traversal: the leaf loop runs only the allocation-free
+# `intersect_geom` hit test and tracks the closest primitive by index;
+# the winning primitive pays for one full `intersect` (its
+# `SurfaceInteraction`) once, after the walk. Shadow rays still bail on
+# the first blocker they find.
 function intersect!(bvh::BVH, ray::R, shadow_ray::Bool=false) where {R <: AbstractRay}
-    hit = false
-    final_time = nothing
-    interaction::Maybe{SurfaceInteraction} = nothing
-    length(bvh.nodes) == 0 && return hit, nothing, interaction
+    length(bvh.nodes) == 0 && return false, Inf, nothing
 
     ray = ray |> check_direction
     inv_dir = 1.0 ./ ray.direction
@@ -245,20 +247,24 @@ function intersect!(bvh::BVH, ray::R, shadow_ray::Bool=false) where {R <: Abstra
     to_visit_offset, current_node_i = 1, 1
     nodes_to_visit = MVector{128, Int64}(undef)
 
+    hit = false
+    best_prim = 0
+
     while true
         @inbounds ln = bvh.nodes[current_node_i]
         if intersect_p(ln.bounds, ray, inv_dir, dir_is_neg)
             if ln isa LinearBVHLeaf
                 if ln.n_primitives > 0
                     @inbounds for i in 0:ln.n_primitives - 1
-                        tmp_hit, tmp_time, tmp_interaction = intersect!(
-                            bvh.primitives[ln.primitives_offset + i], ray, shadow_ray
-                        )
+                        prim_i = ln.primitives_offset + i
+                        tmp_hit, tmp_time = intersect_geom(bvh.primitives[prim_i], ray)
                         if tmp_hit
-                            shadow_ray && return true, tmp_time, tmp_interaction
+                            if shadow_ray
+                                return finalize_intersection(bvh.primitives[prim_i], ray)
+                            end
                             hit = true
-                            final_time = tmp_time
-                            interaction = tmp_interaction
+                            best_prim = prim_i
+                            ray.tMax[] = tmp_time
                         end
                     end
                 end
@@ -282,7 +288,9 @@ function intersect!(bvh::BVH, ray::R, shadow_ray::Bool=false) where {R <: Abstra
             @inbounds current_node_i = nodes_to_visit[to_visit_offset]
         end
     end
-    hit, final_time, interaction
+
+    hit || return false, Inf, nothing
+    @inbounds return finalize_intersection(bvh.primitives[best_prim], ray)
 end
 
 function intersect_p(bvh::BVH, ray::R) where {R <: AbstractRay}

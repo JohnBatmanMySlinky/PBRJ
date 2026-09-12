@@ -1,11 +1,11 @@
 # 12.3 Point Lights
-struct PointLight <: Light
+struct PointLight <: AbstractLight
     flags::LightFlags
     light_to_world::Transformation
     world_to_light::Transformation
     I::Spectrum
     light_position::Pnt3
-    medium::Maybe{Medium}
+    medium::Maybe{AbstractMedium}
 
     function PointLight(light_to_world::Transformation, I::Spectrum)
         return new(

@@ -10,7 +10,7 @@ struct Uber{
         E <: AbstractTexture{Float64},
         O <: AbstractTexture{Spectrum},
         BM <: Maybe{AbstractTexture{Float64}}
-    } <: Material
+    } <: AbstractMaterial
     Kd::KD
     Ks::KS
     Kr::KR

@@ -1,4 +1,4 @@
-struct TriangleFilter <: Filter
+struct TriangleFilter <: AbstractFilter
     radius::Pnt2
 end
 

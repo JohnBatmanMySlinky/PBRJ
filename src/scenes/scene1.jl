@@ -92,7 +92,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ###########################
     ######## Materials ########
     ###########################
-    materials = Material[]
+    materials = AbstractMaterial[]
     mat_white = Matte(
         "mat_white",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
@@ -304,9 +304,9 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ##### Instantiating light & primitive vectors
     ##############################
     primitives = Primitive[]
-    lights = Light[]
+    lights = AbstractLight[]
     primitives2 = Primitive[]
-    lights2 = Light[]
+    lights2 = AbstractLight[]
 
     ########################
     #### GEOMETRY ##########

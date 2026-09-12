@@ -1,5 +1,5 @@
 struct AOIntegrator <: AbstractIntegrator
-    camera::C where C <: Camera
+    camera::C where C <: AbstractCamera
     sampler::S where S <: AbstractSampler
     cos_sample::Bool
 end

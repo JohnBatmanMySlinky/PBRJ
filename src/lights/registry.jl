@@ -20,7 +20,7 @@ const LIGHT_REGISTRY = Ref(make_multiset(
 
 to_light_handle(::Nothing) = nothing
 to_light_handle(h::Handle{:Light}) = h
-to_light_handle(l::Light) = push!(LIGHT_REGISTRY[], l)
+to_light_handle(l::AbstractLight) = push!(LIGHT_REGISTRY[], l)
 
 get_light(h::Handle{:Light}) = dispatch(identity, LIGHT_REGISTRY[], h)
 

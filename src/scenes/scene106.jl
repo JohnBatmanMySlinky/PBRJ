@@ -1,7 +1,7 @@
 function make_scene106(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
-    lights = Light[]
-    materials = Material[]
+    lights = AbstractLight[]
+    materials = AbstractMaterial[]
 
     # MATERIALS
     sigma_s, sigma_a = SUBSURFACE_PARAMS["Skin1"]

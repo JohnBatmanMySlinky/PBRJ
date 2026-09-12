@@ -1,4 +1,4 @@
-struct MetaBalls <: ImplicitSurface
+struct MetaBalls <: AbstractImplicitSurface
     core::ShapeCore
     ks::Vector{Pnt3} # world space
     R::Float64

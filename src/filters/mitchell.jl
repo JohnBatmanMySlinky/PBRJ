@@ -1,4 +1,4 @@
-struct MitchellFilter <: Filter
+struct MitchellFilter <: AbstractFilter
     radius::Pnt2
     B::Float64
     C::Float64

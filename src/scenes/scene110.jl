@@ -24,8 +24,8 @@ wwwwwwwwwwwwwwwwwwwwwwwwww
 
 function make_scene110(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
-    lights = Light[]
-    materials = Material[]
+    lights = AbstractLight[]
+    materials = AbstractMaterial[]
 
     mat_gray = Matte(
         "mat_gray",

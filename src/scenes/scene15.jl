@@ -1,6 +1,6 @@
 function make_scene15(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
-    lights = Light[]
+    lights = AbstractLight[]
 
     # Bounding sphere cause we hate winding order and such
     sphere_transform = Translate(Pnt3(0.5, 0.5, 0.5))

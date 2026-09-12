@@ -1,4 +1,4 @@
-struct GaussianFilter <: Filter
+struct GaussianFilter <: AbstractFilter
     radius::Pnt2
     alpha::Float64
     exp_x::Float64

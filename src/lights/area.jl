@@ -1,16 +1,16 @@
-struct DiffuseAreaLight <: Light
+struct DiffuseAreaLight <: AbstractLight
     flags::LightFlags
     Lemit::Spectrum
     shape::Handle{:Shape}
     area::Float64
     two_sided::Bool
-    medium::Maybe{Medium}
+    medium::Maybe{AbstractMedium}
     image::Maybe{MIPMap}
     LL::Float64
 
     function DiffuseAreaLight(
-        Lemit::Spectrum, shape::Shape, two_sided::Bool,
-        medium::Maybe{Medium}=nothing,
+        Lemit::Spectrum, shape::AbstractShape, two_sided::Bool,
+        medium::Maybe{AbstractMedium}=nothing,
         texmap::Maybe{String}=nothing,
         LL::Float64=1.0
     )

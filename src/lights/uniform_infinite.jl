@@ -1,11 +1,11 @@
 # PBR 12.6 Infinite Area Lights
-struct UniformInfiniteLight <: Light
+struct UniformInfiniteLight <: AbstractLight
     Lemit::Spectrum
     world_center::Pnt3
     world_radius::Float64
     light_to_world::Transformation
     world_to_light::Transformation
-    medium::Maybe{Medium}
+    medium::Maybe{AbstractMedium}
     flags::LightFlags
 
     function UniformInfiniteLight(bounds::Bounds3, light_to_world::Transformation, LL::Spectrum)

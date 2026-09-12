@@ -18,7 +18,7 @@ end
 mutable struct EndpointInteraction
     interaction::Interaction
     # John hack, maybe{} instead of unions
-    camera::Maybe{Camera}
+    camera::Maybe{AbstractCamera}
     light::Maybe{Handle{:Light}}
 end
 
@@ -64,10 +64,10 @@ end
 function EndpointInteraction(ray::AbstractRay)::EndpointInteraction
     return EndpointInteraction(Interaction(at(ray,1.0), ray.t, ray.direction, Nml3(-ray.direction), ray.medium), nothing, nothing)
 end
-function EndpointInteraction(camera::Camera, ray::AbstractRay)::EndpointInteraction
+function EndpointInteraction(camera::AbstractCamera, ray::AbstractRay)::EndpointInteraction
     return EndpointInteraction(Interaction(ray), camera, nothing)
 end
-function EndpointInteraction(it::Interaction, camera::Camera)::EndpointInteraction
+function EndpointInteraction(it::Interaction, camera::AbstractCamera)::EndpointInteraction
     return EndpointInteraction(it, camera, nothing)
 end
 function EndpointInteraction(light::Handle{:Light}, ray::AbstractRay, nml::Nml3)::EndpointInteraction
@@ -80,7 +80,7 @@ end
 
 ############ Vertex constructors
 # bdpt.h line 448
-function create_camera_vertex(camera::Camera, ray::AbstractRay, beta::Spectrum)::Vertex
+function create_camera_vertex(camera::AbstractCamera, ray::AbstractRay, beta::Spectrum)::Vertex
     return Vertex(
         VTCamera,
         beta,
@@ -90,7 +90,7 @@ function create_camera_vertex(camera::Camera, ray::AbstractRay, beta::Spectrum):
     )
 end
 # bdpt.h line 453
-function create_camera_vertex(camera::Camera, it::Interaction, beta::Spectrum)::Vertex
+function create_camera_vertex(camera::AbstractCamera, it::Interaction, beta::Spectrum)::Vertex
     return Vertex(
         VTCamera,
         beta,

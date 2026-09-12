@@ -1,7 +1,7 @@
 function make_scene102(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
-    lights = Light[]
-    materials = Material[]
+    lights = AbstractLight[]
+    materials = AbstractMaterial[]
 
     old_smile = jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/smile3.png")
     new_smile = jmfp("/Users/johnmyslinski/Documents/PBRJ/ref/smile3_post.exr")

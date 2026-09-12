@@ -1,12 +1,12 @@
 # PBR 12.6 Infinite Area Lights
-struct InfiniteLight <: Light
+struct InfiniteLight <: AbstractLight
     Lmap::MIPMap
     world_center::Pnt3
     world_radius::Float64
     distribution::Distribution2D
     light_to_world::Transformation
     world_to_light::Transformation
-    medium::Maybe{Medium}
+    medium::Maybe{AbstractMedium}
     flags::LightFlags
     do_octahedral::Bool
 

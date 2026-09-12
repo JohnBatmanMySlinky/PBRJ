@@ -5,7 +5,7 @@
 # PBR 6.2
 # "Therefore, we will introduce a projection matrix camera class, ProjectiveCamera, and then define two camera models based on it."
 # "The first implements an orthographic projection, and the other implements a perspective projection"
-struct ProjectiveCamera <: Camera
+struct ProjectiveCamera <: AbstractCamera
     core::CameraCore
     camera_to_screen::Transformation
     raster_to_camera::Transformation
@@ -79,7 +79,7 @@ end
 ###########################
 
 # PBR 6.2.2
-struct PerspectiveCamera <: Camera
+struct PerspectiveCamera <: AbstractCamera
     core::ProjectiveCamera
     dx_camera::Pnt3
     dy_camera::Pnt3

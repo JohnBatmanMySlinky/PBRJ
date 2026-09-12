@@ -1,4 +1,4 @@
-struct Triangle <: Shape
+struct Triangle <: AbstractShape
     core::ShapeCore
     vertices::SVector{3, Pnt3}
     normals::Maybe{SVector{3, Nml3}}
@@ -109,6 +109,75 @@ end
 ##################################################
 ######### Intersect ##############################
 ##################################################
+
+# Narrow-phase test: the ray/triangle geometry from `intersect` below,
+# stopping once `t` is known - no partial derivatives, no shading
+# geometry, no `SurfaceInteraction` allocation. Keep the accept/reject
+# branches here byte-for-byte identical to `intersect` (see the note on
+# `intersect_geom` in shape.jl). Alpha-masked triangles can still reject
+# a geometric hit after evaluating the texture, so those fall back to the
+# full path.
+function intersect_geom(tri::Triangle, ray::AbstractRay)::Tuple{Bool, Float64}
+    if !(tri.alpha_mask isa Nothing)
+        check, t, _ = intersect(tri, ray)
+        return check, (check ? Float64(t) : Inf)
+    end
+
+    p0 = tri.vertices[1]
+    p1 = tri.vertices[2]
+    p2 = tri.vertices[3]
+
+    p0t = Pnt3(p0 - Vec3(ray.origin))
+    p1t = Pnt3(p1 - Vec3(ray.origin))
+    p2t = Pnt3(p2 - Vec3(ray.origin))
+    kz = argmax(abs.(ray.direction))
+    kx = kz + 1
+    if kx == 4
+        kx = 1
+    end
+    ky = kx + 1
+    if ky == 4
+        ky = 1
+    end
+    permute = SVector(kx, ky, kz)
+    d = Vec3(ray.direction[permute])
+    p0t = Vec3(p0t[permute])
+    p1t = Vec3(p1t[permute])
+    p2t = Vec3(p2t[permute])
+    Sx = -d.x / d.z
+    Sy = -d.y / d.z
+    Sz =  1.0 / d.z
+    p0t = Vec3(p0t.x + Sx * p0t.z, p0t.y + Sy * p0t.z, p0t.z)
+    p1t = Vec3(p1t.x + Sx * p1t.z, p1t.y + Sy * p1t.z, p1t.z)
+    p2t = Vec3(p2t.x + Sx * p2t.z, p2t.y + Sy * p2t.z, p2t.z)
+
+    e0 = p1t.x * p2t.y - p1t.y * p2t.x
+    e1 = p2t.x * p0t.y - p2t.y * p0t.x
+    e2 = p0t.x * p1t.y - p0t.y * p1t.x
+
+    if (e0 < 0 || e1 < 0 || e2 < 0) && (e0 > 0 || e1 > 0 || e2 > 0)
+        return false, Inf
+    end
+    det = e0 + e1 + e2
+    if det == 0
+        return false, Inf
+    end
+
+    p0t = Vec3(p0t.x, p0t.y, p0t.z * Sz)
+    p1t = Vec3(p1t.x, p1t.y, p1t.z * Sz)
+    p2t = Vec3(p2t.x, p2t.y, p2t.z * Sz)
+    t_scaled = e0 * p0t.z + e1 * p1t.z + e2 * p2t.z
+    if (det < 0 && (t_scaled >= 0 || t_scaled < ray.tMax[] * det))
+        return false, Inf
+    end
+    if (det > 0 && (t_scaled <= 0 || t_scaled > ray.tMax[] * det))
+        return false, Inf
+    end
+
+    # match `intersect`'s arithmetic exactly (t = t_scaled * (1/det), not
+    # t_scaled/det) so the winner's re-intersect reproduces this t bit-for-bit.
+    return true, t_scaled * (1 / det)
+end
 
 # PBR 3.6.2
 function intersect(tri::Triangle, ray::AbstractRay, ::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}

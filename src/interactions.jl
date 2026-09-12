@@ -99,7 +99,7 @@ function InstantiateSurfaceInteraction(
     dpdv::Vec3,
     dndu::Nml3,
     dndv::Nml3,
-    shape::Maybe{Shape}=nothing,
+    shape::Maybe{AbstractShape}=nothing,
     primitive::Maybe{Primitive}=nothing,
     bsdf::Maybe{AbstractBSDF}=nothing,
     bssrdf::Maybe{AbstractBSSRDF}=nothing
@@ -144,7 +144,7 @@ function InstantiateSurfaceInteraction(
     )
 end
 
-function empty_surface_interation(s::Shape)::SurfaceInteraction
+function empty_surface_interation(s::AbstractShape)::SurfaceInteraction
     return InstantiateSurfaceInteraction(
         Pnt3(1,1,1), 
         0.0,

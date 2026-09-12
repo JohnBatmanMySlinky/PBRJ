@@ -1,4 +1,4 @@
-struct DistantLight <: Light
+struct DistantLight <: AbstractLight
     L::Spectrum
     w_light::Vec3
     world_center::Pnt3

@@ -35,7 +35,7 @@ struct PassFilm
     diagonal::Float64
 
     # filter function
-    filter::F where F <: Filter
+    filter::F where F <: AbstractFilter
 
     # filename
     filename::String
@@ -51,7 +51,7 @@ struct PassFilm
         diagonal::Float64,
         scale::Float64,
         filename::String
-    ) where F <: Filter
+    ) where F <: AbstractFilter
         filter_table_width = 16
         filter_table = Matrix{Float64}(undef, filter_table_width, filter_table_width)
 

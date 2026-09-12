@@ -3,7 +3,7 @@
 # this is just like Sphere but with less parameters and thus
 # a simpler ray intersection test
 
-struct BasicSphere <: Shape
+struct BasicSphere <: AbstractShape
     core::ShapeCore
     radius::Float64
     function BasicSphere(center::Pnt3, radius::Float64)
@@ -76,10 +76,25 @@ end
 ## JOHN HACK ##
 ###############
 # kludge because I am not using primitives....
+# `intersect_geom` falls through to the generic Shape method in shape.jl.
 function intersect!(s::BasicSphere, ray::AbstractRay, shadow_ray::Bool=false)::Tuple{Bool, Maybe{Float64}, Maybe{SurfaceInteraction}}
     check, t, interaction = intersect(s, ray)
     if !check
         return false, nothing, nothing
+    end
+    ray.tMax[] = t
+    interaction.shape = to_shape_handle(s)
+    return true, t, interaction
+end
+
+# Broad-phase counterpart used by the BVH{BasicSphere} leaf loop (metaballs).
+function finalize_intersection(s::BasicSphere, ray::AbstractRay)::Tuple{Bool, Float64, Maybe{SurfaceInteraction}}
+    saved = ray.tMax[]
+    ray.tMax[] = Inf
+    check, t, interaction = intersect(s, ray)
+    if !check
+        ray.tMax[] = saved
+        return false, Inf, nothing
     end
     ray.tMax[] = t
     interaction.shape = to_shape_handle(s)
