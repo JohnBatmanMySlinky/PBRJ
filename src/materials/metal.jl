@@ -5,7 +5,7 @@ struct Metal{
     U <: Maybe{AbstractTexture{Float64}},
     V <: Maybe{AbstractTexture{Float64}},
     BM <: Maybe{AbstractTexture{Float64}}
-} <: Material
+} <: AbstractMaterial
     eta::ETA
     k::K
     roughness::R

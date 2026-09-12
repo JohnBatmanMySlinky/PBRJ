@@ -1,4 +1,4 @@
-struct GoursatSurface <: ImplicitSurface
+struct GoursatSurface <: AbstractImplicitSurface
     core::ShapeCore
     a::Float64
     b::Float64

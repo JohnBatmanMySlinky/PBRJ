@@ -1,5 +1,5 @@
 # PBR 9.3 Bump Mapping
-function bump!(m::Material, si::SurfaceInteraction)
+function bump!(m::AbstractMaterial, si::SurfaceInteraction)
     original_uv = si.uv
     original_core = si.core
 

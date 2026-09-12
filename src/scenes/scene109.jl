@@ -4,8 +4,8 @@ https://github.com/Libbum/spherical-cow#
 """
 function make_scene109(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
-    lights = Light[]
-    materials = Material[]
+    lights = AbstractLight[]
+    materials = AbstractMaterial[]
 
     mat_gray = Matte(
         "mat_gray",

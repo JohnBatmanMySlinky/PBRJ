@@ -15,28 +15,28 @@ function LightSampleContext()::LightSampleContext
     return LightSampleContext(Pnt3(0,0,0), Nml3(0,0,0), Nml3(0,0,0))
 end
 
-function is_delta_light(light::Light)::Bool
+function is_delta_light(light::AbstractLight)::Bool
     return (light.flags & LightDeltaDirection) || (light.flags & LightDeltaPosition)
 end
 
-function is_delta_pos_light(light::Light)::Bool
+function is_delta_pos_light(light::AbstractLight)::Bool
     return (light.flags & LightDeltaPosition)
 end
 
-function is_delta_dir_light(light::Light)::Bool
+function is_delta_dir_light(light::AbstractLight)::Bool
     return (light.flags & LightDeltaDirection)
 end
 
-function is_infinite_light(light::Light)::Bool
+function is_infinite_light(light::AbstractLight)::Bool
     return (light.flags & LightInfinite)
 end
 
-function is_area_light(light::Light)::Bool
+function is_area_light(light::AbstractLight)::Bool
     return (light.flags & LightArea)
 end
 
 # Generic fallback for medium interactions (lights that don't use the interaction point)
-function pdf_li(light::Light, isect::Interaction, wi::Vec3)::Float64
+function pdf_li(light::AbstractLight, isect::Interaction, wi::Vec3)::Float64
     return 0.0
 end
 

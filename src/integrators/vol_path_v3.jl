@@ -1,5 +1,5 @@
 struct VolPathIntegratorv3 <: AbstractIntegrator
-    camera::C where C <: Camera
+    camera::C where C <: AbstractCamera
     sampler::S where S <: AbstractSampler
     max_depth::Int64
 end

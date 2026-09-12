@@ -3,12 +3,12 @@ struct VisibilityTester
     p1::Interaction
 end
 
-function unoccluded(vt::VisibilityTester, scene::BVHAccel)::Bool
+function unoccluded(vt::VisibilityTester, scene::AbstractBVHAccel)::Bool
     check = intersect_p(scene, spawn_ray_to(vt.p0, vt.p1))
     return !check
 end
 
-function tr(vt::VisibilityTester, scene::BVHAccel, sampler::AbstractSampler)::Spectrum
+function tr(vt::VisibilityTester, scene::AbstractBVHAccel, sampler::AbstractSampler)::Spectrum
     ray = spawn_ray_to(vt.p0, vt.p1)
     Tr = spectrum_from_float(1.0)
     inv_w = spectrum_from_float(1.0)

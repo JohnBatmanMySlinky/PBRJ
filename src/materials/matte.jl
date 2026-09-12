@@ -3,7 +3,7 @@ struct Matte{
         K <: AbstractTexture{Spectrum}, 
         S <: AbstractTexture{Float64}, 
         B <: Maybe{AbstractTexture{Float64}}
-    } <: Material
+    } <: AbstractMaterial
     Kd::K
     sigma::S
     bump_map::B

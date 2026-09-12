@@ -23,7 +23,7 @@ struct Face
     normal_indices::Vector{Int}
 end
 
-mutable struct Material
+mutable struct AbstractMaterial
     name::String
     ambient::Vector{Float64}
     diffuse::Vector{Float64}
@@ -36,7 +36,7 @@ mutable struct OBJMesh
     texture_coords::Vector{TextureCoord}
     normals::Vector{Normal}
     faces::Vector{Face}
-    materials::Dict{String, Material}
+    materials::Dict{String, AbstractMaterial}
     current_material::String
 end
 
@@ -46,7 +46,7 @@ function OBJMesh()
         TextureCoord[], 
         Normal[], 
         Face[],
-        Dict{String, Material}(),
+        Dict{String, AbstractMaterial}(),
         ""
     )
 end
@@ -97,8 +97,8 @@ function parse_face(line::AbstractString)::Face
     Face(vertex_indices, texture_indices, normal_indices)
 end
 
-function parse_material(mtl_path::AbstractString)::Dict{String, Material}
-    materials = Dict{String, Material}()
+function parse_material(mtl_path::AbstractString)::Dict{String, AbstractMaterial}
+    materials = Dict{String, AbstractMaterial}()
     current_material = nothing
     
     open(mtl_path) do file
@@ -113,7 +113,7 @@ function parse_material(mtl_path::AbstractString)::Dict{String, Material}
             
             if cmd == "newmtl"
                 name = join(parts[2:end], " ")
-                current_material = Material(
+                current_material = AbstractMaterial(
                     name,
                     [0.0, 0.0, 0.0],  # ambient
                     [0.0, 0.0, 0.0],  # diffuse

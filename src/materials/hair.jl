@@ -7,7 +7,7 @@ struct HairMaterial{
 	BM <: Maybe{AbstractTexture{Float64}},
 	BN <: Maybe{AbstractTexture{Float64}},
 	A <: Maybe{AbstractTexture{Float64}}
-} <: Material
+} <: AbstractMaterial
 	sigma_a::SA
 	color::C
 	eumelanin::E

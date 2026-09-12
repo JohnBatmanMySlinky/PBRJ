@@ -37,7 +37,7 @@ struct CurveCommon
     end
 end
 
-struct Curve <: Shape
+struct Curve <: AbstractShape
     common::CurveCommon
     core::ShapeCore
     u_min::Float64

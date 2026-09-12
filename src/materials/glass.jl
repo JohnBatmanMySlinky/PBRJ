@@ -5,7 +5,7 @@ struct Glass{
     V <: AbstractTexture{Float64},
     I <: AbstractTexture{Float64},
     BM <: Maybe{AbstractTexture{Float64}}
-} <: Material
+} <: AbstractMaterial
     Kr::KR
     Kt::KT
     u_roughness::U

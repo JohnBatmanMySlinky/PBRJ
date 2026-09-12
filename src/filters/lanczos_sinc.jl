@@ -1,4 +1,4 @@
-struct LanczosSincFilter <: Filter
+struct LanczosSincFilter <: AbstractFilter
     radius::Pnt2
     tau::Float64
 end

@@ -4,8 +4,8 @@ https://github.com/Libbum/spherical-cow#
 """
 function make_scene108(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
-    lights = Light[]
-    materials = Material[]
+    lights = AbstractLight[]
+    materials = AbstractMaterial[]
 
     # # Create container (sphere of radius 2)
     # container = RayTracing.SimpleSphere(RayTracing.Pnt3(0, 0, 0), 2.0)

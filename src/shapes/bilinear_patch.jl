@@ -1,4 +1,4 @@
-struct BilinearPatch <: Shape
+struct BilinearPatch <: AbstractShape
     core::ShapeCore
     p::SVector{4, Pnt3}
     n::Maybe{SVector{4, Nml3}}

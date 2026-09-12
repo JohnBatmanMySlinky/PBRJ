@@ -11,9 +11,9 @@ const NUM_TRIANGLES = 1_0 * 1_000
 ########################################
 const Maybe{T} = Union{T, Nothing}
 abstract type Texture end
-abstract type Shape end
-abstract type Light end
-abstract type Material end
+abstract type AbstractShape end
+abstract type AbstractLight end
+abstract type AbstractMaterial end
 abstract type BSDF end
 struct Pnt4 <: FieldVector{4, Float32}
     x::Float32
@@ -126,7 +126,7 @@ struct TriangleMesh
         )
     end
 end
-struct Triangle <: Shape
+struct Triangle <: AbstractShape
     core::ShapeCore
     mesh::TriangleMesh
     i::Int64
@@ -191,9 +191,9 @@ end
     return t.mesh.uvs[t.mesh.indices[t.i + 0]], t.mesh.uvs[t.mesh.indices[t.i + 1]], t.mesh.uvs[t.mesh.indices[t.i + 2]]
 end
 struct Primitive
-    shape::Shape
-    material::Material
-    area_light::Maybe{Light}
+    shape::AbstractShape
+    material::AbstractMaterial
+    area_light::Maybe{AbstractLight}
 end
 mutable struct Interaction
     # world coordinates
@@ -223,7 +223,7 @@ mutable struct SurfaceInteraction
     dndu::Nml3
     dndv::Nml3
 
-    shape::Maybe{Shape}
+    shape::Maybe{AbstractShape}
     primitive::Maybe{Primitive}
     bsdf::Maybe{AbstractBSDF}
 
@@ -235,7 +235,7 @@ mutable struct SurfaceInteraction
     dpdx::Vec3
     dpdy::Vec3
 end
-function empty_surface_interation(s::Shape)::SurfaceInteraction
+function empty_surface_interation(s::AbstractShape)::SurfaceInteraction
     return InstantiateSurfaceInteraction(
         Pnt3(1,1,1), 
         0.0f0,
@@ -260,7 +260,7 @@ function InstantiateSurfaceInteraction(
     dpdv::Vec3,
     dndu::Nml3,
     dndv::Nml3,
-    shape::Maybe{Shape}=nothing,
+    shape::Maybe{AbstractShape}=nothing,
     primitive::Maybe{Primitive}=nothing,
     bsdf::Maybe{AbstractBSDF}=nothing,
 )::SurfaceInteraction

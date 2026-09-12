@@ -26,7 +26,7 @@
 #   - each sublist should be continuous branch. 
 #   - "back tracking" should be delineated by a break in sublists so those segments aren't drawn.
 
-function LSystem(rules::Dict{String, String}, start::String, iterations::Int64)::Vector{Shape}
+function LSystem(rules::Dict{String, String}, start::String, iterations::Int64)::Vector{AbstractShape}
 
     # BECAUSE BACK TRACKING IS BORKEN
     # @assert iterations == 1
@@ -70,10 +70,10 @@ end
 #     return shapes
 # end
 
-function generate_control_points(definitions::String)::Vector{Shape}
+function generate_control_points(definitions::String)::Vector{AbstractShape}
     l = 5.0
     r = -15.0
-    drawn = Shape[]
+    drawn = AbstractShape[]
     stack = SimpleRay[]
 
     # instantiate ray

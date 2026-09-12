@@ -1,4 +1,4 @@
-function sobol_sample(a::Int64, dimension::Int64, rando::Randomizer)::Float64
+function sobol_sample(a::Int64, dimension::Int64, rando::AbstractRandomizer)::Float64
     v = UInt32(0)
     i = dimension * SobolMatrixSize
     while a != 0

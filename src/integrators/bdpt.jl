@@ -1,6 +1,6 @@
 # PBR 16.3 Bi-Directional Path Tracing
 struct BDPTIntegrator <: AbstractIntegrator
-    camera::C where C <: Camera
+    camera::C where C <: AbstractCamera
     sampler::S where S <: AbstractSampler
     max_depth::Int64
 end
@@ -253,7 +253,7 @@ function generate_camera_subpath!(
     scene::Scene,
     sampler::AbstractSampler,
     max_depth::Int64,
-    camera::Camera,
+    camera::AbstractCamera,
     camera_sample::CameraSample
 )::Int64
     (max_depth == 0) && return 0
@@ -478,7 +478,7 @@ function connect_BDPT(
     t::Int64,
     light_distr::Distribution1D,
     light_num::Int64,
-    camera::Camera,
+    camera::AbstractCamera,
     sampler::AbstractSampler,
     pfilm::Pnt2,
     sampled_v_buf::Vertex,

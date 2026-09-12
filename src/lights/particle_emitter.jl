@@ -16,7 +16,7 @@ end
 # Superluminal interval: (t_start, t_end, refractive_index)
 const SLInterval = Tuple{Float64, Float64, Float64}
 
-mutable struct ParticleEmitter <: Light
+mutable struct ParticleEmitter <: AbstractLight
     flags::LightFlags
     shape::Handle{:Shape}
     velocity::Float64        # v/c
@@ -36,7 +36,7 @@ mutable struct ParticleEmitter <: Light
     prob_sl::Float64
 
     function ParticleEmitter(
-        shape::Shape;
+        shape::AbstractShape;
         velocity::Float64        = 0.8,
         range::Float64           = 50.0,
         cherenkov_scale::Float64 = 1000.0,
@@ -86,7 +86,7 @@ end
 
 # Called once after BVH is built. Traces each particle through the scene and
 # finds the superluminal intervals + Frank-Tamm spectra.
-function preprocess!(light::ParticleEmitter, bvh::BVHAccel)
+function preprocess!(light::ParticleEmitter, bvh::AbstractBVHAccel)
     rng = MersenneTwister(light.seed)
 
     # Spawn particles: sample points + normals on the shape surface

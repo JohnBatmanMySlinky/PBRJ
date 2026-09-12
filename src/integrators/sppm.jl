@@ -4,7 +4,7 @@
 # Designed specifically for the ParticleEmitter Cherenkov light in scene23.
 
 struct SPPMIntegrator <: AbstractIntegrator
-    camera::C where C <: Camera
+    camera::C where C <: AbstractCamera
     sampler::S where S <: AbstractSampler
     max_depth::Int64
     n_iterations::Int64
@@ -12,7 +12,7 @@ struct SPPMIntegrator <: AbstractIntegrator
     initial_radius::Float64
 
     function SPPMIntegrator(
-        camera::C where C <: Camera, 
+        camera::C where C <: AbstractCamera, 
         sampler::S where S <: AbstractSampler, 
         film::Film,
         max_depth::Int64,

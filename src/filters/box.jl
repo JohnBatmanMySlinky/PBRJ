@@ -1,4 +1,4 @@
-struct BoxFilter <: Filter
+struct BoxFilter <: AbstractFilter
     radius::Pnt2
 end
 

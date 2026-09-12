@@ -68,8 +68,8 @@ end
 
 function make_scene114(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     primitives = Primitive[]
-    lights = Light[]
-    materials = Material[]
+    lights = AbstractLight[]
+    materials = AbstractMaterial[]
 
     WORLD_MAX = 100.0
     WORLD_MIN = -100.0

@@ -35,14 +35,14 @@ end
 ##################
 
 # Define specific operation types
-struct SDFUnion <: SDFOperation
+struct SDFUnion <: AbstractSDFOperation
     k::Float64  # Smoothing parameter
     left::Handle{:Shape}
     right::Handle{:Shape}
     bounding_sphere::RayTracing.Sphere
     core::ShapeCore
 
-    function SDFUnion(k::Float64, left::ImplicitSurface, right::ImplicitSurface, core::ShapeCore)
+    function SDFUnion(k::Float64, left::AbstractImplicitSurface, right::AbstractImplicitSurface, core::ShapeCore)
         return new(k, to_shape_handle(left), to_shape_handle(right), union_bounding_spheres(left.bounding_sphere, right.bounding_sphere), core)
     end
 end
@@ -58,7 +58,7 @@ function ObjectBounds(s::SDFUnion)::Bounds3
     )
 end
 
-function ObjectBounds(s::SDFPrimitive)::Bounds3
+function ObjectBounds(s::AbstractSDFPrimitive)::Bounds3
     r = s.bounding_sphere.radius
     return Bounds3(
         Pnt3(-r, -r, -r),
@@ -71,7 +71,7 @@ end
 ##################
 # https://iquilezles.org/articles/distfunctions/
 
-struct SDFSphere <: SDFPrimitive
+struct SDFSphere <: AbstractSDFPrimitive
     radius::Float64
     core::RayTracing.ShapeCore
     bounding_sphere::RayTracing.Sphere
@@ -85,7 +85,7 @@ struct SDFSphere <: SDFPrimitive
     end
 end
 
-struct SDFDisplacedSphere <: SDFPrimitive
+struct SDFDisplacedSphere <: AbstractSDFPrimitive
     radius::Float64
     core::RayTracing.ShapeCore
     bounding_sphere::RayTracing.Sphere
@@ -103,7 +103,7 @@ struct SDFDisplacedSphere <: SDFPrimitive
     end
 end
 
-struct SDFBox <: SDFPrimitive
+struct SDFBox <: AbstractSDFPrimitive
     half_extents::RayTracing.Pnt3  # half-width, half-height, half-depth
     core::RayTracing.ShapeCore
     bounding_sphere::RayTracing.Sphere
@@ -117,7 +117,7 @@ struct SDFBox <: SDFPrimitive
     end
 end
 
-struct SDFTorus <: SDFPrimitive
+struct SDFTorus <: AbstractSDFPrimitive
     t::Vec2
     core::RayTracing.ShapeCore
     bounding_sphere::RayTracing.Sphere
@@ -131,7 +131,7 @@ struct SDFTorus <: SDFPrimitive
     end
 end
 
-struct SDFFrameBox <: SDFPrimitive
+struct SDFFrameBox <: AbstractSDFPrimitive
     b::Pnt3
     e::Float64
     core::ShapeCore
@@ -147,7 +147,7 @@ struct SDFFrameBox <: SDFPrimitive
     end
 end
 
-struct SDFRoundedCone <: SDFPrimitive
+struct SDFRoundedCone <: AbstractSDFPrimitive
     r1::Float64
     r2::Float64
     h::Float64
@@ -165,7 +165,7 @@ struct SDFRoundedCone <: SDFPrimitive
     end
 end
 
-struct SDFHexagonalPrism <: SDFPrimitive
+struct SDFHexagonalPrism <: AbstractSDFPrimitive
     h::Vec2
     core::ShapeCore
     bounding_sphere::Sphere
@@ -179,7 +179,7 @@ struct SDFHexagonalPrism <: SDFPrimitive
     end
 end
 
-struct SDFQuad <: SDFPrimitive
+struct SDFQuad <: AbstractSDFPrimitive
     a::Vec3
     b::Vec3
     c::Vec3
@@ -375,11 +375,11 @@ end
 #################
 
 # Main evaluation function - dispatches to specialized methods
-function f(element::ImplicitSurface, p::RayTracing.Pnt3)::Float64
+function f(element::AbstractImplicitSurface, p::RayTracing.Pnt3)::Float64
     return evaluate(element, p)
 end
 
 # Compatibility with ray evaluation
-function f(element::ImplicitSurface, t::Float64, r::RayTracing.AbstractRay)::Float64
+function f(element::AbstractImplicitSurface, t::Float64, r::RayTracing.AbstractRay)::Float64
     return f(element, RayTracing.at(r, t))
 end

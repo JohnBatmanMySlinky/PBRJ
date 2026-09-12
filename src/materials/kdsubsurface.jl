@@ -6,7 +6,7 @@ struct KdSubSurface{
     U <: AbstractTexture{Float64},
     V <: AbstractTexture{Float64},
     BM <: Maybe{AbstractTexture{Float64}}
-} <: Material
+} <: AbstractMaterial
     Kd::KD
     Kr::KR
     Kt::KT
@@ -55,7 +55,7 @@ struct SubSurface{
     U <: AbstractTexture{Float64},
     V <: AbstractTexture{Float64},
     BM <: Maybe{AbstractTexture{Float64}}
-} <: Material
+} <: AbstractMaterial
     Kr::KR
     Kt::KT
     sigma_a::SA
@@ -106,7 +106,7 @@ struct SeperableBSSRDF{M}
     material_name::String
     mode::Type{M}
 
-    function SeperableBSSRDF(po::SurfaceInteraction, material::Material, mode::Type{M}) where {M}
+    function SeperableBSSRDF(po::SurfaceInteraction, material::AbstractMaterial, mode::Type{M}) where {M}
         ns = po.shading.n
         ss = normalize(po.shading.dpdu)
         ts = cross(ns, ss)

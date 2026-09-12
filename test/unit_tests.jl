@@ -788,7 +788,7 @@ end
 
 function build_analytic_scene(parsed_args::Dict)::Tuple{RayTracing.AbstractIntegrator, RayTracing.Scene}
     primitives = RayTracing.Primitive[]
-    lights = RayTracing.Light[]
+    lights = RayTracing.AbstractLight[]
 
     # materials
     mat_sphere = RayTracing.Matte(

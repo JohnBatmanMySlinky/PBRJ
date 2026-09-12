@@ -5,7 +5,7 @@ struct CameraCore
     shutter_open::Float64
     shutter_closed::Float64
     film::Union{Film, PassFilm}
-    medium::Maybe{Medium}
+    medium::Maybe{AbstractMedium}
 
     function CameraCore(
         camera_to_world::Transformation,

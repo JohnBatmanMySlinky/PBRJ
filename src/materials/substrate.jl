@@ -4,7 +4,7 @@ struct Substrate{
     U <: Maybe{AbstractTexture{Float64}},
     V <: Maybe{AbstractTexture{Float64}},
     BM <: Maybe{AbstractTexture{Float64}}
-} <: Material
+} <: AbstractMaterial
     Kd::KD
     Ks::KS
     u_roughness::U

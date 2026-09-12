@@ -30,11 +30,12 @@ const SHAPE_REGISTRY_LOCK = ReentrantLock()
 
 to_shape_handle(::Nothing) = nothing
 to_shape_handle(h::Handle{:Shape}) = h
-to_shape_handle(s::Shape) = lock(() -> push!(SHAPE_REGISTRY[], s), SHAPE_REGISTRY_LOCK)
+to_shape_handle(s::AbstractShape) = lock(() -> push!(SHAPE_REGISTRY[], s), SHAPE_REGISTRY_LOCK)
 
 get_shape(h::Handle{:Shape}) = dispatch(identity, SHAPE_REGISTRY[], h)
 
 intersect(h::Handle{:Shape}, r::AbstractRay) = dispatch(intersect, SHAPE_REGISTRY[], h, r)
+intersect_geom(h::Handle{:Shape}, r::AbstractRay) = dispatch(intersect_geom, SHAPE_REGISTRY[], h, r)
 intersect_p(h::Handle{:Shape}, r::AbstractRay) = dispatch(intersect_p, SHAPE_REGISTRY[], h, r)
 world_bounds(h::Handle{:Shape}) = dispatch(world_bounds, SHAPE_REGISTRY[], h)
 area(h::Handle{:Shape}) = dispatch(area, SHAPE_REGISTRY[], h)
