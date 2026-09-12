@@ -93,6 +93,13 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     ######## Materials ########
     ###########################
     materials = AbstractMaterial[]
+    # `Primitive(shape, "mat_name", ...)` resolves the name against
+    # MATERIAL_REGISTRY[] eagerly (see primitive.jl), so unlike every other
+    # scene file, scene1 mixes material creation in with primitive creation
+    # (the pillar-light loop below defines a new material per iteration and
+    # uses it immediately) -- call this whenever `materials` grows, before
+    # any Primitive() call references the newly added name(s).
+    register_materials!() = (MATERIAL_REGISTRY[] = MaterialRegistry(materials, Dict(mat.name => i for (i, mat) in enumerate(materials))))
     mat_white = Matte(
         "mat_white",
         ConstantTexture(spectrum_from_float(1.0, 1.0, 1.0)),
@@ -214,6 +221,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         true
     )
     push!(materials, mat_metal_door)
+    register_materials!()
 
     ###################################
     ###### GEOMETRICAL CONSTANTS ######
@@ -1067,6 +1075,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             nothing
         )
         push!(materials, mat_parchment)
+        register_materials!()
 
         for tri in tmp_rec
             alight = DiffuseAreaLight(
@@ -1199,8 +1208,7 @@ function make_scene1(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
         push!(primitives, Primitive(tri, "mat_white", alight))
     end
 
-    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
-    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
+    register_materials!()
 
     name_index = Dict(mat.name => i for (i, mat) in enumerate(textures))
     ALPHA_TEXTURE_REGISTRY[] = AlphaTextureRegistry(textures, name_index)
