@@ -108,16 +108,40 @@ const DEFAULT_SUITE = [
         "image-dim" => [200, 200], 
         "samples-per-pixel" => 2
     )),
-    # SceneBenchmark(17, "barcelona_pavillion"; extra_args=Dict(
-    #     "integrator" => "volpath", 
-    #     "image-dim" => [500, 500], 
-    #     "samples-per-pixel" => 8
-    # )),
-    # SceneBenchmark(105, "doug"; extra_args=Dict(
-    #     "integrator" => "volpath", 
-    #     "image-dim" => [500, 500], 
-    #     "samples-per-pixel" => 2
-    # )),
+    SceneBenchmark(16, "elevators"; extra_args=Dict(
+        "image-dim" => [640, 360], 
+        "samples-per-pixel" => 16
+    )),
+    SceneBenchmark(17, "barcelona_pavillion"; extra_args=Dict(
+        "integrator" => "volpath", 
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 8
+    )),
+    SceneBenchmark(18, "SDFs"; extra_args=Dict(
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 8
+    )),
+    SceneBenchmark(19, "bunny-cloud"; extra_args=Dict(
+        "image-dim" => [200, 200], 
+        "samples-per-pixel" => 4
+    )),
+    SceneBenchmark(20, "explosion"; extra_args=Dict(
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 4
+    )),
+    SceneBenchmark(21, "sanmiguel"; extra_args=Dict(
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 4
+    )),
+    SceneBenchmark(22, "ground-explosion"; extra_args=Dict(
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 4
+    )),
+    SceneBenchmark(105, "doug"; extra_args=Dict(
+        "integrator" => "volpath", 
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 2
+    )),
 ]
 
 resolve_dims_spp(scene::SceneBenchmark, default_dims::Vector{Int}, default_spp::Int) =
