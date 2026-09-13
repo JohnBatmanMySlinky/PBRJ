@@ -11,6 +11,9 @@ function make_scene3(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
     )
     push!(materials, mat_white)
 
+    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
+    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
+
     # instantiate objects
     floor_t = Translate(Pnt3(0, 0, -40))
     foor_sc = ShapeCore(
@@ -45,9 +48,6 @@ function make_scene3(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}
             push!(primitives, Primitive(tri, "mat_white", nothing))
         end
     end
-
-    name_index = Dict(mat.name => i for (i, mat) in enumerate(materials))
-    MATERIAL_REGISTRY[] = MaterialRegistry(materials, name_index)
 
     # instantiate accelerator
     print("\nThere are " * num2str(length(primitives)) * " objects in the scene, building BVH\n")

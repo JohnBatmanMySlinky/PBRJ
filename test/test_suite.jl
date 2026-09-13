@@ -37,6 +37,18 @@ SceneBenchmark(number, name; dims=nothing, spp=-1, extra_args=Dict{String,Any}()
 # Tune dims/spp/extra_args per scene here as needed (e.g. volumetric scenes
 # often want higher spp, heavy-mesh scenes want smaller dims to stay fast).
 const DEFAULT_SUITE = [
+    SceneBenchmark(1, "indoor"; extra_args=Dict(
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 36
+    )),
+    SceneBenchmark(2, "caustic-glass"; extra_args=Dict(
+        "image-dim" => [525, 750], 
+        "samples-per-pixel" => 30
+    )),
+    SceneBenchmark(3, "ao-dragon"; extra_args=Dict(
+        "image-dim" => [1000, 1000], 
+        "samples-per-pixel" => 32
+    )),
     SceneBenchmark(4, "cornell_box"; extra_args=Dict(
         "integrator" => "volpath", 
         "image-dim" => [500, 500], 
@@ -53,8 +65,32 @@ const DEFAULT_SUITE = [
         "n-iterations" => 20,
         "photons-per-iteration" => 10_000
     )),
+    SceneBenchmark(5, "soft_bodies"; extra_args=Dict(
+        "image-dim" => [200, 200],
+        "samples-per-pixel" => 16
+    )),
+    SceneBenchmark(6, "goursat"; extra_args=Dict(
+        "image-dim" => [200, 200],
+        "samples-per-pixel" => 16
+    )),
+    SceneBenchmark(7, "julia-logo"; extra_args=Dict(
+        "image-dim" => [200, 200],
+        "samples-per-pixel" => 16
+    )),
+    SceneBenchmark(8, "tree"; extra_args=Dict(
+        "image-dim" => [500, 500],
+        "samples-per-pixel" => 32
+    )),
+    SceneBenchmark(9, "lte-orb"; extra_args=Dict(
+        "image-dim" => [200, 200],
+        "samples-per-pixel" => 4
+    )),
     SceneBenchmark(10, "plume"; extra_args=Dict(
         "integrator" => "volpath", 
+        "image-dim" => [500, 500], 
+        "samples-per-pixel" => 8
+    )),
+    SceneBenchmark(11, "dragon-material"; extra_args=Dict(
         "image-dim" => [500, 500], 
         "samples-per-pixel" => 8
     )),
@@ -68,16 +104,20 @@ const DEFAULT_SUITE = [
         "image-dim" => [500, 500], 
         "samples-per-pixel" => 2
     )),
-    SceneBenchmark(17, "barcelona_pavillion"; extra_args=Dict(
-        "integrator" => "volpath", 
-        "image-dim" => [500, 500], 
-        "samples-per-pixel" => 8
-    )),
-    SceneBenchmark(105, "doug"; extra_args=Dict(
-        "integrator" => "volpath", 
-        "image-dim" => [500, 500], 
+    SceneBenchmark(14, "anemone"; extra_args=Dict(
+        "image-dim" => [200, 200], 
         "samples-per-pixel" => 2
     )),
+    # SceneBenchmark(17, "barcelona_pavillion"; extra_args=Dict(
+    #     "integrator" => "volpath", 
+    #     "image-dim" => [500, 500], 
+    #     "samples-per-pixel" => 8
+    # )),
+    # SceneBenchmark(105, "doug"; extra_args=Dict(
+    #     "integrator" => "volpath", 
+    #     "image-dim" => [500, 500], 
+    #     "samples-per-pixel" => 2
+    # )),
 ]
 
 resolve_dims_spp(scene::SceneBenchmark, default_dims::Vector{Int}, default_spp::Int) =
