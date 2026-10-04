@@ -101,6 +101,8 @@ scene 113: matchbulb
     - caffeinate -di julia -t 4 RayTracing.jl --scene-number 113 --image-dim 640 360 --samples-per-pixel 12 --file-name "113-matchbulb.exr"
 scene 114: procedural city
     - caffeinate -di julia -t 4 RayTracing.jl --scene-number 114 --image-dim 640 360 --samples-per-pixel 12 --file-name "114-procedural_city.exr"
+scene 115: framebox
+    - caffeinate -di julia -t 4 RayTracing.jl --scene-number 114 --image-dim 500 500 --samples-per-pixel 12 --file-name "114-framebox.exr"
 """
 
 const SCENE_BUILDERS = Dict{Int, Function}(
@@ -117,7 +119,7 @@ const SCENE_BUILDERS = Dict{Int, Function}(
     105 => make_scene105, 106 => make_scene106,  107 => make_scene107,
     108 => make_scene108, 109 => make_scene109,  110 => make_scene110,
     111 => make_scene111, 112 => make_scene112,  113 => make_scene113,
-    114 => make_scene114,
+    114 => make_scene114, 115 => make_scene115
 )
 
 function build_scene(parsed_args::Dict)::Tuple{AbstractIntegrator, Scene}

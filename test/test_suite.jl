@@ -73,10 +73,20 @@ const DEFAULT_SUITE = [
         "image-dim" => [500, 500], 
         "samples-per-pixel" => 8
     )),
+    SceneBenchmark(18, "sdfs"; extra_args=Dict(
+        "integrator" => "volpath", 
+        "image-dim" => [250, 250], 
+        "samples-per-pixel" => 4
+    )),
     SceneBenchmark(105, "doug"; extra_args=Dict(
         "integrator" => "volpath", 
         "image-dim" => [500, 500], 
         "samples-per-pixel" => 2
+    )),
+    SceneBenchmark(115, "framebox"; extra_args=Dict(
+        "integrator" => "volpath", 
+        "image-dim" => [250, 250], 
+        "samples-per-pixel" => 4
     )),
 ]
 
