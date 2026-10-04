@@ -64,6 +64,49 @@ function intersect_t(s::AbstractImplicitSurface, r::AbstractRay)::Float64
     return t
 end
 
+const SPHERE_TRACE_EPS = 1e-5
+const SPHERE_TRACE_MAX_STEPS = 512
+
+# Sphere tracing for true SDFs, where |f(p)| <= distance to the surface.
+# Goursat & metaballs aren't distance fields so they keep the find_zeros path above.
+function intersect_t(s::Union{AbstractSDFPrimitive, AbstractSDFOperation}, r::AbstractRay)::Float64
+    check, t0, t1 = intersect_simple(s.bounding_sphere, r)
+    (!check || t1 < 0.0) && return -1.0
+
+    # f is in object space distance, t is in units of the (possibly unnormalized) ray direction
+    inv_dir_len = 1.0 / norm(r.direction)
+    t_end = min(t1, r.tMax[])
+    t = max(t0, 0.0)
+    d = f(s, t, r)
+
+    # origin sits on the surface (e.g. spawned ray), nudge off it before tracing
+    while abs(d) < SPHERE_TRACE_EPS && t <= t_end
+        t += 2.0 * SPHERE_TRACE_EPS * inv_dir_len
+        d = f(s, t, r)
+    end
+
+    for _ in 1:SPHERE_TRACE_MAX_STEPS
+        t_prev, d_prev = t, d
+        t += abs(d) * inv_dir_len
+        t > t_end && return -1.0
+        d = f(s, t, r)
+
+        # stepped through the surface (bound not tight, e.g. smooth union / displacement), bisect
+        if sign(d) != sign(d_prev) && d != 0.0
+            lo, hi = t_prev, t
+            for _ in 1:32
+                mid = 0.5 * (lo + hi)
+                (sign(f(s, mid, r)) == sign(d_prev)) ? (lo = mid) : (hi = mid)
+            end
+            return 0.5 * (lo + hi)
+        end
+
+        abs(d) < SPHERE_TRACE_EPS && return t
+    end
+
+    return -1.0
+end
+
 function intersect(s::AbstractImplicitSurface, r::AbstractRay)::Tuple{Bool, Float64, SurfaceInteraction}
     # transform ray to local space
     rr = s.core.world_to_object(r)
